@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./fasternfaster.api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build:
+      context: ./fasternfasterapp
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      - ./fasternfasterapp/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
