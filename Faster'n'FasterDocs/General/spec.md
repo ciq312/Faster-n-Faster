@@ -1,3 +1,6 @@
+---
+aliases:
+---
 # Faster-n-Faster
 
 ## Summary
@@ -96,14 +99,23 @@ Comments are shown in real time during a race, triggered by a player's current W
 
 ## Open Questions
 
-1. What is the maximum number of players per lobby? (Affects real-time update frequency and UI layout.)
-2. Should game text (the passage to type) be randomly selected from a pool, or fixed per game mode?
+1. What is the maximum number of players per lobby? (Affects real-time update frequency and UI layout.) 
+	Probably 30
+
+2. Should game text (the passage to type) be randomly selected from a pool, or 	fixed per game mode?	
+    Initially let's say it fixed but later will be randomly selected
 3. Should WPM be calculated gross or net (i.e., do mistakes reduce WPM)?
+    Probably yes and this a  preference I will figure it out later
 4. Is there a minimum player count to start a race, or can a solo player race against themselves?
+	 solo can race
 5. What happens to a private lobby after the race ends — does the invite code persist for a rematch?
+	It should probably proceed so they can start a new lobby no instant aborting after game ends
 6. Should the display name be validated (length, profanity filter)?
+	yes length 
 7. Are live comments shown to the player who triggered them, or only to other players?
+	the comments is the feature that is every player has and it is different based on the PLAYER's WPM
 8. Should comments be shown as a toast/overlay on screen or in a dedicated side panel?
+	that's a deisgn matter and I wanted to figure it out later but as I see it in top of the page 
 
 ---
 
