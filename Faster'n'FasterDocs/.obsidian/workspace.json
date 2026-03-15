@@ -1,0 +1,214 @@
+{
+  "main": {
+    "id": "a7d4cfdd9e9cd77d",
+    "type": "split",
+    "children": [
+      {
+        "id": "672493a0cdab8f34",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c448276ef62bfdd1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "General/Design doc.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Design doc"
+            }
+          }
+        ]
+      },
+      {
+        "id": "88783bd68fda1b27",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5ab64c8192157415",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2768f5a74435b742",
+    "type": "split",
+    "children": [
+      {
+        "id": "1ee042ddf0540d82",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9e22ea65d5a3ed67",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "0e7afbbdccdc0c0e",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "168bc2bc46b20c93",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "ce191413296099a6",
+    "type": "split",
+    "children": [
+      {
+        "id": "2b954028f2fd8a12",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6aceeba6d2c6482b",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "General/Design doc.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Design doc"
+            }
+          },
+          {
+            "id": "2168b55e39246b20",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "General/Design doc.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Design doc"
+            }
+          },
+          {
+            "id": "9b6d1e6fe28cb460",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "3b6eb000d8594705",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "724d3717641f9499",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "General/Design doc.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Design doc"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "c448276ef62bfdd1",
+  "lastOpenFiles": [
+    "General/spec.md",
+    "General/Design doc.md",
+    "General/To do.md",
+    "Untitled.base",
+    "Welcome.md",
+    "General",
+    "Back-end",
+    "Database",
+    "Front-end"
+  ]
+}
