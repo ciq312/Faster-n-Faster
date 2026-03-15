@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Secrets
+.env
+.env.*
+
+# Build output (rebuilt inside Docker)
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Frontend (not needed for backend image)
+../fasternfasterapp/
+
+# Docs
+../Faster'n'FasterDocs/
+
+# Claude
+../.claude/
+
+# Docker files themselves
+Dockerfile
+.dockerignore
