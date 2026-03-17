@@ -21,8 +21,10 @@ var databaseUrl =
     ?? throw new InvalidOperationException("DATABASE_URL is not set.");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(databaseUrl));
-
 builder.Services.AddSignalR();
+builder.Services.AddFastEndpoints();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApiDocument();
 
 // // CORS
 // var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS") ?? "").Split(
@@ -36,10 +38,6 @@ builder.Services.AddSignalR();
 //         policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); // required for SignalR
 //     });
 // });
-
-builder.Services.AddFastEndpoints();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApiDocument();
 
 var app = builder.Build();
 
