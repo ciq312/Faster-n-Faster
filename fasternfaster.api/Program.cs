@@ -1,13 +1,52 @@
+global using FluentValidation;
+using DotNetEnv;
+using FastEndpoints;
+using FasterNFaster.Api.Infrastructure.Data;
+using FasterNFaster.Api.Infrastructure.Hubs;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
+    .CreateLogger();
+
+if (File.Exists(".env"))
+    Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddOpenApiDocument(); // NSwag generates the spec
+var databaseUrl =
+    Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? throw new InvalidOperationException("DATABASE_URL is not set.");
+
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(databaseUrl));
+
+builder.Services.AddSignalR();
+
+// // CORS
+// var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS") ?? "").Split(
+//     ',',
+//     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+// );
+// builder.Services.AddCors(options =>
+// {
+//     options.AddDefaultPolicy(policy =>
+//     {
+//         policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); // required for SignalR
+//     });
+// });
+
+builder.Services.AddFastEndpoints();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApiDocument();
 
 var app = builder.Build();
 
-app.UseOpenApi(); // serves /swagger/v1/swagger.json
-app.UseSwaggerUi(); // serves /swagger/index.html
-
-app.MapControllers();
+// app.UseCors();
+app.UseOpenApi();
+app.UseSwaggerUi();
+app.UseFastEndpoints();
+app.MapHub<GameHub>("/gameHub");
 
 app.Run();
