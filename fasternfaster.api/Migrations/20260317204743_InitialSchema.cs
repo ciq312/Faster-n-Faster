@@ -12,33 +12,20 @@ namespace FasterNFaster.Api.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "comment_thresholds",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    min_wpm = table.Column<double>(type: "double precision", nullable: false),
-                    max_wpm = table.Column<double>(type: "double precision", nullable: false),
-                    comment_text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    cooldown_seconds = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_comment_thresholds", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "lobbies",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    game_mode = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     is_private = table.Column<bool>(type: "boolean", nullable: false),
                     invite_code = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: true),
                     status = table.Column<string>(type: "text", nullable: false),
                     host_player_id = table.Column<Guid>(type: "uuid", nullable: true),
                     max_players = table.Column<int>(type: "integer", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    word_count = table.Column<int>(type: "integer", nullable: true),
+                    timer_duration_seconds = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -108,6 +95,13 @@ namespace FasterNFaster.Api.Migrations
                 filter: "\"invite_code\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_lobbies_name",
+                table: "lobbies",
+                column: "name",
+                unique: true,
+                filter: "\"status\" <> 'finished'");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_lobby_players_lobby_id",
                 table: "lobby_players",
                 column: "lobby_id");
@@ -126,9 +120,6 @@ namespace FasterNFaster.Api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "comment_thresholds");
-
             migrationBuilder.DropTable(
                 name: "race_results");
 
