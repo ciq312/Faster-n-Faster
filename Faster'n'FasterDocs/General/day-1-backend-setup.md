@@ -1,4 +1,4 @@
-# Day 1 — ASP.NET Core Backend Setup
+	# Day 1 — ASP.NET Core Backend Setup
 
 **Goal:** Backend project created, Docker running PostgreSQL + Redis, API booting with correct folder structure.
 
