@@ -14,12 +14,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Backend | ASP.NET Core (C#) |
 | Real-time | SignalR (WebSockets) |
 | Persistent DB | PostgreSQL |
-| Ephemeral / pub-sub | Redis (also SignalR backplane) |
+| Ephemeral / pub-sub
 
 ## Architecture
 
 - **Server-authoritative typing validation**: The client only renders visual feedback locally. Every keystroke index is sent to the server, which validates it against the source passage before updating Redis and broadcasting progress. Never trust client-reported progress.
-- **Live game state in Redis**: Player positions and progress percentages live in Redis (ephemeral). PostgreSQL stores lobby metadata, completed race results, and `comment_thresholds`.
 - **SignalR hub**: Handles connect/disconnect, countdown broadcasts, keystroke validation responses, live comment broadcasts, and race end events. Redis is the SignalR backplane for horizontal scaling.
 - **Live comments engine**: Server-side — evaluates per-player WPM against configurable thresholds (stored in PostgreSQL, not hardcoded), broadcasts comment + player name to the whole lobby when a threshold is crossed. Per-player cooldown prevents spam.
 
@@ -36,7 +35,6 @@ Tables: `lobbies`, `lobby_players`, `race_results`, `comment_thresholds`
 - **Host promotion**: if the host disconnects, promote the next player in the lobby list.
 - **Disconnected player mid-race**: cursor freezes, race continues, player excluded from results.
 - **Tiebreaker**: server timestamp when two players finish simultaneously.
-- **Redis down**: fail gracefully — race unavailable, no silent data corruption.
 - **Comment thresholds** must be configurable (DB or config file), not hardcoded, so they can be tuned without redeploy.
 
 ## Game Modes (v1)
@@ -68,20 +66,19 @@ Interfaces/    — Contracts (IRepository<T>, ILobbyService, etc.). Defined here
 Services/      — Business logic and orchestration. Depend on interfaces, never on DbContext or controllers directly.
 Data/          — DbContext, repository implementations, migrations, entity configurations. The only place that knows about PostgreSQL.
 Hubs/          — SignalR hubs. Thin — validate input, call services, broadcast results.
-Controllers/   — HTTP endpoints. Thin — validate input, call services, return DTOs.
-```
+FastEndPoints/ endpoints for every new request```
 
 ### Rules to Follow
 
 1. **Dependencies flow inward.** Controllers/Hubs → Services → Interfaces ← Data. Never the reverse. A service must not reference a controller. Data implements interfaces but is never referenced by services directly.
 
-2. **Controllers and Hubs are thin.** They handle HTTP/SignalR concerns (request parsing, validation, response shaping) and delegate to services. No business logic in controllers or hubs. If a method has an `if` that isn't about validation or response codes, it belongs in a service.
+2. **Endpoints and Hubs are thin.** They handle HTTP/SignalR concerns (request parsing, validation, response shaping) and delegate to services. No business logic in controllers or hubs. If a method has an `if` that isn't about validation or response codes, it belongs in a service.
 
 3. **Services contain business logic.** "If the lobby is private, generate an invite code" lives in a service (or the entity itself), not in a controller. Services depend on interfaces (`IRepository<T>`), not on `AppDbContext` directly.
 
 4. **Entities own their invariants.** Use `private set` on properties. If an entity has rules about its own state (e.g., "status can only transition from waiting → racing → finished"), enforce them inside the entity with methods. Don't let outside code set properties freely.
 
-5. **Use DTOs at API boundaries.** Never return an entity directly from a controller. Map to a DTO that contains only what the client needs. This decouples your database schema from your API contract.
+5. **Use DTOs at API boundaries.** Never return an entity directly from an end point. Map to a DTO that contains only what the client needs. This decouples your database schema from your API contract.
 
 6. **Program against interfaces for external dependencies.** Anything that talks to a database, cache, or external service should have an interface. This makes the code testable and swappable. Don't create interfaces for things that won't change (e.g., string utilities, pure functions).
 
@@ -105,6 +102,5 @@ Controllers/   — HTTP endpoints. Thin — validate input, call services, retur
 
 ## Dev Environment Notes
 
-- Local Redis via Docker for development.
 - Environment config via `.env`: DB connection strings, Redis URL, CORS origins.
 - Docs are in `Faster'n'FasterDocs/General/` (Obsidian vault) — `spec.md` is the authoritative spec.

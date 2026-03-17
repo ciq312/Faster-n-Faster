@@ -22,36 +22,6 @@ namespace FasterNFaster.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.CommentThreshold", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("CommentText")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("comment_text");
-
-                    b.Property<int>("CooldownSeconds")
-                        .HasColumnType("integer")
-                        .HasColumnName("cooldown_seconds");
-
-                    b.Property<double>("MaxWpm")
-                        .HasColumnType("double precision")
-                        .HasColumnName("max_wpm");
-
-                    b.Property<double>("MinWpm")
-                        .HasColumnType("double precision")
-                        .HasColumnName("min_wpm");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("comment_thresholds");
-                });
-
             modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Lobby", b =>
                 {
                     b.Property<Guid>("Id")
@@ -62,11 +32,6 @@ namespace FasterNFaster.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
-
-                    b.Property<string>("GameMode")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("game_mode");
 
                     b.Property<Guid?>("HostPlayerId")
                         .HasColumnType("uuid")
@@ -85,6 +50,12 @@ namespace FasterNFaster.Api.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("max_players");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -99,6 +70,10 @@ namespace FasterNFaster.Api.Migrations
                     b.HasIndex("InviteCode")
                         .IsUnique()
                         .HasFilter("\"invite_code\" IS NOT NULL");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"status\" <> 'finished'");
 
                     b.ToTable("lobbies");
                 });
@@ -194,6 +169,47 @@ namespace FasterNFaster.Api.Migrations
                     b.HasIndex("LobbyPlayerId");
 
                     b.ToTable("race_results");
+                });
+
+            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Lobby", b =>
+                {
+                    b.OwnsOne("FasterNFaster.Api.Core.Entities.TimerRace", "TimerRace", b1 =>
+                        {
+                            b1.Property<Guid>("LobbyId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("TimerDurationSeconds")
+                                .HasColumnType("integer")
+                                .HasColumnName("timer_duration_seconds");
+
+                            b1.HasKey("LobbyId");
+
+                            b1.ToTable("lobbies");
+
+                            b1.WithOwner()
+                                .HasForeignKey("LobbyId");
+                        });
+
+                    b.OwnsOne("FasterNFaster.Api.Core.Entities.WordRace", "WordRace", b1 =>
+                        {
+                            b1.Property<Guid>("LobbyId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("WordCount")
+                                .HasColumnType("integer")
+                                .HasColumnName("word_count");
+
+                            b1.HasKey("LobbyId");
+
+                            b1.ToTable("lobbies");
+
+                            b1.WithOwner()
+                                .HasForeignKey("LobbyId");
+                        });
+
+                    b.Navigation("TimerRace");
+
+                    b.Navigation("WordRace");
                 });
 
             modelBuilder.Entity("FasterNFaster.Api.Core.Entities.LobbyPlayer", b =>

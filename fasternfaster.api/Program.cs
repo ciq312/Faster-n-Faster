@@ -3,6 +3,8 @@ using DotNetEnv;
 using FastEndpoints;
 using FasterNFaster.Api.Infrastructure.Data;
 using FasterNFaster.Api.Infrastructure.Hubs;
+using FasterNFaster.Api.Infrastructure.Store;
+using FasterNFaster.Api.Web.DependencyInversion;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -25,6 +27,9 @@ builder.Services.AddSignalR();
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+builder.Services.AddHandlers();
+builder.Services.AddRepositories();
+builder.Services.AddSingleton<LobbyStore>();
 
 // // CORS
 // var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS") ?? "").Split(

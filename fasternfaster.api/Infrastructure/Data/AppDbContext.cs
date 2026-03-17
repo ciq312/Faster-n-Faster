@@ -10,7 +10,6 @@ public class AppDbContext : DbContext
     public DbSet<Lobby> Lobbies => Set<Lobby>();
     public DbSet<LobbyPlayer> LobbyPlayers => Set<LobbyPlayer>();
     public DbSet<RaceResult> RaceResults => Set<RaceResult>();
-    public DbSet<CommentThreshold> CommentThresholds => Set<CommentThreshold>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,9 +17,27 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique()
+                .HasFilter("\"status\" <> 'finished'");
+
             entity.HasIndex(e => e.InviteCode)
                 .IsUnique()
                 .HasFilter("\"invite_code\" IS NOT NULL");
+
+            entity.OwnsOne(e => e.WordRace, wr =>
+            {
+                wr.Property(r => r.WordCount).HasColumnName("word_count");
+            });
+
+            entity.OwnsOne(e => e.TimerRace, tr =>
+            {
+                tr.Property(r => r.TimerDurationSeconds).HasColumnName("timer_duration_seconds");
+            });
 
             entity.HasMany(e => e.Players)
                 .WithOne(p => p.Lobby)
@@ -48,9 +65,5 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
         });
 
-        modelBuilder.Entity<CommentThreshold>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-        });
     }
 }

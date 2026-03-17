@@ -6,7 +6,8 @@ namespace FasterNFaster.Api.Core.Entities;
 [Table("lobbies")]
 public class Lobby
 {
-    private static readonly HashSet<string> ValidGameModes = new() { "word_count", "timer" };
+    private static readonly char[] AlphanumericChars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
 
     // waiting -> racing -> finished
     private static readonly Dictionary<string, string> AllowedTransitions = new()
@@ -18,8 +19,9 @@ public class Lobby
     [Column("id")]
     public Guid Id { get; private set; }
 
-    [Column("game_mode")]
-    public string GameMode { get; private set; } = null!;
+    [Column("name")]
+    [MaxLength(100)]
+    public string Name { get; private set; } = null!;
 
     [Column("is_private")]
     public bool IsPrivate { get; private set; }
@@ -43,32 +45,60 @@ public class Lobby
     [Column("updated_at")]
     public DateTime UpdatedAt { get; private set; }
 
+    public WordRace? WordRace { get; private set; }
+    public TimerRace? TimerRace { get; private set; }
+
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
 
     private Lobby() { } // EF constructor
 
-    public Lobby(string gameMode, bool isPrivate, string? inviteCode = null)
+    /// <param name="nameExists">Checks whether an active (non-finished) lobby with this name already exists.</param>
+    /// <param name="inviteCodeExists">Checks whether a lobby with this invite code already exists.</param>
+    public static async Task<Lobby> Create(
+        string? name,
+        bool isPrivate,
+        Func<string, Task<bool>> nameExists,
+        Func<string, Task<bool>> inviteCodeExists)
     {
-        if (!ValidGameModes.Contains(gameMode))
-            throw new ArgumentException(
-                $"Invalid game mode: {gameMode}. Must be one of: {string.Join(", ", ValidGameModes)}"
-            );
+        var lobbyName = string.IsNullOrWhiteSpace(name) ? "New Lobby" : name;
 
-        if (isPrivate && string.IsNullOrWhiteSpace(inviteCode))
-            throw new ArgumentException("Private lobbies require an invite code.");
+        if (lobbyName.Length > 100)
+            throw new ArgumentException("Lobby name must be 100 characters or fewer.");
 
-        if (!isPrivate && inviteCode is not null)
-            throw new ArgumentException("Public lobbies must not have an invite code.");
+        if (await nameExists(lobbyName))
+            throw new InvalidOperationException($"A lobby named '{lobbyName}' already exists.");
 
-        if (inviteCode is not null && inviteCode.Length > 8)
-            throw new ArgumentException("Invite code must be 8 characters or fewer.");
+        string? inviteCode = null;
+        if (isPrivate)
+            inviteCode = await GenerateUniqueInviteCode(inviteCodeExists);
 
-        Id = Guid.NewGuid();
-        GameMode = gameMode;
-        IsPrivate = isPrivate;
-        InviteCode = inviteCode;
-        CreatedAt = DateTime.UtcNow;
+        return new Lobby
+        {
+            Id = Guid.NewGuid(),
+            Name = lobbyName,
+            IsPrivate = isPrivate,
+            InviteCode = inviteCode,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+    }
+
+    public IRace GetRace() =>
+        (IRace?)WordRace ?? TimerRace
+        ?? throw new InvalidOperationException("Race has not been configured.");
+
+    public void ConfigureWordRace(int wordCount)
+    {
+        ClearRace();
+        WordRace = new WordRace(wordCount);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ConfigureTimerRace(int timerDurationSeconds)
+    {
+        ClearRace();
+        TimerRace = new TimerRace(timerDurationSeconds);
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -76,8 +106,7 @@ public class Lobby
     {
         if (!AllowedTransitions.TryGetValue(Status, out var expected) || expected != newStatus)
             throw new InvalidOperationException(
-                $"Cannot transition from '{Status}' to '{newStatus}'."
-            );
+                $"Cannot transition from '{Status}' to '{newStatus}'.");
 
         Status = newStatus;
         UpdatedAt = DateTime.UtcNow;
@@ -87,5 +116,28 @@ public class Lobby
     {
         HostPlayerId = playerId;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    private void ClearRace()
+    {
+        WordRace = null;
+        TimerRace = null;
+    }
+
+    private static async Task<string> GenerateUniqueInviteCode(Func<string, Task<bool>> codeExists)
+    {
+        const int codeLength = 6;
+
+        while (true)
+        {
+            var code = string.Create(codeLength, Random.Shared, (span, rng) =>
+            {
+                for (var i = 0; i < span.Length; i++)
+                    span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
+            });
+
+            if (!await codeExists(code))
+                return code;
+        }
     }
 }
