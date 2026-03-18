@@ -13,7 +13,6 @@ public class CreateLobbyRequest
     public bool IsPrivate { get; set; }
     public int? WordCount { get; set; }
     public int? TimerDurationSeconds { get; set; }
-    public string ConnectionId { get; set; } = null!;
 }
 
 public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResult>
@@ -39,8 +38,7 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
             req.GameMode,
             req.IsPrivate,
             req.WordCount,
-            req.TimerDurationSeconds,
-            req.ConnectionId
+            req.TimerDurationSeconds
         );
 
         var result = await _handler.Handle(command);

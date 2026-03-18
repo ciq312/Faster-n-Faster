@@ -36,13 +36,7 @@ public class LobbyPlayer
 
     private LobbyPlayer() { } // EF constructor
 
-    public LobbyPlayer(
-        Guid lobbyId,
-        string displayName,
-        int joinOrder,
-        string connectionId,
-        Guid? userId = null
-    )
+    public LobbyPlayer(Guid lobbyId, string displayName, int joinOrder, Guid? userId = null)
     {
         if (string.IsNullOrWhiteSpace(displayName))
             throw new ArgumentException("Display name is required.");
@@ -54,7 +48,6 @@ public class LobbyPlayer
         LobbyId = lobbyId;
         DisplayName = displayName;
         JoinOrder = joinOrder;
-        ConnectionId = connectionId;
         UserId = userId;
         JoinedAt = DateTime.UtcNow;
     }
