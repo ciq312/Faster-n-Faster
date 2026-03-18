@@ -59,15 +59,10 @@ public class Lobby
         string? name,
         bool isPrivate,
         Func<string, Task<bool>> nameExists,
-        Func<string, Task<bool>> inviteCodeExists)
+        Func<string, Task<bool>> inviteCodeExists
+    )
     {
         var lobbyName = string.IsNullOrWhiteSpace(name) ? "New Lobby" : name;
-
-        if (lobbyName.Length > 100)
-            throw new ArgumentException("Lobby name must be 100 characters or fewer.");
-
-        if (await nameExists(lobbyName))
-            throw new InvalidOperationException($"A lobby named '{lobbyName}' already exists.");
 
         string? inviteCode = null;
         if (isPrivate)
@@ -85,7 +80,8 @@ public class Lobby
     }
 
     public IRace GetRace() =>
-        (IRace?)WordRace ?? TimerRace
+        (IRace?)WordRace
+        ?? TimerRace
         ?? throw new InvalidOperationException("Race has not been configured.");
 
     public void ConfigureWordRace(int wordCount)
@@ -106,7 +102,8 @@ public class Lobby
     {
         if (!AllowedTransitions.TryGetValue(Status, out var expected) || expected != newStatus)
             throw new InvalidOperationException(
-                $"Cannot transition from '{Status}' to '{newStatus}'.");
+                $"Cannot transition from '{Status}' to '{newStatus}'."
+            );
 
         Status = newStatus;
         UpdatedAt = DateTime.UtcNow;
@@ -130,11 +127,15 @@ public class Lobby
 
         while (true)
         {
-            var code = string.Create(codeLength, Random.Shared, (span, rng) =>
-            {
-                for (var i = 0; i < span.Length; i++)
-                    span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
-            });
+            var code = string.Create(
+                codeLength,
+                Random.Shared,
+                (span, rng) =>
+                {
+                    for (var i = 0; i < span.Length; i++)
+                        span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
+                }
+            );
 
             if (!await codeExists(code))
                 return code;

@@ -1,0 +1,76 @@
+.lobby-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lobby-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: #161616;
+  border: 1px solid #252525;
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.lobby-row:hover {
+  background: #1c1c1c;
+  border-color: #363636;
+}
+
+.lobby-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 1rem;
+  color: #f0f0f0;
+}
+
+.lobby-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.lobby-access {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  color: #888;
+}
+
+.lobby-access.public {
+  color: #4ade80;
+  border-color: #166534;
+  background: #052e16;
+}
+
+.lobby-access.private {
+  color: #f59e0b;
+  border-color: #78350f;
+  background: #1c0a00;
+}
+
+.lobby-players {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: #777;
+}
+
+.lobby-list-empty {
+  color: #555;
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 0.95rem;
+}

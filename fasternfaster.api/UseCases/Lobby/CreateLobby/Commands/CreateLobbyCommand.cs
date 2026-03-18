@@ -6,5 +6,5 @@ public record CreateLobbyCommand(
     string GameMode,
     bool IsPrivate,
     int? WordCount,
-    int? TimerDurationSeconds,
-    string ConnectionId);
+    int? TimerDurationSeconds
+);

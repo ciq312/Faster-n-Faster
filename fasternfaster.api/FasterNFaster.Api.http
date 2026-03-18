@@ -1,4 +1,4 @@
-@FasterNFaster.Api_HostAddress = http://localhost:5026
+@FasterNFaster.Api_HostAddress = http://localhost:8080
 
 GET {{FasterNFaster.Api_HostAddress}}/weatherforecast/
 Accept: application/json
