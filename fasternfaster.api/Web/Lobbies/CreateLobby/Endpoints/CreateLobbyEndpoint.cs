@@ -1,13 +1,14 @@
+using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Helpers;
-using FasterNFaster.Api.UseCases.Lobby.CreateLobby.Commands;
-using FasterNFaster.Api.UseCases.Lobby.CreateLobby.Results;
+using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
+using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 
 namespace FasterNFaster.Api.Web.Lobbies.CreateLobby.Endpoints;
 
 public class CreateLobbyRequest
 {
-    public string? LobbyName { get; set; }
+    public string LobbyName { get; set; } = null!;
     public string DisplayName { get; set; } = null!;
     public string GameMode { get; set; } = null!;
     public bool IsPrivate { get; set; }
@@ -27,18 +28,21 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
     public override void Configure()
     {
         Post("/api/lobbies");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(CreateLobbyRequest req, CancellationToken ct)
     {
+        var userId = Guid.Parse(
+            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         var command = new CreateLobbyCommand(
             req.LobbyName,
             req.DisplayName,
             req.GameMode,
             req.IsPrivate,
             req.WordCount,
-            req.TimerDurationSeconds
+            req.TimerDurationSeconds,
+            userId
         );
 
         var result = await _handler.Handle(command);

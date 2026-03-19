@@ -1,18 +1,4 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: postgresql
-    ports:
-      - "5432:5432" 
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: fasterdb
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD: dbpassword
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
-
   api:
     container_name: backend
     pull_policy: never
@@ -21,11 +7,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: "Host=postgres;Port=5432;Database=fasterdb;Username=dbuser;Password=dbpassword"
-
 
 
   frontend:
@@ -38,6 +19,3 @@ services:
       - "3000:3000"
     depends_on:
       - api
-
-volumes:
-  postgres_data:

@@ -1,0 +1,104 @@
+2026-03-19 00:21:37.321 +03:00 [INF] Getting lobbies
+2026-03-19 00:21:37.349 +03:00 [INF] Got lobbies
+2026-03-19 00:21:37.350 +03:00 [INF] sending lobbies
+2026-03-19 00:21:37.383 +03:00 [INF] Getting lobbies
+2026-03-19 00:21:37.383 +03:00 [INF] Got lobbies
+2026-03-19 00:21:37.383 +03:00 [INF] sending lobbies
+2026-03-19 00:21:38.841 +03:00 [INF] Getting lobbies
+2026-03-19 00:21:38.841 +03:00 [INF] Got lobbies
+2026-03-19 00:21:38.841 +03:00 [INF] sending lobbies
+2026-03-19 00:21:38.848 +03:00 [INF] Getting lobbies
+2026-03-19 00:21:38.848 +03:00 [INF] Got lobbies
+2026-03-19 00:21:38.848 +03:00 [INF] sending lobbies
+2026-03-19 00:22:08.698 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:08.698 +03:00 [INF] Got lobbies
+2026-03-19 00:22:08.698 +03:00 [INF] sending lobbies
+2026-03-19 00:22:08.704 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:08.704 +03:00 [INF] Got lobbies
+2026-03-19 00:22:08.705 +03:00 [INF] sending lobbies
+2026-03-19 00:22:09.885 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:09.885 +03:00 [INF] Got lobbies
+2026-03-19 00:22:09.885 +03:00 [INF] sending lobbies
+2026-03-19 00:22:09.891 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:09.891 +03:00 [INF] Got lobbies
+2026-03-19 00:22:09.891 +03:00 [INF] sending lobbies
+2026-03-19 00:22:39.269 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:39.269 +03:00 [INF] Got lobbies
+2026-03-19 00:22:39.269 +03:00 [INF] sending lobbies
+2026-03-19 00:22:39.588 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:39.588 +03:00 [INF] Got lobbies
+2026-03-19 00:22:39.588 +03:00 [INF] sending lobbies
+2026-03-19 00:22:45.345 +03:00 [INF] Created lobby "1a7fc873-a32a-49b6-8bc9-5dc26eb58278" with host "a1240ecf-abe1-494e-88dd-33c7afb6e7b5"
+2026-03-19 00:22:49.695 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:49.697 +03:00 [INF] Got lobbies
+2026-03-19 00:22:49.697 +03:00 [INF] sending lobbies
+2026-03-19 00:22:50.007 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:50.007 +03:00 [INF] Got lobbies
+2026-03-19 00:22:50.007 +03:00 [INF] sending lobbies
+2026-03-19 00:22:56.042 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:56.043 +03:00 [INF] Got lobbies
+2026-03-19 00:22:56.043 +03:00 [INF] sending lobbies
+2026-03-19 00:22:57.274 +03:00 [INF] Getting lobbies
+2026-03-19 00:22:57.274 +03:00 [INF] Got lobbies
+2026-03-19 00:22:57.274 +03:00 [INF] sending lobbies
+2026-03-19 00:23:04.181 +03:00 [INF] Getting lobbies
+2026-03-19 00:23:04.181 +03:00 [INF] Got lobbies
+2026-03-19 00:23:04.181 +03:00 [INF] sending lobbies
+2026-03-19 00:23:04.186 +03:00 [INF] Getting lobbies
+2026-03-19 00:23:04.186 +03:00 [INF] Got lobbies
+2026-03-19 00:23:04.186 +03:00 [INF] sending lobbies
+2026-03-19 00:38:48.813 +03:00 [INF] Getting lobbies
+2026-03-19 00:38:48.846 +03:00 [INF] Got lobbies
+2026-03-19 00:38:48.846 +03:00 [INF] sending lobbies
+2026-03-19 00:38:48.878 +03:00 [INF] Getting lobbies
+2026-03-19 00:38:48.878 +03:00 [INF] Got lobbies
+2026-03-19 00:38:48.878 +03:00 [INF] sending lobbies
+2026-03-19 00:39:03.780 +03:00 [INF] Getting lobbies
+2026-03-19 00:39:03.781 +03:00 [INF] Got lobbies
+2026-03-19 00:39:03.781 +03:00 [INF] sending lobbies
+2026-03-19 00:39:17.184 +03:00 [INF] Getting lobbies
+2026-03-19 00:39:17.184 +03:00 [INF] Got lobbies
+2026-03-19 00:39:17.184 +03:00 [INF] sending lobbies
+2026-03-19 00:39:19.446 +03:00 [INF] Getting lobbies
+2026-03-19 00:39:19.446 +03:00 [INF] Got lobbies
+2026-03-19 00:39:19.446 +03:00 [INF] sending lobbies
+2026-03-19 00:39:29.116 +03:00 [INF] Created lobby "9afa1e20-4cbc-4cae-af62-bcc19f34acac" with host "a1240ecf-abe1-494e-88dd-33c7afb6e7b5"
+2026-03-19 00:40:29.907 +03:00 [INF] Getting lobbies
+2026-03-19 00:40:29.909 +03:00 [INF] Got lobbies
+2026-03-19 00:40:29.909 +03:00 [INF] sending lobbies
+2026-03-19 00:40:30.171 +03:00 [INF] Getting lobbies
+2026-03-19 00:40:30.171 +03:00 [INF] Got lobbies
+2026-03-19 00:40:30.171 +03:00 [INF] sending lobbies
+2026-03-19 00:41:09.765 +03:00 [INF] Getting lobbies
+2026-03-19 00:41:09.765 +03:00 [INF] Got lobbies
+2026-03-19 00:41:09.765 +03:00 [INF] sending lobbies
+2026-03-19 00:41:15.071 +03:00 [INF] Getting lobbies
+2026-03-19 00:41:15.072 +03:00 [INF] Got lobbies
+2026-03-19 00:41:15.072 +03:00 [INF] sending lobbies
+2026-03-19 12:21:04.511 +03:00 [INF] Registered anonymous user "3d6fad82-3884-4e76-b339-2a4812de5b42" as try
+2026-03-19 12:22:45.835 +03:00 [INF] Created lobby "e1252914-629c-4908-9c72-b625e2262b36" with host {PlayerId}
+2026-03-19 12:25:13.914 +03:00 [INF] Registered anonymous user "e93a2e1f-78e8-470b-91ec-daa2cd78ed12" as pepe
+2026-03-19 12:37:31.774 +03:00 [INF] Registered anonymous user "e9aff97b-9262-49be-ab18-bf7fb776372d" as Player_e9af
+2026-03-19 12:37:57.504 +03:00 [INF] Registered anonymous user "49b43bd9-50cf-4b24-9c33-b0b62b3f6041" as pepePlayer
+2026-03-19 14:33:55.602 +03:00 [INF] Registered anonymous user "4f02fd1a-963b-4dbf-8504-2dbd64bbb51e" as sefewe
+2026-03-19 14:44:27.763 +03:00 [INF] Registered anonymous user "ba9e24a2-7e8e-49c8-a5b0-11af63d0efbb" as wefewe
+2026-03-19 14:52:28.759 +03:00 [INF] Registered anonymous user "1f5ad20c-d8e5-421b-97d9-caadbac6ba42" as strweing
+2026-03-19 14:52:29.040 +03:00 [INF] Registered anonymous user "bf0b4346-f041-4a73-9738-74bdf14611fd" as strweing
+2026-03-19 14:58:00.899 +03:00 [INF] Registered anonymous user "cefb3387-e635-4624-bfcb-a4f14b91be28" as 23
+2026-03-19 15:04:17.583 +03:00 [INF] Registered anonymous user "665b59d5-5d4d-43a9-ad77-a0269c51f3ec" as TestPlayer
+2026-03-19 15:05:44.614 +03:00 [INF] Created lobby "5af2545c-0a36-4943-98fb-41deced44092" with host {PlayerId}
+2026-03-19 15:34:57.570 +03:00 [INF] Registered anonymous user "3553bef9-f767-4caf-8c15-e88114369a07" as TestPlayer
+2026-03-19 15:36:22.615 +03:00 [INF] Created lobby "29c34064-f231-4de3-8c59-590c77cbf9c3" with host {PlayerId}
+2026-03-19 15:50:49.170 +03:00 [INF] Getting lobbies
+2026-03-19 15:50:49.217 +03:00 [INF] Got lobbies
+2026-03-19 15:50:49.217 +03:00 [INF] sending lobbies
+2026-03-19 15:51:02.898 +03:00 [INF] Registered anonymous user "a22fbe09-4874-4806-9d38-f9b3471bc819" as TestPlayer
+2026-03-19 15:51:08.389 +03:00 [INF] Created lobby "280b1a4c-aa89-4f5d-af82-5545ec00d263" with host {PlayerId}
+2026-03-19 15:51:13.378 +03:00 [INF] Getting lobbies
+2026-03-19 15:51:13.381 +03:00 [INF] Got lobbies
+2026-03-19 15:51:13.381 +03:00 [INF] sending lobbies
+2026-03-19 15:51:42.744 +03:00 [INF] Created lobby "3a22d21a-73af-4a11-9dfc-aa1ca6c242a9" with host {PlayerId}
+2026-03-19 15:51:46.696 +03:00 [INF] Getting lobbies
+2026-03-19 15:51:46.697 +03:00 [INF] Got lobbies
+2026-03-19 15:51:46.697 +03:00 [INF] sending lobbies
+2026-03-19 16:01:34.399 +03:00 [INF] Created lobby "f915f371-3cd7-4a26-b56b-bff4fe662c6f" with host {PlayerId}

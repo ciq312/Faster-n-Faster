@@ -1,54 +1,25 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Ardalis.GuardClauses;
 
 namespace FasterNFaster.Api.Core.Entities;
 
-[Table("lobby_players")]
 public class LobbyPlayer
 {
-    [Column("id")]
-    public Guid Id { get; private set; }
-
-    [Column("lobby_id")]
+    public Guid PlayerId { get; private set; }
+    public Guid LobbyPlayerId { get; private set; }
     public Guid LobbyId { get; private set; }
-
-    [Column("user_id")]
-    public Guid? UserId { get; private set; }
-
-    [Column("display_name")]
-    [MaxLength(30)]
-    public string DisplayName { get; private set; } = null!;
-
-    [Column("join_order")]
     public int JoinOrder { get; private set; }
-
-    [Column("connection_id")]
     public string ConnectionId { get; private set; } = null!;
-
-    [Column("is_connected")]
     public bool IsConnected { get; private set; } = true;
-
-    [Column("joined_at")]
     public DateTime JoinedAt { get; private set; }
 
     public Lobby Lobby { get; private set; } = null!;
     public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
 
-    private LobbyPlayer() { } // EF constructor
-
-    public LobbyPlayer(Guid lobbyId, string displayName, int joinOrder, Guid? userId = null)
+    public LobbyPlayer(Guid userId, Guid lobbyId)
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            throw new ArgumentException("Display name is required.");
-
-        if (displayName.Length > 30)
-            throw new ArgumentException("Display name must be 30 characters or fewer.");
-
-        Id = Guid.NewGuid();
+        LobbyPlayerId = new Guid();
+        PlayerId = userId;
         LobbyId = lobbyId;
-        DisplayName = displayName;
-        JoinOrder = joinOrder;
-        UserId = userId;
         JoinedAt = DateTime.UtcNow;
     }
 

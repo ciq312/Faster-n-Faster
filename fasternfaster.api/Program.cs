@@ -1,12 +1,14 @@
 global using FluentValidation;
+global using Serilog;
 using DotNetEnv;
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Data;
 using FasterNFaster.Api.Infrastructure.Hubs;
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure.Store;
+using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.Web.DependencyInversion;
-using Microsoft.EntityFrameworkCore;
-using Serilog;
+using FasterNFaster.Api.Web.Middleware;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -18,41 +20,42 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databaseUrl =
-    Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? throw new InvalidOperationException("DATABASE_URL is not set.");
-
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(databaseUrl));
 builder.Services.AddSignalR();
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddHandlers();
-builder.Services.AddRepositories();
-builder.Services.AddSingleton<LobbyStore>();
+builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
+builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+builder.Services.AddAuthentication("Token")
+    .AddCookie("Token", options =>
+    {
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        };
+    });
+builder.Services.AddAuthorization();
 
-// // CORS
-// var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ORIGINS") ?? "").Split(
-//     ',',
-//     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-// );
-// builder.Services.AddCors(options =>
-// {
-//     options.AddDefaultPolicy(policy =>
-//     {
-//         policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); // required for SignalR
-//     });
-// });
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
-
-// app.UseCors();
+app.UseCors();
+app.UseMiddleware<TokenAuthMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseOpenApi();
 app.UseSwaggerUi();
 app.UseFastEndpoints();

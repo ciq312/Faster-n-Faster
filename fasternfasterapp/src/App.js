@@ -1,32 +1,26 @@
 import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
-import LobbyList from "./LobbyList";
-import CreateLobbyModal from "./CreateLobbyModal";
-
-const mockLobbies = [
-  { id: 1, name: "Speed Demons", isPrivate: false, playerCount: 3, maxPlayers: 30 },
-  { id: 2, name: "Secret Race", isPrivate: true, playerCount: 1, maxPlayers: 30 },
-  { id: 3, name: "Beginner Friendly", isPrivate: false, playerCount: 8, maxPlayers: 30 },
-];
+import { getPlayer } from "./playerIdentity";
+import WelcomeModal from "./components/WelcomeModal";
+import HomePage from "./pages/HomePage";
+import CreateLobbyPage from "./pages/CreateLobbyPage";
+import LobbyRoomPage from "./pages/LobbyRoomPage";
 
 function App() {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [player, setPlayer] = useState(getPlayer);
+
+  if (!player) {
+    return <WelcomeModal onLogin={setPlayer} />;
+  }
 
   return (
-    <div className="app">
-      <div className="app-header">
-        <h1 className="app-title">Faster'n'Faster</h1>
-        <button className="create-btn" onClick={() => setShowCreateModal(true)}>
-          + Create Lobby
-        </button>
-      </div>
-
-      <LobbyList lobbies={mockLobbies} />
-
-      {showCreateModal && (
-        <CreateLobbyModal onClose={() => setShowCreateModal(false)} />
-      )}
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage player={player} />} />
+      <Route path="/create" element={<CreateLobbyPage player={player} />} />
+      <Route path="/lobby/:lobbyId" element={<LobbyRoomPage player={player} />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
