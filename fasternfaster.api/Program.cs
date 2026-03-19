@@ -2,10 +2,11 @@ global using FluentValidation;
 global using Serilog;
 using DotNetEnv;
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.Infrastructure.Store;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.Web.DependencyInversion;
 using FasterNFaster.Api.Web.Middleware;
@@ -27,15 +28,20 @@ builder.Services.AddOpenApiDocument();
 builder.Services.AddHandlers();
 builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-builder.Services.AddAuthentication("Token")
-    .AddCookie("Token", options =>
-    {
-        options.Events.OnRedirectToLogin = context =>
+builder.Services.AddSingleton<ILobbyService, LobbyService>();
+builder
+    .Services.AddAuthentication("Token")
+    .AddCookie(
+        "Token",
+        options =>
         {
-            context.Response.StatusCode = 401;
-            return Task.CompletedTask;
-        };
-    });
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = 401;
+                return Task.CompletedTask;
+            };
+        }
+    );
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>

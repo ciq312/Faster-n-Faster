@@ -1,6 +1,9 @@
 using System.Collections.Concurrent;
+using FasterNFaster.Api.UseCases.Interfaces;
 
-public class LobbbyService : ILobbyService
+namespace FasterNFaster.Api.UseCases.Services;
+
+public class LobbyService : ILobbyService
 {
     private readonly ConcurrentDictionary<string, (Guid LobbyId, Guid PlayerId)> _connections =
         new();

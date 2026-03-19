@@ -67,6 +67,32 @@ public class Lobby
         UpdatedAt = DateTime.UtcNow;
     }
 
+    private readonly object _lock = new();
+
+    public LobbyPlayer AddPlayer(Guid userId)
+    {
+        lock (_lock)
+        {
+            if (Status != "waiting")
+                throw new InvalidOperationException("Lobby is not accepting players.");
+
+            if (Players.Count >= MaxPlayers)
+                throw new InvalidOperationException("Lobby is full.");
+
+            if (IsPrivate && HostPlayerId != userId)
+                throw new InvalidOperationException("Cannot join a private lobby.");
+
+            if (Players.Any(p => p.PlayerId == userId))
+                throw new InvalidOperationException("Player is already in this lobby.");
+
+            var joinOrder = Players.Any() ? Players.Max(p => p.JoinOrder) + 1 : 1;
+            var player = new LobbyPlayer(userId, Id, joinOrder);
+            Players.Add(player);
+            UpdatedAt = DateTime.UtcNow;
+            return player;
+        }
+    }
+
     public void AssignHost(Guid? playerId)
     {
         HostPlayerId = playerId;
