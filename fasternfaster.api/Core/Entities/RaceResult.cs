@@ -1,42 +1,21 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace FasterNFaster.Api.Core.Entities;
 
-[Table("race_results")]
 public class RaceResult
 {
-    [Column("id")]
     public Guid Id { get; private set; }
-
-    [Column("lobby_id")]
     public Guid LobbyId { get; private set; }
-
-    [Column("lobby_player_id")]
     public Guid LobbyPlayerId { get; private set; }
-
-    [Column("gross_wpm")]
     public double GrossWpm { get; private set; }
-
-    [Column("net_wpm")]
     public double NetWpm { get; private set; }
 
     /// <summary>Percentage from 0 to 100.</summary>
-    [Column("accuracy")]
     public double Accuracy { get; private set; }
-
-    [Column("mistake_count")]
     public int MistakeCount { get; private set; }
-
-    [Column("finish_position")]
     public int FinishPosition { get; private set; }
-
-    [Column("finished_at")]
     public DateTime FinishedAt { get; private set; }
 
     public Lobby Lobby { get; private set; } = null!;
     public LobbyPlayer LobbyPlayer { get; private set; } = null!;
-
-    private RaceResult() { } // EF constructor
 
     public RaceResult(
         Guid lobbyId,

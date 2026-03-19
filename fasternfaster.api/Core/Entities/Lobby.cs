@@ -1,9 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace FasterNFaster.Api.Core.Entities;
 
-[Table("lobbies")]
 public class Lobby
 {
     private static readonly char[] AlphanumericChars =
@@ -16,33 +12,14 @@ public class Lobby
         { "racing", "finished" },
     };
 
-    [Column("id")]
     public Guid Id { get; private set; }
-
-    [Column("name")]
-    [MaxLength(100)]
     public string Name { get; private set; } = null!;
-
-    [Column("is_private")]
     public bool IsPrivate { get; private set; }
-
-    [Column("invite_code")]
-    [MaxLength(8)]
     public string? InviteCode { get; private set; }
-
-    [Column("status")]
     public string Status { get; private set; } = "waiting";
-
-    [Column("host_player_id")]
     public Guid? HostPlayerId { get; private set; }
-
-    [Column("max_players")]
     public int MaxPlayers { get; private set; } = 30;
-
-    [Column("created_at")]
     public DateTime CreatedAt { get; private set; }
-
-    [Column("updated_at")]
     public DateTime UpdatedAt { get; private set; }
 
     public WordRace? WordRace { get; private set; }
@@ -51,32 +28,13 @@ public class Lobby
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
 
-    private Lobby() { } // EF constructor
-
-    /// <param name="nameExists">Checks whether an active (non-finished) lobby with this name already exists.</param>
-    /// <param name="inviteCodeExists">Checks whether a lobby with this invite code already exists.</param>
-    public static async Task<Lobby> Create(
-        string? name,
-        bool isPrivate,
-        Func<string, Task<bool>> nameExists,
-        Func<string, Task<bool>> inviteCodeExists
-    )
+    public Lobby(string name, bool isPrivate)
     {
-        var lobbyName = string.IsNullOrWhiteSpace(name) ? "New Lobby" : name;
-
-        string? inviteCode = null;
-        if (isPrivate)
-            inviteCode = await GenerateUniqueInviteCode(inviteCodeExists);
-
-        return new Lobby
-        {
-            Id = Guid.NewGuid(),
-            Name = lobbyName,
-            IsPrivate = isPrivate,
-            InviteCode = inviteCode,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-        };
+        Id = Guid.NewGuid();
+        Name = name;
+        IsPrivate = isPrivate;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public IRace GetRace() =>

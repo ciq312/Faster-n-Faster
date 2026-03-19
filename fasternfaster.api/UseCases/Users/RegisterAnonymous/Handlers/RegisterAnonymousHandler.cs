@@ -1,0 +1,28 @@
+using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.UseCases.Helpers;
+using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
+using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Results;
+
+namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Handlers;
+
+public class RegisterAnonymousHandler : IHandler<RegisterAnonymousCommand, RegisterAnonymousResult>
+{
+    private readonly IUserRepository _repo;
+
+    public RegisterAnonymousHandler(IUserRepository repo)
+    {
+        _repo = repo;
+    }
+
+    public Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command)
+    {
+        var user = string.IsNullOrWhiteSpace(command.Nick)
+            ? new Core.Entities.User()
+            : new Core.Entities.User(command.Nick);
+
+        _repo.Add(user);
+
+        Log.Information("Registered anonymous user {UserId} as {Nick}", user.Id, user.Nick);
+        return Task.FromResult(new RegisterAnonymousResult(user.Nick, user.Token));
+    }
+}
