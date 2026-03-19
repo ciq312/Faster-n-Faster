@@ -102,3 +102,39 @@
 2026-03-19 15:51:46.697 +03:00 [INF] Got lobbies
 2026-03-19 15:51:46.697 +03:00 [INF] sending lobbies
 2026-03-19 16:01:34.399 +03:00 [INF] Created lobby "f915f371-3cd7-4a26-b56b-bff4fe662c6f" with host {PlayerId}
+2026-03-19 18:36:37.284 +03:00 [INF] Registered anonymous user "9641d586-6f36-4d0c-a80b-dcb045dcdb7d" as TestPlayer
+2026-03-19 18:37:23.816 +03:00 [INF] Getting lobbies
+2026-03-19 18:37:23.818 +03:00 [INF] Got lobbies
+2026-03-19 18:37:23.818 +03:00 [INF] sending lobbies
+2026-03-19 18:37:34.470 +03:00 [INF] Created lobby "30973d9b-e12e-4773-923f-64cb8a98fa0d" with host {PlayerId}
+2026-03-19 18:37:42.054 +03:00 [INF] Getting lobbies
+2026-03-19 18:37:42.056 +03:00 [INF] Got lobbies
+2026-03-19 18:37:42.056 +03:00 [INF] sending lobbies
+2026-03-19 19:11:52.645 +03:00 [INF] Getting lobbies
+2026-03-19 19:11:52.669 +03:00 [INF] Got lobbies
+2026-03-19 19:11:52.669 +03:00 [INF] sending lobbies
+2026-03-19 19:11:56.290 +03:00 [INF] Registered anonymous user "4e4be00e-b0df-46e8-859f-80fcc47a52c9" as TestPlayer
+2026-03-19 19:11:59.917 +03:00 [INF] Created lobby "3ecffed9-4fec-4e7f-b6c2-206178201433" with host {PlayerId}
+2026-03-19 19:12:03.960 +03:00 [INF] Getting lobbies
+2026-03-19 19:12:03.962 +03:00 [INF] Got lobbies
+2026-03-19 19:12:03.962 +03:00 [INF] sending lobbies
+2026-03-19 19:19:15.738 +03:00 [INF] Registered anonymous user "350eb4be-a259-4387-afc8-bf8f597bc86c" as TestPlayer
+2026-03-19 19:19:20.888 +03:00 [INF] Created lobby "158e4d4f-cb74-4a60-83ed-66590b6cebf4" with host {PlayerId}
+2026-03-19 19:19:21.939 +03:00 [INF] Created lobby "1858e367-1681-4964-b1f0-74477a1cb1e0" with host {PlayerId}
+2026-03-19 19:19:22.955 +03:00 [INF] Created lobby "db545044-8739-4700-8313-06e2deec7bdb" with host {PlayerId}
+2026-03-19 19:19:25.792 +03:00 [INF] Getting lobbies
+2026-03-19 19:19:25.792 +03:00 [INF] Got lobbies
+2026-03-19 19:19:25.792 +03:00 [INF] sending lobbies
+2026-03-19 19:35:36.171 +03:00 [INF] Getting lobbies
+2026-03-19 19:35:36.171 +03:00 [INF] Got lobbies
+2026-03-19 19:35:36.171 +03:00 [INF] sending lobbies
+2026-03-19 20:09:54.271 +03:00 [INF] Registered anonymous user "6ac1b37a-f157-4058-aab6-f304f6f5476f" as TestPlayer
+2026-03-19 20:16:14.065 +03:00 [INF] Registered anonymous user "7c70a51c-2d6f-4e31-a564-a628400ae7bc" as TestPlayer
+2026-03-19 20:16:27.192 +03:00 [INF] Registered anonymous user "f904010c-3362-49f4-8e8b-5569e1615778" as TestPlayer
+2026-03-19 20:16:43.361 +03:00 [INF] Created lobby "7a82e13d-2e40-4dab-8418-3834309f0603" with host {PlayerId}
+2026-03-19 20:17:17.773 +03:00 [INF] Player "f904010c-3362-49f4-8e8b-5569e1615778" joined lobby "7a82e13d-2e40-4dab-8418-3834309f0603"
+2026-03-19 20:19:38.655 +03:00 [INF] Registered anonymous user "6be17655-af37-46b2-9882-43700130861b" as TestPlayer
+2026-03-19 20:20:27.597 +03:00 [INF] Registered anonymous user "c83a375c-042b-44d4-9425-f0849f183df7" as TestPlayer
+2026-03-19 20:20:59.142 +03:00 [INF] Created lobby "b88d478b-37f0-4749-80c5-919808676382" with host {PlayerId}
+2026-03-19 20:21:19.719 +03:00 [INF] Player "c83a375c-042b-44d4-9425-f0849f183df7" joined lobby "b88d478b-37f0-4749-80c5-919808676382"
+2026-03-19 20:21:31.191 +03:00 [INF] Player "6be17655-af37-46b2-9882-43700130861b" joined lobby "b88d478b-37f0-4749-80c5-919808676382"

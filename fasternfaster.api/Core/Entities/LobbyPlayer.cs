@@ -15,11 +15,12 @@ public class LobbyPlayer
     public Lobby Lobby { get; private set; } = null!;
     public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
 
-    public LobbyPlayer(Guid userId, Guid lobbyId)
+    public LobbyPlayer(Guid userId, Guid lobbyId, int joinOrder)
     {
-        LobbyPlayerId = new Guid();
+        LobbyPlayerId = Guid.NewGuid();
         PlayerId = userId;
         LobbyId = lobbyId;
+        JoinOrder = joinOrder;
         JoinedAt = DateTime.UtcNow;
     }
 
