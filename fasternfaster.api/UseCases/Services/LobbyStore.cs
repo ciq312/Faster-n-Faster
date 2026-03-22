@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobby;
 using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Services;

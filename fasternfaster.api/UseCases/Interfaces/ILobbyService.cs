@@ -6,4 +6,5 @@ public interface ILobbyService
     public void RemoveConnection(string connectionId);
 
     public (Guid LobbyId, Guid PlayerId)? GetConnection(string connectionId);
+    public string? GetConnectionId(Guid lobbyId, Guid playerId);
 }

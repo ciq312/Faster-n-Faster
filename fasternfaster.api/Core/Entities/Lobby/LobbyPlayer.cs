@@ -1,6 +1,6 @@
 using Ardalis.GuardClauses;
 
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Core.Entities.Lobby;
 
 public class LobbyPlayer
 {

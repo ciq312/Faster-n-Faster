@@ -1,3 +1,5 @@
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobby;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Helpers;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
@@ -18,18 +20,16 @@ public class GetLobbiesHandler : IHandler<GetLobbiesQuery, GetLobbiesResult>
     {
         var lobbies = _lobbyStore
             .GetAll()
-            .OrderByDescending(l => l.CreatedAt)
+            .OrderByDescending(l => l.LobbySettings.CreatedAt)
             .Select(l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                l.WordRace != null ? "wordcount"
-                    : l.TimerRace != null ? "timer"
-                    : null,
-                l.IsPrivate,
-                l.Status,
+                l.Race switch { WordRace => "wordcount", TimerRace => "timer", _ => null },
+                l.LobbySettings.IsPrivate,
+                l.CurrentStatus.ToString(),
                 l.Players.Count(p => p.IsConnected),
-                l.MaxPlayers,
-                l.CreatedAt
+                l.LobbySettings.MaxPlayers,
+                l.LobbySettings.CreatedAt
             ))
             .ToList();
 

@@ -1,3 +1,6 @@
+using FasterNFaster.Api.Core.Entities.Lobby;
+using LobbyEntity = FasterNFaster.Api.Core.Entities.Lobby.Lobby;
+
 namespace FasterNFaster.Api.Core.Entities;
 
 public class RaceResult
@@ -14,7 +17,7 @@ public class RaceResult
     public int FinishPosition { get; private set; }
     public DateTime FinishedAt { get; private set; }
 
-    public Lobby Lobby { get; private set; } = null!;
+    public LobbyEntity Lobby { get; private set; } = null!;
     public LobbyPlayer LobbyPlayer { get; private set; } = null!;
 
     public RaceResult(

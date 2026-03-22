@@ -1,11 +1,10 @@
+using FasterNFaster.Api.Core.Entities.Lobby;
+
 namespace FasterNFaster.Api.Core.Entities;
 
-public class TimerRace : IRace
+public class TimerRace : Race
 {
-    public string GameMode => "timer";
     public int TimerDurationSeconds { get; private set; }
-
-    private TimerRace() { } // EF constructor
 
     public TimerRace(int timerDurationSeconds)
     {
@@ -13,5 +12,6 @@ public class TimerRace : IRace
             throw new ArgumentException("Timer duration must be greater than 0.");
 
         TimerDurationSeconds = timerDurationSeconds;
+        MaxWords = 200; // large pool — timer expires before words run out
     }
 }
