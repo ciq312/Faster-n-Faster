@@ -1,26 +1,22 @@
-import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import "./App.css";
-import { getPlayer } from "./playerIdentity";
-import WelcomeModal from "./components/WelcomeModal";
-import HomePage from "./pages/HomePage";
-import CreateLobbyPage from "./pages/CreateLobbyPage";
-import LobbyRoomPage from "./pages/LobbyRoomPage";
+import Registration from "./pages/Registration";
+import Lobbies from "./pages/Lobbies";
 
 function App() {
-  const [player, setPlayer] = useState(getPlayer);
-
-  if (!player) {
-    return <WelcomeModal onLogin={setPlayer} />;
-  }
-
   return (
-    <Routes>
-      <Route path="/" element={<HomePage player={player} />} />
-      <Route path="/create" element={<CreateLobbyPage player={player} />} />
-      <Route path="/lobby/:lobbyId" element={<LobbyRoomPage player={player} />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Registration />} />
+        <Route path="/lobbies" element={<Lobbies />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

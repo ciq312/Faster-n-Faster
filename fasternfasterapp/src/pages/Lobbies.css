@@ -1,0 +1,188 @@
+/* ── Page layout ── */
+
+.lobbies-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lobbies-page__content {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* ── Lobby config section ── */
+
+.lobby-config {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.lobby-config__create {
+  padding: 14px 32px;
+  background: #6c8cff;
+  border: none;
+  border-radius: 10px;
+  color: #0b0e14;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.lobby-config__create:hover {
+  background: #8ba4ff;
+}
+
+.lobby-config__divider {
+  font-size: 0.85rem;
+  color: #5a5f6b;
+  flex-shrink: 0;
+}
+
+.lobby-config__join {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.lobby-config__join-label {
+  font-size: 0.8rem;
+  color: #6b7084;
+  letter-spacing: 0.5px;
+}
+
+.lobby-config__join-row {
+  display: flex;
+  gap: 10px;
+}
+
+.lobby-config__input {
+  padding: 12px 16px;
+  background: #13161d;
+  border: 1px solid #1e222c;
+  border-radius: 10px;
+  color: #e6e9f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.2s;
+}
+
+.lobby-config__input::placeholder {
+  color: #3a3f4b;
+}
+
+.lobby-config__input:focus {
+  border-color: #6c8cff;
+}
+
+.lobby-config__join-btn {
+  padding: 12px 24px;
+  background: none;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  color: #c8ccd4;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.lobby-config__join-btn:hover:not(:disabled) {
+  border-color: #6c8cff;
+  color: #e6e9f0;
+}
+
+.lobby-config__join-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Lobby list ── */
+
+.lobby-list__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e6e9f0;
+  margin-bottom: 16px;
+}
+
+.lobby-list__empty {
+  font-size: 0.85rem;
+  color: #5a5f6b;
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed #1e222c;
+  border-radius: 12px;
+}
+
+.lobby-list__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Lobby card ── */
+
+.lobby-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #13161d;
+  border: 1px solid #1e222c;
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.lobby-card:hover {
+  border-color: #2a2f3a;
+}
+
+.lobby-card__info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lobby-card__name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e6e9f0;
+}
+
+.lobby-card__count {
+  font-size: 0.8rem;
+  color: #5a5f6b;
+}
+
+.lobby-card__join {
+  padding: 10px 20px;
+  background: none;
+  border: 1px solid #2a2f3a;
+  border-radius: 8px;
+  color: #c8ccd4;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.lobby-card__join:hover {
+  border-color: #6c8cff;
+  color: #e6e9f0;
+}
