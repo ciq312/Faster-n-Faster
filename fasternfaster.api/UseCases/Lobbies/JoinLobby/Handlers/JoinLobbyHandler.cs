@@ -1,3 +1,5 @@
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobby;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Helpers;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
@@ -30,12 +32,15 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
         var user = _userRepo.Get(command.PlayerId)
             ?? throw new KeyNotFoundException("User not found.");
 
-        // Entity enforces: status, capacity, private, duplicate
+        // Entity enforces: status, capacity, duplicate
         var player = lobby.AddPlayer(command.PlayerId);
 
-        var gameMode = lobby.WordRace != null ? "wordcount"
-            : lobby.TimerRace != null ? "timer"
-            : (string?)null;
+        string? gameMode = lobby.Race switch
+        {
+            WordRace => "wordcount",
+            TimerRace => "timer",
+            _ => null
+        };
 
         var players = lobby.Players
             .OrderBy(p => p.JoinOrder)
@@ -49,7 +54,7 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
         Log.Information("Player {PlayerId} joined lobby {LobbyId}", command.PlayerId, lobby.Id);
 
         return Task.FromResult(new JoinLobbyResult(
-            lobby.Id, lobby.Name, gameMode, lobby.IsPrivate,
+            lobby.Id, lobby.Name, gameMode, lobby.LobbySettings.IsPrivate,
             command.PlayerId, lobby.HostPlayerId!.Value, players));
     }
 }

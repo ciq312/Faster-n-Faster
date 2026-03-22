@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobby;
 
 namespace FasterNFaster.Api.Core.Interfaces;
 
