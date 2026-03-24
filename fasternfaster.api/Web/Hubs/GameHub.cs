@@ -14,16 +14,18 @@ public class GameHub : Hub
 {
     private readonly ILogger<GameHub> _logger;
     private readonly ILobbyStore _lobbyStore;
-    private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> _joinHandler;
+    private readonly IHandler<JoinLobbyCommand> _joinHandler;
     private readonly ILobbyService _lobbyService;
     private readonly IHubContext<GameHub> _hubContext;
+    private readonly LobbyStateBroadcaster _broadcaster;
 
     public GameHub(
         ILogger<GameHub> logger,
         ILobbyStore lobbyStore,
-        IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
+        IHandler<JoinLobbyCommand> joinHandler,
         ILobbyService lobbyService,
-        IHubContext<GameHub> hubContext
+        IHubContext<GameHub> hubContext,
+        LobbyStateBroadcaster broadcaster
     )
     {
         _logger = logger;
@@ -31,6 +33,7 @@ public class GameHub : Hub
         _joinHandler = joinHandler;
         _lobbyService = lobbyService;
         _hubContext = hubContext;
+        _broadcaster = broadcaster;
     }
 
     private (Guid UserId, Lobby Lobby, string GroupName) GetCallerContext()
@@ -51,6 +54,7 @@ public class GameHub : Hub
 
     public async Task ConnectToLobby(Guid lobbyId)
     {
+        _logger.LogInformation($"connecting to {lobbyId}");
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null)
         {
@@ -64,22 +68,18 @@ public class GameHub : Hub
         try
         {
             var command = new JoinLobbyCommand(userId, lobbyId);
-            var result = await _joinHandler.Handle(command);
+
+            await _joinHandler.Handle(command);
 
             _lobbyService.TrackConnection(Context.ConnectionId, lobbyId, userId);
 
-            // Set the SignalR connection ID on the player
             var lobby = _lobbyStore.Get(lobbyId)!;
-            var player = lobby.Players.First(p => p.PlayerId == userId);
-            player.Reconnect(Context.ConnectionId);
 
             var groupName = $"lobby-{lobbyId}";
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-            // Full lobby state to the joining player
-            await Clients.Caller.SendAsync("LobbyState", result);
+            await _broadcaster.BroadcastLobbyState(lobby);
 
-            // Notify others
             await Clients
                 .OthersInGroup(groupName)
                 .SendAsync("PlayerJoined", new { playerId = userId, displayName = nick });
@@ -126,7 +126,6 @@ public class GameHub : Hub
 
             await Clients.Group(groupName).SendAsync("RaceStarting", new { countdownSeconds = 3 });
 
-            // Use _hubContext (singleton) instead of Clients (transient hub instance)
             var hubContext = _hubContext;
             _ = Task.Run(async () =>
             {
@@ -278,54 +277,48 @@ public class GameHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var conn = _lobbyService.GetConnection(Context.ConnectionId);
-        if (conn != null)
+        if (conn == null) throw new KeyNotFoundException("connection not found");
+        var (lobbyId, playerId) = conn.Value;
+        _lobbyService.RemoveConnection(Context.ConnectionId);
+
+        var lobby = _lobbyStore.Get(lobbyId) ?? throw new KeyNotFoundException("lobby doesn't exist");
+
+        var player = lobby.Players.FirstOrDefault(p => p.User.Id == playerId) ?? throw new UserNotFoundException($"player was not found in lobby {lobbyId}");
+
+        player.Disconnect();
+
+        var groupName = $"lobby-{lobbyId}";
+        await Clients
+            .Group(groupName)
+            .SendAsync("PlayerDisconnected", new { playerId });
+
+        // Host promotion: if host left, promote next connected player by join order
+        if (lobby.HostId == playerId)
         {
-            var (lobbyId, playerId) = conn.Value;
-            _lobbyService.RemoveConnection(Context.ConnectionId);
+            var nextHost = lobby
+                .Players.Where(p => p.IsConnected && p.User.Id != playerId)
+                .OrderBy(p => p.JoinOrder)
+                .FirstOrDefault();
 
-            var lobby = _lobbyStore.Get(lobbyId);
-            if (lobby != null)
+            lobby.AssignHost(nextHost!.User.Id);
+
+            if (nextHost != null)
             {
-                var player = lobby.Players.FirstOrDefault(p => p.PlayerId == playerId);
-                if (player != null)
-                {
-                    player.Disconnect();
-
-                    var groupName = $"lobby-{lobbyId}";
-                    await Clients
-                        .Group(groupName)
-                        .SendAsync("PlayerDisconnected", new { playerId });
-
-                    // Host promotion: if host left, promote next connected player by join order
-                    if (lobby.HostPlayerId == playerId)
-                    {
-                        var nextHost = lobby
-                            .Players.Where(p => p.IsConnected && p.PlayerId != playerId)
-                            .OrderBy(p => p.JoinOrder)
-                            .FirstOrDefault();
-
-                        lobby.AssignHost(nextHost?.PlayerId);
-
-                        if (nextHost != null)
-                        {
-                            await Clients
-                                .Group(groupName)
-                                .SendAsync(
-                                    "HostChanged",
-                                    new { newHostPlayerId = nextHost.PlayerId }
-                                );
-                        }
-                    }
-
-                    _logger.LogInformation(
-                        "Player {PlayerId} disconnected from lobby {LobbyId}",
-                        playerId,
-                        lobbyId
+                await Clients
+                    .Group(groupName)
+                    .SendAsync(
+                        "HostChanged",
+                        new { newHostPlayerId = nextHost.User.Id }
                     );
-                }
             }
         }
 
+        _logger.LogInformation(
+            "Player {PlayerId} disconnected from lobby {LobbyId}",
+            playerId,
+            lobbyId
+        );
         await base.OnDisconnectedAsync(exception);
     }
 }
+

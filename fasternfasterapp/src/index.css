@@ -1,4 +1,30 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --bg: #111214;
+  --bg-surface: #191b1f;
+  --bg-elevated: #1f2227;
+  --bg-hover: #252830;
+
+  --border: #2a2d33;
+  --border-subtle: #222529;
+
+  --amber: #d4a012;
+  --amber-hover: #e8b42a;
+  --amber-muted: rgba(212, 160, 18, 0.1);
+  --amber-border: rgba(212, 160, 18, 0.3);
+
+  --error: #e5534b;
+  --error-muted: rgba(229, 83, 75, 0.1);
+
+  --text-1: #ede9e3;
+  --text-2: #8a857d;
+  --text-3: #5c5751;
+  --text-4: #3a3631;
+
+  --font-display: "Syne", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
 
 *,
 *::before,
@@ -15,9 +41,14 @@ body,
 }
 
 body {
-  font-family: "JetBrains Mono", monospace;
-  background-color: #0b0e14;
-  color: #c8ccd4;
+  font-family: var(--font-mono);
+  background-color: var(--bg);
+  color: var(--text-2);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(212, 160, 18, 0.2);
+  color: var(--text-1);
 }

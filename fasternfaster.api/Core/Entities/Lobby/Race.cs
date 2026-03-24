@@ -14,11 +14,7 @@ public abstract class Race
         "them", "see", "other", "than", "then", "now", "look", "only", "come",
         "its", "over", "think", "also", "back", "after", "use", "two", "how",
         "our", "work", "first", "well", "way", "even", "new", "want", "because",
-        "any", "these",
-
-
-
-         "give", "day", "most", "us", "great", "between", "need",
+        "any", "these", "give", "day", "most", "us", "great", "between", "need",
         "large", "often", "around", "each", "still", "every", "point", "keep",
         "never", "last", "long", "same", "another", "much", "while", "before"
     ];

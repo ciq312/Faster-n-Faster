@@ -18,7 +18,7 @@ public class Lobby
     public Guid Id { get; private set; }
     public string Name { get; private set; } = null!;
     public Status CurrentStatus { get; private set; }
-    public Guid? HostPlayerId { get; private set; }
+    public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; }
     public Race? Race { get; private set; }
 
@@ -69,7 +69,7 @@ public class Lobby
 
     private readonly object _lock = new();
 
-    public LobbyPlayer AddPlayer(Guid userId)
+    public LobbyPlayer AddPlayer(User user)
     {
         lock (_lock)
         {
@@ -79,42 +79,38 @@ public class Lobby
             if (Players.Count >= LobbySettings.MaxPlayers)
                 throw new InvalidOperationException("Lobby is full.");
 
-            if (Players.Any(p => p.PlayerId == userId))
-                throw new InvalidOperationException("Player is already in this lobby.");
-
             var joinOrder = Players.Any() ? Players.Max(p => p.JoinOrder) + 1 : 1;
-            var player = new LobbyPlayer(userId, Id, joinOrder);
+            var player = new LobbyPlayer(user, this, joinOrder);
             Players.Add(player);
             LobbySettings.UpdateTimestamp();
             return player;
         }
     }
 
-    public void AssignHost(Guid? playerId)
+    public void AssignHost(Guid hostId)
     {
-        HostPlayerId = playerId;
+        HostId = hostId;
         LobbySettings.UpdateTimestamp();
     }
 
-    // --- Host control methods ---
 
     public void ValidateHost(Guid userId)
     {
-        if (HostPlayerId != userId)
+        if (HostId != userId)
             throw new InvalidOperationException("Only the host can perform this action.");
     }
 
-    public void TransferHost(Guid currentHostId, Guid newHostId)
+    public void TransferHost(Guid hostId, Guid newHostId)
     {
         lock (_lock)
         {
-            ValidateHost(currentHostId);
+            ValidateHost(hostId);
 
-            if (currentHostId == newHostId)
+            if (hostId == newHostId)
                 throw new InvalidOperationException("Cannot transfer host to yourself.");
 
             var target =
-                Players.FirstOrDefault(p => p.PlayerId == newHostId && p.IsConnected)
+                Players.FirstOrDefault(p => p.User.Id == newHostId && p.IsConnected)
                 ?? throw new InvalidOperationException(
                     "Target player is not in this lobby or is disconnected."
                 );
@@ -136,7 +132,7 @@ public class Lobby
 
             var connectedPlayerIds = Players
                 .Where(p => p.IsConnected)
-                .Select(p => p.PlayerId);
+                .Select(p => p.User.Id);
             Race.Start(connectedPlayerIds);
         }
     }
@@ -151,7 +147,7 @@ public class Lobby
                 throw new InvalidOperationException("Cannot kick yourself.");
 
             var target =
-                Players.FirstOrDefault(p => p.PlayerId == targetPlayerId)
+                Players.FirstOrDefault(p => p.User.Id == targetPlayerId)
                 ?? throw new InvalidOperationException("Player not found in this lobby.");
 
             Players.Remove(target);
@@ -159,5 +155,7 @@ public class Lobby
             return target;
         }
     }
+
+    public bool IsPlayerInLobby(Guid id) => Players.Any(p => p.User.Id == id);
 
 }

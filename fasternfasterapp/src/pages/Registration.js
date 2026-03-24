@@ -30,19 +30,6 @@ function Registration() {
     } catch (error) {
       console.log(error);
     }
-    // navigate("/lobbies");
-    // try {
-    //   let response = await fetch("/api/users/anonymous", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(nick),
-    //   });
-    //   console.log(response);
-    // } catch (e) {
-    //   console.log(e);
-    // }
-
-    // placeholder — will navigate to lobbies with display name
   };
 
   const handleLogin = async (data) => {
@@ -55,7 +42,10 @@ function Registration() {
 
   return (
     <div className="registration">
-      <h1 className="registration__logo">faster'n'faster</h1>
+      <div className="registration__header">
+        <h1 className="registration__logo">faster'n'faster</h1>
+        <p className="registration__tagline">the typing race</p>
+      </div>
 
       <div className="registration__card">
         <div className="registration__tabs">

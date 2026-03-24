@@ -8,12 +8,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var handlerInterface = typeof(IHandler<,>);
+        var handlerInterfaces = new[] { typeof(IHandler<,>), typeof(IHandler<>) };
 
         var handlers = assembly.GetTypes()
             .Where(t => t is { IsAbstract: false, IsInterface: false })
             .SelectMany(t => t.GetInterfaces()
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerInterface)
+                .Where(i => i.IsGenericType && handlerInterfaces.Contains(i.GetGenericTypeDefinition()))
                 .Select(i => new { Interface = i, Implementation = t }));
 
         foreach (var handler in handlers)

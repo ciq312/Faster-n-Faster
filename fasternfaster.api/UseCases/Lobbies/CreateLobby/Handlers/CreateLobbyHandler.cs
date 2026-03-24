@@ -9,6 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 
 public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
+    const int DEFAULT_WORDS_NUM = 50;
     private readonly ILobbyStore _lobbyStore;
 
     public CreateLobbyHandler(ILobbyStore lobbyStore)
@@ -20,12 +21,8 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
     {
         var lobby = new Lobby(command.LobbyName, command.IsPrivate);
 
-        Race race = command.GameMode.ToLowerInvariant() switch
-        {
-            "wordcount" => new WordRace(command.WordCount!.Value),
-            "timer" => new TimerRace(command.TimerDurationSeconds!.Value),
-            _ => throw new ArgumentException($"Unknown game mode: {command.GameMode}")
-        };
+        Race race = new WordRace(DEFAULT_WORDS_NUM);
+
         lobby.ConfigureRace(race);
 
         lobby.AssignHost(command.HostId);

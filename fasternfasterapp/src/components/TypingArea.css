@@ -1,0 +1,68 @@
+/* ── Monkeytype-style typing area ── */
+
+.typing-area__hidden-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.typing-area {
+  width: 100%;
+  max-width: 700px;
+  padding: 28px 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: text;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+
+.typing-area:hover {
+  border-color: var(--border);
+}
+
+.typing-area__words {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  line-height: 2.2;
+  color: var(--text-4);
+  position: relative;
+}
+
+.typing-area__char {
+  position: relative;
+  transition: color 0.05s;
+}
+
+.typing-area__char--correct {
+  color: var(--text-1);
+}
+
+.typing-area__char--incorrect {
+  color: var(--error);
+  background: var(--error-muted);
+  border-radius: 2px;
+}
+
+.typing-area__caret {
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  width: 2px;
+  height: 1.2em;
+  background: var(--amber);
+  border-radius: 1px;
+  animation: caretBlink 1s step-end infinite;
+}
+
+.typing-area__caret--end {
+  position: relative;
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
