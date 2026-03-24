@@ -2,7 +2,6 @@
   "name": "fasternfasterapp",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8080",
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@testing-library/dom": "^10.4.1",

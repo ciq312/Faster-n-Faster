@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Infrastructure;
 
 namespace FasterNFaster.Api.Web.Middleware;
 
@@ -26,7 +27,7 @@ public class TokenAuthMiddleware
 
         if (!string.IsNullOrEmpty(token))
         {
-            var user = userRepo.GetByToken(token);
+            var user = await userRepo.GetByTokenAsync(token);
 
             if (user != null)
             {

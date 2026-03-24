@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════
+   Lobby — "Graphite" warm noir theme
+   ═══════════════════════════════════════════ */
+
+.lobby-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lobby-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  animation: lobbyFadeIn 0.4s ease both;
+}
+
+@keyframes lobbyFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Top bar ── */
+
+.lobby-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+}
+
+.lobby-topbar__info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lobby-topbar__name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.lobby-topbar__count {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  padding: 2px 8px;
+  background: var(--amber-muted);
+  border-radius: 3px;
+}
+
+.lobby-topbar__mode {
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.lobby-topbar__leave {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-3);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.lobby-topbar__leave:hover {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+/* ── Arena: players – game – players ── */
+
+.lobby-arena {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  min-height: 0;
+}
+
+/* ── Player columns ── */
+
+.lobby-players-col {
+  width: 190px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+/* ── Game area ── */
+
+.lobby-game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.lobby-game__typing-area {
+  width: 100%;
+  max-width: 680px;
+  padding: 28px 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.lobby-game__passage {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  line-height: 2.2;
+  color: var(--text-4);
+}
+
+.lobby-game__waiting {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+}
+
+/* ── Footer ── */
+
+.lobby-footer {
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 20px;
+}
+
+.lobby-footer__start {
+  padding: 11px 28px;
+  background: var(--amber);
+  border: none;
+  border-radius: 4px;
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lobby-footer__start:hover {
+  background: var(--amber-hover);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 900px) {
+  .lobby-body {
+    padding: 16px;
+  }
+
+  .lobby-arena {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lobby-players-col {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    overflow-y: visible;
+  }
+
+  .lobby-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

@@ -9,11 +9,7 @@ namespace FasterNFaster.Api.Web.Lobbies.CreateLobby.Endpoints;
 public class CreateLobbyRequest
 {
     public string LobbyName { get; set; } = null!;
-    public string DisplayName { get; set; } = null!;
-    public string GameMode { get; set; } = null!;
     public bool IsPrivate { get; set; }
-    public int? WordCount { get; set; }
-    public int? TimerDurationSeconds { get; set; }
 }
 
 public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResult>
@@ -37,11 +33,7 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
 
         var command = new CreateLobbyCommand(
             req.LobbyName,
-            req.DisplayName,
-            req.GameMode,
             req.IsPrivate,
-            req.WordCount,
-            req.TimerDurationSeconds,
             userId
         );
 

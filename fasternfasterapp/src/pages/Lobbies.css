@@ -1,4 +1,6 @@
-/* ── Page layout ── */
+/* ═══════════════════════════════════════════
+   Lobbies — "Graphite" warm noir theme
+   ═══════════════════════════════════════════ */
 
 .lobbies-page {
   min-height: 100vh;
@@ -7,132 +9,151 @@
 }
 
 .lobbies-page__content {
-  max-width: 960px;
+  flex: 1;
+  max-width: 860px;
   width: 100%;
   margin: 0 auto;
-  padding: 40px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 48px;
+  padding: 36px 32px;
+  animation: fadeIn 0.4s ease both;
 }
 
-/* ── Lobby config section ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Config bar ── */
 
 .lobby-config {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 28px;
 }
 
 .lobby-config__create {
-  padding: 14px 32px;
-  background: #6c8cff;
+  padding: 9px 18px;
+  background: var(--amber);
   border: none;
-  border-radius: 10px;
-  color: #0b0e14;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+  border-radius: 4px;
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
-  white-space: nowrap;
 }
 
 .lobby-config__create:hover {
-  background: #8ba4ff;
+  background: var(--amber-hover);
 }
 
-.lobby-config__divider {
-  font-size: 0.85rem;
-  color: #5a5f6b;
-  flex-shrink: 0;
+/* Refresh — ghost button */
+.lobby-config__create + .lobby-config__create {
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.lobby-config__create + .lobby-config__create:hover {
+  color: var(--text-1);
+  background: transparent;
 }
 
 .lobby-config__join {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .lobby-config__join-label {
-  font-size: 0.8rem;
-  color: #6b7084;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-3);
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .lobby-config__join-row {
   display: flex;
-  gap: 10px;
+  gap: 6px;
 }
 
 .lobby-config__input {
-  padding: 12px 16px;
-  background: #13161d;
-  border: 1px solid #1e222c;
-  border-radius: 10px;
-  color: #e6e9f0;
-  font-family: inherit;
-  font-size: 0.85rem;
+  padding: 9px 12px;
+  width: 140px;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   outline: none;
-  width: 180px;
+  caret-color: var(--amber);
   transition: border-color 0.2s;
 }
 
 .lobby-config__input::placeholder {
-  color: #3a3f4b;
+  color: var(--text-4);
 }
 
 .lobby-config__input:focus {
-  border-color: #6c8cff;
+  border-color: var(--amber-border);
 }
 
 .lobby-config__join-btn {
-  padding: 12px 24px;
-  background: none;
-  border: 1px solid #2a2f3a;
-  border-radius: 10px;
-  color: #c8ccd4;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 500;
+  padding: 9px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
   white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .lobby-config__join-btn:hover:not(:disabled) {
-  border-color: #6c8cff;
-  color: #e6e9f0;
+  border-color: var(--amber-border);
+  color: var(--text-1);
 }
 
 .lobby-config__join-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
 /* ── Lobby list ── */
 
 .lobby-list__title {
+  font-family: var(--font-display);
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #e6e9f0;
+  font-weight: 700;
+  color: var(--text-1);
   margin-bottom: 16px;
 }
 
 .lobby-list__empty {
-  font-size: 0.85rem;
-  color: #5a5f6b;
-  padding: 24px;
+  padding: 40px 0;
   text-align: center;
-  border: 1px dashed #1e222c;
-  border-radius: 12px;
+  font-size: 0.8rem;
+  color: var(--text-3);
 }
 
 .lobby-list__cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* ── Lobby card ── */
@@ -141,48 +162,72 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 24px;
-  background: #13161d;
-  border: 1px solid #1e222c;
-  border-radius: 12px;
-  transition: border-color 0.2s;
+  padding: 14px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .lobby-card:hover {
-  border-color: #2a2f3a;
+  background: var(--bg-elevated);
+  border-color: var(--border);
 }
 
 .lobby-card__info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .lobby-card__name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #e6e9f0;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-1);
 }
 
 .lobby-card__count {
-  font-size: 0.8rem;
-  color: #5a5f6b;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-3);
+  padding: 2px 7px;
+  background: var(--amber-muted);
+  border-radius: 3px;
 }
 
 .lobby-card__join {
-  padding: 10px 20px;
-  background: none;
-  border: 1px solid #2a2f3a;
-  border-radius: 8px;
-  color: #c8ccd4;
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .lobby-card__join:hover {
-  border-color: #6c8cff;
-  color: #e6e9f0;
+  color: var(--amber);
+  border-color: var(--amber-border);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 700px) {
+  .lobbies-page__content {
+    padding: 24px 16px;
+  }
+
+  .lobby-config {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lobby-config__join {
+    margin-left: 0;
+    flex-direction: column;
+  }
 }

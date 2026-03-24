@@ -1,0 +1,35 @@
+/* ── Player card ── */
+
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.player-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+}
+
+.player-card__nick {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-1);
+}
+
+.player-card__badge {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--amber);
+  padding: 1px 6px;
+  background: var(--amber-muted);
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}

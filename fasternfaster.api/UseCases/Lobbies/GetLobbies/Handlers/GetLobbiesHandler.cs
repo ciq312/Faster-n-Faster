@@ -27,7 +27,7 @@ public class GetLobbiesHandler : IHandler<GetLobbiesQuery, GetLobbiesResult>
                 l.Race switch { WordRace => "wordcount", TimerRace => "timer", _ => null },
                 l.LobbySettings.IsPrivate,
                 l.CurrentStatus.ToString(),
-                l.Players.Count(p => p.IsConnected),
+                l.Players.Count,
                 l.LobbySettings.MaxPlayers,
                 l.LobbySettings.CreatedAt
             ))

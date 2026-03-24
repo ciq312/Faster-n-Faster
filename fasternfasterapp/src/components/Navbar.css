@@ -1,49 +1,69 @@
-/* ── Navbar ── */
+/* ═══════════════════════════════════════════
+   Navbar — "Graphite" warm noir theme
+   ═══════════════════════════════════════════ */
 
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  border-bottom: 1px solid #1e222c;
+  padding: 0 32px;
+  height: 54px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .navbar__logo {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-1);
   letter-spacing: -0.5px;
-  color: #e6e9f0;
 }
 
 .navbar__links {
   display: flex;
-  gap: 32px;
+  gap: 28px;
 }
 
 .navbar__link {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: #5a5f6b;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-3);
   text-decoration: none;
   transition: color 0.2s;
+  padding: 4px 0;
+  position: relative;
 }
 
 .navbar__link:hover {
-  color: #9ba1b0;
+  color: var(--text-2);
 }
 
 .navbar__link.active {
-  color: #e6e9f0;
+  color: var(--text-1);
+}
+
+.navbar__link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--amber);
+  border-radius: 1px;
 }
 
 .navbar__profile {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: #5a5f6b;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-3);
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .navbar__profile:hover {
-  color: #9ba1b0;
+  color: var(--text-1);
 }

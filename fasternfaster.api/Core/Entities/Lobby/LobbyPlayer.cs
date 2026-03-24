@@ -2,27 +2,17 @@ using Ardalis.GuardClauses;
 
 namespace FasterNFaster.Api.Core.Entities.Lobby;
 
-public class LobbyPlayer
+public class LobbyPlayer(User user, Lobby lobby, int joinOrder)
 {
-    public Guid PlayerId { get; private set; }
-    public Guid LobbyPlayerId { get; private set; }
-    public Guid LobbyId { get; private set; }
-    public int JoinOrder { get; private set; }
+    public User User { get; private set; } = user;
+    public int JoinOrder { get; private set; } = joinOrder;
     public string ConnectionId { get; private set; } = null!;
     public bool IsConnected { get; private set; } = true;
-    public DateTime JoinedAt { get; private set; }
-
-    public Lobby Lobby { get; private set; } = null!;
+    public DateTime JoinedAt { get; private set; } = DateTime.UtcNow;
+    public Lobby Lobby { get; private set; } = lobby;
     public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
+    public bool IsHost => User.Id == Lobby.HostId;
 
-    public LobbyPlayer(Guid userId, Guid lobbyId, int joinOrder)
-    {
-        LobbyPlayerId = Guid.NewGuid();
-        PlayerId = userId;
-        LobbyId = lobbyId;
-        JoinOrder = joinOrder;
-        JoinedAt = DateTime.UtcNow;
-    }
 
     public void Disconnect()
     {

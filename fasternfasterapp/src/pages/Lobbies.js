@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import CreateLobbyModal from "../components/CreateLobbyModal";
 import "./Lobbies.css";
 
 function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
   const [lobbies, setLobbies] = useState([]);
   const [isPending, setIsPending] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const navigate = useNavigate();
 
   const fetchLobbies = async () => {
     setIsPending(true);
@@ -22,8 +26,26 @@ function Lobbies() {
     fetchLobbies();
   }, []);
 
-  const handleCreateLobby = () => {
-    // placeholder
+  const handleCreateLobby = async (lobbyData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/lobbies", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(lobbyData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShowCreateModal(false);
+        navigate(`/lobby/${data.lobbyId}`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleJoinByCode = (e) => {
@@ -33,7 +55,7 @@ function Lobbies() {
   };
 
   const handleJoinLobby = (lobbyId) => {
-    // placeholder
+    navigate(`/lobby/${lobbyId}`);
   };
 
   return (
@@ -42,7 +64,10 @@ function Lobbies() {
 
       <div className="lobbies-page__content">
         <section className="lobby-config">
-          <button className="lobby-config__create" onClick={handleCreateLobby}>
+          <button
+            className="lobby-config__create"
+            onClick={() => setShowCreateModal(true)}
+          >
             create lobby
           </button>
 
@@ -80,26 +105,35 @@ function Lobbies() {
             <p className="lobby-list__empty">No active lobbies — create one!</p>
           ) : (
             <div className="lobby-list__cards">
-              {lobbies.map((lobby) => (
-                <div key={lobby.id} className="lobby-card">
-                  <div className="lobby-card__info">
-                    <span className="lobby-card__name">{lobby.name}</span>
-                    <span className="lobby-card__count">
-                      {lobby.playerCount}/{lobby.maxPlayers}
-                    </span>
-                  </div>
-                  <button
-                    className="lobby-card__join"
-                    onClick={() => handleJoinLobby(lobby.id)}
-                  >
-                    join lobby
-                  </button>
-                </div>
-              ))}
+              {lobbies.map(
+                (lobby) =>
+                  !lobby.isPrivate && (
+                    <div key={lobby.id} className="lobby-card">
+                      <div className="lobby-card__info">
+                        <span className="lobby-card__name">{lobby.name}</span>
+                        <span className="lobby-card__count">
+                          {lobby.playerCount}/{lobby.maxPlayers}
+                        </span>
+                      </div>
+                      <button
+                        className="lobby-card__join"
+                        onClick={() => handleJoinLobby(lobby.id)}
+                      >
+                        join lobby
+                      </button>
+                    </div>
+                  ),
+              )}
             </div>
           )}
         </section>
       </div>
+      {showCreateModal && (
+        <CreateLobbyModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateLobby}
+        />
+      )}
     </div>
   );
 }

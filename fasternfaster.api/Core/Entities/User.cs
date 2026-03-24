@@ -22,13 +22,6 @@ public class User : IEntity
 
     public bool IsAnonymous => Login == null;
 
-    /// <summary>Fully anonymous — random nick, no credentials.</summary>
-    public User()
-    {
-        Id = Guid.NewGuid();
-        Token = GenerateToken();
-        Nick = $"Player_{Id.ToString()[..4]}";
-    }
 
     /// <summary>Anonymous user with a chosen nick.</summary>
     public User(string nick) : this(nick, null, null) { }
