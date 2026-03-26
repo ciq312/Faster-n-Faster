@@ -3,7 +3,6 @@ global using Serilog;
 using DotNetEnv;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -12,6 +11,7 @@ using FasterNFaster.Api.Web.DependencyInversion;
 using FasterNFaster.Api.Web.Middleware;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Core.Events;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

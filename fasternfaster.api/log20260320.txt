@@ -1,8 +1,0 @@
-2026-03-20 12:57:54.134 +03:00 [INF] Registered anonymous user "f47fbea6-12d2-4a72-915d-aa6cdeac277f" as TestPlayer
-2026-03-20 12:58:38.319 +03:00 [INF] Registered anonymous user "c6e8d822-9652-4297-aa54-c0e8802c9706" as AnotherPlayer
-2026-03-20 12:59:45.713 +03:00 [INF] Created lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271" with host "c6e8d822-9652-4297-aa54-c0e8802c9706"
-2026-03-20 13:00:25.026 +03:00 [INF] Player "c6e8d822-9652-4297-aa54-c0e8802c9706" joined lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271"
-2026-03-20 13:00:25.028 +03:00 [INF] Tracking connection oHu4GyV37nDtVWS73-hxAA for player "c6e8d822-9652-4297-aa54-c0e8802c9706" in lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271"
-2026-03-20 13:00:48.927 +03:00 [INF] Player "f47fbea6-12d2-4a72-915d-aa6cdeac277f" joined lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271"
-2026-03-20 13:00:48.929 +03:00 [INF] Tracking connection _DtJp9YA4XaZ4UIb9J7Mwg for player "f47fbea6-12d2-4a72-915d-aa6cdeac277f" in lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271"
-2026-03-20 13:04:35.284 +03:00 [INF] Removed connection oHu4GyV37nDtVWS73-hxAA for player "c6e8d822-9652-4297-aa54-c0e8802c9706" in lobby "baef0f2b-ebc5-4436-b5cd-084ae219f271"

@@ -31,7 +31,6 @@ function CreateLobbyModal({ onClose, onCreate }) {
         </div>
 
         <form className="modal__body" onSubmit={handleSubmit}>
-          {/* Lobby name */}
           <label className="modal__field">
             <span className="modal__label">lobby name</span>
             <input
@@ -45,7 +44,6 @@ function CreateLobbyModal({ onClose, onCreate }) {
             />
           </label>
 
-          {/* Private toggle */}
           <div className="modal__field">
             <span className="modal__label">visibility</span>
             <div className="modal__toggle-row">
@@ -66,11 +64,7 @@ function CreateLobbyModal({ onClose, onCreate }) {
             </div>
           </div>
 
-          <button
-            className="modal__submit"
-            type="submit"
-            disabled={!canCreate}
-          >
+          <button className="modal__submit" type="submit" disabled={!canCreate}>
             create
           </button>
         </form>
