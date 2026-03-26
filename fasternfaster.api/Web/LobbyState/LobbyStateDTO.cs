@@ -1,4 +1,5 @@
-using FasterNFaster.Api.Core.Entities.Lobby;
+
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public record LobbyStateDTO(
     Guid LobbyId,

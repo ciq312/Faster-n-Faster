@@ -11,6 +11,7 @@ using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.Web.DependencyInversion;
 using FasterNFaster.Api.Web.Middleware;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Core.Interfaces.Events;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -27,10 +28,14 @@ builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddHandlers();
+builder.Services.AddDomainEventHandlers();
 builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
+builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
+builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
+builder.Services.AddScoped<IEventDispatcher, EventDispatcher>();
 builder
     .Services.AddAuthentication("Token")
     .AddCookie(

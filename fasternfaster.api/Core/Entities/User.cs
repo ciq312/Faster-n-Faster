@@ -22,6 +22,7 @@ public class User : IEntity
 
     public bool IsAnonymous => Login == null;
 
+    public PlayerStatistics? Statistics { get; private set; }
 
     /// <summary>Anonymous user with a chosen nick.</summary>
     public User(string nick) : this(nick, null, null) { }

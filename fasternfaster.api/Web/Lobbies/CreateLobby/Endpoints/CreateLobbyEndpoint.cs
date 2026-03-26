@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Helpers;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 

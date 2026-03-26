@@ -1,9 +1,8 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.UseCases.Helpers;
+using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
-using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
 

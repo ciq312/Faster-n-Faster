@@ -1,4 +1,7 @@
-namespace FasterNFaster.Api.Core.Entities.Lobby;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Lobby.Races;
+
+namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
 public class Lobby
 {
@@ -6,13 +9,12 @@ public class Lobby
     {
         waiting,
         racing,
-        finished,
     }
 
     private static readonly Dictionary<Status, Status> AllowedTransitions = new()
     {
         { Status.waiting, Status.racing },
-        { Status.racing, Status.finished },
+        { Status.racing, Status.waiting },
     };
 
     public Guid Id { get; private set; }
@@ -23,7 +25,7 @@ public class Lobby
     public Race? Race { get; private set; }
 
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
-    public ICollection<RaceResult> RaceResults { get; private set; } = new List<RaceResult>();
+    public ICollection<RaceParticipantResult> RaceStatics { get; private set; } = new List<RaceParticipantResult>();
 
     public Lobby(string name, bool isPrivate)
     {
@@ -137,6 +139,10 @@ public class Lobby
         }
     }
 
+    public void FinishRace()
+    {
+        TransitionStatus(Status.waiting);
+    }
     public LobbyPlayer KickPlayer(Guid hostId, Guid targetPlayerId)
     {
         lock (_lock)

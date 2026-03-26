@@ -21,7 +21,6 @@ public class TokenAuthMiddleware
         if (header != null && header.StartsWith("Bearer "))
             token = header["Bearer ".Length..];
 
-        // SignalR sends token via query string during WebSocket upgrade
         if (string.IsNullOrEmpty(token) && context.Request.Query.TryGetValue("access_token", out var queryToken))
             token = queryToken.ToString();
 

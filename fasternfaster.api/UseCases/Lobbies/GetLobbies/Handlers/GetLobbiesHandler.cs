@@ -1,7 +1,6 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobby;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.UseCases.Helpers;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
 

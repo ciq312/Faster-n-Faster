@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Helpers;
+namespace FasterNFaster.Api.UseCases.Interfaces;
 
 public interface IHandler<TCommand, TResult>
 {

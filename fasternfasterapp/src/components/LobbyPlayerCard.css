@@ -8,7 +8,9 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: 5px;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .player-card:hover {

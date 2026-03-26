@@ -1,6 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobby;
-
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public class TimerRace : Race
 {

@@ -9,6 +9,7 @@ function Lobbies() {
   const [lobbies, setLobbies] = useState([]);
   const [isPending, setIsPending] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
   const navigate = useNavigate();
 
   const fetchLobbies = async () => {
@@ -51,7 +52,6 @@ function Lobbies() {
   const handleJoinByCode = (e) => {
     e.preventDefault();
     if (!inviteCode.trim()) return;
-    // placeholder
   };
 
   const handleJoinLobby = (lobbyId) => {
