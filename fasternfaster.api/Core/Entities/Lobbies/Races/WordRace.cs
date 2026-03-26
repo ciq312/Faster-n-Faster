@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobby.Races;
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public class WordRace : Race
 {
