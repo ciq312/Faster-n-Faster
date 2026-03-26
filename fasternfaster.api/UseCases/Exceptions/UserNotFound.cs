@@ -1,6 +1,7 @@
-using FasterNFaster.Api.Core.Entities;
 
-public class UserNotFoundException : System.Exception
+namespace FasterNFaster.Api.UseCases.Exceptions;
+
+public class UserNotFoundException : Exception
 {
     public Guid UserId { get; }
 

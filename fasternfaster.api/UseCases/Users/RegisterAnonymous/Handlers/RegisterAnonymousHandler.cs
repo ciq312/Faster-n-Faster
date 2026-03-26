@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.UseCases.Helpers;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Results;
 
@@ -18,6 +17,7 @@ public class RegisterAnonymousHandler : IHandler<RegisterAnonymousCommand, Regis
 
     public Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command)
     {
+
         var user = new User(command.Nick);
 
         _repo.AddAsync(user);

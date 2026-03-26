@@ -22,6 +22,11 @@
   border-color: var(--border);
 }
 
+.typing-area--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .typing-area__words {
   font-family: var(--font-mono);
   font-size: 1.1rem;
@@ -45,6 +50,7 @@
   border-radius: 2px;
 }
 
+/* Player's own caret */
 .typing-area__caret {
   position: absolute;
   left: 0;
@@ -65,4 +71,30 @@
 @keyframes caretBlink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* Opponent carets */
+.typing-area__opponent-caret {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 1.4em;
+  background: var(--text-3);
+  border-radius: 1px;
+  z-index: 1;
+}
+
+.typing-area__opponent-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  color: var(--bg);
+  background: var(--text-3);
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
 }

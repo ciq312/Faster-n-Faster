@@ -1,33 +1,30 @@
-using FasterNFaster.Api.Core.Entities.Lobby;
-using LobbyEntity = FasterNFaster.Api.Core.Entities.Lobby.Lobby;
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-namespace FasterNFaster.Api.Core.Entities;
-
-public class RaceResult
+public class RaceParticipantResult
 {
     public Guid Id { get; private set; }
     public Guid LobbyId { get; private set; }
     public Guid LobbyPlayerId { get; private set; }
-    public double GrossWpm { get; private set; }
-    public double NetWpm { get; private set; }
+    public float WPM { get; private set; }
 
     /// <summary>Percentage from 0 to 100.</summary>
-    public double Accuracy { get; private set; }
+    public float Accuracy { get; private set; }
     public int MistakeCount { get; private set; }
-    public int FinishPosition { get; private set; }
+    public int SymbolsTyped { get; private set; }
+    public int WordsTyped { get; private set; }
+    public int? FinishPosition { get; private set; }
     public DateTime FinishedAt { get; private set; }
 
-    public LobbyEntity Lobby { get; private set; } = null!;
-    public LobbyPlayer LobbyPlayer { get; private set; } = null!;
 
-    public RaceResult(
-        Guid lobbyId,
+    public RaceParticipantResult(
+        Guid id,
         Guid lobbyPlayerId,
-        double grossWpm,
-        double netWpm,
-        double accuracy,
+        float wpm,
+        float accuracy,
         int mistakeCount,
-        int finishPosition
+        int totalTyped,
+        int wordsTyped,
+        int? finishPosition
     )
     {
         if (accuracy is < 0 or > 100)
@@ -47,13 +44,12 @@ public class RaceResult
                 nameof(finishPosition),
                 "Finish position must be at least 1."
             );
-
-        Id = Guid.NewGuid();
-        LobbyId = lobbyId;
+        Id = id;
         LobbyPlayerId = lobbyPlayerId;
-        GrossWpm = grossWpm;
-        NetWpm = netWpm;
+        WPM = wpm;
         Accuracy = accuracy;
+        SymbolsTyped = totalTyped;
+        WordsTyped = wordsTyped;
         MistakeCount = mistakeCount;
         FinishPosition = finishPosition;
         FinishedAt = DateTime.UtcNow;

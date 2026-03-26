@@ -1,28 +1,24 @@
-namespace FasterNFaster.Api.Core.Entities.Lobby;
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public class RaceParticipant
+public class RaceParticipant(Guid id)
 {
-    // Anti-cheat limits
     const int MAX_INDEX_JUMP = 5;
-    const double MAX_CHARS_PER_SECOND = 20; // ~240 WPM, well above human limit
+    const double MAX_CHARS_PER_SECOND = 20;
     const int AVERAGE_WORD_LENGTH = 5;
 
-    public Guid PlayerId { get; private set; }
+    public Guid Id { get; private set; } = id;
     public int Index { get; private set; }
     public int TotalTyped { get; private set; }
+    public int WordsTyped { get; private set; }
     public int Mistakes { get; private set; }
     public bool IsFinished { get; private set; }
     public int? FinishPosition { get; private set; }
     public DateTime? FinishedAt { get; private set; }
-    public DateTime StartedAt { get; private set; }
-    public DateTime LastUpdateAt { get; private set; }
+    public DateTime StartedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime LastUpdateAt { get; private set; } = DateTime.UtcNow;
 
-    public RaceParticipant(Guid playerId)
-    {
-        PlayerId = playerId;
-        StartedAt = DateTime.UtcNow;
-        LastUpdateAt = DateTime.UtcNow;
-    }
+    public RaceParticipantResult? Result { get; private set; } = null!;
+
 
     /// <summary>
     /// Validates and applies a client state snapshot. Clamps invalid values instead of rejecting.
@@ -33,7 +29,6 @@ public class RaceParticipant
         if (IsFinished)
             return false;
 
-        // Sanity checks — reject completely invalid data
         if (newIndex < 0 || newTotalTyped < 0 || newMistakes < 0)
             return false;
 
@@ -43,16 +38,10 @@ public class RaceParticipant
         if (newMistakes > newTotalTyped)
             return false;
 
-        // Index can't go backward
-        if (newIndex < Index)
-            newIndex = Index;
-
-        // Clamp index jump
         int indexDelta = newIndex - Index;
         if (indexDelta > MAX_INDEX_JUMP)
             newIndex = Index + MAX_INDEX_JUMP;
 
-        // Speed check
         var now = DateTime.UtcNow;
         double secondsElapsed = (now - LastUpdateAt).TotalSeconds;
         if (secondsElapsed > 0 && indexDelta > 0)
@@ -62,14 +51,15 @@ public class RaceParticipant
                 newIndex = Index + (int)(MAX_CHARS_PER_SECOND * secondsElapsed);
         }
 
-        // Clamp to passage length
         if (newIndex > passageLength)
             newIndex = passageLength;
 
         Index = newIndex;
         TotalTyped = newTotalTyped;
+        WordsTyped = (Index - Mistakes + 1) / AVERAGE_WORD_LENGTH;
         Mistakes = newMistakes;
         LastUpdateAt = now;
+
 
         return true;
     }
@@ -79,18 +69,27 @@ public class RaceParticipant
         IsFinished = true;
         FinishPosition = position;
         FinishedAt = DateTime.UtcNow;
+        Result = new RaceParticipantResult(
+               Guid.NewGuid()
+               , Id
+               , GetWPM()
+               , GetAccuracy()
+               , Mistakes
+               , TotalTyped
+               , WordsTyped
+               , FinishPosition);
     }
 
-    public double GetWpm()
+    public float GetWPM()
     {
-        double minutesElapsed = (DateTime.UtcNow - StartedAt).TotalMinutes;
+        float minutesElapsed = (float)(DateTime.UtcNow - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
-        return (Index / (double)AVERAGE_WORD_LENGTH) / minutesElapsed;
+        return WordsTyped / minutesElapsed;
     }
 
-    public double GetAccuracy()
+    public float GetAccuracy()
     {
-        if (TotalTyped == 0) return 0;
-        return (double)Index / TotalTyped * 100;
+        return 1 - (float)Mistakes / TotalTyped;
     }
+
 }

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobby;
+using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
 

@@ -1,5 +1,5 @@
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Helpers;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Results;
 

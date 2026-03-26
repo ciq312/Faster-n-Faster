@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobby;
+namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
 public class LobbySettings
 {
