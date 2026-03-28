@@ -436,3 +436,48 @@
 2026-03-28 16:27:19.966 +03:00 [INF] Getting lobbies
 2026-03-28 16:27:19.967 +03:00 [INF] Got lobbies
 2026-03-28 16:27:19.967 +03:00 [INF] sending lobbies
+2026-03-28 16:47:02.736 +03:00 [INF] Registered anonymous user "c812cce9-45cf-4608-acf0-43e255ace1de" as a
+2026-03-28 16:47:03.306 +03:00 [INF] Getting lobbies
+2026-03-28 16:47:03.308 +03:00 [INF] Got lobbies
+2026-03-28 16:47:03.308 +03:00 [INF] sending lobbies
+2026-03-28 16:47:03.638 +03:00 [INF] Getting lobbies
+2026-03-28 16:47:03.639 +03:00 [INF] Got lobbies
+2026-03-28 16:47:03.640 +03:00 [INF] sending lobbies
+2026-03-28 16:55:50.207 +03:00 [INF] Registered anonymous user "cec47494-3354-42b0-ab93-f81cb071d8ba" as test
+2026-03-28 17:03:29.798 +03:00 [INF] Registered anonymous user "da434678-1079-4140-afe8-4804278578b9" as ф
+2026-03-28 17:03:30.679 +03:00 [INF] Getting lobbies
+2026-03-28 17:03:30.681 +03:00 [INF] Got lobbies
+2026-03-28 17:03:30.682 +03:00 [INF] sending lobbies
+2026-03-28 17:03:30.958 +03:00 [INF] Getting lobbies
+2026-03-28 17:03:30.959 +03:00 [INF] Got lobbies
+2026-03-28 17:03:30.960 +03:00 [INF] sending lobbies
+2026-03-28 17:04:30.227 +03:00 [INF] created user re ject alexamak pepe
+2026-03-28 17:04:31.084 +03:00 [INF] Getting lobbies
+2026-03-28 17:04:31.085 +03:00 [INF] Got lobbies
+2026-03-28 17:04:31.086 +03:00 [INF] sending lobbies
+2026-03-28 17:04:31.339 +03:00 [INF] Getting lobbies
+2026-03-28 17:04:31.340 +03:00 [INF] Got lobbies
+2026-03-28 17:04:31.341 +03:00 [INF] sending lobbies
+2026-03-28 17:06:42.551 +03:00 [INF] Getting lobbies
+2026-03-28 17:06:42.552 +03:00 [INF] Got lobbies
+2026-03-28 17:06:42.553 +03:00 [INF] sending lobbies
+2026-03-28 17:06:42.857 +03:00 [INF] Getting lobbies
+2026-03-28 17:06:42.858 +03:00 [INF] Got lobbies
+2026-03-28 17:06:42.858 +03:00 [INF] sending lobbies
+2026-03-28 17:09:10.726 +03:00 [INF] Getting lobbies
+2026-03-28 17:09:10.727 +03:00 [INF] Got lobbies
+2026-03-28 17:09:10.728 +03:00 [INF] sending lobbies
+2026-03-28 17:09:18.962 +03:00 [INF] Created lobby "ee730a72-6019-4327-95e2-16733e94ec74" with host "a52db75b-2235-4e3b-a828-440409e9d41d"
+2026-03-28 17:09:19.675 +03:00 [INF] Player "a52db75b-2235-4e3b-a828-440409e9d41d" joined lobby "ee730a72-6019-4327-95e2-16733e94ec74"
+2026-03-28 17:09:19.677 +03:00 [INF] Tracking connection N0O3jarWQSke9mttSXQT5Q for player "a52db75b-2235-4e3b-a828-440409e9d41d" in lobby "ee730a72-6019-4327-95e2-16733e94ec74"
+2026-03-28 17:09:23.922 +03:00 [INF] chaning color to #ff0894
+2026-03-28 17:09:26.074 +03:00 [INF] chaning color to #19d5ff
+2026-03-28 17:09:29.036 +03:00 [INF] chaning color to #0059ff
+2026-03-28 17:28:15.815 +03:00 [INF] Removed connection N0O3jarWQSke9mttSXQT5Q for player "a52db75b-2235-4e3b-a828-440409e9d41d" in lobby "ee730a72-6019-4327-95e2-16733e94ec74"
+2026-03-28 17:37:00.999 +03:00 [INF] Registered anonymous user "58b51584-71db-4bef-a392-ae0796c3e953" as a
+2026-03-28 17:37:01.592 +03:00 [INF] Getting lobbies
+2026-03-28 17:37:01.594 +03:00 [INF] Got lobbies
+2026-03-28 17:37:01.594 +03:00 [INF] sending lobbies
+2026-03-28 17:37:01.917 +03:00 [INF] Getting lobbies
+2026-03-28 17:37:01.918 +03:00 [INF] Got lobbies
+2026-03-28 17:37:01.918 +03:00 [INF] sending lobbies

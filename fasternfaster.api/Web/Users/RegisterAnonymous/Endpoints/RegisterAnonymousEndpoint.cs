@@ -1,3 +1,4 @@
+using System.Data;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
@@ -28,7 +29,15 @@ public class RegisterAnonymousEndpoint : Endpoint<RegisterAnonymousRequest, Regi
     public override async Task HandleAsync(RegisterAnonymousRequest req, CancellationToken ct)
     {
         var command = new RegisterAnonymousCommand(req.Nick);
-        var result = await _handler.Handle(command);
-        await Send.CreatedAtAsync("RegisterAnonymous", null, result);
+        try
+        {
+            var result = await _handler.Handle(command);
+            await Send.CreatedAtAsync("RegisterAnonymous", null, result);
+        }
+        catch (DuplicateNameException e)
+        {
+            ThrowError(e.Message, 409);
+        }
+
     }
 }

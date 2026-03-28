@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Users.LoginUser.Endpoints;
@@ -24,14 +25,11 @@ public class LoginUserEndpoint(IHandler<LoginUserCommand, LoginUserResult> handl
             await Send.OkAsync(result, cancellation: ct);
 
         }
-        catch (KeyNotFoundException e)
-        {
-            ThrowError(e.Message, 404);
-        }
-        catch (InvalidDataException e)
+        catch (InvalidCredentialsException e)
         {
             ThrowError(e.Message, 401);
         }
+
 
 
     }
