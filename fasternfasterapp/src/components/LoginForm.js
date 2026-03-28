@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function LoginForm({ onSubmit }) {
+function LoginForm({ onSubmit, loading }) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
 
@@ -8,12 +8,10 @@ function LoginForm({ onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    let errors = await onSubmit({ login, password });
-    if (errors) handleServerErrors(errors);
+    if (!canSubmit || loading) return;
+    await onSubmit({ login, password });
   };
 
-  const handleServerErrors = (error) => {};
   return (
     <form className="registration__form" onSubmit={handleSubmit}>
       <div className="registration__fields">
@@ -28,7 +26,6 @@ function LoginForm({ onSubmit }) {
             autoFocus
           />
         </label>
-        <div className="loginError"></div>
         <label className="registration__label">
           <span>password</span>
           <input
@@ -39,14 +36,13 @@ function LoginForm({ onSubmit }) {
             placeholder="enter password"
           />
         </label>
-        <div className="passwordError"></div>
       </div>
       <button
         className="registration__submit"
         type="submit"
-        disabled={!canSubmit}
+        disabled={!canSubmit || loading}
       >
-        log in
+        {loading ? "loading..." : "log in"}
       </button>
     </form>
   );

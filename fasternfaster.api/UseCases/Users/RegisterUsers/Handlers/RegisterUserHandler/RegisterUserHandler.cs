@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
@@ -16,9 +17,9 @@ public class RegisterUserHadnler : IHandler<RegisterUserCommand, RegisterUserRes
     }
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command)
     {
-        if (await _repo.DoUserExistByLoginAsync(command.Login)) throw new InvalidOperationException($"user with login {command.Login} already exists");
+        if (await _repo.DoUserExistByLoginAsync(command.Login)) throw new DuplicateLoginException(command.Login);
 
-        if (await _repo.DoUserExistByNickAsync(command.Nick)) throw new InvalidOperationException($"user with login {command.Nick} already exists");
+        if (await _repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNickException(command.Nick);
 
         User user = new(command.Nick, command.Login, command.Password);
 

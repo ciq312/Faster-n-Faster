@@ -1,25 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import CreateLobbyModal from "../components/CreateLobbyModal";
+import ErrorBanner from "../components/ErrorBanner";
 import "./Lobbies.css";
+
+async function extractError(response) {
+  try {
+    const body = await response.json();
+    if (body.errors) {
+      const firstKey = Object.keys(body.errors)[0];
+      if (firstKey && body.errors[firstKey]?.length) return body.errors[firstKey][0];
+    }
+    return body.message || `Error ${response.status}`;
+  } catch {
+    return "Something went wrong, try again";
+  }
+}
 
 function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
   const [lobbies, setLobbies] = useState([]);
   const [isPending, setIsPending] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+  const clearError = useCallback(() => setError(null), []);
 
   const fetchLobbies = async () => {
     setIsPending(true);
     setLobbies([]);
+    setError(null);
     setTimeout(async () => {
-      const response = await fetch("/api/lobbies");
-      const data = await response.json();
-      setLobbies(data.lobbies);
-      setIsPending(false);
+      try {
+        const response = await fetch("/api/lobbies");
+        if (!response.ok) {
+          setError(await extractError(response));
+          setIsPending(false);
+          return;
+        }
+        const data = await response.json();
+        setLobbies(data.lobbies);
+      } catch {
+        setError("Could not connect to server");
+      } finally {
+        setIsPending(false);
+      }
     }, 500);
   };
 
@@ -28,6 +55,7 @@ function Lobbies() {
   }, []);
 
   const handleCreateLobby = async (lobbyData) => {
+    setError(null);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/lobbies", {
@@ -39,13 +67,15 @@ function Lobbies() {
         body: JSON.stringify(lobbyData),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setShowCreateModal(false);
-        navigate(`/lobby/${data.lobbyId}`);
+      if (!response.ok) {
+        setError(await extractError(response));
+        return;
       }
-    } catch (error) {
-      console.log(error);
+      const data = await response.json();
+      setShowCreateModal(false);
+      navigate(`/lobby/${data.lobbyId}`);
+    } catch {
+      setError("Could not connect to server");
     }
   };
 
@@ -62,6 +92,7 @@ function Lobbies() {
     <div className="lobbies-page">
       <Navbar />
 
+      <ErrorBanner message={error} onDismiss={clearError} />
       <div className="lobbies-page__content">
         <section className="lobby-config">
           <button

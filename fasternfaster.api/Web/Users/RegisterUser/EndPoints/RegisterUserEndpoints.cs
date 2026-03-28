@@ -1,3 +1,4 @@
+using System.Data;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
@@ -20,9 +21,16 @@ public class RegisterUserEndpoint : Endpoint<RegisterUserRequest, RegisterUserRe
     }
     public override async Task HandleAsync(RegisterUserRequest req, CancellationToken ct)
     {
-        var result = await _handler.Handle(new RegisterUserCommand(req.Nick, req.Login, req.Password));
+        try
+        {
+            var result = await _handler.Handle(new RegisterUserCommand(req.Nick, req.Login, req.Password));
 
-        await Send.OkAsync(result, cancellation: ct);
+            await Send.OkAsync(result, cancellation: ct);
+        }
+        catch (DuplicateNameException e)
+        {
+            ThrowError(e.Message, 409);
+        }
     }
 }
 

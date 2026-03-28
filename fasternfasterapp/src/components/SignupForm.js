@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function SignupForm({ onSubmit }) {
+function SignupForm({ onSubmit, loading }) {
   const [login, setLogin] = useState("");
   const [nick, setNick] = useState("");
   const [password, setPassword] = useState("");
@@ -17,13 +17,8 @@ function SignupForm({ onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    const errors = await onSubmit({ login, nick, password });
-    if (errors) handleServerErrors(errors);
-  };
-
-  const handleServerErrors = (errors) => {
-
+    if (!canSubmit || loading) return;
+    await onSubmit({ login, nick, password });
   };
 
   return (
@@ -77,9 +72,9 @@ function SignupForm({ onSubmit }) {
       <button
         className="registration__submit"
         type="submit"
-        disabled={!canSubmit}
+        disabled={!canSubmit || loading}
       >
-        sign up
+        {loading ? "loading..." : "sign up"}
       </button>
     </form>
   );

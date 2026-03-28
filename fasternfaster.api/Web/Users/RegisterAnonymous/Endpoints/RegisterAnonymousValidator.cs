@@ -5,6 +5,7 @@ public class RegisterAnonymousValidator : Validator<RegisterAnonymousRequest>
     public RegisterAnonymousValidator()
     {
         RuleFor(x => x.Nick)
-        .NotEmpty();
+        .NotEmpty()
+        .MaximumLength(10).WithMessage("Nick max length is 10");
     }
 }
