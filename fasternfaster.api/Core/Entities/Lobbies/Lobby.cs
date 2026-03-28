@@ -1,4 +1,6 @@
+using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Lobbies.Colors;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
@@ -22,7 +24,6 @@ public class Lobby
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; }
     public Race? Race { get; private set; }
-
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     public ICollection<RaceParticipantResult> RaceStatics { get; private set; } = new List<RaceParticipantResult>();
 
@@ -81,7 +82,8 @@ public class Lobby
                 throw new InvalidOperationException("Lobby is full.");
 
             var joinOrder = Players.Any() ? Players.Max(p => p.JoinOrder) + 1 : 1;
-            var player = new LobbyPlayer(user, this, joinOrder);
+            var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
+            var player = new LobbyPlayer(user, this, joinOrder, color);
             Players.Add(player);
             LobbySettings.UpdateTimestamp();
             return player;
@@ -131,10 +133,10 @@ public class Lobby
 
             TransitionStatus(Status.racing);
 
-            var connectedPlayerIds = Players
+            var connectedPlayers = Players
                 .Where(p => p.IsConnected)
-                .Select(p => p.User.Id);
-            Race.Start(connectedPlayerIds);
+                .Select(p => (p.User.Id, p.Color, p.User.Nick));
+            Race.Start(connectedPlayers);
         }
     }
 
@@ -161,6 +163,28 @@ public class Lobby
         }
     }
 
+    public void ChangePlayerColor(Guid playerId, string newColor)
+    {
+        lock (_lock)
+        {
+            if (CurrentStatus != Status.waiting)
+                throw new InvalidOperationException("Can only change color while waiting.");
+
+            if (Players.Any(p => p.Color == newColor))
+                throw new InvalidOperationException("Color is already taken.");
+
+            var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+                ?? throw new InvalidOperationException("Player not found in this lobby.");
+
+            player.ChangeColor(newColor);
+            LobbySettings.UpdateTimestamp();
+        }
+    }
+
     public bool IsPlayerInLobby(Guid id) => Players.Any(p => p.User.Id == id);
+
+    public IEnumerable<ColorStatus> GetColors()
+    => PlayerColors.Palette.Select(c => new
+    ColorStatus(c, !Players.Any(p => p.Color == c)));
 
 }

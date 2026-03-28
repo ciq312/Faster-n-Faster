@@ -1,6 +1,7 @@
 /* ── Player card ── */
 
 .player-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,6 +17,72 @@
 .player-card:hover {
   background: var(--bg-elevated);
   border-color: var(--border);
+}
+
+.color-panel {
+  left: 110%;
+  top: 0;
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 115px;
+  padding: 7px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.player-card__other {
+  display: flex;
+  gap: 10px;
+}
+.player-card__color {
+  width: 15px;
+  height: 15px;
+  border-radius: 30%;
+  border: 2px solid rgb(66, 66, 66);
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 20px rgba(0, 0, 0, 0.1);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.player-card__color:hover {
+  transform: scale(1.2);
+}
+
+.player-card__color--taken {
+  cursor: default;
+  position: relative;
+}
+
+.player-card__color--taken::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(
+      45deg,
+      transparent 45%,
+      rgb(66, 66, 66) 45%,
+      rgb(66, 66, 66) 55%,
+      transparent 55%
+    ),
+    linear-gradient(
+      -45deg,
+      transparent 45%,
+      rgb(66, 66, 66) 45%,
+      rgb(66, 66, 66) 55%,
+      transparent 55%
+    );
+  border-radius: inherit;
+}
+
+.player-card__color--taken:hover {
+  transform: none;
 }
 
 .player-card__nick {

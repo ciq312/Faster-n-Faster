@@ -88,7 +88,7 @@ public class RaceTickService : BackgroundService
 
         var players = snapshot
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
-            .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm });
+            .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color });
 
         if (!players.Any())
         {

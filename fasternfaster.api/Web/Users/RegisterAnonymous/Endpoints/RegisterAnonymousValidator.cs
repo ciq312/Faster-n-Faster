@@ -5,7 +5,6 @@ public class RegisterAnonymousValidator : Validator<RegisterAnonymousRequest>
     public RegisterAnonymousValidator()
     {
         RuleFor(x => x.Nick)
-        .NotNull()
         .NotEmpty();
     }
 }

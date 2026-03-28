@@ -19,13 +19,14 @@ function Registration() {
   const handleAnonymousSubmit = async (e) => {
     e.preventDefault();
     try {
-      let response = await fetch("/api/users/anonymous", {
+      let response = await fetch("/api/auth/guest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nick: nick }),
       });
       let data = await response.json();
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
       navigate("/lobbies");
     } catch (error) {
       console.log(error);
@@ -33,18 +34,49 @@ function Registration() {
   };
 
   const handleLogin = async (data) => {
-    // placeholder — { login, password }
+    try {
+      let response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          login: data.login,
+          password: data.password,
+        }),
+      });
+
+      if (!response.ok) {
+        let errors = await response.json();
+        console.log(errors.errors.generalErrors[0]);
+        return;
+      }
+      navigate("/lobbies");
+    } catch (e) {}
   };
 
   const handleSignup = async (data) => {
-    // placeholder — { login, nick, password }
+    let response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nick: data.nick,
+        login: data.login,
+        password: data.password,
+      }),
+    });
+    let responseJSON = await response.json();
+
+    console.log(responseJSON);
+
+    localStorage.setItem("token", responseJSON.token);
+    localStorage.setItem("userId", responseJSON.userId);
+    navigate("/lobbies");
   };
 
   return (
     <div className="registration">
       <div className="registration__header">
         <h1 className="registration__logo">faster'n'faster</h1>
-        <p className="registration__tagline">the typing race</p>
+        <p className="registration__tagline">Play hard type fast.</p>
       </div>
 
       <div className="registration__card">
