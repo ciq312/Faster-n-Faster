@@ -10,13 +10,18 @@ function Lobby() {
   const [players, setPlayers] = useState([]);
   const { lobbyId } = useParams();
   const connectionRef = useRef(null);
+
+  const selfIdRef = useRef(localStorage.getItem("userId"));
   const navigate = useNavigate();
+
+  const [lobbyName, setLobbyName] = useState(null);
+  const [lobbyMaxPlayers, setLobbyMaxPlayers] = useState(null);
   const [isRacing, setIsRacing] = useState(false);
   const [passage, setPassage] = useState("");
   const [opponents, setOpponents] = useState([]);
   const [raceResults, setRaceResults] = useState(null);
   const [countdown, setCountdown] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [colors, setColors] = useState(null);
 
   useEffect(() => {
     const connect = async () => {
@@ -32,6 +37,9 @@ function Lobby() {
       connection.on("LobbyState", (state) => {
         console.log(state);
         setPlayers(state.players);
+        setLobbyName(state.lobbyName);
+        setLobbyMaxPlayers(state.maxPlayers);
+        setColors(state.colors);
       });
 
       connection.on("RaceEnded", (data) => {
@@ -98,6 +106,16 @@ function Lobby() {
     setOpponents([]);
   };
 
+  const openPalette = (id) => (id === selfIdRef.current ? true : false);
+
+  const changeColor = useCallback(async (color) => {
+    try {
+      await connectionRef.current?.invoke("ChangeColor", color);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
   const startRace = async () => {
     try {
       console.log("Connection :", connectionRef.current?.state);
@@ -115,9 +133,9 @@ function Lobby() {
       <div className="lobby-body">
         <header className="lobby-topbar">
           <div className="lobby-topbar__info">
-            <h2 className="lobby-topbar__name">shadowtyper's lobby</h2>
+            <h2 className="lobby-topbar__name">{lobbyName}</h2>
             <span className="lobby-topbar__count">
-              {players.length}/30 players
+              {players.length}/{lobbyMaxPlayers} players
             </span>
             <span className="lobby-topbar__mode">word count · 50 words</span>
           </div>
@@ -127,7 +145,13 @@ function Lobby() {
         <div className="lobby-arena">
           <div className="lobby-players-col">
             {players.slice(0, half).map((p) => (
-              <LobbyPlayerCard key={p.id} player={p} />
+              <LobbyPlayerCard
+                key={p.id}
+                player={p}
+                colors={colors}
+                openPalette={openPalette}
+                changeColor={changeColor}
+              />
             ))}
           </div>
 
@@ -147,18 +171,26 @@ function Lobby() {
                     </tr>
                   </thead>
                   <tbody>
-                    {raceResults.map((r) => {
-                      const player = players.find((p) => p.id === r.playerId);
-                      return (
-                        <tr key={r.playerId}>
-                          <td>{r.finishPosition ?? "-"}</td>
-                          <td>{player?.nick ?? "unknown"}</td>
-                          <td>{Math.round(r.wpm)}</td>
-                          <td>{(r.accuracy * 100).toFixed(1)}%</td>
-                          <td>{r.mistakes}</td>
-                        </tr>
-                      );
-                    })}
+                    {raceResults
+                      .sort((r1, r2) => r1.finishPosition - r2.finishPosition)
+                      .map((r) => {
+                        return (
+                          <tr
+                            key={r.playerId}
+                            className={
+                              r.playerId === selfIdRef.current
+                                ? "current-player"
+                                : ""
+                            }
+                          >
+                            <td>{r.finishPosition ?? "-"}</td>
+                            <td>{r.nick ?? "unknown"}</td>
+                            <td>{Math.round(r.wpm)}</td>
+                            <td>{(r.accuracy * 100).toFixed(1)}%</td>
+                            <td>{r.mistakeCount}</td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
                 <button

@@ -78,8 +78,8 @@ function TypingArea({ passage, disabled, onProgress, opponents = [] }) {
                 {i === typed.length && <span className="typing-area__caret" />}
                 {opponentsByIndex[i] &&
                   opponentsByIndex[i].map((op) => (
-                    <span key={op.id} className="typing-area__opponent-caret">
-                      <span className="typing-area__opponent-label">
+                    <span key={op.id} className="typing-area__opponent-caret" style={{ background: op.color }}>
+                      <span className="typing-area__opponent-label" style={{ background: op.color }}>
                         {op.nick}
                       </span>
                     </span>

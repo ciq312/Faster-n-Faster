@@ -5,6 +5,7 @@ public class RaceParticipantResult
     public Guid Id { get; private set; }
     public Guid LobbyId { get; private set; }
     public Guid LobbyPlayerId { get; private set; }
+    public string Nick { get; private set; }
     public float WPM { get; private set; }
 
     /// <summary>Percentage from 0 to 100.</summary>
@@ -19,6 +20,7 @@ public class RaceParticipantResult
     public RaceParticipantResult(
         Guid id,
         Guid lobbyPlayerId,
+        string nick,
         float wpm,
         float accuracy,
         int mistakeCount,
@@ -46,6 +48,7 @@ public class RaceParticipantResult
             );
         Id = id;
         LobbyPlayerId = lobbyPlayerId;
+        Nick = nick;
         WPM = wpm;
         Accuracy = accuracy;
         SymbolsTyped = totalTyped;

@@ -1,3 +1,3 @@
 namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
 
-public record RegisterAnonymousCommand(string? Nick);
+public record RegisterAnonymousCommand(string Nick);

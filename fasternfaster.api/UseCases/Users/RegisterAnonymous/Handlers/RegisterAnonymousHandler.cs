@@ -15,14 +15,15 @@ public class RegisterAnonymousHandler : IHandler<RegisterAnonymousCommand, Regis
         _repo = repo;
     }
 
-    public Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command)
+    public async Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command)
     {
+        if (await _repo.DoUserExistByNickAsync(command.Nick)) throw new InvalidDataException($"User with nick {command.Nick} already exist");
 
         var user = new User(command.Nick);
 
-        _repo.AddAsync(user);
+        await _repo.AddAsync(user);
 
         Log.Information("Registered anonymous user {UserId} as {Nick}", user.Id, user.Nick);
-        return Task.FromResult(new RegisterAnonymousResult(user.Token));
+        return await Task.FromResult(new RegisterAnonymousResult(user.Token, user.Id));
     }
 }

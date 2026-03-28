@@ -191,6 +191,25 @@ public class GameHub : Hub
         }
     }
 
+    public async Task ChangeColor(string color)
+    {
+        try
+        {
+            var (userId, lobbyId, groupName) = GetCallerContext();
+            var lobby = _lobbyStore.Get(lobbyId)
+                ?? throw new HubException("Lobby not found.");
+
+            Log.Information($"chaning color to {color}");
+            lobby.ChangePlayerColor(userId, color);
+            await _broadcaster.BroadcastLobbyState(lobby);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ChangeColor failed");
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
+
     public async Task UpdateRaceState(int index, int totalTyped, int mistakes)
     {
         try

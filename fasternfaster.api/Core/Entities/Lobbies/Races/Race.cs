@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm);
+public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string Color);
 
 public abstract class Race
 {
@@ -31,13 +31,13 @@ public abstract class Race
     private int _nextFinishPosition = 1;
 
 
-    public virtual void Start(IEnumerable<Guid> playerIds)
+    public virtual void Start(IEnumerable<(Guid Id, string Color, string nick)> players)
     {
         GenerateWords();
         StartTime = DateTime.UtcNow;
 
-        foreach (var playerId in playerIds)
-            _participants[playerId] = new RaceParticipant(playerId);
+        foreach (var player in players)
+            _participants[player.Id] = new RaceParticipant(player.Id, player.Color, player.nick);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class Race
         {
             return _participants.Values
                 .Where(p => !p.IsFinished)
-                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM()))
+                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color))
                 .ToList();
         }
     }

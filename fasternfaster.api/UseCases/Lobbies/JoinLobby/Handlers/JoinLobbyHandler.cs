@@ -22,7 +22,7 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand>
         var lobby = _lobbyStore.Get(command.LobbyId)
             ?? throw new KeyNotFoundException("Lobby not found.");
 
-        var user = await _userRepo.GetAsync(command.PlayerId)
+        var user = await _userRepo.GetByIdAsync(command.PlayerId)
             ?? throw new UserNotFoundException(command.PlayerId);
 
         if (!lobby.IsPlayerInLobby(user.Id))

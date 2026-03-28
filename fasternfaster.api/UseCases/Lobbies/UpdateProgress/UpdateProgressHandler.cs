@@ -37,6 +37,7 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
         if (participant.IsFinished)
         {
             await _eventDispatcher.Dispatch(new PlayerFinishedEvent(
+                participant.Nick,
                 command.LobbyId,
                 command.UserId,
                 participant.Result!.FinishPosition,

@@ -7,7 +7,7 @@ namespace FasterNFaster.Api.Web.Users.RegisterAnonymous.Endpoints;
 
 public class RegisterAnonymousRequest
 {
-    public string? Nick { get; set; }
+    public string Nick { get; set; } = null!;
 }
 
 public class RegisterAnonymousEndpoint : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
@@ -21,7 +21,7 @@ public class RegisterAnonymousEndpoint : Endpoint<RegisterAnonymousRequest, Regi
 
     public override void Configure()
     {
-        Post("/api/users/anonymous");
+        Post("/api/auth/guest");
         AllowAnonymous();
     }
 

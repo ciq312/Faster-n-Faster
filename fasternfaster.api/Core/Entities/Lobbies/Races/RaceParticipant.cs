@@ -1,12 +1,14 @@
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public class RaceParticipant(Guid id)
+public class RaceParticipant(Guid id, string color, string nick)
 {
     const int MAX_INDEX_JUMP = 5;
     const double MAX_CHARS_PER_SECOND = 20;
     const int AVERAGE_WORD_LENGTH = 5;
 
+    public string Nick { get; private set; } = nick;
     public Guid Id { get; private set; } = id;
+    public string Color { get; private set; } = color;
     public int Index { get; private set; }
     public int TotalTyped { get; private set; }
     public int WordsTyped { get; private set; }
@@ -72,6 +74,7 @@ public class RaceParticipant(Guid id)
         Result = new RaceParticipantResult(
                Guid.NewGuid()
                , Id
+               , Nick
                , GetWPM()
                , GetAccuracy()
                , Mistakes
