@@ -481,3 +481,16 @@
 2026-03-28 17:37:01.917 +03:00 [INF] Getting lobbies
 2026-03-28 17:37:01.918 +03:00 [INF] Got lobbies
 2026-03-28 17:37:01.918 +03:00 [INF] sending lobbies
+2026-03-28 18:02:37.733 +03:00 [INF] created user alesha leshamak lele
+2026-03-28 18:02:38.689 +03:00 [INF] Getting lobbies
+2026-03-28 18:02:38.691 +03:00 [INF] Got lobbies
+2026-03-28 18:02:38.692 +03:00 [INF] sending lobbies
+2026-03-28 18:02:38.953 +03:00 [INF] Getting lobbies
+2026-03-28 18:02:38.954 +03:00 [INF] Got lobbies
+2026-03-28 18:02:38.955 +03:00 [INF] sending lobbies
+2026-03-28 18:02:53.608 +03:00 [INF] Getting lobbies
+2026-03-28 18:02:53.609 +03:00 [INF] Got lobbies
+2026-03-28 18:02:53.610 +03:00 [INF] sending lobbies
+2026-03-28 18:02:53.860 +03:00 [INF] Getting lobbies
+2026-03-28 18:02:53.861 +03:00 [INF] Got lobbies
+2026-03-28 18:02:53.862 +03:00 [INF] sending lobbies
