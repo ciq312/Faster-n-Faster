@@ -22,7 +22,7 @@ public class StartRaceHandler : IHandler<StartRaceCommand, StartRaceResult>
         lobby.StartRace(command.UserId);
         _raceTickRegistry.RegisterLobby(lobby.Id);
 
-        var words = lobby.GetRace().Words;
+        var words = lobby.Race.Words;
         return Task.FromResult(new StartRaceResult(words));
     }
 }

@@ -3,7 +3,7 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies;
 public class LobbySettings
 {
     private static readonly char[] AlphanumericChars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 
     public int MaxPlayers { get; private set; } = 5;
     public bool IsPrivate { get; private set; }

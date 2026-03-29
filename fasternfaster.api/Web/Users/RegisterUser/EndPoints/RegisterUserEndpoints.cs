@@ -1,5 +1,6 @@
 using System.Data;
 using FastEndpoints;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
@@ -28,6 +29,10 @@ public class RegisterUserEndpoint : Endpoint<RegisterUserRequest, RegisterUserRe
             await Send.OkAsync(result, cancellation: ct);
         }
         catch (DuplicateNameException e)
+        {
+            ThrowError(e.Message, 409);
+        }
+        catch (DuplicateLoginException e)
         {
             ThrowError(e.Message, 409);
         }

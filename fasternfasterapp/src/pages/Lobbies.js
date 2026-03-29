@@ -1,91 +1,35 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import CreateLobbyModal from "../components/CreateLobbyModal";
-import ErrorBanner from "../components/ErrorBanner";
+import { useFetchLobbies } from "../features/lobbies/hooks/useFetchLobbies";
+import { useCreateLobby } from "../features/lobbies/hooks/useCreateLobby";
+import Navbar from "../shared/components/Navbar";
+import CreateLobbyModal from "../features/lobbies/components/CreateLobbyModal";
+import ErrorBanner from "../shared/components/ErrorBanner";
 import "./Lobbies.css";
-
-async function extractError(response) {
-  try {
-    const body = await response.json();
-    if (body.errors) {
-      const firstKey = Object.keys(body.errors)[0];
-      if (firstKey && body.errors[firstKey]?.length) return body.errors[firstKey][0];
-    }
-    return body.message || `Error ${response.status}`;
-  } catch {
-    return "Something went wrong, try again";
-  }
-}
 
 function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
-  const [lobbies, setLobbies] = useState([]);
-  const [isPending, setIsPending] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
-  const clearError = useCallback(() => setError(null), []);
+  const fetchLobbies = useFetchLobbies();
+  const createLobby = useCreateLobby();
 
-  const fetchLobbies = async () => {
-    setIsPending(true);
-    setLobbies([]);
-    setError(null);
-    setTimeout(async () => {
-      try {
-        const response = await fetch("/api/lobbies");
-        if (!response.ok) {
-          setError(await extractError(response));
-          setIsPending(false);
-          return;
-        }
-        const data = await response.json();
-        setLobbies(data.lobbies);
-      } catch {
-        setError("Could not connect to server");
-      } finally {
-        setIsPending(false);
-      }
-    }, 500);
-  };
+  const error = fetchLobbies.error || createLobby.error;
 
-  useEffect(() => {
-    fetchLobbies();
-  }, []);
+  const clearError = useCallback(() => {
+    fetchLobbies.setError(null);
+    createLobby.setError(null);
+  }, [fetchLobbies, createLobby]);
 
-  const handleCreateLobby = async (lobbyData) => {
-    setError(null);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/lobbies", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(lobbyData),
-      });
-
-      if (!response.ok) {
-        setError(await extractError(response));
-        return;
-      }
-      const data = await response.json();
-      setShowCreateModal(false);
-      navigate(`/lobby/${data.lobbyId}`);
-    } catch {
-      setError("Could not connect to server");
-    }
+  const handleCreate = async (lobbyData) => {
+    const success = await createLobby.execute(lobbyData);
+    if (success) setShowCreateModal(false);
   };
 
   const handleJoinByCode = (e) => {
     e.preventDefault();
     if (!inviteCode.trim()) return;
-  };
-
-  const handleJoinLobby = (lobbyId) => {
-    navigate(`/lobby/${lobbyId}`);
   };
 
   return (
@@ -102,7 +46,10 @@ function Lobbies() {
             create lobby
           </button>
 
-          <button className="lobby-config__create" onClick={fetchLobbies}>
+          <button
+            className="lobby-config__create"
+            onClick={fetchLobbies.refresh}
+          >
             Refresh
           </button>
 
@@ -131,12 +78,12 @@ function Lobbies() {
 
         <section className="lobby-list">
           <h2 className="lobby-list__title">Active lobbies</h2>
-          {isPending && <div>Loading...</div>}
-          {!isPending && lobbies.length === 0 ? (
+          {fetchLobbies.loading && <div>Loading...</div>}
+          {!fetchLobbies.loading && fetchLobbies.lobbies.length === 0 ? (
             <p className="lobby-list__empty">No active lobbies — create one!</p>
           ) : (
             <div className="lobby-list__cards">
-              {lobbies.map(
+              {fetchLobbies.lobbies.map(
                 (lobby) =>
                   !lobby.isPrivate && (
                     <div key={lobby.id} className="lobby-card">
@@ -148,7 +95,7 @@ function Lobbies() {
                       </div>
                       <button
                         className="lobby-card__join"
-                        onClick={() => handleJoinLobby(lobby.id)}
+                        onClick={() => navigate(`/lobby/${lobby.id}`)}
                       >
                         join lobby
                       </button>
@@ -162,7 +109,7 @@ function Lobbies() {
       {showCreateModal && (
         <CreateLobbyModal
           onClose={() => setShowCreateModal(false)}
-          onCreate={handleCreateLobby}
+          onCreate={handleCreate}
         />
       )}
     </div>

@@ -11,7 +11,6 @@ public class RaceParticipantResult
     /// <summary>Percentage from 0 to 100.</summary>
     public float Accuracy { get; private set; }
     public int MistakeCount { get; private set; }
-    public int SymbolsTyped { get; private set; }
     public int WordsTyped { get; private set; }
     public int? FinishPosition { get; private set; }
     public DateTime FinishedAt { get; private set; }
@@ -24,7 +23,6 @@ public class RaceParticipantResult
         float wpm,
         float accuracy,
         int mistakeCount,
-        int totalTyped,
         int wordsTyped,
         int? finishPosition
     )
@@ -51,7 +49,6 @@ public class RaceParticipantResult
         Nick = nick;
         WPM = wpm;
         Accuracy = accuracy;
-        SymbolsTyped = totalTyped;
         WordsTyped = wordsTyped;
         MistakeCount = mistakeCount;
         FinishPosition = finishPosition;
