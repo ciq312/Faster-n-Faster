@@ -23,7 +23,8 @@ public class Lobby
     public Status CurrentStatus { get; private set; }
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; }
-    public Race? Race { get; private set; }
+    public RaceSettings RaceSettings { get; private set; } = new();
+    public Race Race { get; private set; }
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     public ICollection<RaceParticipantResult> RaceStatics { get; private set; } = new List<RaceParticipantResult>();
 
@@ -33,26 +34,22 @@ public class Lobby
         Name = name;
         LobbySettings = new LobbySettings(isPrivate);
         CurrentStatus = Status.waiting;
+        Race = RaceSettings.BuildRace();
     }
 
-    public Race GetRace() =>
-        Race ?? throw new InvalidOperationException("Race has not been configured.");
-
-    public void ConfigureRace(Race race)
+    public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
     {
-        Race = race;
-        LobbySettings.UpdateTimestamp();
-    }
+        lock (_lock)
+        {
+            ValidateHost(hostId);
 
-    public void ConfigureRace(Guid hostId, Race newRace)
-    {
-        ValidateHost(hostId);
+            if (CurrentStatus != Status.waiting)
+                throw new InvalidOperationException("Can only change settings while waiting.");
 
-        if (CurrentStatus != Status.waiting)
-            throw new InvalidOperationException("Can only configure race while waiting.");
-
-        Race = newRace;
-        LobbySettings.UpdateTimestamp();
+            configure(RaceSettings);
+            Race = RaceSettings.BuildRace();
+            LobbySettings.UpdateTimestamp();
+        }
     }
 
     public void TransitionStatus(Status newStatus)
@@ -127,22 +124,32 @@ public class Lobby
         lock (_lock)
         {
             ValidateHost(hostId);
-
-            if (Race == null)
-                throw new InvalidOperationException("Race has not been configured.");
-
             TransitionStatus(Status.racing);
+
+            Race = RaceSettings.BuildRace();
 
             var connectedPlayers = Players
                 .Where(p => p.IsConnected)
                 .Select(p => (p.User.Id, p.Color, p.User.Nick));
+
             Race.Start(connectedPlayers);
         }
     }
 
-    public void FinishRace()
+    /// <summary>
+    /// Thread-safe finish — only the first caller succeeds.
+    /// Returns the finished race so the caller can read results.
+    /// </summary>
+    public Race? TryFinishRace()
     {
-        TransitionStatus(Status.waiting);
+        lock (_lock)
+        {
+            if (CurrentStatus != Status.racing) return null;
+            TransitionStatus(Status.waiting);
+            var finishedRace = Race;
+            Race = RaceSettings.BuildRace();
+            return finishedRace;
+        }
     }
     public LobbyPlayer KickPlayer(Guid hostId, Guid targetPlayerId)
     {

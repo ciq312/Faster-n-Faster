@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import LoginForm from "../components/LoginForm.js";
-import SignupForm from "../components/SignupForm.js";
-import ErrorBanner from "../components/ErrorBanner.js";
+import { useAnonymousLogin } from "../features/auth/hooks/useAnonymousLogin";
+import { useLogin } from "../features/auth/hooks/useLogin";
+import { useRegister } from "../features/auth/hooks/useRegister";
+import LoginForm from "../features/auth/components/LoginForm";
+import SignupForm from "../features/auth/components/SignupForm";
+import ErrorBanner from "../shared/components/ErrorBanner";
 import "./Registration.css";
 
 const TABS = [
@@ -11,112 +13,31 @@ const TABS = [
   { key: "signup", label: "Sign up" },
 ];
 
-async function extractError(response) {
-  try {
-    const body = await response.json();
-    if (body.errors) {
-      const firstKey = Object.keys(body.errors)[0];
-      if (firstKey && body.errors[firstKey]?.length)
-        return body.errors[firstKey][0];
-    }
-    return body.message || `Error ${response.status}`;
-  } catch {
-    return "Something went wrong, try again";
-  }
-}
-
 function Registration() {
   const [activeTab, setActiveTab] = useState("anonymous");
   const [nick, setNick] = useState("");
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const clearError = useCallback(() => setError(null), []);
+  const anonymousLogin = useAnonymousLogin();
+  const login = useLogin();
+  const register = useRegister();
+
+  const error = anonymousLogin.error || login.error || register.error;
+  const loading = anonymousLogin.loading || login.loading || register.loading;
+
+  const clearError = useCallback(() => {
+    anonymousLogin.setError(null);
+    login.setError(null);
+    register.setError(null);
+  }, [anonymousLogin, login, register]);
 
   const handleTabSwitch = (key) => {
     setActiveTab(key);
-    setError(null);
+    clearError();
   };
 
-  const handleAnonymousSubmit = async (e) => {
+  const handleAnonymousSubmit = (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      let response = await fetch("/api/auth/guest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nick: nick }),
-      });
-      if (!response.ok) {
-        setError(await extractError(response));
-        return;
-      }
-      let data = await response.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      navigate("/lobbies");
-    } catch {
-      setError("Could not connect to server");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async (data) => {
-    setError(null);
-    setLoading(true);
-    try {
-      let response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          login: data.login,
-          password: data.password,
-        }),
-      });
-      if (!response.ok) {
-        setError(await extractError(response));
-        return;
-      }
-      let responseJSON = await response.json();
-      localStorage.setItem("token", responseJSON.token);
-      localStorage.setItem("userId", responseJSON.userId);
-      navigate("/lobbies");
-    } catch {
-      setError("Could not connect to server");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignup = async (data) => {
-    setError(null);
-    setLoading(true);
-    try {
-      let response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nick: data.nick,
-          login: data.login,
-          password: data.password,
-        }),
-      });
-      if (!response.ok) {
-        setError(await extractError(response));
-        return;
-      }
-      let responseJSON = await response.json();
-      localStorage.setItem("token", responseJSON.token);
-      localStorage.setItem("userId", responseJSON.userId);
-      navigate("/lobbies");
-    } catch {
-      setError("Could not connect to server");
-    } finally {
-      setLoading(false);
-    }
+    anonymousLogin.execute(nick);
   };
 
   return (
@@ -168,10 +89,10 @@ function Registration() {
         )}
 
         {activeTab === "login" && (
-          <LoginForm onSubmit={handleLogin} loading={loading} />
+          <LoginForm onSubmit={login.execute} loading={loading} />
         )}
         {activeTab === "signup" && (
-          <SignupForm onSubmit={handleSignup} loading={loading} />
+          <SignupForm onSubmit={register.execute} loading={loading} />
         )}
       </div>
     </div>

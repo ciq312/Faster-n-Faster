@@ -1,19 +1,8 @@
+import { useColorPalette } from "../hooks/useColorPalette";
 import "./LobbyPlayerCard.css";
-import { useState, useEffect, useRef } from "react";
 
 function LobbyPlayerCard({ player, colors, openPalette, changeColor }) {
-  const [showColors, setShowColors] = useState(false);
-  const panelRef = useRef(null);
-
-  useEffect(() => {
-    if (!showColors) return;
-    const handleClick = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target))
-        setShowColors(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [showColors]);
+  const palette = useColorPalette();
 
   return (
     <div className="player-card">
@@ -25,12 +14,12 @@ function LobbyPlayerCard({ player, colors, openPalette, changeColor }) {
           style={{ background: player.color }}
           onMouseDown={(e) => {
             e.stopPropagation();
-            setShowColors(showColors ? false : openPalette(player.id));
+            palette.toggle(openPalette?.(player.id));
           }}
         ></div>
       </div>
-      {showColors && (
-        <div className="color-panel" ref={panelRef}>
+      {palette.showColors && colors && (
+        <div className="color-panel" ref={palette.panelRef}>
           {colors.map((c, i) => (
             <div
               key={i}
@@ -38,8 +27,8 @@ function LobbyPlayerCard({ player, colors, openPalette, changeColor }) {
               style={{ backgroundColor: c.color }}
               onClick={() => {
                 if (c.isAvailable) {
-                  changeColor(c.color);
-                  setShowColors(false);
+                  changeColor?.(c.color);
+                  palette.close();
                 }
               }}
             ></div>

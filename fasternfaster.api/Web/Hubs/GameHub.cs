@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
-using FasterNFaster.Api.UseCases.Lobbies.ConfigureRace;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
@@ -21,7 +20,6 @@ public class GameHub : Hub
 
     private readonly IHandler<JoinLobbyCommand> _joinHandler;
     private readonly IHandler<StartRaceCommand, StartRaceResult> _startRaceHandler;
-    private readonly IHandler<ConfigureRaceCommand> _configureRaceHandler;
     private readonly IHandler<TransferHostCommand> _transferHostHandler;
     private readonly IHandler<KickPlayerCommand, KickPlayerResult> _kickPlayerHandler;
     private readonly IHandler<UpdateProgressCommand> _updateProgressHandler;
@@ -34,7 +32,6 @@ public class GameHub : Hub
         LobbyStateBroadcaster broadcaster,
         IHandler<JoinLobbyCommand> joinHandler,
         IHandler<StartRaceCommand, StartRaceResult> startRaceHandler,
-        IHandler<ConfigureRaceCommand> configureRaceHandler,
         IHandler<TransferHostCommand> transferHostHandler,
         IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
         IHandler<UpdateProgressCommand> updateProgressHandler,
@@ -46,7 +43,6 @@ public class GameHub : Hub
         _broadcaster = broadcaster;
         _joinHandler = joinHandler;
         _startRaceHandler = startRaceHandler;
-        _configureRaceHandler = configureRaceHandler;
         _transferHostHandler = transferHostHandler;
         _kickPlayerHandler = kickPlayerHandler;
         _updateProgressHandler = updateProgressHandler;
@@ -125,22 +121,66 @@ public class GameHub : Hub
         }
     }
 
-    public async Task ConfigureRace(string gameMode, int? wordCount, int? timerDuration)
+    public async Task ChangeGameMode(string gameMode)
     {
         try
         {
-            var (userId, lobbyId, groupName) = GetCallerContext();
-
-            await _configureRaceHandler.Handle(
-                new ConfigureRaceCommand(userId, lobbyId, gameMode, wordCount, timerDuration));
-
-            await Clients.Group(groupName).SendAsync("RaceConfigured", new { gameMode, wordCount, timerDuration });
-
-            _logger.LogInformation("Race configured in lobby {LobbyId}: {GameMode}", lobbyId, gameMode);
+            var (userId, lobbyId, _) = GetCallerContext();
+            var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
+            lobby.UpdateRaceSettings(userId, s => s.SetGameMode(gameMode));
+            await _broadcaster.BroadcastLobbyState(lobby);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "ConfigureRace failed");
+            _logger.LogWarning(ex, "ChangeGameMode failed");
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
+
+    public async Task ChangeWordCount(int wordCount)
+    {
+        try
+        {
+            var (userId, lobbyId, _) = GetCallerContext();
+            var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
+            lobby.UpdateRaceSettings(userId, s => s.SetWordCount(wordCount));
+            await _broadcaster.BroadcastLobbyState(lobby);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ChangeWordCount failed");
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
+
+    public async Task ChangeTimerDuration(int duration)
+    {
+        try
+        {
+            var (userId, lobbyId, _) = GetCallerContext();
+            var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
+            lobby.UpdateRaceSettings(userId, s => s.SetTimerDuration(duration));
+            await _broadcaster.BroadcastLobbyState(lobby);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ChangeTimerDuration failed");
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
+
+    public async Task ChangePassage(string? passage)
+    {
+        try
+        {
+            var (userId, lobbyId, _) = GetCallerContext();
+            var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
+            lobby.UpdateRaceSettings(userId, s => s.SetCustomPassage(passage));
+            await _broadcaster.BroadcastLobbyState(lobby);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ChangePassage failed");
             await Clients.Caller.SendAsync("Error", ex.Message);
         }
     }
@@ -210,13 +250,13 @@ public class GameHub : Hub
         }
     }
 
-    public async Task UpdateRaceState(int index, int totalTyped, int mistakes)
+    public async Task UpdateRaceState(int index, int mistakes)
     {
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
             await _updateProgressHandler.Handle(
-                new UpdateProgressCommand(userId, lobbyId, index, totalTyped, mistakes));
+                new UpdateProgressCommand(userId, lobbyId, index, mistakes));
         }
         catch (Exception ex)
         {

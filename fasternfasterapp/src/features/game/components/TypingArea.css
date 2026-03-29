@@ -1,4 +1,4 @@
-/* ── Monkeytype-style typing area ── */
+/* ── Typing area ── */
 
 .typing-area__hidden-input {
   position: absolute;
@@ -35,6 +35,8 @@
   position: relative;
 }
 
+/* ── Characters ── */
+
 .typing-area__char {
   position: relative;
   transition: color 0.05s;
@@ -46,55 +48,45 @@
 
 .typing-area__char--incorrect {
   color: var(--error);
-  background: var(--error-muted);
   border-radius: 2px;
 }
 
-/* Player's own caret */
+.typing-area__space--incorrect {
+  background: var(--error-muted);
+  margin: 0 1px;
+}
+
+/* ── Opponent carets ── */
+
 .typing-area__caret {
-  position: absolute;
-  left: 0;
-  top: 0.15em;
-  width: 2px;
-  height: 1.2em;
-  background: var(--amber);
-  border-radius: 1px;
-  animation: caretBlink 1s step-end infinite;
-}
-
-.typing-area__caret--end {
-  position: relative;
-  display: inline-block;
-  vertical-align: text-bottom;
-}
-
-@keyframes caretBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* Opponent carets */
-.typing-area__opponent-caret {
   position: absolute;
   left: 0;
   top: 0;
   width: 2px;
   height: 1.4em;
-  background: var(--text-3);
   border-radius: 1px;
+  pointer-events: none;
+  opacity: 0.85;
   z-index: 1;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+.current__caret {
+  z-index: 2;
 }
 
-.typing-area__opponent-label {
+/* ── Opponent label ── */
+
+.typing-area__caret-label {
   position: absolute;
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: var(--bg);
-  background: var(--text-3);
-  padding: 1px 4px;
+  padding: 0px 2px;
   border-radius: 2px;
   white-space: nowrap;
   pointer-events: none;
+  transition: transform 0.12s ease-out;
 }

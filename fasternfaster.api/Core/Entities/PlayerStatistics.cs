@@ -18,7 +18,6 @@ public class PlayerStatistics(Guid id) : IEntity
     public float SumAccuracy { get; private set; }
     public float AvgAccuracy { get; private set; }
 
-    public int SymbolsTyped { get; private set; }
     public int WordsTyped { get; private set; }
 
     public void RegisterRace(RaceParticipantResult result)
@@ -35,7 +34,6 @@ public class PlayerStatistics(Guid id) : IEntity
         SumAccuracy += result.Accuracy;
         AvgAccuracy = SumAccuracy / RacesTyped;
 
-        SymbolsTyped += result.SymbolsTyped;
         WordsTyped += result.WordsTyped;
     }
 }
