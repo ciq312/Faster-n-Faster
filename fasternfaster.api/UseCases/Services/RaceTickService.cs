@@ -68,18 +68,14 @@ public class RaceTickService : BackgroundService
 
         if (elapsed >= CountdownSeconds)
         {
-            var race = lobby.GetRace();
-            await group.SendAsync("RaceStarted", new { words = race.Words });
+            await group.SendAsync("RaceStarted", new { words = lobby.Race.Words });
             _registry.TransitionToRacing(entry.LobbyId);
-            return;
         }
-
     }
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby, IClientProxy group)
     {
-        var race = lobby.GetRace();
-        var snapshot = race.GetSnapshot();
+        var snapshot = lobby.Race.GetSnapshot();
 
         var connectedPlayerIds = lobby.Players
             .Where(p => p.IsConnected)
@@ -88,10 +84,18 @@ public class RaceTickService : BackgroundService
 
         var players = snapshot
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
-            .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color });
+            .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color, nick = s.Nick })
+            .ToList();
 
         if (!players.Any())
         {
+            var finishedRace = lobby.TryFinishRace();
+            if (finishedRace != null)
+            {
+                var results = finishedRace.GetRaceStatics();
+                await group.SendAsync("RaceEnded", new { results });
+            }
+
             _registry.DeregisterLobby(entry.LobbyId);
             return;
         }

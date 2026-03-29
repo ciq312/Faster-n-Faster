@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string Color);
+public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string Color, string Nick);
 
 public abstract class Race
 {
@@ -24,6 +24,7 @@ public abstract class Race
     public DateTime StartTime { get; private set; }
     public string Words { get; private set; } = "";
     public int MaxWords { get; protected set; }
+    private string? _customPassage;
 
     private readonly Dictionary<Guid, RaceParticipant> _participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => _participants;
@@ -31,9 +32,21 @@ public abstract class Race
     private int _nextFinishPosition = 1;
 
 
+    public void SetCustomPassage(string passage)
+    {
+        _customPassage = passage;
+    }
+
     public virtual void Start(IEnumerable<(Guid Id, string Color, string nick)> players)
     {
-        GenerateWords();
+        _participants.Clear();
+        _nextFinishPosition = 1;
+
+        if (_customPassage != null)
+            Words = _customPassage;
+        else
+            GenerateWords();
+
         StartTime = DateTime.UtcNow;
 
         foreach (var player in players)
@@ -44,18 +57,18 @@ public abstract class Race
     /// Validates a client state snapshot and checks for finish.
     /// Thread-safe — called from SignalR hub threads.
     /// </summary>
-    public RaceParticipant? ProcessUpdate(Guid playerId, int index, int totalTyped, int mistakes)
+    public RaceParticipant? ProcessUpdate(Guid playerId, int index, int mistakes)
     {
         lock (_raceLock)
         {
             var participant = _participants.GetValueOrDefault(playerId)
                 ?? throw new InvalidOperationException("Player is not a race participant.");
 
-            if (!participant.ValidateUpdate(index, totalTyped, mistakes, Words.Length))
+            if (!participant.ValidateUpdate(index, mistakes, Words.Length))
                 return null;
 
-            if (!participant.IsFinished && participant.Index >= Words.Length)
-                participant.MarkFinished(_nextFinishPosition++);
+            if (!participant.IsFinished && participant.Index >= Words.Length - 1)
+                participant.MarkFinished(_nextFinishPosition++, Words.Split(' ').Length);
 
             return participant;
         }
@@ -70,7 +83,7 @@ public abstract class Race
         {
             return _participants.Values
                 .Where(p => !p.IsFinished)
-                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color))
+                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color, p.Nick))
                 .ToList();
         }
     }
