@@ -10,10 +10,10 @@ public class LoginUserHandlerTests
     [Fact]
     public async Task LoginNotFound_ShouldThrowKeyNotFound()
     {
-        var repo = new FakeUserRepository(); // пустой — юзеров нет
+        var repo = new FakeUserRepository();
         var handler = new LoginUserHandler(repo);
 
-        await Assert.ThrowsAsync<UserNotFoundException>(
+        await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("noone", "pass123"))
         );
     }

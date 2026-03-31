@@ -24,7 +24,7 @@ public class LobbyStateBroadcaster
             p.User.Id, p.IsHost, p.User.Nick, p.JoinOrder, p.IsConnected, p.Color));
 
         var rs = lobby.RaceSettings;
-        var raceSettingsDto = new RaceSettingsDto(rs.GameMode, rs.WordCount, rs.TimerDuration, rs.CustomPassage);
+        var raceSettingsDto = new RaceSettingsDto(rs.GameMode, rs.WordCount, rs.TimerDuration, lobby.Race.Words);
 
         return new LobbyStateDTO(
             lobby.Id, lobby.Name, raceSettingsDto, lobby.LobbySettings.IsPrivate,

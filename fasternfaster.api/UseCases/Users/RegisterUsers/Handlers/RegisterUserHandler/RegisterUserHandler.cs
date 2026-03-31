@@ -24,6 +24,7 @@ public class RegisterUserHadnler : IHandler<RegisterUserCommand, RegisterUserRes
         User user = new(command.Nick, command.Login, command.Password);
 
         Log.Information($"created user {user.Nick} {user.Login} {user.Password}");
+
         await _repo.AddAsync(user);
 
         return await Task.FromResult(new RegisterUserResult(user.Token, user.Id));

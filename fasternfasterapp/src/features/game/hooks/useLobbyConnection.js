@@ -58,6 +58,8 @@ export function useLobbyConnection(lobbyId) {
       });
 
       connection.on("RaceStarted", () => {
+        console.log("Race started");
+
         countdownTimersRef.current.forEach(clearTimeout);
         countdownTimersRef.current = [];
         setIsRaceStarting(false);
@@ -135,9 +137,9 @@ export function useLobbyConnection(lobbyId) {
     }
   }, []);
 
-  const changePassage = useCallback(async (passage) => {
+  const refreshPassage = useCallback(async () => {
     try {
-      await connectionRef.current?.invoke("ChangePassage", passage);
+      await connectionRef.current?.invoke("RefreshPassage");
     } catch (e) {
       console.log(e);
     }
@@ -170,7 +172,7 @@ export function useLobbyConnection(lobbyId) {
     changeGameMode,
     changeWordCount,
     changeTimerDuration,
-    changePassage,
+    refreshPassage,
     dismissResults,
     isSelf,
   };

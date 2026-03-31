@@ -40,6 +40,7 @@ public class RaceTickService : BackgroundService
             {
                 try
                 {
+                    Log.Information("Processing tick for lobby {LobbyId} in phase {Phase}", entry.LobbyId, entry.Phase);
                     var lobby = _lobbyStore.Get(entry.LobbyId);
                     if (lobby == null)
                     {
@@ -69,6 +70,7 @@ public class RaceTickService : BackgroundService
         if (elapsed >= CountdownSeconds)
         {
             await group.SendAsync("RaceStarted", new { words = lobby.Race.Words });
+            Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);
             _registry.TransitionToRacing(entry.LobbyId);
         }
     }

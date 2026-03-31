@@ -4,37 +4,20 @@ public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string C
 
 public abstract class Race
 {
-    private static readonly string[] WordsPool =
-    [
-        "the", "be", "to", "of", "and", "a", "in", "that", "have", "it",
-        "for", "not", "on", "with", "he", "as", "you", "do", "at", "this",
-        "but", "his", "by", "from", "they", "we", "say", "her", "she", "or",
-        "an", "will", "my", "one", "all", "would", "there", "their", "what",
-        "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
-        "when", "make", "can", "like", "time", "no", "just", "him", "know",
-        "take", "people", "into", "year", "your", "good", "some", "could",
-        "them", "see", "other", "than", "then", "now", "look", "only", "come",
-        "its", "over", "think", "also", "back", "after", "use", "two", "how",
-        "our", "work", "first", "well", "way", "even", "new", "want", "because",
-        "any", "these", "give", "day", "most", "us", "great", "between", "need",
-        "large", "often", "around", "each", "still", "every", "point", "keep",
-        "never", "last", "long", "same", "another", "much", "while", "before"
-    ];
-
     public DateTime StartTime { get; private set; }
     public string Words { get; private set; } = "";
     public int MaxWords { get; protected set; }
-    private string? _customPassage;
+    private string? _passage;
 
     private readonly Dictionary<Guid, RaceParticipant> _participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => _participants;
     private readonly object _raceLock = new();
     private int _nextFinishPosition = 1;
 
-
-    public void SetCustomPassage(string passage)
+    public void SetPassage(string passage)
     {
-        _customPassage = passage;
+        _passage = passage;
+        Words = passage;
     }
 
     public virtual void Start(IEnumerable<(Guid Id, string Color, string nick)> players)
@@ -42,10 +25,8 @@ public abstract class Race
         _participants.Clear();
         _nextFinishPosition = 1;
 
-        if (_customPassage != null)
-            Words = _customPassage;
-        else
-            GenerateWords();
+        if (_passage != null)
+            Words = _passage;
 
         StartTime = DateTime.UtcNow;
 
@@ -108,13 +89,5 @@ public abstract class Race
         List<RaceParticipantResult> results = [];
         foreach (var participant in Participants) results.Add(participant.Value.Result!);
         return results;
-    }
-    private void GenerateWords()
-    {
-        var selected = new string[MaxWords];
-        for (int i = 0; i < MaxWords; i++)
-            selected[i] = WordsPool[Random.Shared.Next(WordsPool.Length)];
-
-        Words = string.Join(" ", selected);
     }
 }
