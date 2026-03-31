@@ -7,7 +7,7 @@ public class RaceSettings
     public string GameMode { get; private set; } = "wordcount";
     public int WordCount { get; private set; } = 50;
     public int TimerDuration { get; private set; } = 60;
-    public string? CustomPassage { get; private set; }
+    public string? Passage { get; private set; }
 
     public void SetGameMode(string gameMode)
     {
@@ -34,9 +34,9 @@ public class RaceSettings
         TimerDuration = duration;
     }
 
-    public void SetCustomPassage(string? passage)
+    public void SetPassage(string? passage)
     {
-        CustomPassage = string.IsNullOrWhiteSpace(passage) ? null : passage;
+        Passage = string.IsNullOrWhiteSpace(passage) ? null : passage;
     }
 
     public Race BuildRace()
@@ -48,8 +48,8 @@ public class RaceSettings
             _ => throw new InvalidOperationException($"Unknown game mode: {GameMode}")
         };
 
-        if (CustomPassage != null)
-            race.SetCustomPassage(CustomPassage);
+        if (Passage != null)
+            race.SetPassage(Passage);
 
         return race;
     }

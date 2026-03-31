@@ -37,6 +37,27 @@ public class Lobby
         Race = RaceSettings.BuildRace();
     }
 
+    public void SetInitialPassage(string passage)
+    {
+        RaceSettings.SetPassage(passage);
+        Race = RaceSettings.BuildRace();
+    }
+
+    public void RefreshPassage(Guid hostId, string passage)
+    {
+        lock (_lock)
+        {
+            ValidateHost(hostId);
+
+            if (CurrentStatus != Status.waiting)
+                throw new InvalidOperationException("Can only change passage while waiting.");
+
+            RaceSettings.SetPassage(passage);
+            Race = RaceSettings.BuildRace();
+            LobbySettings.UpdateTimestamp();
+        }
+    }
+
     public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
     {
         lock (_lock)
@@ -184,6 +205,18 @@ public class Lobby
                 ?? throw new InvalidOperationException("Player not found in this lobby.");
 
             player.ChangeColor(newColor);
+            LobbySettings.UpdateTimestamp();
+        }
+    }
+
+    public void RemovePlayer(Guid playerId)
+    {
+        lock (_lock)
+        {
+            var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+                ?? throw new InvalidOperationException("Player not found in this lobby.");
+
+            Players.Remove(player);
             LobbySettings.UpdateTimestamp();
         }
     }

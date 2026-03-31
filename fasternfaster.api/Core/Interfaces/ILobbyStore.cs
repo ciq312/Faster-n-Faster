@@ -5,6 +5,7 @@ namespace FasterNFaster.Api.Core.Interfaces;
 public interface ILobbyStore
 {
     void Add(Lobby lobby);
+    void Remove(Guid id);
     Lobby? Get(Guid id);
     IReadOnlyCollection<Lobby> GetAll();
 }

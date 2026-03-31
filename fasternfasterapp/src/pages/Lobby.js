@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useLobbyConnection } from "../features/game/hooks/useLobbyConnection";
 import Navbar from "../shared/components/Navbar";
 import LobbyPlayerCard from "../features/game/components/LobbyPlayerCard";
@@ -9,7 +9,7 @@ import "./Lobby.css";
 function Lobby() {
   const { lobbyId } = useParams();
   const lobby = useLobbyConnection(lobbyId);
-
+  const navigate = useNavigate();
   const maxPerSide = 10;
   const half = Math.min(lobby.players.length, maxPerSide);
 
@@ -31,7 +31,12 @@ function Lobby() {
               </span>
             )}
           </div>
-          <button className="lobby-topbar__leave">leave lobby</button>
+          <button
+            className="lobby-topbar__leave"
+            onClick={() => navigate("/lobbies")}
+          >
+            leave lobby
+          </button>
         </header>
 
         <div className="lobby-arena">

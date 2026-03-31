@@ -9,20 +9,26 @@ namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     private readonly ILobbyStore _lobbyStore;
+    private readonly IPassageProvider _passageProvider;
 
-    public CreateLobbyHandler(ILobbyStore lobbyStore)
+    public CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passageProvider)
     {
         _lobbyStore = lobbyStore;
+        _passageProvider = passageProvider;
     }
 
-    public Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
+    public async Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
     {
         var lobby = new Lobby(command.LobbyName, command.IsPrivate);
         lobby.AssignHost(command.HostId);
+
+        var passage = await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount);
+        lobby.SetInitialPassage(passage);
+
         _lobbyStore.Add(lobby);
 
         Log.Information("Created lobby {LobbyId} with host {PlayerId}", lobby.Id, command.HostId);
 
-        return Task.FromResult(new CreateLobbyResult(lobby.Id, lobby.Name));
+        return new CreateLobbyResult(lobby.Id, lobby.Name);
     }
 }

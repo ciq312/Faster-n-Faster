@@ -29,5 +29,6 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand>
             lobby.AddPlayer(user);
 
         Log.Information("Player {PlayerId} joined lobby {LobbyId}", command.PlayerId, lobby.Id);
+
     }
 }

@@ -27,8 +27,8 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
         if (lobby.CurrentStatus != Lobby.Status.racing)
             throw new InvalidOperationException("Race is not active.");
 
-        // capture ref — TryFinishRace swaps lobby.Race to a fresh instance
-        var race = lobby.Race;
+        var race = lobby.Race
+            ?? throw new InvalidOperationException("Race not configured.");
 
         var participant = race.ProcessUpdate(command.UserId, command.Index, command.Mistakes);
         if (participant == null)
@@ -47,12 +47,10 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
 
         if (race.IsRaceOver())
         {
-            var finishedRace = lobby.TryFinishRace();
-            if (finishedRace == null) return;
-
             _raceTickRegistry.DeregisterLobby(lobby.Id);
 
-            var results = finishedRace.GetRaceStatics();
+            var results = race.GetRaceStatics();
+
             await _eventDispatcher.Dispatch(new RaceFinishedEvent(command.LobbyId, results));
         }
 

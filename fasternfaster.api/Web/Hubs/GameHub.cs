@@ -24,12 +24,14 @@ public class GameHub : Hub
     private readonly IHandler<KickPlayerCommand, KickPlayerResult> _kickPlayerHandler;
     private readonly IHandler<UpdateProgressCommand> _updateProgressHandler;
     private readonly IHandler<DisconnectCommand, DisconnectResult> _disconnectHandler;
+    private readonly IPassageProvider _passageProvider;
 
     public GameHub(
         ILogger<GameHub> logger,
         ILobbyStore lobbyStore,
         ILobbyService lobbyService,
         LobbyStateBroadcaster broadcaster,
+        IPassageProvider passageProvider,
         IHandler<JoinLobbyCommand> joinHandler,
         IHandler<StartRaceCommand, StartRaceResult> startRaceHandler,
         IHandler<TransferHostCommand> transferHostHandler,
@@ -41,6 +43,7 @@ public class GameHub : Hub
         _lobbyStore = lobbyStore;
         _lobbyService = lobbyService;
         _broadcaster = broadcaster;
+        _passageProvider = passageProvider;
         _joinHandler = joinHandler;
         _startRaceHandler = startRaceHandler;
         _transferHostHandler = transferHostHandler;
@@ -112,7 +115,7 @@ public class GameHub : Hub
                 words = result.Words
             });
 
-            _logger.LogInformation("Race started in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
+            _logger.LogInformation("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
         }
         catch (Exception ex)
         {
@@ -169,18 +172,19 @@ public class GameHub : Hub
         }
     }
 
-    public async Task ChangePassage(string? passage)
+    public async Task RefreshPassage()
     {
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
             var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
-            lobby.UpdateRaceSettings(userId, s => s.SetCustomPassage(passage));
+            var passage = await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount);
+            lobby.RefreshPassage(userId, passage);
             await _broadcaster.BroadcastLobbyState(lobby);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "ChangePassage failed");
+            _logger.LogWarning(ex, "RefreshPassage failed");
             await Clients.Caller.SendAsync("Error", ex.Message);
         }
     }
@@ -289,6 +293,11 @@ public class GameHub : Hub
                 await Clients.Group(groupName)
                     .SendAsync("HostChanged", new { newHostPlayerId = result.NewHostId });
             }
+
+            // Broadcast updated state to remaining players (handler already removed empty lobbies)
+            var lobby = _lobbyStore.Get(lobbyId);
+            if (lobby != null)
+                await _broadcaster.BroadcastLobbyState(lobby);
 
             _logger.LogInformation("Player {PlayerId} disconnected from lobby {LobbyId}", playerId, lobbyId);
         }
