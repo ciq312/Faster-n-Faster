@@ -8,7 +8,7 @@ public class KickPlayerHandler : IHandler<KickPlayerCommand, KickPlayerResult>
     private readonly ILobbyStore _lobbyStore;
     private readonly ILobbyService _lobbyService;
 
-    public KickPlayerHandler(ILobbyStore lobbyStore, ILobbyService lobbyService)
+    public KickPlayerHandler(ILobbyStore lobbyStore, ILobbyService lobbyService, IRaceTickRegistry registry)
     {
         _lobbyStore = lobbyStore;
         _lobbyService = lobbyService;

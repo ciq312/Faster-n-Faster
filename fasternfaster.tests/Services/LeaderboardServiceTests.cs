@@ -6,17 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Tests.Services;
 
-public class LeaderboardServiceTests
+public class LeaderboardServiceTests : IAsyncLifetime
 {
-    [Fact]
-    public async Task GetTopPlayersAsync_ReturnsSortedPlayers()
-    {
-        // 1. Create unique options for this test run
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "LeaderboardTest")
-            .Options;
+    private readonly DbContextOptions<AppDbContext> _options = new DbContextOptionsBuilder<AppDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
 
-        // 2. Seed the data
+    public async Task InitializeAsync()
+    {
         List<PlayerStatistics> statistics = new List<PlayerStatistics>();
 
         for (int i = 1; i <= 5; i++)
@@ -26,33 +23,51 @@ public class LeaderboardServiceTests
             stat.RegisterRace(result);
             statistics.Add(stat);
         }
-        using (var context = new AppDbContext(options))
-        {
-            context.Statistics.AddRange(statistics);
-            await context.SaveChangesAsync();
-        }
 
-        // 3. Run the test
-        using (var context = new AppDbContext(options))
-        {
-            var service = new LeaderboardService(context);
+        using var context = new AppDbContext(_options);
+        context.Statistics.AddRange(statistics);
+        await context.SaveChangesAsync();
+    }
 
-            // Act: Sort by Score, Descending, take top 2
-            var result = await service.GetTopPlayersAsync("AvgWPM", true, 2);
+    public Task DisposeAsync() => Task.CompletedTask;
 
-            // Assert
-            var list = result.ToList();
-            Assert.Equal(2, list.Count);
-            Assert.Equal(50, list[0].AvgWPM);
-            Assert.Equal(40, list[1].AvgWPM);
+    [Fact]
+    public async Task GetTopPlayersAsync_ReturnsSortedPlayers()
+    {
+        using var context = new AppDbContext(_options);
+        var service = new LeaderboardService(context);
 
-            var resultAcc = await service.GetTopPlayersAsync("AvgAccuracy", true, 3);
-            var listAcc = resultAcc.ToList();
+        var result = await service.GetTopPlayersAsync("AvgWPM", true, 2);
+        var list = result.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(50, list[0].AvgWPM);
+        Assert.Equal(40, list[1].AvgWPM);
 
-            Assert.Equal(3, listAcc.Count);
-            Assert.Equal(94, listAcc[0].AvgAccuracy);
-            Assert.Equal(93, listAcc[1].AvgAccuracy);
-            Assert.Equal(92, listAcc[2].AvgAccuracy);
-        }
+        var resultAcc = await service.GetTopPlayersAsync("AvgAccuracy", true, 3);
+        var listAcc = resultAcc.ToList();
+        Assert.Equal(3, listAcc.Count);
+        Assert.Equal(94, listAcc[0].AvgAccuracy);
+        Assert.Equal(93, listAcc[1].AvgAccuracy);
+        Assert.Equal(92, listAcc[2].AvgAccuracy);
+    }
+
+    [Fact]
+    public async Task GetTopPlayersAsync_ReturnsSortedPlayersAsc()
+    {
+        using var context = new AppDbContext(_options);
+        var service = new LeaderboardService(context);
+
+        var result = await service.GetTopPlayersAsync("AvgWPM", false, 2);
+        var list = result.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(40, list[0].AvgWPM);
+        Assert.Equal(50, list[1].AvgWPM);
+
+        var resultAcc = await service.GetTopPlayersAsync("AvgAccuracy", false, 3);
+        var listAcc = resultAcc.ToList();
+        Assert.Equal(3, listAcc.Count);
+        Assert.Equal(92, listAcc[0].AvgAccuracy);
+        Assert.Equal(93, listAcc[1].AvgAccuracy);
+        Assert.Equal(94, listAcc[2].AvgAccuracy);
     }
 }

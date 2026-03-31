@@ -4,7 +4,7 @@ namespace FasterNFaster.Api.Utils;
 
 public static class FilterBuildersUtils
 {
-    public static IQueryable<T> GetTopPlayersFilter<T>(IQueryable<T> source, string propertyName, bool isDescending, int count = 100)
+    public static IQueryable<T> GetTopPlayersFilter<T>(IQueryable<T> source, string propertyName, bool isDescending = true, int count = 100)
     {
         var parameter = Expression.Parameter(typeof(T), "p");
 
@@ -12,9 +12,9 @@ public static class FilterBuildersUtils
 
         var lambda = Expression.Lambda(property, parameter);
 
-        var orderByCall = Expression.Call(
+        var selectTopCall = Expression.Call(
             typeof(Queryable),
-            isDescending ? "OrderByDescending" : "OrderBy",
+            "OrderByDescending",
             new Type[] { typeof(T), property.Type },
             source.Expression,
             Expression.Quote(lambda)
@@ -24,10 +24,18 @@ public static class FilterBuildersUtils
             typeof(Queryable),
             "Take",
             new Type[] { typeof(T) },
-            orderByCall,
+            selectTopCall,
             Expression.Constant(count)
         );
 
-        return source.Provider.CreateQuery<T>(takeCall);
+        var displayOrderCall = Expression.Call(
+            typeof(Queryable),
+            isDescending ? "OrderByDescending" : "OrderBy",
+            new Type[] { typeof(T), property.Type },
+            takeCall,
+            Expression.Quote(lambda)
+        );
+
+        return source.Provider.CreateQuery<T>(displayOrderCall);
     }
 }
