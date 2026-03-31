@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure.Hubs;
@@ -89,7 +90,7 @@ public class RaceTickService : BackgroundService
             .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color, nick = s.Nick })
             .ToList();
 
-        if (!players.Any())
+        if (players.Count() == 0)
         {
             var finishedRace = lobby.TryFinishRace();
             if (finishedRace != null)
