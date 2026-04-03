@@ -77,13 +77,6 @@ public abstract class Race
         }
     }
 
-    public void RaceFinished()
-    {
-        if (!IsRaceOver()) throw new InvalidOperationException("can't call finished race hasn't finished yet");
-
-        // foreach (var participant in Participants) 
-    }
-
     public IEnumerable<RaceParticipantResult> GetRaceStatics()
     {
         List<RaceParticipantResult> results = [];

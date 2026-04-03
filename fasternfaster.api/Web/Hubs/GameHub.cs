@@ -2,7 +2,9 @@ using System.Security.Claims;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
+using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
+using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
@@ -18,12 +20,13 @@ public class GameHub : Hub
     private readonly ILobbyService _lobbyService;
     private readonly LobbyStateBroadcaster _broadcaster;
 
-    private readonly IHandler<JoinLobbyCommand> _joinHandler;
+    private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> _joinHandler;
     private readonly IHandler<StartRaceCommand, StartRaceResult> _startRaceHandler;
     private readonly IHandler<TransferHostCommand> _transferHostHandler;
     private readonly IHandler<KickPlayerCommand, KickPlayerResult> _kickPlayerHandler;
     private readonly IHandler<UpdateProgressCommand> _updateProgressHandler;
     private readonly IHandler<DisconnectCommand, DisconnectResult> _disconnectHandler;
+    private readonly IHandler<FastReconnectCommand> _fastReconnectHandler;
     private readonly IPassageProvider _passageProvider;
 
     public GameHub(
@@ -32,12 +35,13 @@ public class GameHub : Hub
         ILobbyService lobbyService,
         LobbyStateBroadcaster broadcaster,
         IPassageProvider passageProvider,
-        IHandler<JoinLobbyCommand> joinHandler,
+        IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
         IHandler<StartRaceCommand, StartRaceResult> startRaceHandler,
         IHandler<TransferHostCommand> transferHostHandler,
         IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
         IHandler<UpdateProgressCommand> updateProgressHandler,
-        IHandler<DisconnectCommand, DisconnectResult> disconnectHandler)
+        IHandler<DisconnectCommand, DisconnectResult> disconnectHandler,
+        IHandler<FastReconnectCommand> fastReconnectHandler)
     {
         _logger = logger;
         _lobbyStore = lobbyStore;
@@ -50,6 +54,7 @@ public class GameHub : Hub
         _kickPlayerHandler = kickPlayerHandler;
         _updateProgressHandler = updateProgressHandler;
         _disconnectHandler = disconnectHandler;
+        _fastReconnectHandler = fastReconnectHandler;
     }
 
     private (Guid UserId, Guid LobbyId, string GroupName) GetCallerContext()
@@ -79,7 +84,13 @@ public class GameHub : Hub
 
         try
         {
-            await _joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId));
+            var result = await _joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId));
+
+            if (result.IsReconnect)
+            {
+                Log.Information("Player {PlayerId} reconnected to lobby {LobbyId}", userId, lobbyId);
+                return;
+            }
 
             _lobbyService.TrackConnection(Context.ConnectionId, lobbyId, userId);
 
@@ -106,6 +117,7 @@ public class GameHub : Hub
         try
         {
             var (userId, lobbyId, groupName) = GetCallerContext();
+
 
             var result = await _startRaceHandler.Handle(new StartRaceCommand(userId, lobbyId));
 
@@ -269,12 +281,12 @@ public class GameHub : Hub
         }
     }
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
+    public async Task LeaveLobby()
     {
         var conn = _lobbyService.GetConnection(Context.ConnectionId);
         if (conn == null)
         {
-            await base.OnDisconnectedAsync(exception);
+            await base.OnDisconnectedAsync(null);
             return;
         }
 
@@ -294,7 +306,6 @@ public class GameHub : Hub
                     .SendAsync("HostChanged", new { newHostPlayerId = result.NewHostId });
             }
 
-            // Broadcast updated state to remaining players (handler already removed empty lobbies)
             var lobby = _lobbyStore.Get(lobbyId);
             if (lobby != null)
                 await _broadcaster.BroadcastLobbyState(lobby);
@@ -303,9 +314,60 @@ public class GameHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "OnDisconnectedAsync failed for {ConnectionId}", Context.ConnectionId);
+            _logger.LogWarning(ex, "LeaveLobby failed for {ConnectionId}", Context.ConnectionId);
+        }
+    }
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var conn = _lobbyService.GetConnection(Context.ConnectionId);
+        if (conn == null)
+        {
+            await base.OnDisconnectedAsync(exception);
+            return;
         }
 
-        await base.OnDisconnectedAsync(exception);
+        var (lobbyId, playerId) = conn.Value;
+        var groupName = $"lobby-{lobbyId}";
+
+        try
+        {
+            await _fastReconnectHandler.Handle(new FastReconnectCommand(playerId, lobbyId));
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("Fast reconnect for player happened");
+            return;
+        }
+        catch (Exception e)
+        {
+            Log.Information(e.Message);
+        }
+        try
+        {
+            var result = await _disconnectHandler.Handle(
+                new DisconnectCommand(Context.ConnectionId, lobbyId, playerId));
+
+            await Clients.Group(groupName).SendAsync("PlayerDisconnected", new { playerId = result.PlayerId });
+
+            if (result.NewHostId != null)
+            {
+                await Clients.Group(groupName)
+                    .SendAsync("HostChanged", new { newHostPlayerId = result.NewHostId });
+            }
+
+            var lobby = _lobbyStore.Get(lobbyId);
+            if (lobby != null)
+                await _broadcaster.BroadcastLobbyState(lobby);
+
+            _logger.LogInformation("Player {PlayerId} disconnected from lobby {LobbyId}", playerId, lobbyId);
+
+
+            await base.OnDisconnectedAsync(exception);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "OnDisconnectedAsync failed for {ConnectionId}", Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }

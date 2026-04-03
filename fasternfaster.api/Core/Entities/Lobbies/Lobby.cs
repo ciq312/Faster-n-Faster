@@ -158,7 +158,6 @@ public class Lobby
     }
 
     /// <summary>
-    /// Thread-safe finish — only the first caller succeeds.
     /// Returns the finished race so the caller can read results.
     /// </summary>
     public Race? TryFinishRace()
@@ -166,9 +165,9 @@ public class Lobby
         lock (_lock)
         {
             if (CurrentStatus != Status.racing) return null;
+            if (!Race.IsRaceOver()) return null;
             TransitionStatus(Status.waiting);
             var finishedRace = Race;
-            Race = RaceSettings.BuildRace();
             return finishedRace;
         }
     }

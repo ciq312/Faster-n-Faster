@@ -10,7 +10,7 @@ public class LeaderboardService(AppDbContext context) : ILeaderboardService
     private readonly AppDbContext _context = context;
     public async Task<IEnumerable<PlayerStatistics>> GetTopPlayersAsync(string criteria, bool isDescending, int playersCount)
     {
-        IQueryable<PlayerStatistics> query = _context.Statistics;
+        IQueryable<PlayerStatistics> query = _context.Statistics.Include(s => s.User);
 
         var filter = FilterBuildersUtils.GetTopPlayersFilter(query, criteria, isDescending, playersCount);
 

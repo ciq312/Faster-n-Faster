@@ -9,13 +9,11 @@ namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
 {
     private readonly ILobbyStore _lobbyStore;
-    private readonly IRaceTickRegistry _raceTickRegistry;
     private readonly IEventDispatcher _eventDispatcher;
 
-    public UpdateProgressHandler(ILobbyStore lobbyStore, IRaceTickRegistry raceTickRegistry, IEventDispatcher eventDispatcher)
+    public UpdateProgressHandler(ILobbyStore lobbyStore, IEventDispatcher eventDispatcher)
     {
         _lobbyStore = lobbyStore;
-        _raceTickRegistry = raceTickRegistry;
         _eventDispatcher = eventDispatcher;
     }
 
@@ -44,15 +42,5 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
                 participant.Result.WPM,
                 participant.Result.Accuracy));
         }
-
-        if (race.IsRaceOver())
-        {
-            _raceTickRegistry.DeregisterLobby(lobby.Id);
-
-            var results = race.GetRaceStatics();
-
-            await _eventDispatcher.Dispatch(new RaceFinishedEvent(command.LobbyId, results));
-        }
-
     }
 }
