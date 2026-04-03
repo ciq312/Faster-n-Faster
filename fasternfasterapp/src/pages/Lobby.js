@@ -31,10 +31,7 @@ function Lobby() {
               </span>
             )}
           </div>
-          <button
-            className="lobby-topbar__leave"
-            onClick={() => navigate("/lobbies")}
-          >
+          <button className="lobby-topbar__leave" onClick={lobby.leaveLobby}>
             leave lobby
           </button>
         </header>
@@ -48,6 +45,7 @@ function Lobby() {
                 colors={lobby.colors}
                 openPalette={lobby.isSelf}
                 changeColor={lobby.changeColor}
+                isSelf={p.id === lobby.selfId}
               />
             ))}
           </div>
@@ -72,6 +70,14 @@ function Lobby() {
               <div className="lobby-game__waiting">
                 waiting for host to start the race...
               </div>
+            )}
+            {!(lobby.isRaceStarting || lobby.isRacing) && (
+              <button
+                className="lobby-footer__start"
+                onClick={lobby.refreshPassage}
+              >
+                refresh
+              </button>
             )}
           </div>
 

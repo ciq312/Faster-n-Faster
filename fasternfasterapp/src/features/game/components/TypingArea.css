@@ -27,6 +27,9 @@
   cursor: default;
 }
 
+.incorrect__word-overflow {
+  color: aliceblue;
+}
 .typing-area__words {
   font-family: var(--font-mono);
   font-size: 1.1rem;
@@ -47,12 +50,12 @@
 }
 
 .typing-area__char--incorrect {
-  color: var(--error);
+  color: var(--error-light);
   border-radius: 2px;
 }
 
 .typing-area__space--incorrect {
-  background: var(--error-muted);
+  color: var(--error);
   margin: 0 1px;
 }
 

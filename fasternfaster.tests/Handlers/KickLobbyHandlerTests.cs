@@ -35,8 +35,6 @@ public class KickLobbyHandlerTests
         handler.Handle(new KickPlayerCommand(hostUser.Id, lobby.Id, playerToKick.Id));
 
         Assert.False(lobby.IsPlayerInLobby(playerToKick.Id));
-
-
-
+        Assert.Single(lobby.Players);
     }
 }

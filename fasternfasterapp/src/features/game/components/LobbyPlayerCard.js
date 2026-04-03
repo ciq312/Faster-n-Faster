@@ -1,7 +1,7 @@
 import { useColorPalette } from "../hooks/useColorPalette";
 import "./LobbyPlayerCard.css";
 
-function LobbyPlayerCard({ player, colors, openPalette, changeColor }) {
+function LobbyPlayerCard({ player, colors, openPalette, changeColor, isSelf }) {
   const palette = useColorPalette();
 
   return (
@@ -9,8 +9,13 @@ function LobbyPlayerCard({ player, colors, openPalette, changeColor }) {
       <span className="player-card__nick">{player.nick}</span>
       <div className="player-card__other">
         {player.isHost && <span className="player-card__badge">host</span>}
+        {isSelf && <span className="player-card__badge">you</span>}
         <div
-          className="player-card__color"
+          className={
+            isSelf
+              ? "player-card__color player-card__color--self"
+              : "player-card__color"
+          }
           style={{ background: player.color }}
           onMouseDown={(e) => {
             e.stopPropagation();

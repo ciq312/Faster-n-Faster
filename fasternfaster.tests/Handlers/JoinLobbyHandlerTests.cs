@@ -16,7 +16,8 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), Guid.NewGuid())));
@@ -29,7 +30,8 @@ public class JoinLobbyHandlerTests
         var userRepo = new FakeUserRepository();
         var lobby = new Lobby("Test", false);
         store.Seed(lobby);
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         await Assert.ThrowsAsync<UserNotFoundException>(
             () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), lobby.Id)));
@@ -45,7 +47,8 @@ public class JoinLobbyHandlerTests
         var lobby = new Lobby("Test", false);
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
 
@@ -62,7 +65,8 @@ public class JoinLobbyHandlerTests
         var lobby = new Lobby("Test", false);
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
         await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
@@ -78,7 +82,8 @@ public class JoinLobbyHandlerTests
         var lobby = new Lobby("Test", false);
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         for (int i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
         {
@@ -106,7 +111,8 @@ public class JoinLobbyHandlerTests
         lobby.StartRace(lobby.HostId);
         store.Seed(lobby);
 
-        var handler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
         int delaySeconds = 2;
         await Task.Delay(delaySeconds * 1000);
 
@@ -133,7 +139,8 @@ public class JoinLobbyHandlerTests
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
 
-        var joinHandler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var joinHandler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         lobby.StartRace(lobby.HostId);
 
@@ -160,7 +167,8 @@ public class JoinLobbyHandlerTests
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
 
-        var joinHandler = new JoinLobbyHandler(store, userRepo);
+        var lobbyService = new FakeLobbyService();
+        var joinHandler = new JoinLobbyHandler(store, userRepo, lobbyService);
 
         lobby.StartRace(lobby.HostId);
 

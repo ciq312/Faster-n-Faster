@@ -9,7 +9,14 @@ function TypingArea({
   opponents: players = [],
   selfId,
 }) {
-  const { typed, inputRef, handleTyping, focusInput } = useTyping({
+  const {
+    typed,
+    inputRef,
+    handleTyping,
+    focusInput,
+    lastCorrectIndex,
+    nextSepIndex,
+  } = useTyping({
     passage,
     disabled,
     onProgress,
@@ -31,19 +38,19 @@ function TypingArea({
         disabled={disabled}
       />
 
-      <div
-        className={`typing-area ${disabled ? "typing-area--disabled" : ""}`}
-        onClick={focusInput}
-      >
+      <div className={`typing-area`} onClick={focusInput}>
         <div className="typing-area__words" ref={containerRef}>
           {passage.split("").map((char, i) => {
             let cls = "typing-area__char";
-            if (i < typed.length) {
+            if (
+              (i <= nextSepIndex || nextSepIndex == -1) &&
+              i <= typed.length - 1
+            ) {
               const isCorrect = typed[i] === char;
               cls += isCorrect
                 ? " typing-area__char--correct"
                 : " typing-area__char--incorrect";
-              if (!isCorrect && char === " ") cls += " typing-area__space--incorrect";
+              cls += i === nextSepIndex ? " typing-area__space--incorrect" : "";
             }
             return (
               <span
@@ -51,7 +58,7 @@ function TypingArea({
                 className={cls}
                 ref={(el) => (charsRef.current[i] = el)}
               >
-                {char}
+                {i === nextSepIndex ? typed.slice(i, typed.length) + " " : char}
               </span>
             );
           })}

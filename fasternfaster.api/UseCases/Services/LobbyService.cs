@@ -8,6 +8,8 @@ public class LobbyService : ILobbyService
     private readonly ConcurrentDictionary<string, (Guid LobbyId, Guid PlayerId)> _connections =
         new();
 
+    private readonly ConcurrentDictionary<(Guid id, Guid lobbyId), CancellationTokenSource> _pendingRemovals = new();
+
     public void TrackConnection(string connectionId, Guid lobbyId, Guid playerId)
     {
         _connections[connectionId] = (lobbyId, playerId);
@@ -29,4 +31,15 @@ public class LobbyService : ILobbyService
 
     public string? GetConnectionId(Guid lobbyId, Guid playerId) =>
         _connections.FirstOrDefault(c => c.Value.LobbyId == lobbyId && c.Value.PlayerId == playerId).Key;
+
+    public void StorePendingRemoval(Guid lobbyId, Guid playerId, CancellationTokenSource cts)
+    {
+        if (_pendingRemovals.TryAdd((playerId, lobbyId), cts)) return;
+        throw new InvalidOperationException($"Storing pending removal failed for player {playerId} in lobby {lobbyId}.");
+    }
+
+    public bool TryGetPendingRemoval(Guid lobbyId, Guid playerId, out CancellationTokenSource cts)
+    {
+        return _pendingRemovals.TryGetValue((playerId, lobbyId), out cts!);
+    }
 }

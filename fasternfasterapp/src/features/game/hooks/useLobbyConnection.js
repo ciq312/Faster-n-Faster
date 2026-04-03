@@ -38,6 +38,7 @@ export function useLobbyConnection(lobbyId) {
         setLobbyMaxPlayers(state.maxPlayers);
         setColors(state.colors);
         setRaceSettings(state.raceSettings);
+        setPassage(state.raceSettings.passage);
       });
 
       connection.on("RaceEnded", (data) => {
@@ -113,6 +114,15 @@ export function useLobbyConnection(lobbyId) {
     }
   }, []);
 
+  const leaveLobby = useCallback(async () => {
+    try {
+      await connectionRef.current?.invoke("LeaveLobby");
+      navigate("/lobbies");
+    } catch (e) {
+      console.log(e);
+    }
+  }, []);
+
   const changeGameMode = useCallback(async (mode) => {
     try {
       await connectionRef.current?.invoke("ChangeGameMode", mode);
@@ -170,6 +180,7 @@ export function useLobbyConnection(lobbyId) {
     startRace,
     changeColor,
     changeGameMode,
+    leaveLobby,
     changeWordCount,
     changeTimerDuration,
     refreshPassage,

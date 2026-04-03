@@ -5,7 +5,7 @@ public class LobbySettings
     private static readonly char[] AlphanumericChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 
-    public int MaxPlayers { get; private set; } = 5;
+    public int MaxPlayers { get; private set; } = 10;
     public bool IsPrivate { get; private set; }
     public string? InviteCode { get; private set; }
     public DateTime CreatedAt { get; private set; }

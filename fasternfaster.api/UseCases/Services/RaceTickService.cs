@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces;
 using Microsoft.AspNetCore.SignalR;
@@ -10,6 +11,7 @@ namespace FasterNFaster.Api.UseCases.Services;
 public class RaceTickService : BackgroundService
 {
     private readonly IRaceTickRegistry _registry;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILobbyStore _lobbyStore;
     private readonly IHubContext<GameHub> _hub;
     private readonly ILogger<RaceTickService> _logger;
@@ -21,12 +23,14 @@ public class RaceTickService : BackgroundService
         IRaceTickRegistry registry,
         ILobbyStore lobbyStore,
         IHubContext<GameHub> hub,
-        ILogger<RaceTickService> logger)
+        ILogger<RaceTickService> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _registry = registry;
         _lobbyStore = lobbyStore;
         _hub = hub;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -90,15 +94,20 @@ public class RaceTickService : BackgroundService
             .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color, nick = s.Nick })
             .ToList();
 
-        if (players.Count() == 0)
+        var finishedRace = lobby.TryFinishRace();
+        if (finishedRace != null)
         {
-            var finishedRace = lobby.TryFinishRace();
-            if (finishedRace != null)
-            {
-                var results = finishedRace.GetRaceStatics();
-                await group.SendAsync("RaceEnded", new { results });
-            }
+            var results = finishedRace.GetRaceStatics();
+            await group.SendAsync("RaceEnded", new { results });
+            _registry.DeregisterLobby(entry.LobbyId);
+            using var scope = _scopeFactory.CreateScope();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IEventDispatcher>();
+            await dispatcher.Dispatch(new RaceFinishedEvent(entry.LobbyId, results));
+            return;
+        }
 
+        if (players.Count == 0)
+        {
             _registry.DeregisterLobby(entry.LobbyId);
             return;
         }

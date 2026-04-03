@@ -12,9 +12,11 @@ public class GetLeaderboardHandler(ILeaderboardService leaderboardService) : IHa
     {
         IEnumerable<PlayerStatistics> topPlayers = await _leaderboardService.GetTopPlayersAsync(command.Criteria, command.IsDescending, command.PlayersCount);
 
-        GetLeaderboardResults results = new GetLeaderboardResults(topPlayers.Select(stat => new LeaderboardResultDTO(stat.Id, stat.User.Nick, stat.BestWPM, stat.BestAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped)).ToList());
+        var results = topPlayers.Select(stat => new LeaderboardResultDTO(stat.Id, stat.User.Nick, stat.BestWPM, stat.BestAccuracy, stat.AvgWPM, stat.AvgAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped)) ?? Enumerable.Empty<LeaderboardResultDTO>();
 
-        return results;
+        GetLeaderboardResults leaderboardResults = new GetLeaderboardResults(results.ToList());
+
+        return leaderboardResults;
     }
 }
 

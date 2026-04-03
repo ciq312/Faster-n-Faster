@@ -32,12 +32,26 @@
   border: 1px solid var(--border-subtle);
   border-radius: 5px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
 }
 .player-card__other {
   display: flex;
   gap: 10px;
 }
 .player-card__color {
+  width: 15px;
+  height: 15px;
+  border-radius: 30%;
+  border: 2px solid rgb(66, 66, 66);
+  flex-shrink: 0;
+  cursor: default;
+  box-shadow: inset 0 0 0 20px rgba(0, 0, 0, 0.1);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.player-card__color--self {
   width: 15px;
   height: 15px;
   border-radius: 30%;
@@ -50,7 +64,7 @@
     transform 0.15s;
 }
 
-.player-card__color:hover {
+.player-card__color--self:hover {
   transform: scale(1.2);
 }
 

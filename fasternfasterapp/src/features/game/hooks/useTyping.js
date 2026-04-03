@@ -5,18 +5,28 @@ export function useTyping({ passage, disabled, onProgress }) {
   const mistakesRef = useRef(0);
   const inputRef = useRef(null);
   const lastCorrectIndexRef = useRef(-1);
+  const nextSep = useRef(-1);
 
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;
       const value = e.target.value;
-      console.log("Typed value:", value);
+
       if (value.length > typed.length + 1) return;
       if (value.length > passage.length) return;
       if (value.length < typed.length - 1) return;
 
       if (value.length > typed.length) {
         const newChar = value[value.length - 1];
+        if (
+          newChar === ` ` &&
+          lastCorrectIndexRef.current !== value.length - 1 - 1
+        ) {
+          console.log(
+            `not allowed last correct is ${lastCorrectIndexRef.current}`,
+          );
+          return;
+        }
         if (newChar === passage[value.length - 1]) {
           setTyped(value);
           if (lastCorrectIndexRef.current + 1 === value.length - 1) {
@@ -27,8 +37,14 @@ export function useTyping({ passage, disabled, onProgress }) {
           mistakesRef.current++;
         }
       } else if (value.length < typed.length) {
+        lastCorrectIndexRef.current = Math.min(
+          lastCorrectIndexRef.current,
+          value.length - 1,
+        );
         setTyped(value);
       }
+
+      nextSep.current = passage.indexOf(" ", lastCorrectIndexRef.current + 1);
 
       onProgress?.({
         index: lastCorrectIndexRef.current,
@@ -47,5 +63,15 @@ export function useTyping({ passage, disabled, onProgress }) {
     [disabled],
   );
 
-  return { typed, inputRef, handleTyping, focusInput };
+  useEffect(() => {
+    console.log("Typed:", typed);
+  }, [typed]);
+  return {
+    typed,
+    inputRef,
+    handleTyping,
+    focusInput,
+    lastCorrectIndex: lastCorrectIndexRef.current,
+    nextSepIndex: nextSep.current,
+  };
 }

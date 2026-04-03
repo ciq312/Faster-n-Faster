@@ -5,7 +5,7 @@ public static class PlayerColors
     public static readonly string[] Palette =
     [
         "#FF6B6B", "#63f800", "#19d5ff", "#ebff0a", "#0059ff"
-        ,"#ff0894", "#ff680a"
+        ,"#ff0894", "#ff680a", "#00ff9c", "#ffde59", "#8c00ff", "#ff00c8", "#ff9a00", "#00ffea", "#fff500", "#4b0082"
     ];
 
     public static string Get(int index) =>
