@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as signalR from "@microsoft/signalr";
 
-export function useLobbyConnection(lobbyId) {
+export function useConnection(lobbyId) {
   const connectionRef = useRef(null);
   const selfIdRef = useRef(localStorage.getItem("userId"));
   const countdownTimersRef = useRef([]);
