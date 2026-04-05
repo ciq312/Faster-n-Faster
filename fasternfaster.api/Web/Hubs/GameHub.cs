@@ -85,20 +85,19 @@ public class GameHub : Hub
         try
         {
             var result = await _joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId));
-
-            if (result.IsReconnect)
-            {
-                Log.Information("Player {PlayerId} reconnected to lobby {LobbyId}", userId, lobbyId);
-                return;
-            }
+            var groupName = $"lobby-{lobbyId}";
 
             _lobbyService.TrackConnection(Context.ConnectionId, lobbyId, userId);
-
-            var groupName = $"lobby-{lobbyId}";
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
             var lobby = _lobbyStore.Get(lobbyId)!;
             await _broadcaster.BroadcastLobbyState(lobby);
+
+            if (result.IsReconnect)
+            {
+                _logger.LogInformation("Player {PlayerId} reconnected to lobby {LobbyId}", userId, lobbyId);
+                return;
+            }
 
             await Clients.OthersInGroup(groupName)
                 .SendAsync("PlayerJoined", new { playerId = userId, displayName = nick });

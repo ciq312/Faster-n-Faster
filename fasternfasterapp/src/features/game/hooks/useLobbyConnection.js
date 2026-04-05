@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import * as signalR from "@microsoft/signalr";
+import { useConnection } from "../../connection/ConnectionProvider";
 
-export function useConnection(lobbyId) {
+export function useLobbyConnection(lobbyId) {
+  const { invoke, subscribe } = useConnection();
   const connectionRef = useRef(null);
   const selfIdRef = useRef(localStorage.getItem("userId"));
   const countdownTimersRef = useRef([]);
@@ -31,7 +33,7 @@ export function useConnection(lobbyId) {
 
       connectionRef.current = connection;
 
-      connection.on("LobbyState", (state) => {
+      subscribe("LobbyState", (state) => {
         console.log("LobbyState:", state);
         setPlayers(state.players);
         setLobbyName(state.lobbyName);
@@ -41,12 +43,12 @@ export function useConnection(lobbyId) {
         setPassage(state.raceSettings.passage);
       });
 
-      connection.on("RaceEnded", (data) => {
+      subscribe("RaceEnded", (data) => {
         setRaceResults(data.results);
         setIsRacing(false);
       });
 
-      connection.on("RaceStarting", (data) => {
+      subscribe("RaceStarting", (data) => {
         countdownTimersRef.current.forEach(clearTimeout);
         countdownTimersRef.current = [
           setTimeout(() => setCountdown(2), 1000),
@@ -58,7 +60,7 @@ export function useConnection(lobbyId) {
         setPassage(data.words);
       });
 
-      connection.on("RaceStarted", () => {
+      subscribe("RaceStarted", () => {
         console.log("Race started");
 
         countdownTimersRef.current.forEach(clearTimeout);
@@ -68,7 +70,7 @@ export function useConnection(lobbyId) {
         setIsRacing(true);
       });
 
-      connection.on("RaceState", (state) => {
+      subscribe("RaceState", (state) => {
         setOpponents(state.players);
       });
 
@@ -95,12 +97,12 @@ export function useConnection(lobbyId) {
 
   const sendProgress = useCallback(({ index, mistakes }) => {
     console.log("Sending progress:", { index, mistakes });
-    connectionRef.current?.invoke("UpdateRaceState", index, mistakes);
+    invoke("UpdateRaceState", index, mistakes);
   }, []);
 
   const startRace = useCallback(async () => {
     try {
-      await connectionRef.current?.invoke("StartRace");
+      await invoke("StartRace");
     } catch (e) {
       console.log(e);
     }
@@ -108,7 +110,7 @@ export function useConnection(lobbyId) {
 
   const changeColor = useCallback(async (color) => {
     try {
-      await connectionRef.current?.invoke("ChangeColor", color);
+      await invoke("ChangeColor", color);
     } catch (e) {
       console.log(e);
     }
@@ -116,7 +118,7 @@ export function useConnection(lobbyId) {
 
   const leaveLobby = useCallback(async () => {
     try {
-      await connectionRef.current?.invoke("LeaveLobby");
+      await invoke("LeaveLobby");
       navigate("/lobbies");
     } catch (e) {
       console.log(e);
@@ -125,7 +127,7 @@ export function useConnection(lobbyId) {
 
   const changeGameMode = useCallback(async (mode) => {
     try {
-      await connectionRef.current?.invoke("ChangeGameMode", mode);
+      await invoke("ChangeGameMode", mode);
     } catch (e) {
       console.log(e);
     }
@@ -133,7 +135,7 @@ export function useConnection(lobbyId) {
 
   const changeWordCount = useCallback(async (count) => {
     try {
-      await connectionRef.current?.invoke("ChangeWordCount", count);
+      await invoke("ChangeWordCount", count);
     } catch (e) {
       console.log(e);
     }
@@ -141,7 +143,7 @@ export function useConnection(lobbyId) {
 
   const changeTimerDuration = useCallback(async (duration) => {
     try {
-      await connectionRef.current?.invoke("ChangeTimerDuration", duration);
+      await invoke("ChangeTimerDuration", duration);
     } catch (e) {
       console.log(e);
     }
@@ -149,7 +151,7 @@ export function useConnection(lobbyId) {
 
   const refreshPassage = useCallback(async () => {
     try {
-      await connectionRef.current?.invoke("RefreshPassage");
+      await invoke("RefreshPassage");
     } catch (e) {
       console.log(e);
     }

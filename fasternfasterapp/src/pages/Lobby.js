@@ -1,4 +1,6 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useLobby } from "../features/game/hooks/useLobby";
+import { useRace } from "../features/game/hooks/useRace";
 import Navbar from "../shared/components/Navbar";
 import LobbyPlayerCard from "../features/game/components/LobbyPlayerCard";
 import TypingArea from "../features/game/components/TypingArea";
@@ -7,8 +9,8 @@ import "./Lobby.css";
 
 function Lobby() {
   const { lobbyId } = useParams();
-  const lobby = useLobbyConnection(lobbyId);
-  const navigate = useNavigate();
+  const lobby = useLobby(lobbyId);
+  const race = useRace();
   const maxPerSide = 10;
   const half = Math.min(lobby.players.length, maxPerSide);
 
@@ -22,11 +24,11 @@ function Lobby() {
             <span className="lobby-topbar__count">
               {lobby.players.length}/{lobby.lobbyMaxPlayers} players
             </span>
-            {lobby.raceSettings && (
+            {race.raceSettings && (
               <span className="lobby-topbar__mode">
-                {lobby.raceSettings.gameMode === "wordcount"
-                  ? `word count · ${lobby.raceSettings.wordCount} words`
-                  : `timer · ${lobby.raceSettings.timerDuration}s`}
+                {race.raceSettings.gameMode === "wordcount"
+                  ? `word count · ${race.raceSettings.wordCount} words`
+                  : `timer · ${race.raceSettings.timerDuration}s`}
               </span>
             )}
           </div>
@@ -42,27 +44,27 @@ function Lobby() {
                 key={p.id}
                 player={p}
                 colors={lobby.colors}
-                openPalette={lobby.isSelf}
+                canOpenPalette={lobby.isSelf(p.id)}
                 changeColor={lobby.changeColor}
-                isSelf={p.id === lobby.selfId}
+                isSelf={lobby.isSelf(p.id)}
               />
             ))}
           </div>
 
           <div className="lobby-game">
-            <div className="countdown-overlay">{lobby.countdown}</div>
-            {lobby.raceResults ? (
+            <div className="countdown-overlay">{race.countdown}</div>
+            {race.raceResults ? (
               <RaceResults
-                results={lobby.raceResults}
+                results={race.raceResults}
                 selfId={lobby.selfId}
-                onDismiss={lobby.dismissResults}
+                onDismiss={race.dismissResults}
               />
-            ) : lobby.passage ? (
+            ) : race.passage ? (
               <TypingArea
-                passage={lobby.passage}
-                disabled={!lobby.isRacing}
-                onProgress={lobby.sendProgress}
-                opponents={lobby.opponents}
+                passage={race.passage}
+                disabled={!race.isRacing}
+                onProgress={race.sendProgress}
+                opponents={race.raceParticipants}
                 selfId={lobby.selfId}
               />
             ) : (
@@ -70,10 +72,10 @@ function Lobby() {
                 waiting for host to start the race...
               </div>
             )}
-            {!(lobby.isRaceStarting || lobby.isRacing) && (
+            {!(race.isRaceStarting || race.isRacing) && (
               <button
                 className="lobby-footer__start"
-                onClick={lobby.refreshPassage}
+                onClick={race.refreshPassage}
               >
                 refresh
               </button>
@@ -90,8 +92,8 @@ function Lobby() {
         <footer className="lobby-footer">
           <button
             className="lobby-footer__start"
-            disabled={lobby.isRaceStarting || lobby.isRacing}
-            onClick={lobby.startRace}
+            disabled={race.isRaceStarting || race.isRacing}
+            onClick={race.startRace}
           >
             start race
           </button>
