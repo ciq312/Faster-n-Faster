@@ -1,0 +1,14 @@
+2026-04-04 14:01:20.410 +03:00 [INF] Registered anonymous user "6e8b18a4-a949-4fb9-a34f-e00ceff73f0a" as bla bla ba
+2026-04-04 14:04:41.107 +03:00 [INF] Registered anonymous user "890fddc5-1be1-4b4f-af50-7596098a65e5" as sdfa
+2026-04-04 14:05:07.208 +03:00 [INF] Getting lobbies
+2026-04-04 14:05:07.210 +03:00 [INF] Got lobbies
+2026-04-04 14:05:07.211 +03:00 [INF] sending lobbies
+2026-04-04 14:05:07.536 +03:00 [INF] Getting lobbies
+2026-04-04 14:05:07.537 +03:00 [INF] Got lobbies
+2026-04-04 14:05:07.538 +03:00 [INF] sending lobbies
+2026-04-04 14:05:22.211 +03:00 [INF] Getting lobbies
+2026-04-04 14:05:22.212 +03:00 [INF] Got lobbies
+2026-04-04 14:05:22.213 +03:00 [INF] sending lobbies
+2026-04-04 14:05:22.217 +03:00 [INF] Getting lobbies
+2026-04-04 14:05:22.220 +03:00 [INF] Got lobbies
+2026-04-04 14:05:22.220 +03:00 [INF] sending lobbies

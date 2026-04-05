@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useLobbyConnection } from "../features/game/hooks/useLobbyConnection";
 import Navbar from "../shared/components/Navbar";
 import LobbyPlayerCard from "../features/game/components/LobbyPlayerCard";
 import TypingArea from "../features/game/components/TypingArea";
