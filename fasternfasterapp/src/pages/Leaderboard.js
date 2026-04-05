@@ -1,8 +1,10 @@
-import { useCallback } from "react";
+import { act, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFetchLeaderboard } from "../features/leaderboard/hooks/useFetchLeaderboard";
 import Navbar from "../shared/components/Navbar";
 import ErrorBanner from "../shared/components/ErrorBanner";
 import "./Leaderboard.css";
+import { useLobbyContext } from "../features/game/hooks/LobbyProvider";
 
 const SORTABLE_COLUMNS = [
   { criteria: "Wins", label: "Wins" },
@@ -29,6 +31,9 @@ function formatStat(value, suffix) {
 }
 
 function Leaderboard() {
+  const { lobbyId } = useLobbyContext();
+  const navigate = useNavigate();
+
   const {
     players,
     loading,
@@ -46,6 +51,14 @@ function Leaderboard() {
   return (
     <div className="leaderboard-page">
       <Navbar />
+      {lobbyId && (
+        <button
+          className="return-to-lobby-btn"
+          onClick={() => navigate(`/lobby/${lobbyId}`)}
+        >
+          Back to lobby
+        </button>
+      )}
       <ErrorBanner message={error} onDismiss={clearError} />
 
       <div className="leaderboard-page__content">

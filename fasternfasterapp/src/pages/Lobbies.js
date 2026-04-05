@@ -6,8 +6,10 @@ import Navbar from "../shared/components/Navbar";
 import CreateLobbyModal from "../features/lobbies/components/CreateLobbyModal";
 import ErrorBanner from "../shared/components/ErrorBanner";
 import "./Lobbies.css";
+import { useLobbyContext } from "../features/game/hooks/LobbyProvider";
 
 function Lobbies() {
+  const { lobbyId } = useLobbyContext();
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -35,7 +37,14 @@ function Lobbies() {
   return (
     <div className="lobbies-page">
       <Navbar />
-
+      {lobbyId && (
+        <button
+          className="return-to-lobby-btn"
+          onClick={() => navigate(`/lobby/${lobbyId}`)}
+        >
+          Back to lobby
+        </button>
+      )}
       <ErrorBanner message={error} onDismiss={clearError} />
       <div className="lobbies-page__content">
         <section className="lobby-config">

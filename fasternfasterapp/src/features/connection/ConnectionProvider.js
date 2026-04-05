@@ -11,53 +11,57 @@ import {
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
-  const connection = useRef(null);
+  const connectionRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const connect = async (url) => {
-      connection.current = new signalR.HubConnectionBuilder()
-        .withUrl(url)
-        .withAutomaticReconnect()
-        .build();
+    const token = localStorage.getItem("token");
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(url, { accessTokenFactory: () => token })
+      .withAutomaticReconnect()
+      .build();
 
+    connectionRef.current = connection;
+
+    connection.onclose(() => setIsConnected(false));
+    connection.onreconnecting(() => setIsConnected(false));
+    connection.onreconnected(() => setIsConnected(true));
+
+    const start = async () => {
       try {
-        await connection.current.start();
-        console.log("connected successfully.");
+        await connection.start();
+        setIsConnected(true);
       } catch (err) {
         console.error(`can't connect to ${url}: `, err);
       }
     };
 
-    connect(url);
+    start();
 
-    return () => connection.current?.stop();
+    return () => connection.stop();
   }, [url]);
 
   const invoke = useCallback(async (methodName, ...args) => {
-    return await connection.current.invoke(methodName, ...args);
+    return connectionRef.current?.invoke(methodName, ...args);
   }, []);
 
   const subscribe = useCallback((methodName, callback) => {
-    if (!connection) return;
-
-    connection.current.on(methodName, callback);
-
-    return () => connection.current.off(methodName, callback);
+    connectionRef.current?.on(methodName, callback);
+    return () => connectionRef.current?.off(methodName, callback);
   }, []);
 
   const disconnect = useCallback(() => {
-    if (!connection) return;
-    connection.current.stop();
+    connectionRef.current?.stop();
   }, []);
-
-  connection.current?.onclose(() => setIsConnected(false));
-  connection.current?.onreconnecting(() => setIsConnected(false));
-  connection.current?.onreconnected(() => setIsConnected(true));
 
   return (
     <ConnectionContext.Provider
-      value={{ subscribe, invoke, disconnect, isConnected }}
+      value={{
+        subscribe,
+        invoke,
+        disconnect,
+        isConnected,
+      }}
     >
       {children}
     </ConnectionContext.Provider>

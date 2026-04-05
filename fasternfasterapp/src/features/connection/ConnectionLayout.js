@@ -1,10 +1,13 @@
 import { Outlet } from "react-router-dom";
 import ConnectionProvider from "./ConnectionProvider";
+import { LobbyProvider } from "../game/hooks/LobbyProvider";
 
 function ConnectionLayout() {
   return (
     <ConnectionProvider url="/gameHub">
-      <Outlet />
+      <LobbyProvider>
+        <Outlet />
+      </LobbyProvider>
     </ConnectionProvider>
   );
 }

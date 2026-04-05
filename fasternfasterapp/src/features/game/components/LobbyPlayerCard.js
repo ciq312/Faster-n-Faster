@@ -1,7 +1,7 @@
 import { useColorPalette } from "../hooks/useColorPalette";
 import "./LobbyPlayerCard.css";
 
-function LobbyPlayerCard({ player, colors, openPalette, changeColor, isSelf }) {
+function LobbyPlayerCard({ player, colors, changeColor, isSelf }) {
   const palette = useColorPalette();
 
   return (
@@ -19,7 +19,7 @@ function LobbyPlayerCard({ player, colors, openPalette, changeColor, isSelf }) {
           style={{ background: player.color }}
           onMouseDown={(e) => {
             e.stopPropagation();
-            palette.toggle(openPalette?.(player.id));
+            palette.toggle(isSelf);
           }}
         ></div>
       </div>
@@ -28,7 +28,7 @@ function LobbyPlayerCard({ player, colors, openPalette, changeColor, isSelf }) {
           {colors.map((c, i) => (
             <div
               key={i}
-              className={`player-card__color ${!c.isAvailable ? "player-card__color--taken" : ""}`}
+              className={`player-card__color player-card__choose ${!c.isAvailable ? "player-card__color--taken" : ""}`}
               style={{ backgroundColor: c.color }}
               onClick={() => {
                 if (c.isAvailable) {
