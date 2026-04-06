@@ -10143,3 +10143,14 @@
 2026-04-05 20:11:02.071 +03:00 [INF] Getting lobbies
 2026-04-05 20:11:02.072 +03:00 [INF] Got lobbies
 2026-04-05 20:11:02.073 +03:00 [INF] sending lobbies
+2026-04-05 20:13:03.430 +03:00 [INF] Player "7cadbf35-fd6c-4cef-8707-811e01c7a79f" joined lobby "e4288b13-11b1-44fe-8e8a-3fa9637f70c7"
+2026-04-05 20:13:03.432 +03:00 [INF] Tracking connection dtNl36GteydX3nbnfg_6rQ for player "7cadbf35-fd6c-4cef-8707-811e01c7a79f" in lobby "e4288b13-11b1-44fe-8e8a-3fa9637f70c7"
+2026-04-05 20:13:03.436 +03:00 [INF] Player "7cadbf35-fd6c-4cef-8707-811e01c7a79f" joined lobby "e4288b13-11b1-44fe-8e8a-3fa9637f70c7"
+2026-04-05 20:13:03.437 +03:00 [INF] Tracking connection dtNl36GteydX3nbnfg_6rQ for player "7cadbf35-fd6c-4cef-8707-811e01c7a79f" in lobby "e4288b13-11b1-44fe-8e8a-3fa9637f70c7"
+2026-04-05 20:13:06.084 +03:00 [INF] Removed connection dtNl36GteydX3nbnfg_6rQ for player "7cadbf35-fd6c-4cef-8707-811e01c7a79f" in lobby "e4288b13-11b1-44fe-8e8a-3fa9637f70c7"
+2026-04-05 20:13:06.931 +03:00 [INF] Getting lobbies
+2026-04-05 20:13:06.932 +03:00 [INF] Got lobbies
+2026-04-05 20:13:06.933 +03:00 [INF] sending lobbies
+2026-04-05 20:13:07.198 +03:00 [INF] Getting lobbies
+2026-04-05 20:13:07.201 +03:00 [INF] Got lobbies
+2026-04-05 20:13:07.202 +03:00 [INF] sending lobbies
