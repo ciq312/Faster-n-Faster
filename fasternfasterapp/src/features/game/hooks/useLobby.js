@@ -2,12 +2,16 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLobbyContext } from "./LobbyProvider";
+import { useError } from "../../../shared/components/ErrorProvider";
+import { eventBus } from "../../../shared/components/eventBus";
 
 export function useLobby(lobbyId) {
+  const { showError } = useError();
   const { setLobbyId } = useLobbyContext();
   const { invoke, subscribe } = useConnection();
   const selfIdRef = useRef(localStorage.getItem("userId"));
   const navigate = useNavigate();
+  const isHostRef = useRef(false);
 
   const [players, setPlayers] = useState([]);
   const [lobbyName, setLobbyName] = useState(null);
@@ -17,14 +21,17 @@ export function useLobby(lobbyId) {
   useEffect(() => {
     const connectToLobby = async () => {
       try {
-        await invoke("ConnectToLobby", lobbyId);
         setLobbyId(lobbyId);
+        await invoke("ConnectToLobby", lobbyId);
       } catch (e) {
         console.log(e);
       }
     };
 
     connectToLobby();
+
+    eventBus.on("leaveLobby", (data) => setLobbyId(null));
+    eventBus.on("leaveLobby", (data) => navigate("/lobbies"));
 
     const cleanups = [
       subscribe("LobbyState", (state) => {
@@ -33,6 +40,19 @@ export function useLobby(lobbyId) {
         setLobbyName(state.lobbyName);
         setLobbyMaxPlayers(state.maxPlayers);
         setColors(state.colors);
+        isHostRef.current = state.players.find(
+          (el) => el.id === selfIdRef.current,
+        ).isHost;
+      }),
+
+      subscribe("Error", (e) => {
+        if (
+          e.toLowerCase().includes("not found") ||
+          e.toLowerCase().includes("not accepting")
+        ) {
+          eventBus.emit("leaveLobby", { lobbyId });
+        }
+        showError(e);
       }),
     ];
 
@@ -50,8 +70,7 @@ export function useLobby(lobbyId) {
   const leaveLobby = useCallback(async () => {
     try {
       await invoke("LeaveLobby");
-      setLobbyId(null);
-      navigate("/lobbies");
+      eventBus.emit("leaveLobby", { lobbyId });
     } catch (e) {
       console.log(e);
     }
@@ -64,6 +83,7 @@ export function useLobby(lobbyId) {
     changeColor,
     isSelf,
     selfId: selfIdRef.current,
+    isHost: isHostRef.current,
     players,
     lobbyName,
     lobbyMaxPlayers,

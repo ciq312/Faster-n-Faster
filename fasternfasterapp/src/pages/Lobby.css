@@ -136,6 +136,32 @@
   letter-spacing: 0.5px;
 }
 
+/* ── Next passage button ── */
+
+.lobby-next-passage__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border);
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.lobby-next-passage__icon:hover {
+  background: var(--text-3);
+  color: var(--bg);
+}
+
 /* ── Footer ── */
 
 .lobby-footer {

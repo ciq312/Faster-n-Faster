@@ -44,7 +44,6 @@ function Lobby() {
                 key={p.id}
                 player={p}
                 colors={lobby.colors}
-                canOpenPalette={lobby.isSelf(p.id)}
                 changeColor={lobby.changeColor}
                 isSelf={lobby.isSelf(p.id)}
               />
@@ -59,9 +58,9 @@ function Lobby() {
                 selfId={lobby.selfId}
                 onDismiss={race.dismissResults}
               />
-            ) : race.passage ? (
+            ) : race.raceSettings ? (
               <TypingArea
-                passage={race.passage}
+                passage={race.raceSettings.passage}
                 disabled={!race.isRacing}
                 onProgress={race.sendProgress}
                 opponents={race.raceParticipants}
@@ -72,12 +71,12 @@ function Lobby() {
                 waiting for host to start the race...
               </div>
             )}
-            {!(race.isRaceStarting || race.isRacing) && (
+            {!(race.isRaceStarting || race.isRacing) && lobby.isHost && (
               <button
-                className="lobby-footer__start"
+                className="lobby-next-passage__icon"
                 onClick={race.refreshPassage}
               >
-                refresh
+                &gt;
               </button>
             )}
           </div>
@@ -90,13 +89,15 @@ function Lobby() {
         </div>
 
         <footer className="lobby-footer">
-          <button
-            className="lobby-footer__start"
-            disabled={race.isRaceStarting || race.isRacing}
-            onClick={race.startRace}
-          >
-            start race
-          </button>
+          {lobby.isHost && (
+            <button
+              className="lobby-footer__start"
+              disabled={race.isRaceStarting || race.isRacing}
+              onClick={race.startRace}
+            >
+              start race
+            </button>
+          )}
         </footer>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
+const MAX_OVERFLOW = 6;
+
 export function useTyping({ passage, disabled, onProgress }) {
   const [typed, setTyped] = useState("");
   const mistakesRef = useRef(0);
@@ -16,15 +18,18 @@ export function useTyping({ passage, disabled, onProgress }) {
       if (value.length > passage.length) return;
       if (value.length < typed.length - 1) return;
 
+      if (
+        value.length > typed.length &&
+        value.length - 1 - lastCorrectIndexRef.current > MAX_OVERFLOW
+      )
+        return;
+
       if (value.length > typed.length) {
         const newChar = value[value.length - 1];
         if (
           newChar === ` ` &&
           lastCorrectIndexRef.current !== value.length - 1 - 1
         ) {
-          console.log(
-            `not allowed last correct is ${lastCorrectIndexRef.current}`,
-          );
           return;
         }
         if (newChar === passage[value.length - 1]) {
@@ -63,9 +68,6 @@ export function useTyping({ passage, disabled, onProgress }) {
     [disabled],
   );
 
-  useEffect(() => {
-    console.log("Typed:", typed);
-  }, [typed]);
   return {
     typed,
     inputRef,

@@ -27,6 +27,9 @@
   cursor: default;
 }
 
+.current {
+  z-index: 100;
+}
 .incorrect__word-overflow {
   color: aliceblue;
 }

@@ -45,7 +45,6 @@ public class RaceTickService : BackgroundService
             {
                 try
                 {
-                    Log.Information("Processing tick for lobby {LobbyId} in phase {Phase}", entry.LobbyId, entry.Phase);
                     var lobby = _lobbyStore.Get(entry.LobbyId);
                     if (lobby == null)
                     {
