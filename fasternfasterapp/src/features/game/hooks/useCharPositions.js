@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 
-export function useCharPositions(passage) {
+export function useCharPositions(passage, typedLength) {
   const charsRef = useRef([]);
   const containerRef = useRef(null);
   const [charPositions, setCharPositions] = useState([]);
@@ -19,11 +19,14 @@ export function useCharPositions(passage) {
     setCharPositions(positions);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     measure();
+  }, [passage, typedLength, measure]);
+
+  useEffect(() => {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [passage, measure]);
+  }, [measure]);
 
   const caretPos = useCallback(
     (index) => {

@@ -1,3 +1,4 @@
+import { useRef, useState, useLayoutEffect } from "react";
 import { useTyping } from "../hooks/useTyping";
 import { useCharPositions } from "../hooks/useCharPositions";
 import "./TypingArea.css";
@@ -22,7 +23,25 @@ function TypingArea({
     onProgress,
   });
 
-  const { charsRef, containerRef, caretPos } = useCharPositions(passage);
+  const { charsRef, containerRef, caretPos } = useCharPositions(
+    passage,
+    typed.length,
+  );
+  const lastOverflowRef = useRef(null);
+  const [selfPos, setSelfPos] = useState({ left: 0, top: 0 });
+
+  useLayoutEffect(() => {
+    if (lastOverflowRef.current && containerRef.current) {
+      const rect = lastOverflowRef.current.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setSelfPos({
+        left: rect.right - containerRect.left,
+        top: rect.top - containerRect.top,
+      });
+    } else {
+      setSelfPos(caretPos(typed.length));
+    }
+  }, [typed.length, caretPos]);
 
   return (
     <>
@@ -40,51 +59,80 @@ function TypingArea({
 
       <div className={`typing-area`} onClick={focusInput}>
         <div className="typing-area__words" ref={containerRef}>
-          {passage.split("").map((char, i) => {
+          {passage.split("").flatMap((char, i) => {
+            if (i === nextSepIndex && typed.length > i) {
+              const overflowChars = typed.slice(i).split("");
+              lastOverflowRef.current = null;
+              const spans = overflowChars.map((c, j) => (
+                <span
+                  key={`o${j}`}
+                  className="typing-area__char typing-area__char--incorrect"
+                  ref={
+                    j === overflowChars.length - 1
+                      ? (el) => (lastOverflowRef.current = el)
+                      : undefined
+                  }
+                >
+                  {c}
+                </span>
+              ));
+              spans.push(
+                <span
+                  key={i}
+                  className="typing-area__char typing-area__space--incorrect"
+                  ref={(el) => (charsRef.current[i] = el)}
+                >
+                  {" "}
+                </span>,
+              );
+              return spans;
+            }
+
+            if (i === nextSepIndex && typed.length <= i) {
+              lastOverflowRef.current = null;
+            }
+
             let cls = "typing-area__char";
             if (
-              (i <= nextSepIndex || nextSepIndex == -1) &&
-              i <= typed.length - 1
+              (i <= nextSepIndex || nextSepIndex === -1) &&
+              i < typed.length
             ) {
-              const isCorrect = typed[i] === char;
-              cls += isCorrect
-                ? " typing-area__char--correct"
-                : " typing-area__char--incorrect";
-              cls += i === nextSepIndex ? " typing-area__space--incorrect" : "";
+              cls +=
+                typed[i] === char
+                  ? " typing-area__char--correct"
+                  : " typing-area__char--incorrect";
             }
-            return (
+            return [
               <span
                 key={i}
                 className={cls}
                 ref={(el) => (charsRef.current[i] = el)}
               >
-                {i === nextSepIndex ? typed.slice(i, typed.length) + " " : char}
-              </span>
-            );
+                {char}
+              </span>,
+            ];
           })}
 
           {players.map((p) => {
             if (p.playerId === selfId) {
-              const pos = caretPos(typed.length - 1 + 1);
               return (
                 <span
                   key={p.id}
-                  className="typing-area__caret current__caret"
+                  className="typing-area__caret current"
                   style={{
-                    transform: `translate(${pos.left}px, ${pos.top}px)`,
+                    transform: `translate(${selfPos.left}px, ${selfPos.top}px)`,
                     background: p.color,
                   }}
                 >
-                  {/* <span
-                    className="typing-area__caret-label"
+                  <span
+                    className="typing-area__caret-label current"
                     style={{ background: p.color }}
                   >
                     player
-                  </span> */}
+                  </span>
                 </span>
               );
             }
-            console.log(selfId, p.playerId, p.index);
             if (p.index < -1 || p.index > passage.length) return null;
             const pos = caretPos(p.index + 1);
             return (

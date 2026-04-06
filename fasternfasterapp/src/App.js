@@ -10,9 +10,11 @@ import Lobbies from "./pages/Lobbies";
 import Lobby from "./pages/Lobby";
 import Leaderboard from "./pages/Leaderboard";
 import ConnectionLayout from "./features/connection/ConnectionLayout";
+import ErrorProvider from "./shared/components/ErrorProvider";
 function App() {
   return (
     <Router>
+      <ErrorProvider>
       <Routes>
         <Route path="/" element={<Registration />} />
         <Route element={<ConnectionLayout />}>
@@ -22,6 +24,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorProvider>
     </Router>
   );
 }

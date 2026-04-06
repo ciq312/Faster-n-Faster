@@ -10,12 +10,12 @@ export function useRace() {
   const [raceParticipants, setRaceParticipants] = useState([]);
   const countdownTimersRef = useRef([]);
   const [countdown, setCountdown] = useState(null);
-  const [passage, setPassage] = useState(null);
 
   useEffect(() => {
     const cleanups = [
       subscribe("RaceEnded", (data) => {
         setRaceResults(data.results);
+        setRaceParticipants([]);
         setIsRacing(false);
       }),
 
@@ -31,8 +31,8 @@ export function useRace() {
           setTimeout(() => setCountdown("GO"), 3000),
         ];
         setIsRaceStarting(true);
+        setRaceResults(null);
         setCountdown(3);
-        setPassage(data.words);
       }),
 
       subscribe("RaceStarted", () => {
@@ -54,7 +54,6 @@ export function useRace() {
   }, []);
 
   const sendProgress = useCallback(async ({ index, mistakes }) => {
-    console.log("Sending progress:", { index, mistakes });
     try {
       await invoke("UpdateRaceState", index, mistakes);
     } catch (e) {
@@ -120,6 +119,5 @@ export function useRace() {
     raceResults,
     raceParticipants,
     countdown,
-    passage,
   };
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "./ErrorBanner.css";
 
-// Auto-dismisses after `duration` ms with a fade-out
 function ErrorBanner({ message, duration = 4000, onDismiss }) {
   const [fading, setFading] = useState(false);
 
