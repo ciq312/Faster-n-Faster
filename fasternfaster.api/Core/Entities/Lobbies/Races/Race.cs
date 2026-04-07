@@ -2,80 +2,43 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string Color, string Nick);
 
-public abstract class Race
+public abstract class Race // ISession in future when new mechanics implemeneted
 {
     public DateTime StartTime { get; private set; }
-    public string Words { get; private set; } = "";
-    public int MaxWords { get; protected set; }
-    private string? _passage;
-
+    public DateTime EndTime { get; private set; }
+    public bool IsRaceFinished
+    {
+        get { lock (_raceLock) return _participants.Values.All(p => p.IsFinished); }
+    }
     private readonly Dictionary<Guid, RaceParticipant> _participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => _participants;
-    private readonly object _raceLock = new();
-    private int _nextFinishPosition = 1;
 
-    public void SetPassage(string passage)
-    {
-        _passage = passage;
-        Words = passage;
-    }
+    protected readonly object _raceLock = new();
+    protected int _nextFinishPosition = 1;
+
 
     public virtual void Start(IEnumerable<(Guid Id, string Color, string nick)> players)
     {
         _participants.Clear();
         _nextFinishPosition = 1;
 
-        if (_passage != null)
-            Words = _passage;
-
         StartTime = DateTime.UtcNow;
 
-        foreach (var player in players)
-            _participants[player.Id] = new RaceParticipant(player.Id, player.Color, player.nick);
+        // in future for players that are not spectators 
+        foreach (var (Id, Color, nick) in players)
+            _participants[Id] = new RaceParticipant(Id, Color, nick);
     }
 
     /// <summary>
     /// Validates a client state snapshot and checks for finish.
     /// Thread-safe — called from SignalR hub threads.
     /// </summary>
-    public RaceParticipant? ProcessUpdate(Guid playerId, int index, int mistakes)
-    {
-        lock (_raceLock)
-        {
-            var participant = _participants.GetValueOrDefault(playerId)
-                ?? throw new InvalidOperationException("Player is not a race participant.");
-
-            if (!participant.ValidateUpdate(index, mistakes, Words.Length))
-                return null;
-
-            if (!participant.IsFinished && participant.Index >= Words.Length - 1)
-                participant.MarkFinished(_nextFinishPosition++, Words.Split(' ').Length);
-
-            return participant;
-        }
-    }
+    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes);
 
     /// <summary>
     /// Returns a thread-safe snapshot of all participants for the tick service.
     /// </summary>
-    public List<ParticipantSnapshot> GetSnapshot()
-    {
-        lock (_raceLock)
-        {
-            return _participants.Values
-                .Where(p => !p.IsFinished)
-                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color, p.Nick))
-                .ToList();
-        }
-    }
-
-    public bool IsRaceOver()
-    {
-        lock (_raceLock)
-        {
-            return _participants.Values.All(p => p.IsFinished);
-        }
-    }
+    public abstract List<ParticipantSnapshot> GetSnapshot();
 
     public IEnumerable<RaceParticipantResult> GetRaceStatics()
     {
@@ -83,4 +46,38 @@ public abstract class Race
         foreach (var participant in Participants) results.Add(participant.Value.Result!);
         return results;
     }
+
+    public void WithdrawParticipant(Guid playerId)
+    {
+        lock (_raceLock)
+        {
+            var participant = _participants.GetValueOrDefault(playerId);
+            if (participant is null || participant.IsFinished) return;
+            participant.MarkWithdrawn();
+        }
+    }
+
+    public abstract IRaceSettings GetRaceSettings();
+
+
+    // public abstract
+    // {
+    //     lock (_raceLock)
+    //     {
+    //         return _participants.Values
+    //             .Where(p => !p.IsFinished)
+    //             .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color, p.Nick))
+    //             .ToList();
+    //     }
+    // }
+
+    // public bool IsRaceOver()
+    // {
+    //     lock (_raceLock)
+    //     {
+    //         return _participants.Values.All(p => p.IsFinished);
+    //     }
+    // }
+
+
 }

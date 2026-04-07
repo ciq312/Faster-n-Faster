@@ -10,6 +10,20 @@ public class TimerRace : Race
             throw new ArgumentException("Timer duration must be greater than 0.");
 
         TimerDurationSeconds = timerDurationSeconds;
-        MaxWords = 200; // large pool — timer expires before words run out
+    }
+
+    public override void ProcessUpdate(Guid playerId, int index, int mistakes)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override List<ParticipantSnapshot> GetSnapshot()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IRaceSettings GetRaceSettings()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -26,7 +26,7 @@ export function useCreateLobby() {
         return false;
       }
       const data = await response.json();
-      navigate(`/lobby/${data.lobbyId}`);
+      navigate(`/lobby/${data.lobbyId}`, { state: { inviteCode: data.inviteCode } });
       return true;
     } catch {
       setError("Could not connect to server");

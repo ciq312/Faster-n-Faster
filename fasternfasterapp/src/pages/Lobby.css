@@ -62,6 +62,16 @@
   color: var(--text-3);
 }
 
+.lobby-topbar__invite-code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--amber);
+  padding: 2px 8px;
+  background: var(--amber-muted);
+  border-radius: 3px;
+  letter-spacing: 1px;
+}
+
 .lobby-topbar__leave {
   padding: 8px 16px;
   background: transparent;

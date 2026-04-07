@@ -77,6 +77,12 @@ public class RaceParticipant(Guid id, string color, string nick)
                , FinishPosition);
     }
 
+    public void MarkWithdrawn()
+    {
+        IsFinished = true;
+        FinishedAt = DateTime.UtcNow;
+        // no Result, no FinishPosition — they didn't actually finish
+    }
     public float GetWPM()
     {
         float minutesElapsed = (float)(DateTime.UtcNow - StartedAt).TotalMinutes;

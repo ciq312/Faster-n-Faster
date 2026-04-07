@@ -22,6 +22,13 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
         var lobby = new Lobby(command.LobbyName, command.IsPrivate);
         lobby.AssignHost(command.HostId);
 
+        if (command.IsPrivate)
+        {
+            var code = await LobbySettings.GenerateUniqueInviteCode(
+                c => Task.FromResult(_lobbyStore.GetByInviteCode(c) != null));
+            lobby.LobbySettings.SetInviteCode(code);
+        }
+
         var passage = await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount);
         lobby.SetInitialPassage(passage);
 
@@ -29,6 +36,6 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
 
         Log.Information("Created lobby {LobbyId} with host {PlayerId}", lobby.Id, command.HostId);
 
-        return new CreateLobbyResult(lobby.Id, lobby.Name);
+        return new CreateLobbyResult(lobby.Id, lobby.Name, lobby.LobbySettings.InviteCode);
     }
 }
