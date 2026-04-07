@@ -5,14 +5,13 @@ public record LobbyStateDTO(
     string LobbyName,
     RaceSettingsDto RaceSettings,
     bool IsPrivate,
+    string? InviteCode,
     int MaxPlayers,
     IEnumerable<ColorStatus> Colors,
     IReadOnlyList<LobbyPlayerDto> Players);
 
 public record RaceSettingsDto(
-    string GameMode,
-    int WordCount,
-    int TimerDuration,
-    string? Passage);
+    Type GameMode,
+    IRaceSettings RaceSettings);
 
 public record LobbyPlayerDto(Guid Id, bool IsHost, string Nick, int JoinOrder, bool IsConnected, string Color);

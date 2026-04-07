@@ -73,7 +73,7 @@ public class RaceTickService : BackgroundService
 
         if (elapsed >= CountdownSeconds)
         {
-            await group.SendAsync("RaceStarted", new { words = lobby.Race.Words });
+            await group.SendAsync("RaceStarted");
             Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);
             _registry.TransitionToRacing(entry.LobbyId);
         }
@@ -93,10 +93,10 @@ public class RaceTickService : BackgroundService
             .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color, nick = s.Nick })
             .ToList();
 
-        var finishedRace = lobby.TryFinishRace();
-        if (finishedRace != null)
+        var race = lobby.Race;
+        if (race.IsRaceFinished)
         {
-            var results = finishedRace.GetRaceStatics();
+            var results = race.GetRaceStatics();
             await group.SendAsync("RaceEnded", new { results });
             _registry.DeregisterLobby(entry.LobbyId);
             using var scope = _scopeFactory.CreateScope();

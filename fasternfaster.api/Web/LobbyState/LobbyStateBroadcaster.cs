@@ -23,11 +23,12 @@ public class LobbyStateBroadcaster
         var players = lobby.Players.Select(p => new LobbyPlayerDto(
             p.User.Id, p.IsHost, p.User.Nick, p.JoinOrder, p.IsConnected, p.Color));
 
-        var rs = lobby.RaceSettings;
-        var raceSettingsDto = new RaceSettingsDto(rs.GameMode, rs.WordCount, rs.TimerDuration, lobby.Race.Words);
+        var race = lobby.Race;
+        var raceSettingsDto = new RaceSettingsDto(race.GetType(), race.GetRaceSettings());
 
         return new LobbyStateDTO(
             lobby.Id, lobby.Name, raceSettingsDto, lobby.LobbySettings.IsPrivate,
-            lobby.LobbySettings.MaxPlayers, lobby.GetColors(), [.. players]);
+            lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
+            lobby.GetColors(), [.. players]);
     }
 }

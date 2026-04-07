@@ -5,7 +5,7 @@ import { useLobbyContext } from "./LobbyProvider";
 import { useError } from "../../../shared/components/ErrorProvider";
 import { eventBus } from "../../../shared/components/eventBus";
 
-export function useLobby(lobbyId) {
+export function useLobby(lobbyId, inviteCode) {
   const { showError } = useError();
   const { setLobbyId } = useLobbyContext();
   const { invoke, subscribe } = useConnection();
@@ -16,13 +16,14 @@ export function useLobby(lobbyId) {
   const [players, setPlayers] = useState([]);
   const [lobbyName, setLobbyName] = useState(null);
   const [lobbyMaxPlayers, setLobbyMaxPlayers] = useState(null);
+  const [lobbyInviteCode, setLobbyInviteCode] = useState(null);
   const [colors, setColors] = useState(null);
 
   useEffect(() => {
     const connectToLobby = async () => {
       try {
         setLobbyId(lobbyId);
-        await invoke("ConnectToLobby", lobbyId);
+        await invoke("ConnectToLobby", lobbyId, inviteCode);
       } catch (e) {
         console.log(e);
       }
@@ -39,6 +40,7 @@ export function useLobby(lobbyId) {
         setPlayers(state.players);
         setLobbyName(state.lobbyName);
         setLobbyMaxPlayers(state.maxPlayers);
+        setLobbyInviteCode(state.inviteCode);
         setColors(state.colors);
         isHostRef.current = state.players.find(
           (el) => el.id === selfIdRef.current,
@@ -87,6 +89,7 @@ export function useLobby(lobbyId) {
     players,
     lobbyName,
     lobbyMaxPlayers,
+    lobbyInviteCode,
     colors,
   };
 }

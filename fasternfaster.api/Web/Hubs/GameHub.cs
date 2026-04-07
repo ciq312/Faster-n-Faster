@@ -70,7 +70,7 @@ public class GameHub : Hub
         return (userId, conn.LobbyId, $"lobby-{conn.LobbyId}");
     }
 
-    public async Task ConnectToLobby(Guid lobbyId)
+    public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null)
@@ -84,7 +84,7 @@ public class GameHub : Hub
 
         try
         {
-            var result = await _joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId));
+            var result = await _joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, inviteCode));
             var groupName = $"lobby-{lobbyId}";
 
             _lobbyService.TrackConnection(Context.ConnectionId, lobbyId, userId);

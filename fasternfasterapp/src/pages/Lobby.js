@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useLobby } from "../features/game/hooks/useLobby";
 import { useRace } from "../features/game/hooks/useRace";
 import Navbar from "../shared/components/Navbar";
@@ -9,7 +9,8 @@ import "./Lobby.css";
 
 function Lobby() {
   const { lobbyId } = useParams();
-  const lobby = useLobby(lobbyId);
+  const location = useLocation();
+  const lobby = useLobby(lobbyId, location.state?.inviteCode);
   const race = useRace();
   const maxPerSide = 10;
   const half = Math.min(lobby.players.length, maxPerSide);
@@ -24,6 +25,11 @@ function Lobby() {
             <span className="lobby-topbar__count">
               {lobby.players.length}/{lobby.lobbyMaxPlayers} players
             </span>
+            {lobby.lobbyInviteCode && (
+              <span className="lobby-topbar__invite-code">
+                code: {lobby.lobbyInviteCode}
+              </span>
+            )}
             {race.raceSettings && (
               <span className="lobby-topbar__mode">
                 {race.raceSettings.gameMode === "wordcount"

@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
@@ -25,6 +24,7 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
         var lobby = _lobbyStore.Get(command.LobbyId)
             ?? throw new KeyNotFoundException("Lobby not found.");
 
+        // Reconnects bypass invite code check
         if (_lobbyService.TryGetPendingRemoval(command.LobbyId, command.PlayerId, out var cts))
         {
             Log.Information("Cancelling pending removal for player {PlayerId} in lobby {LobbyId}",
@@ -33,11 +33,18 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
             return new JoinLobbyResult(IsReconnect: true);
         }
 
-        var user = await _userRepo.GetByIdAsync(command.PlayerId)
-            ?? throw new UserNotFoundException(command.PlayerId);
+        // Existing players (e.g. page refresh) bypass invite code check
+        if (!lobby.IsPlayerInLobby(command.PlayerId))
+        {
+            if (lobby.LobbySettings.IsPrivate &&
+                !string.Equals(lobby.LobbySettings.InviteCode, command.InviteCode, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Invalid invite code.");
+            }
 
-        if (!lobby.IsPlayerInLobby(user.Id))
-            lobby.AddPlayer(user);
+            var user = await _userRepo.GetByIdAsync(command.PlayerId);
+            lobby.AddPlayer(user!);
+        }
 
         Log.Information("Player {PlayerId} joined lobby {LobbyId}", command.PlayerId, lobby.Id);
 

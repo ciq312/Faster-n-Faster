@@ -15,5 +15,10 @@ public class LobbyStore : ILobbyStore
 
     public Lobby? Get(Guid id) => _lobbies.GetValueOrDefault(id);
 
+    public Lobby? GetByInviteCode(string code) =>
+        _lobbies.Values.FirstOrDefault(l =>
+            l.LobbySettings.InviteCode != null &&
+            l.LobbySettings.InviteCode.Equals(code, StringComparison.OrdinalIgnoreCase));
+
     public IReadOnlyCollection<Lobby> GetAll() => _lobbies.Values.ToList();
 }

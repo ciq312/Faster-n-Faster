@@ -4,88 +4,66 @@ using FasterNFaster.Api.Core.Lobbies.Colors;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
-public class Lobby
+public class Lobby(string name, bool isPrivate)
 {
-    public enum Status
-    {
-        waiting,
-        racing,
-    }
-
-    private static readonly Dictionary<Status, Status> AllowedTransitions = new()
-    {
-        { Status.waiting, Status.racing },
-        { Status.racing, Status.waiting },
-    };
-
-    public Guid Id { get; private set; }
-    public string Name { get; private set; } = null!;
-    public Status CurrentStatus { get; private set; }
+    public Guid Id { get; private set; } = Guid.NewGuid();
+    public string Name { get; private set; } = name;
     public Guid HostId { get; private set; }
-    public LobbySettings LobbySettings { get; private set; }
-    public RaceSettings RaceSettings { get; private set; } = new();
+    public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
+    public bool IsSessionActive { get; private set; }
+    // public RaceSettings RaceSettings { get; private set; } = new();
     public Race Race { get; private set; }
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
-    public ICollection<RaceParticipantResult> RaceStatics { get; private set; } = new List<RaceParticipantResult>();
 
-    public Lobby(string name, bool isPrivate)
-    {
-        Id = Guid.NewGuid();
-        Name = name;
-        LobbySettings = new LobbySettings(isPrivate);
-        CurrentStatus = Status.waiting;
-        Race = RaceSettings.BuildRace();
-    }
+    // public void SetInitialPassage(string passage)
+    // {
+    //     RaceSettings.SetPassage(passage);
+    //     Race = RaceSettings.BuildRace();
+    // }
 
-    public void SetInitialPassage(string passage)
-    {
-        RaceSettings.SetPassage(passage);
-        Race = RaceSettings.BuildRace();
-    }
+    // public void RefreshPassage(Guid hostId, string passage)
+    // {
+    //     lock (_lock)
+    //     {
+    //         ValidateHost(hostId);
 
-    public void RefreshPassage(Guid hostId, string passage)
-    {
-        lock (_lock)
-        {
-            ValidateHost(hostId);
+    //         if (CurrentStatus != Status.waiting)
+    //             throw new InvalidOperationException("Can only change passage while waiting.");
 
-            if (CurrentStatus != Status.waiting)
-                throw new InvalidOperationException("Can only change passage while waiting.");
+    //         RaceSettings.SetPassage(passage);
+    //         Race = RaceSettings.BuildRace();
+    //         LobbySettings.UpdateTimestamp();
+    //     }
+    // }
 
-            RaceSettings.SetPassage(passage);
-            Race = RaceSettings.BuildRace();
-            LobbySettings.UpdateTimestamp();
-        }
-    }
+    // public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
+    // {
+    //     lock (_lock)
+    //     {
+    //         ValidateHost(hostId);
 
-    public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
-    {
-        lock (_lock)
-        {
-            ValidateHost(hostId);
+    //         if (CurrentStatus != Status.waiting)
+    //             throw new InvalidOperationException("Can only change settings while waiting.");
 
-            if (CurrentStatus != Status.waiting)
-                throw new InvalidOperationException("Can only change settings while waiting.");
+    //         configure(RaceSettings);
+    //         Race = RaceSettings.BuildRace();
+    //         LobbySettings.UpdateTimestamp();
+    //     }
+    // }
 
-            configure(RaceSettings);
-            Race = RaceSettings.BuildRace();
-            LobbySettings.UpdateTimestamp();
-        }
-    }
+    // public void TransitionStatus(Status newStatus)
+    // {
+    //     if (
+    //         !AllowedTransitions.TryGetValue(CurrentStatus, out var expected)
+    //         || expected != newStatus
+    //     )
+    //         throw new InvalidOperationException(
+    //             $"Cannot transition from '{CurrentStatus}' to '{newStatus}'."
+    //         );
 
-    public void TransitionStatus(Status newStatus)
-    {
-        if (
-            !AllowedTransitions.TryGetValue(CurrentStatus, out var expected)
-            || expected != newStatus
-        )
-            throw new InvalidOperationException(
-                $"Cannot transition from '{CurrentStatus}' to '{newStatus}'."
-            );
-
-        CurrentStatus = newStatus;
-        LobbySettings.UpdateTimestamp();
-    }
+    //     CurrentStatus = newStatus;
+    //     LobbySettings.UpdateTimestamp();
+    // }
 
     private readonly object _lock = new();
 
@@ -93,13 +71,13 @@ public class Lobby
     {
         lock (_lock)
         {
-            if (CurrentStatus != Status.waiting)
+            if (IsSessionActive)
                 throw new InvalidOperationException("Lobby is not accepting players.");
 
             if (Players.Count >= LobbySettings.MaxPlayers)
                 throw new InvalidOperationException("Lobby is full.");
 
-            var joinOrder = Players.Any() ? Players.Max(p => p.JoinOrder) + 1 : 1;
+            var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
             var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
             var player = new LobbyPlayer(user, this, joinOrder, color);
             Players.Add(player);
@@ -140,37 +118,37 @@ public class Lobby
         }
     }
 
-    public void StartRace(Guid hostId)
-    {
-        lock (_lock)
-        {
-            ValidateHost(hostId);
-            TransitionStatus(Status.racing);
+    // public void StartRace(Guid hostId)
+    // {
+    //     lock (_lock)
+    //     {
+    //         ValidateHost(hostId);
+    //         TransitionStatus(Status.racing);
 
-            Race = RaceSettings.BuildRace();
+    //         Race = RaceSettings.BuildRace();
 
-            var connectedPlayers = Players
-                .Where(p => p.IsConnected)
-                .Select(p => (p.User.Id, p.Color, p.User.Nick));
+    //         var connectedPlayers = Players
+    //             .Where(p => p.IsConnected)
+    //             .Select(p => (p.User.Id, p.Color, p.User.Nick));
 
-            Race.Start(connectedPlayers);
-        }
-    }
+    //         Race.Start(connectedPlayers);
+    //     }
+    // }
 
     /// <summary>
     /// Returns the finished race so the caller can read results.
     /// </summary>
-    public Race? TryFinishRace()
-    {
-        lock (_lock)
-        {
-            if (CurrentStatus != Status.racing) return null;
-            if (!Race.IsRaceOver()) return null;
-            TransitionStatus(Status.waiting);
-            var finishedRace = Race;
-            return finishedRace;
-        }
-    }
+    // public Race? TryFinishRace()
+    // {
+    //     lock (_lock)
+    //     {
+    //         if (CurrentStatus != Status.racing) return null;
+    //         if (!Race.IsRaceOver()) return null;
+    //         TransitionStatus(Status.waiting);
+    //         var finishedRace = Race;
+    //         return finishedRace;
+    //     }
+    // }
     public LobbyPlayer KickPlayer(Guid hostId, Guid targetPlayerId)
     {
         lock (_lock)
@@ -194,7 +172,7 @@ public class Lobby
     {
         lock (_lock)
         {
-            if (CurrentStatus != Status.waiting)
+            if (IsSessionActive)
                 throw new InvalidOperationException("Can only change color while waiting.");
 
             if (Players.Any(p => p.Color == newColor))

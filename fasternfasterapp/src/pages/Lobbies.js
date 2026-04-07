@@ -29,9 +29,27 @@ function Lobbies() {
     if (success) setShowCreateModal(false);
   };
 
-  const handleJoinByCode = (e) => {
+  const handleJoinByCode = async (e) => {
     e.preventDefault();
-    if (!inviteCode.trim()) return;
+    const code = inviteCode.trim();
+    if (!code) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/lobbies/by-code/${encodeURIComponent(code)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        fetchLobbies.setError("Invalid invite code.");
+        return;
+      }
+
+      const data = await response.json();
+      navigate(`/lobby/${data.lobbyId}`, { state: { inviteCode: code } });
+    } catch {
+      fetchLobbies.setError("Could not connect to server.");
+    }
   };
 
   return (
