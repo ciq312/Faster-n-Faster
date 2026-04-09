@@ -12,7 +12,7 @@ function Navbar() {
         <NavLink to="/leaderboard" className="navbar__link">
           leaderboard
         </NavLink>
-        <NavLink to="/" className="navbar__link">
+        <NavLink to="/profile/me" className="navbar__link">
           profile
         </NavLink>
       </div>

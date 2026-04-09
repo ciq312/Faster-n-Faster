@@ -14,19 +14,29 @@ function RaceResults({ results, selfId, onDismiss }) {
         </thead>
         <tbody>
           {results
-            .sort((r1, r2) => r1.finishPosition - r2.finishPosition)
-            .map((r) => (
-              <tr
-                key={r.playerId}
-                className={r.playerId === selfId ? "current-player" : ""}
-              >
-                <td>{r.finishPosition ?? "-"}</td>
-                <td>{r.nick ?? "unknown"}</td>
-                <td>{Math.round(r.wpm)}</td>
-                <td>{(r.accuracy * 100).toFixed(1)}%</td>
-                <td>{r.mistakeCount}</td>
-              </tr>
-            ))}
+            .sort((r1, r2) => {
+              if (r1 === null) return r2;
+              if (r2 === null) return r1;
+              else {
+                r1.finishPosition - r2.finishPosition;
+              }
+            })
+            .map(
+              (r) =>
+                r && (
+                  <tr
+                    key={r.playerId}
+                    className={r.playerId === selfId ? "current-player" : ""}
+                  >
+                    <td>{r.finishPosition ?? "-"}</td>
+                    <td>{r.nick ?? "unknown"}</td>
+                    <td>{Math.round(r.wpm)}</td>
+                    <td>{(r.accuracy * 100).toFixed(1)}%</td>
+                    <td>{r.mistakeCount}</td>
+                  </tr>
+                ),
+              // !r && <tr>player left the lobby</tr>,
+            )}
         </tbody>
       </table>
       <button className="race-results__close" onClick={onDismiss}>
