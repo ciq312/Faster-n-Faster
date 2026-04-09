@@ -1,6 +1,9 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
+
+namespace FasterNFaster.Api.Web.Lobbies.LobbyState;
 
 public class LobbyStateBroadcaster
 {
@@ -24,10 +27,9 @@ public class LobbyStateBroadcaster
             p.User.Id, p.IsHost, p.User.Nick, p.JoinOrder, p.IsConnected, p.Color));
 
         var race = lobby.Race;
-        var raceSettingsDto = new RaceSettingsDto(race.GetType(), race.GetRaceSettings());
 
         return new LobbyStateDTO(
-            lobby.Id, lobby.Name, raceSettingsDto, lobby.LobbySettings.IsPrivate,
+            lobby.Id, lobby.Name, race.GetType().Name, race.GetRaceSettings(), lobby.LobbySettings.IsPrivate,
             lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
             lobby.GetColors(), [.. players]);
     }

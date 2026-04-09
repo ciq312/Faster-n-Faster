@@ -23,9 +23,9 @@ public class GetLobbiesHandler : IHandler<GetLobbiesQuery, GetLobbiesResult>
             .Select(l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                l.Race switch { WordRace => "wordcount", TimerRace => "timer", _ => null },
+                l.Race.GetType().ToString(),
                 l.LobbySettings.IsPrivate,
-                l.CurrentStatus.ToString(),
+                l.IsSessionActive.ToString(),
                 l.Players.Count,
                 l.LobbySettings.MaxPlayers,
                 l.LobbySettings.CreatedAt

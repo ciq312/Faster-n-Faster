@@ -2,7 +2,7 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLobbyContext } from "./LobbyProvider";
-import { useError } from "../../../shared/components/ErrorProvider";
+import { useError } from "../../../shared/components/BannerProvider";
 import { eventBus } from "../../../shared/components/eventBus";
 
 export function useLobby(lobbyId, inviteCode) {

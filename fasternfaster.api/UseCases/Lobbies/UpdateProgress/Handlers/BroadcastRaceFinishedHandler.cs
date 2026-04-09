@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
@@ -32,7 +33,10 @@ public class BroadcastRaceFinishedHandler : IDomainEventHandler<RaceFinishedEven
 
         var lobby = _lobbyStore.Get(e.lobbyId) ?? throw new LobbyNotFoundException(e.lobbyId);
 
-        lobby.RaceSettings.SetPassage(await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount));
+        lobby.OnSessionEnded();
+
+        var race = lobby.Race;
+        race.SetPassage(await _passageProvider.GetPassageAsync(race.WordCount));
 
         if (lobby != null)
             await _broadcaster.BroadcastLobbyState(lobby);

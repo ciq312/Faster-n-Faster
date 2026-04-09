@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -15,7 +16,7 @@ public class KickLobbyHandlerTests
         var registry = new FakeRaceTickRegistry();
         var handler = new KickPlayerHandler(store, lobbyService, registry);
 
-        var lobby = new Lobby("Test", false);
+        var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(users[0].Id);
         foreach (var user in users)
             lobby.AddPlayer(user);

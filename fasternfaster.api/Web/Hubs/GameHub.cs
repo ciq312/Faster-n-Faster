@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Claims;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -6,56 +7,42 @@ using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
+using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
+using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Infrastructure.Hubs;
 
-public class GameHub : Hub
+public class GameHub(
+    ILogger<GameHub> logger,
+    ILobbyStore lobbyStore,
+    ILobbyService lobbyService,
+    LobbyStateBroadcaster broadcaster,
+    IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
+    IHandler<StartRaceCommand> startRaceHandler,
+    IHandler<TransferHostCommand> transferHostHandler,
+    IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
+    IHandler<UpdateProgressCommand> updateProgressHandler,
+    IHandler<DisconnectCommand, DisconnectResult> disconnectHandler,
+    IHandler<FastReconnectCommand> fastReconnectHandler,
+    IHandler<RefreshPassageCommand> refreshPassageHandler) : Hub
 {
-    private readonly ILogger<GameHub> _logger;
-    private readonly ILobbyStore _lobbyStore;
-    private readonly ILobbyService _lobbyService;
-    private readonly LobbyStateBroadcaster _broadcaster;
+    private readonly ILogger<GameHub> _logger = logger;
+    private readonly ILobbyStore _lobbyStore = lobbyStore;
+    private readonly ILobbyService _lobbyService = lobbyService;
+    private readonly LobbyStateBroadcaster _broadcaster = broadcaster;
 
-    private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> _joinHandler;
-    private readonly IHandler<StartRaceCommand, StartRaceResult> _startRaceHandler;
-    private readonly IHandler<TransferHostCommand> _transferHostHandler;
-    private readonly IHandler<KickPlayerCommand, KickPlayerResult> _kickPlayerHandler;
-    private readonly IHandler<UpdateProgressCommand> _updateProgressHandler;
-    private readonly IHandler<DisconnectCommand, DisconnectResult> _disconnectHandler;
-    private readonly IHandler<FastReconnectCommand> _fastReconnectHandler;
-    private readonly IPassageProvider _passageProvider;
-
-    public GameHub(
-        ILogger<GameHub> logger,
-        ILobbyStore lobbyStore,
-        ILobbyService lobbyService,
-        LobbyStateBroadcaster broadcaster,
-        IPassageProvider passageProvider,
-        IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
-        IHandler<StartRaceCommand, StartRaceResult> startRaceHandler,
-        IHandler<TransferHostCommand> transferHostHandler,
-        IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
-        IHandler<UpdateProgressCommand> updateProgressHandler,
-        IHandler<DisconnectCommand, DisconnectResult> disconnectHandler,
-        IHandler<FastReconnectCommand> fastReconnectHandler)
-    {
-        _logger = logger;
-        _lobbyStore = lobbyStore;
-        _lobbyService = lobbyService;
-        _broadcaster = broadcaster;
-        _passageProvider = passageProvider;
-        _joinHandler = joinHandler;
-        _startRaceHandler = startRaceHandler;
-        _transferHostHandler = transferHostHandler;
-        _kickPlayerHandler = kickPlayerHandler;
-        _updateProgressHandler = updateProgressHandler;
-        _disconnectHandler = disconnectHandler;
-        _fastReconnectHandler = fastReconnectHandler;
-    }
+    private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> _joinHandler = joinHandler;
+    private readonly IHandler<StartRaceCommand> _startRaceHandler = startRaceHandler;
+    private readonly IHandler<TransferHostCommand> _transferHostHandler = transferHostHandler;
+    private readonly IHandler<KickPlayerCommand, KickPlayerResult> _kickPlayerHandler = kickPlayerHandler;
+    private readonly IHandler<UpdateProgressCommand> _updateProgressHandler = updateProgressHandler;
+    private readonly IHandler<DisconnectCommand, DisconnectResult> _disconnectHandler = disconnectHandler;
+    private readonly IHandler<FastReconnectCommand> _fastReconnectHandler = fastReconnectHandler;
+    private readonly IHandler<RefreshPassageCommand> _refreshPassageHandler = refreshPassageHandler;
 
     private (Guid UserId, Guid LobbyId, string GroupName) GetCallerContext()
     {
@@ -118,12 +105,11 @@ public class GameHub : Hub
             var (userId, lobbyId, groupName) = GetCallerContext();
 
 
-            var result = await _startRaceHandler.Handle(new StartRaceCommand(userId, lobbyId));
+            await _startRaceHandler.Handle(new StartRaceCommand(userId, lobbyId));
 
             await Clients.Group(groupName).SendAsync("RaceStarting", new
             {
                 countdownSeconds = 3,
-                words = result.Words
             });
 
             _logger.LogInformation("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
@@ -137,11 +123,12 @@ public class GameHub : Hub
 
     public async Task ChangeGameMode(string gameMode)
     {
+        throw new NotImplementedException();
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
             var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
-            lobby.UpdateRaceSettings(userId, s => s.SetGameMode(gameMode));
+            // lobby.UpdateRaceSettings(userId, s => s.SetGameMode(gameMode));
             await _broadcaster.BroadcastLobbyState(lobby);
         }
         catch (Exception ex)
@@ -153,11 +140,12 @@ public class GameHub : Hub
 
     public async Task ChangeWordCount(int wordCount)
     {
+        throw new NotImplementedException();
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
             var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
-            lobby.UpdateRaceSettings(userId, s => s.SetWordCount(wordCount));
+            // lobby.UpdateRaceSettings(userId, s => s.SetWordCount(wordCount));
             await _broadcaster.BroadcastLobbyState(lobby);
         }
         catch (Exception ex)
@@ -169,11 +157,12 @@ public class GameHub : Hub
 
     public async Task ChangeTimerDuration(int duration)
     {
+        throw new NotImplementedException();
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
             var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
-            lobby.UpdateRaceSettings(userId, s => s.SetTimerDuration(duration));
+            // lobby.UpdateRaceSettings(userId, s => s.SetTimerDuration(duration));
             await _broadcaster.BroadcastLobbyState(lobby);
         }
         catch (Exception ex)
@@ -188,10 +177,7 @@ public class GameHub : Hub
         try
         {
             var (userId, lobbyId, _) = GetCallerContext();
-            var lobby = _lobbyStore.Get(lobbyId) ?? throw new HubException("Lobby not found.");
-            var passage = await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount);
-            lobby.RefreshPassage(userId, passage);
-            await _broadcaster.BroadcastLobbyState(lobby);
+            await _refreshPassageHandler.Handle(new RefreshPassageCommand(userId, lobbyId));
         }
         catch (Exception ex)
         {

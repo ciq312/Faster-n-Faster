@@ -1,10 +1,10 @@
 import { useParams, useLocation } from "react-router-dom";
-import { useLobby } from "../features/game/hooks/useLobby";
-import { useRace } from "../features/game/hooks/useRace";
-import Navbar from "../shared/components/Navbar";
-import LobbyPlayerCard from "../features/game/components/LobbyPlayerCard";
-import TypingArea from "../features/game/components/TypingArea";
-import RaceResults from "../features/game/components/RaceResults";
+import { useLobby } from "../../features/game/hooks/useLobby";
+import { useRace } from "../../features/game/hooks/useRace";
+import Navbar from "../../shared/components/Navbar/Navbar";
+import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
+import TypingArea from "../../features/game/components/TypingArea/TypingArea";
+import RaceResults from "../../features/game/components/RaceResults";
 import "./Lobby.css";
 
 function Lobby() {
@@ -30,9 +30,9 @@ function Lobby() {
                 code: {lobby.lobbyInviteCode}
               </span>
             )}
-            {race.raceSettings && (
+            {race.settings && (
               <span className="lobby-topbar__mode">
-                {race.raceSettings.gameMode === "wordcount"
+                {race.RaceType === "WordRace"
                   ? `word count · ${race.raceSettings.wordCount} words`
                   : `timer · ${race.raceSettings.timerDuration}s`}
               </span>
@@ -77,14 +77,15 @@ function Lobby() {
                 waiting for host to start the race...
               </div>
             )}
-            {!(race.isRaceStarting || race.isRacing) && lobby.isHost && (
-              <button
-                className="lobby-next-passage__icon"
-                onClick={race.refreshPassage}
-              >
-                &gt;
-              </button>
-            )}
+            {!(race.isRaceStarting || race.isRacing || race.raceResults) &&
+              lobby.isHost && (
+                <button
+                  className="lobby-next-passage__icon"
+                  onClick={race.refreshPassage}
+                >
+                  &gt;
+                </button>
+              )}
           </div>
 
           <div className="lobby-players-col">

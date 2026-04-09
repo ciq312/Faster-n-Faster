@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class RandomPassageProvider : IPassageProvider
+public class FakeRandomPassageProvider : IPassageProvider
 {
     private static readonly string[] WordPool =
     [

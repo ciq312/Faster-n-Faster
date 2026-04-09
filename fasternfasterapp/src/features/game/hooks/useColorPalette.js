@@ -1,24 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 
 export function useColorPalette() {
-  const [showColors, setShowColors] = useState(false);
+  const [show, setShow] = useState(false);
   const panelRef = useRef(null);
 
   useEffect(() => {
-    if (!showColors) return;
+    if (!show) return;
     const handleClick = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target))
-        setShowColors(false);
+        setShow(false);
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [showColors]);
+  }, [show]);
 
   const toggle = (canOpen) => {
-    setShowColors(showColors ? false : canOpen);
+    setShow(show ? false : canOpen);
   };
 
-  const close = () => setShowColors(false);
+  const close = () => setShow(false);
 
-  return { showColors, panelRef, toggle, close };
+  return { showColors: show, panelRef, toggle, close };
 }

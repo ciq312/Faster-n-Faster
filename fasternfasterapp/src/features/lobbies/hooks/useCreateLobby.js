@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { extractError } from "../../../shared/utils/extractError";
+import { useError } from "../../../shared/components/BannerProvider";
 
 export function useCreateLobby() {
-  const [error, setError] = useState(null);
+  const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const execute = async (lobbyData) => {
-    setError(null);
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -22,19 +22,19 @@ export function useCreateLobby() {
       });
 
       if (!response.ok) {
-        setError(await extractError(response));
+        showError(await extractError(response));
         return false;
       }
       const data = await response.json();
       navigate(`/lobby/${data.lobbyId}`, { state: { inviteCode: data.inviteCode } });
       return true;
     } catch {
-      setError("Could not connect to server");
+      showError("Could not connect to server");
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  return { execute, error, loading, setError };
+  return { execute, loading };
 }

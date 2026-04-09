@@ -94,9 +94,11 @@ public class RaceTickService : BackgroundService
             .ToList();
 
         var race = lobby.Race;
+
         if (race.IsRaceFinished)
         {
             var results = race.GetRaceStatics();
+            lobby.OnSessionEnded();
             await group.SendAsync("RaceEnded", new { results });
             _registry.DeregisterLobby(entry.LobbyId);
             using var scope = _scopeFactory.CreateScope();

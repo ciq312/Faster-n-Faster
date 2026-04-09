@@ -41,7 +41,7 @@ public class WordRace : Race
         Passage = passage;
     }
 
-    public override IRaceSettings GetRaceSettings()
+    public override WordRaceSettings GetRaceSettings()
     {
         if (Passage == null) throw new NullReferenceException("Passage is null");
         return new WordRaceSettings(Passage, WordCount);

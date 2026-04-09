@@ -20,6 +20,7 @@ public class BroadcastPlayerFinishedHandler : IDomainEventHandler<PlayerFinished
 
         await _hub.Clients.Group($"lobby-{e.LobbyId}").SendAsync("PlayerFinished", new
         {
+            nick = e.Nick,
             playerId = e.PlayerId,
             finishPosition = e.FinishPosition,
             wpm = e.Wpm,

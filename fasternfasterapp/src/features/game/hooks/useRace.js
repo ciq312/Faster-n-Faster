@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useConnection } from "../../connection/ConnectionProvider";
+import { useBannerMessage } from "../../../shared/components/BannerProvider";
 
 export function useRace() {
   const { invoke, subscribe } = useConnection();
@@ -8,6 +9,7 @@ export function useRace() {
   const [raceSettings, setRaceSettings] = useState(null);
   const [raceResults, setRaceResults] = useState(null);
   const [raceParticipants, setRaceParticipants] = useState([]);
+  const { showMessage } = useBannerMessage();
   const countdownTimersRef = useRef([]);
   const [countdown, setCountdown] = useState(null);
 
@@ -20,7 +22,7 @@ export function useRace() {
       }),
 
       subscribe("LobbyState", (state) => {
-        setRaceSettings(state.raceSettings);
+        setRaceSettings(state.settings);
       }),
 
       subscribe("RaceStarting", (data) => {
@@ -45,6 +47,11 @@ export function useRace() {
         setIsRacing(true);
       }),
 
+      subscribe("PlayerFinished", (data) => {
+        showMessage(
+          `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
+        );
+      }),
       subscribe("RaceState", (state) => {
         setRaceParticipants(state.players);
       }),
