@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { extractError } from "../../../shared/utils/extractError";
+import { useError } from "../../../shared/components/BannerProvider";
 
 export function useAnonymousLogin() {
-  const [error, setError] = useState(null);
+  const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const execute = async (nick) => {
-    setError(null);
     setLoading(true);
     try {
       const response = await fetch("/api/auth/guest", {
@@ -17,7 +17,7 @@ export function useAnonymousLogin() {
         body: JSON.stringify({ nick }),
       });
       if (!response.ok) {
-        setError(await extractError(response));
+        showError(await extractError(response));
         return;
       }
       const data = await response.json();
@@ -25,11 +25,11 @@ export function useAnonymousLogin() {
       localStorage.setItem("userId", data.userId);
       navigate("/lobbies");
     } catch {
-      setError("Could not connect to server");
+      showError("Could not connect to server");
     } finally {
       setLoading(false);
     }
   };
 
-  return { execute, error, loading, setError };
+  return { execute, loading };
 }

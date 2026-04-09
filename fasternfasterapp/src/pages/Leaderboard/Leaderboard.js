@@ -1,10 +1,8 @@
-import { act, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFetchLeaderboard } from "../features/leaderboard/hooks/useFetchLeaderboard";
-import Navbar from "../shared/components/Navbar";
-import ErrorBanner from "../shared/components/ErrorBanner";
+import { useFetchLeaderboard } from "../../features/leaderboard/hooks/useFetchLeaderboard";
+import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Leaderboard.css";
-import { useLobbyContext } from "../features/game/hooks/LobbyProvider";
+import { useLobbyContext } from "../../features/game/hooks/LobbyProvider";
 
 const SORTABLE_COLUMNS = [
   { criteria: "Wins", label: "Wins" },
@@ -24,9 +22,9 @@ function getMedalClass(index) {
   return "";
 }
 
-function formatStat(value, suffix) {
+function formatStat(value, suffix, precision = 1) {
   if (typeof value !== "number") return "—";
-  const formatted = Number.isInteger(value) ? value : value.toFixed(1);
+  const formatted = Number.isInteger(value) ? value : value.toFixed(precision);
   return suffix ? `${formatted}${suffix}` : formatted;
 }
 
@@ -37,16 +35,12 @@ function Leaderboard() {
   const {
     players,
     loading,
-    error,
-    setError,
     criteria,
     isDescending,
     playersCount,
     setPlayersCount,
     sortBy,
   } = useFetchLeaderboard();
-
-  const clearError = useCallback(() => setError(null), [setError]);
 
   return (
     <div className="leaderboard-page">
@@ -59,7 +53,6 @@ function Leaderboard() {
           Back to lobby
         </button>
       )}
-      <ErrorBanner message={error} onDismiss={clearError} />
 
       <div className="leaderboard-page__content">
         <header className="leaderboard-page__header">
@@ -79,7 +72,7 @@ function Leaderboard() {
 
         {loading && <p className="leaderboard-page__loading">Loading...</p>}
 
-        {!loading && !error && players.length === 0 && (
+        {!loading && players.length === 0 && (
           <p className="leaderboard-page__empty">
             No race data yet — be the first to race!
           </p>
@@ -117,7 +110,7 @@ function Leaderboard() {
                   <td>{formatStat(player.wins)}</td>
                   <td>{formatStat(player.bestWPM)}</td>
                   <td>{formatStat(player.avgWPM)}</td>
-                  <td>{formatStat(player.avgAccuracy, "%")}</td>
+                  <td>{formatStat(player.avgAccuracy, "%", 2)}</td>
                   <td>{formatStat(player.wordsTyped)}</td>
                   <td>{formatStat(player.racesTyped)}</td>
                 </tr>

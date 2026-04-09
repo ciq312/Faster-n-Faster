@@ -1,5 +1,7 @@
+using FastEndpoints;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
@@ -24,7 +26,8 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
         var lobby = _lobbyStore.Get(command.LobbyId)
             ?? throw new KeyNotFoundException("Lobby not found.");
 
-        // Reconnects bypass invite code check
+        if (lobby.IsSessionActive) throw new InvalidOperationException("Can't join active lobby");
+
         if (_lobbyService.TryGetPendingRemoval(command.LobbyId, command.PlayerId, out var cts))
         {
             Log.Information("Cancelling pending removal for player {PlayerId} in lobby {LobbyId}",
@@ -42,7 +45,7 @@ public class JoinLobbyHandler : IHandler<JoinLobbyCommand, JoinLobbyResult>
                 throw new InvalidOperationException("Invalid invite code.");
             }
 
-            var user = await _userRepo.GetByIdAsync(command.PlayerId);
+            var user = await _userRepo.GetByIdAsync(command.PlayerId) ?? throw new UserNotFoundException(command.PlayerId);
             lobby.AddPlayer(user!);
         }
 

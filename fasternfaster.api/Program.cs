@@ -12,6 +12,7 @@ using FasterNFaster.Api.Web.Middleware;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Core.Events;
+using FasterNFaster.Api.Web.Lobbies.LobbyState;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

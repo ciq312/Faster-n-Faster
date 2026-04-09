@@ -22,8 +22,7 @@ public class StartRaceHandler : IHandler<StartRaceCommand>
 
         if (lobby.IsSessionActive) throw new InvalidOperationException("Can't start active lobby");
 
-        Race race = lobby.Race;
-        race.Start(lobby.Players.Select(p => (p.User.Id, p.Color, p.User.Nick)));
+        lobby.StartSession();
 
         _raceTickRegistry.RegisterLobby(lobby.Id);
 

@@ -7,10 +7,12 @@ import {
   createContext,
   useContext,
 } from "react";
+import { useError } from "../../shared/components/BannerProvider";
 
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
+  const { showError } = useError();
   const connectionRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -27,6 +29,10 @@ function ConnectionProvider({ url, children }) {
     connection.onreconnecting(() => setIsConnected(false));
     connection.onreconnected(() => setIsConnected(true));
 
+    connection.on("Error", (error) => {
+      showError(error);
+    });
+
     const start = async () => {
       try {
         await connection.start();
@@ -39,7 +45,7 @@ function ConnectionProvider({ url, children }) {
     start();
 
     return () => connection.stop();
-  }, [url]);
+  }, [url, showError]);
 
   const invoke = useCallback(async (methodName, ...args) => {
     return connectionRef.current?.invoke(methodName, ...args);

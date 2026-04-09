@@ -1,4 +1,4 @@
-import { useColorPalette } from "../hooks/useColorPalette";
+import { useColorPalette } from "../../hooks/useColorPalette";
 import "./LobbyPlayerCard.css";
 
 function LobbyPlayerCard({ player, colors, changeColor, isSelf }) {

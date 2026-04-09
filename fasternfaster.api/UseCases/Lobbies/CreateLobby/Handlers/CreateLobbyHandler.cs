@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
@@ -8,6 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 
 public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
+    const int DEFAULT_PASSAGE_LENGTH = 50;
     private readonly ILobbyStore _lobbyStore;
     private readonly IPassageProvider _passageProvider;
 
@@ -19,7 +21,12 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
 
     public async Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
     {
-        var lobby = new Lobby(command.LobbyName, command.IsPrivate);
+        var passage = await _passageProvider.GetPassageAsync(DEFAULT_PASSAGE_LENGTH);
+
+        var race = new WordRace(DEFAULT_PASSAGE_LENGTH);
+        race.SetPassage(passage);
+
+        var lobby = new Lobby(command.LobbyName, command.IsPrivate, race);
         lobby.AssignHost(command.HostId);
 
         if (command.IsPrivate)
@@ -28,9 +35,6 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
                 c => Task.FromResult(_lobbyStore.GetByInviteCode(c) != null));
             lobby.LobbySettings.SetInviteCode(code);
         }
-
-        var passage = await _passageProvider.GetPassageAsync(lobby.RaceSettings.WordCount);
-        lobby.SetInitialPassage(passage);
 
         _lobbyStore.Add(lobby);
 

@@ -4,15 +4,15 @@ using FasterNFaster.Api.Core.Lobbies.Colors;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
-public class Lobby(string name, bool isPrivate)
+public class Lobby(string name, bool isPrivate, WordRace race)
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     public string Name { get; private set; } = name;
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
-    public bool IsSessionActive { get; private set; }
+    public bool IsSessionActive { get; private set; } = false;
     // public RaceSettings RaceSettings { get; private set; } = new();
-    public Race Race { get; private set; }
+    public WordRace Race { get; private set; } = race;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
 
     // public void SetInitialPassage(string passage)
@@ -35,6 +35,7 @@ public class Lobby(string name, bool isPrivate)
     //         LobbySettings.UpdateTimestamp();
     //     }
     // }
+
 
     // public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
     // {
@@ -67,6 +68,20 @@ public class Lobby(string name, bool isPrivate)
 
     private readonly object _lock = new();
 
+    public void StartSession()
+    {
+        if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
+        if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
+
+        Race.Start(Players.Select(p => (p.User.Id, p.Color, p.User.Nick)));
+        IsSessionActive = true;
+    }
+
+    public void OnSessionEnded()
+    {
+        if (!IsSessionActive) throw new InvalidOperationException("Session is already not active");
+        IsSessionActive = false;
+    }
     public LobbyPlayer AddPlayer(User user)
     {
         lock (_lock)

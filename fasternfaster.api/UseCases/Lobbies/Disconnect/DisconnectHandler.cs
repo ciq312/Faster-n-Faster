@@ -46,8 +46,7 @@ public class DisconnectHandler : IHandler<DisconnectCommand, DisconnectResult>
         lobby.RemovePlayer(command.PlayerId);
 
         // Deregister ticks if no players remain during race
-        bool shouldDeregister = lobby.CurrentStatus == Lobby.Status.racing
-            && !lobby.Players.Any();
+        bool shouldDeregister = lobby.Players.Count == 0;
 
         if (shouldDeregister)
             _raceTickRegistry.DeregisterLobby(command.LobbyId);

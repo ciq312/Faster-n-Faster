@@ -35,7 +35,6 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
 
         race.ProcessUpdate(command.UserId, command.Index, command.Mistakes);
 
-
         if (participant.IsFinished)
         {
             await _eventDispatcher.Dispatch(new PlayerFinishedEvent(

@@ -1,28 +1,21 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFetchLobbies } from "../features/lobbies/hooks/useFetchLobbies";
-import { useCreateLobby } from "../features/lobbies/hooks/useCreateLobby";
-import Navbar from "../shared/components/Navbar";
-import CreateLobbyModal from "../features/lobbies/components/CreateLobbyModal";
-import ErrorBanner from "../shared/components/ErrorBanner";
+import { useFetchLobbies } from "../../features/lobbies/hooks/useFetchLobbies";
+import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
+import Navbar from "../../shared/components/Navbar/Navbar";
+import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import "./Lobbies.css";
-import { useLobbyContext } from "../features/game/hooks/LobbyProvider";
+import { useLobbyContext } from "../../features/game/hooks/LobbyProvider";
+import { useError } from "../../shared/components/BannerProvider";
 
 function Lobbies() {
   const { lobbyId } = useLobbyContext();
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-
   const navigate = useNavigate();
   const fetchLobbies = useFetchLobbies();
   const createLobby = useCreateLobby();
-
-  const error = fetchLobbies.error || createLobby.error;
-
-  const clearError = useCallback(() => {
-    fetchLobbies.setError(null);
-    createLobby.setError(null);
-  }, [fetchLobbies, createLobby]);
+  const { showError } = useError();
 
   const handleCreate = async (lobbyData) => {
     const success = await createLobby.execute(lobbyData);
@@ -36,19 +29,22 @@ function Lobbies() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/lobbies/by-code/${encodeURIComponent(code)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `/api/lobbies/by-code/${encodeURIComponent(code)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (!response.ok) {
-        fetchLobbies.setError("Invalid invite code.");
+        showError("Invalid invote code");
         return;
       }
 
       const data = await response.json();
       navigate(`/lobby/${data.lobbyId}`, { state: { inviteCode: code } });
     } catch {
-      fetchLobbies.setError("Could not connect to server.");
+      showError("Could not connect to server.");
     }
   };
 
@@ -63,7 +59,6 @@ function Lobbies() {
           Back to lobby
         </button>
       )}
-      <ErrorBanner message={error} onDismiss={clearError} />
       <div className="lobbies-page__content">
         <section className="lobby-config">
           <button

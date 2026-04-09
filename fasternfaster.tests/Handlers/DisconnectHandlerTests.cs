@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Tests.Fakes;
 
@@ -15,7 +16,7 @@ public class DisconnectHandlerTests
         var registry = new FakeRaceTickRegistry();
         var handler = new DisconnectHandler(store, lobbyService, registry);
 
-        var lobby = new Lobby("Test", false);
+        var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(users[0].Id);
         foreach (var user in users)
             lobby.AddPlayer(user);
@@ -43,7 +44,7 @@ public class DisconnectHandlerTests
         var lobbyService = new FakeLobbyService();
         var registry = new FakeRaceTickRegistry();
         var handler = new DisconnectHandler(store, lobbyService, registry);
-        var lobby = new Lobby("Test", false);
+        var lobby = new Lobby("Test", false, new WordRace(50));
         store.Seed(lobby);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -95,7 +96,7 @@ public class DisconnectHandlerTests
         var host = new User("Host", "hostlogin", "password");
         var (handler, _, _, registry, lobby) = SetupWithPlayers(host);
 
-        lobby.StartRace(host.Id);
+        lobby.Race.Start(lobby.Players.Where(p => p.IsConnected).Select(p => (p.User.Id, p.Color, p.User.Nick)));
         registry.RegisterLobby(lobby.Id);
 
         var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
@@ -111,7 +112,7 @@ public class DisconnectHandlerTests
         var player2 = new User("Player2", "player2login", "password");
         var (handler, _, _, registry, lobby) = SetupWithPlayers(host, player2);
 
-        lobby.StartRace(host.Id);
+        lobby.Race.Start(lobby.Players.Where(p => p.IsConnected).Select(p => (p.User.Id, p.Color, p.User.Nick)));
         registry.RegisterLobby(lobby.Id);
 
         var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));

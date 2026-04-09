@@ -37,7 +37,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
         using var context = new AppDbContext(_options);
         var service = new LeaderboardService(context);
 
-        var result = await service.GetTopPlayersAsync("AvgWPM", true, 2);
+        var result = await service.GetTopPlayersAsync("BestWPM", true, 2);
         var list = result.ToList();
         Assert.Equal(2, list.Count);
         Assert.Equal(50, list[0].AvgWPM);

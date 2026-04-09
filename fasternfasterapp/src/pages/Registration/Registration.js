@@ -1,10 +1,9 @@
-import { useState, useCallback } from "react";
-import { useAnonymousLogin } from "../features/auth/hooks/useAnonymousLogin";
-import { useLogin } from "../features/auth/hooks/useLogin";
-import { useRegister } from "../features/auth/hooks/useRegister";
-import LoginForm from "../features/auth/components/LoginForm";
-import SignupForm from "../features/auth/components/SignupForm";
-import ErrorBanner from "../shared/components/ErrorBanner";
+import { useState } from "react";
+import { useAnonymousLogin } from "../../features/auth/hooks/useAnonymousLogin";
+import { useLogin } from "../../features/auth/hooks/useLogin";
+import { useRegister } from "../../features/auth/hooks/useRegister";
+import LoginForm from "../../features/auth/components/LoginForm";
+import SignupForm from "../../features/auth/components/SignupForm";
 import "./Registration.css";
 
 const TABS = [
@@ -21,19 +20,7 @@ function Registration() {
   const login = useLogin();
   const register = useRegister();
 
-  const error = anonymousLogin.error || login.error || register.error;
   const loading = anonymousLogin.loading || login.loading || register.loading;
-
-  const clearError = useCallback(() => {
-    anonymousLogin.setError(null);
-    login.setError(null);
-    register.setError(null);
-  }, [anonymousLogin, login, register]);
-
-  const handleTabSwitch = (key) => {
-    setActiveTab(key);
-    clearError();
-  };
 
   const handleAnonymousSubmit = (e) => {
     e.preventDefault();
@@ -47,15 +34,13 @@ function Registration() {
         <p className="registration__tagline">Play hard type fast.</p>
       </div>
 
-      <ErrorBanner message={error} onDismiss={clearError} />
-
       <div className="registration__card">
         <div className="registration__tabs">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               className={`registration__tab ${activeTab === tab.key ? "registration__tab--active" : ""}`}
-              onClick={() => handleTabSwitch(tab.key)}
+              onClick={() => setActiveTab(tab.key)}
               type="button"
             >
               {tab.label}

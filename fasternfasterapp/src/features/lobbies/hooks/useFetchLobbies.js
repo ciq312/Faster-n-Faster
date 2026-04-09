@@ -1,27 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { extractError } from "../../../shared/utils/extractError";
+import { useError } from "../../../shared/components/BannerProvider";
 
 export function useFetchLobbies() {
+  const { showError } = useError();
   const [lobbies, setLobbies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const fetchLobbies = useCallback(async () => {
     setLoading(true);
     setLobbies([]);
-    setError(null);
     setTimeout(async () => {
       try {
         const response = await fetch("/api/lobbies");
         if (!response.ok) {
-          setError(await extractError(response));
+          showError(await extractError(response));
           setLoading(false);
           return;
         }
         const data = await response.json();
         setLobbies(data.lobbies);
-      } catch {
-        setError("Could not connect to server");
+      } catch (e) {
+        showError(e.message);
       } finally {
         setLoading(false);
       }
@@ -32,5 +32,5 @@ export function useFetchLobbies() {
     fetchLobbies();
   }, [fetchLobbies]);
 
-  return { lobbies, loading, error, setError, refresh: fetchLobbies };
+  return { lobbies, loading, refresh: fetchLobbies };
 }

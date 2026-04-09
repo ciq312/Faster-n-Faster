@@ -1,6 +1,6 @@
 import { useRef, useState, useLayoutEffect } from "react";
-import { useTyping } from "../hooks/useTyping";
-import { useCharPositions } from "../hooks/useCharPositions";
+import { useTyping } from "../../hooks/useTyping";
+import { useCharPositions } from "../../hooks/useCharPositions";
 import "./TypingArea.css";
 
 function TypingArea({
