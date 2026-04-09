@@ -27,7 +27,6 @@ public class DisconnectHandler : IHandler<DisconnectCommand, DisconnectResult>
         if (!lobby.IsPlayerInLobby(command.PlayerId))
             throw new KeyNotFoundException($"Player not found in lobby {command.LobbyId}.");
 
-        // Host promotion — resolve before removing the player
         Guid? newHostId = null;
         if (lobby.HostId == command.PlayerId)
         {
@@ -43,15 +42,20 @@ public class DisconnectHandler : IHandler<DisconnectCommand, DisconnectResult>
             }
         }
 
+        if (lobby.IsSessionActive)
+        {
+            if (lobby.Race.Participants.TryGetValue(command.PlayerId, out var participant))
+            {
+                participant.MarkWithdrawn();
+            }
+        }
         lobby.RemovePlayer(command.PlayerId);
 
-        // Deregister ticks if no players remain during race
         bool shouldDeregister = lobby.Players.Count == 0;
 
         if (shouldDeregister)
             _raceTickRegistry.DeregisterLobby(command.LobbyId);
 
-        // Clean up empty lobby
         if (!lobby.Players.Any())
             _lobbyStore.Remove(command.LobbyId);
 

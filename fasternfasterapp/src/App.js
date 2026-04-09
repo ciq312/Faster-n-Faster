@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import Profile from "./pages/Profile/Profile";
 import Registration from "./pages/Registration/Registration";
 import Lobbies from "./pages/Lobbies/Lobbies";
 import Lobby from "./pages/Lobby/Lobby";
@@ -21,6 +22,7 @@ function App() {
           <Route element={<ConnectionLayout />}>
             <Route path="/lobbies" element={<Lobbies />} />
             <Route path="/lobby/:lobbyId" element={<Lobby />} />
+            <Route path="/profile/me" element={<Profile />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
