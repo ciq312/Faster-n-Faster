@@ -68,3 +68,42 @@
   color: var(--text-1);
 }
 
+/* ── Return to lobby ── */
+
+.navbar__return-lobby {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 5px 14px;
+  background: transparent;
+  border: 1px solid var(--amber-border);
+  border-radius: 4px;
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.navbar__return-lobby:hover {
+  background: var(--amber-muted);
+  border-color: var(--amber);
+}
+
+.navbar__return-lobby-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: lobbyPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes lobbyPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+

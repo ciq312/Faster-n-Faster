@@ -5,7 +5,7 @@ using ValidationException = System.ComponentModel.DataAnnotations.ValidationExce
 
 namespace FasterNFaster.Api.Core.Entities;
 
-public class User : IEntity
+public class User
 {
     public Guid Id { get; private set; }
     public string Token { get; private set; } = null!;

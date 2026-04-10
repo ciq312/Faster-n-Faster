@@ -11,14 +11,9 @@ public class RegisterAnonymousRequest
     public string Nick { get; set; } = null!;
 }
 
-public class RegisterAnonymousEndpoint : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
+public class RegisterAnonymousEndpoint(IHandler<RegisterAnonymousCommand, RegisterAnonymousResult> handler) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
 {
-    private readonly IHandler<RegisterAnonymousCommand, RegisterAnonymousResult> _handler;
-
-    public RegisterAnonymousEndpoint(IHandler<RegisterAnonymousCommand, RegisterAnonymousResult> handler)
-    {
-        _handler = handler;
-    }
+    private readonly IHandler<RegisterAnonymousCommand, RegisterAnonymousResult> _handler = handler;
 
     public override void Configure()
     {

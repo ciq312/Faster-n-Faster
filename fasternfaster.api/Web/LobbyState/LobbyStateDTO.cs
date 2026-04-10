@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Lobbies.Colors;
 
 namespace FasterNFaster.Api.Web.Lobbies.LobbyState;

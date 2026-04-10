@@ -8,7 +8,6 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByTokenAsync(string token);
 
-    Task<bool> DoUserExistByLoginAsync(string login);
 
     Task<bool> DoUserExistByNickAsync(string nick);
 

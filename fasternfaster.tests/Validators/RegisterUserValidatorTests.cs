@@ -1,16 +1,17 @@
+using FasterNFaster.Api.Web.Users.RegisterUser;
 using FluentValidation.TestHelper;
 
 namespace FasterNFaster.Tests.Validators;
 
 public class RegisterUserValidatorTests
 {
-    private readonly RegisterUserValidator _validator = new();
+    private readonly RegisterUserValidator validator = new();
 
     [Fact]
     public void ValidRequest_ShouldPass()
     {
         var request = new RegisterUserRequest { Nick = "Player1", Login = "mylogin", Password = "pass123" };
-        var result = _validator.TestValidate(request);
+        var result = validator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -23,7 +24,7 @@ public class RegisterUserValidatorTests
     public void InvalidData_ShouldFail(string nick, string login, string password)
     {
         var request = new RegisterUserRequest { Nick = nick, Login = login, Password = password };
-        var result = _validator.TestValidate(request);
+        var result = validator.TestValidate(request);
         Assert.False(result.IsValid);
     }
 
@@ -39,7 +40,7 @@ public class RegisterUserValidatorTests
             Login = new string('a', loginLen),
             Password = new string('a', passLen)
         };
-        var result = _validator.TestValidate(request);
+        var result = validator.TestValidate(request);
         Assert.False(result.IsValid);
     }
 
@@ -55,7 +56,7 @@ public class RegisterUserValidatorTests
             Login = new string('a', loginLen),
             Password = new string('a', passLen)
         };
-        var result = _validator.TestValidate(request);
+        var result = validator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }
 }

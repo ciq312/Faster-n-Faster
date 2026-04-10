@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Hubs;
@@ -8,30 +9,21 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class RaceTickService : BackgroundService
+public class RaceTickService(
+    IRaceTickRegistry registry,
+    ILobbyStore lobbyStore,
+    IHubContext<GameHub> hub,
+    ILogger<RaceTickService> logger,
+    IServiceScopeFactory scopeFactory) : BackgroundService
 {
-    private readonly IRaceTickRegistry _registry;
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILobbyStore _lobbyStore;
-    private readonly IHubContext<GameHub> _hub;
-    private readonly ILogger<RaceTickService> _logger;
+    private readonly IRaceTickRegistry registry = registry;
+    private readonly IServiceScopeFactory scopeFactory = scopeFactory;
+    private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly IHubContext<GameHub> hub = hub;
+    private readonly ILogger<RaceTickService> logger = logger;
 
     private const int TickIntervalMs = 50;
     private const float CountdownSeconds = 3.5f;
-
-    public RaceTickService(
-        IRaceTickRegistry registry,
-        ILobbyStore lobbyStore,
-        IHubContext<GameHub> hub,
-        ILogger<RaceTickService> logger,
-        IServiceScopeFactory scopeFactory)
-    {
-        _registry = registry;
-        _lobbyStore = lobbyStore;
-        _hub = hub;
-        _logger = logger;
-        _scopeFactory = scopeFactory;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -39,20 +31,20 @@ public class RaceTickService : BackgroundService
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            var lobbies = _registry.GetRacingLobbies();
+            var lobbies = registry.GetRacingLobbies();
 
             foreach (var entry in lobbies)
             {
                 try
                 {
-                    var lobby = _lobbyStore.Get(entry.LobbyId);
+                    var lobby = lobbyStore.Get(entry.LobbyId);
                     if (lobby == null)
                     {
-                        _registry.DeregisterLobby(entry.LobbyId);
+                        registry.DeregisterLobby(entry.LobbyId);
                         continue;
                     }
 
-                    var group = _hub.Clients.Group($"lobby-{entry.LobbyId}");
+                    var group = hub.Clients.Group($"lobby-{entry.LobbyId}");
 
                     if (entry.Phase == RacePhase.Countdown)
                         await HandleCountdown(entry, lobby, group);
@@ -61,7 +53,7 @@ public class RaceTickService : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
+                    Log.Information(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
                 }
             }
         }
@@ -74,8 +66,10 @@ public class RaceTickService : BackgroundService
         if (elapsed >= CountdownSeconds)
         {
             await group.SendAsync("RaceStarted");
+#if DEBUG
             Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);
-            _registry.TransitionToRacing(entry.LobbyId);
+#endif
+            registry.TransitionToRacing(entry.LobbyId);
         }
     }
 
@@ -98,8 +92,8 @@ public class RaceTickService : BackgroundService
         if (race.IsRaceFinished)
         {
             var results = race.GetRaceStatics();
-            _registry.DeregisterLobby(entry.LobbyId);
-            using var scope = _scopeFactory.CreateScope();
+            registry.DeregisterLobby(entry.LobbyId);
+            using var scope = scopeFactory.CreateScope();
             var dispatcher = scope.ServiceProvider.GetRequiredService<IEventDispatcher>();
             await dispatcher.Dispatch(new RaceFinishedEvent(entry.LobbyId, results));
             return;
@@ -107,7 +101,7 @@ public class RaceTickService : BackgroundService
 
         if (players.Count == 0)
         {
-            _registry.DeregisterLobby(entry.LobbyId);
+            registry.DeregisterLobby(entry.LobbyId);
             return;
         }
 

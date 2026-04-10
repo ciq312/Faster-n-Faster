@@ -13,17 +13,21 @@ public class LobbyService : ILobbyService
     public void TrackConnection(string connectionId, Guid lobbyId, Guid playerId)
     {
         _connections[connectionId] = (lobbyId, playerId);
+#if DEBUG
         Log.Information(
             "Tracking connection {ConnectionId} for player {PlayerId} in lobby {LobbyId}",
             connectionId, playerId, lobbyId);
+#endif
     }
 
     public void RemoveConnection(string connectionId)
     {
         if (_connections.TryRemove(connectionId, out var removed))
+#if DEBUG
             Log.Information(
                 "Removed connection {ConnectionId} for player {PlayerId} in lobby {LobbyId}",
                 connectionId, removed.PlayerId, removed.LobbyId);
+#endif
     }
 
     public (Guid LobbyId, Guid PlayerId)? GetConnection(string connectionId) =>

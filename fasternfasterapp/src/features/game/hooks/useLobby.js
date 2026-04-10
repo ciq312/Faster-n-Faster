@@ -1,9 +1,9 @@
-import { useConnection } from "../../connection/ConnectionProvider";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLobbyContext } from "./LobbyProvider";
 import { useError } from "../../../shared/components/BannerProvider";
 import { eventBus } from "../../../shared/components/eventBus";
+import { useConnection } from "../../connection/ConnectionProvider";
+import { useLobbyContext } from "./LobbyProvider";
 
 export function useLobby(lobbyId, inviteCode) {
   const { showError } = useError();
@@ -22,6 +22,7 @@ export function useLobby(lobbyId, inviteCode) {
   useEffect(() => {
     const connectToLobby = async () => {
       try {
+        console.log("trying to connect");
         setLobbyId(lobbyId);
         await invoke("ConnectToLobby", lobbyId, inviteCode);
       } catch (e) {

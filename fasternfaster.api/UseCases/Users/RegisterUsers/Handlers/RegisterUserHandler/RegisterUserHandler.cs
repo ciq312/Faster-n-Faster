@@ -7,25 +7,23 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 
 namespace FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
 
-public class RegisterUserHadnler : IHandler<RegisterUserCommand, RegisterUserResult>
+public class RegisterUserHadnler(IUserRepository repo) : IHandler<RegisterUserCommand, RegisterUserResult>
 {
-    public IUserRepository _repo;
+    public IUserRepository repo = repo;
 
-    public RegisterUserHadnler(IUserRepository repo)
-    {
-        _repo = repo;
-    }
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command)
     {
-        if (await _repo.DoUserExistByLoginAsync(command.Login)) throw new DuplicateLoginException(command.Login);
 
-        if (await _repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNickException(command.Nick);
+        if (await repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNickException(command.Nick);
+
+        if (await repo.GetUserByLoginAsync(command.Login) == null) throw new DuplicateLoginException(command.Login);
 
         User user = new(command.Nick, command.Login, command.Password);
 
+#if DEBUG
         Log.Information($"created user {user.Nick} {user.Login} {user.Password}");
-
-        await _repo.AddAsync(user);
+#endif
+        await repo.AddAsync(user);
 
         return await Task.FromResult(new RegisterUserResult(user.Token, user.Id));
     }

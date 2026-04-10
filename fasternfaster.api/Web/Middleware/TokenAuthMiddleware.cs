@@ -1,17 +1,11 @@
 using System.Security.Claims;
-using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure;
 
 namespace FasterNFaster.Api.Web.Middleware;
 
-public class TokenAuthMiddleware
+public class TokenAuthMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public TokenAuthMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
+    private readonly RequestDelegate next = next;
 
     public async Task InvokeAsync(HttpContext context, IUserRepository userRepo)
     {
@@ -40,6 +34,6 @@ public class TokenAuthMiddleware
             }
         }
 
-        await _next(context);
+        await next(context);
     }
 }

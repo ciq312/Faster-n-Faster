@@ -6,18 +6,13 @@ using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Handlers;
 
-public class GetLobbiesHandler : IHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyStore lobbyStore) : IHandler<GetLobbiesQuery, GetLobbiesResult>
 {
-    private readonly ILobbyStore _lobbyStore;
-
-    public GetLobbiesHandler(ILobbyStore lobbyStore)
-    {
-        _lobbyStore = lobbyStore;
-    }
+    private readonly ILobbyStore lobbyStore = lobbyStore;
 
     public Task<GetLobbiesResult> Handle(GetLobbiesQuery query)
     {
-        var lobbies = _lobbyStore
+        var lobbies = lobbyStore
             .GetAll()
             .OrderByDescending(l => l.LobbySettings.CreatedAt)
             .Select(l => new LobbyListItem(
@@ -32,7 +27,9 @@ public class GetLobbiesHandler : IHandler<GetLobbiesQuery, GetLobbiesResult>
             ))
             .ToList();
 
+#if DEBUG
         Log.Information("Got lobbies");
+#endif
         return Task.FromResult(new GetLobbiesResult(lobbies));
     }
 }

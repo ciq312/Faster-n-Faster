@@ -77,8 +77,8 @@
   transition: transform 0.15s ease-out;
   will-change: transform;
 }
-.current__caret {
-  z-index: 2;
+.current {
+  z-index: 100;
 }
 
 /* ── Opponent label ── */

@@ -7,20 +7,14 @@ using FasterNFaster.Api.UseCases.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 
-public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
+public class UpdateProgressHandler(ILobbyStore lobbyStore, IEventDispatcher eventDispatcher) : IHandler<UpdateProgressCommand>
 {
-    private readonly ILobbyStore _lobbyStore;
-    private readonly IEventDispatcher _eventDispatcher;
-
-    public UpdateProgressHandler(ILobbyStore lobbyStore, IEventDispatcher eventDispatcher)
-    {
-        _lobbyStore = lobbyStore;
-        _eventDispatcher = eventDispatcher;
-    }
+    private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly IEventDispatcher eventDispatcher = eventDispatcher;
 
     public async Task Handle(UpdateProgressCommand command)
     {
-        var lobby = _lobbyStore.Get(command.LobbyId)
+        var lobby = lobbyStore.Get(command.LobbyId)
             ?? throw new KeyNotFoundException("Lobby not found.");
 
         if (!lobby.IsSessionActive)
@@ -37,7 +31,7 @@ public class UpdateProgressHandler : IHandler<UpdateProgressCommand>
 
         if (participant.IsFinished)
         {
-            await _eventDispatcher.Dispatch(new PlayerFinishedEvent(
+            await eventDispatcher.Dispatch(new PlayerFinishedEvent(
                 participant.Nick,
                 command.LobbyId,
                 command.UserId,

@@ -1,8 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import { useFetchLeaderboard } from "../../features/leaderboard/hooks/useFetchLeaderboard";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Leaderboard.css";
-import { useLobbyContext } from "../../features/game/hooks/LobbyProvider";
 
 const SORTABLE_COLUMNS = [
   { criteria: "Wins", label: "Wins" },
@@ -29,8 +27,6 @@ function formatStat(value, suffix, precision = 1) {
 }
 
 function Leaderboard() {
-  const { lobbyId } = useLobbyContext();
-  const navigate = useNavigate();
 
   const {
     players,
@@ -45,15 +41,6 @@ function Leaderboard() {
   return (
     <div className="leaderboard-page">
       <Navbar />
-      {lobbyId && (
-        <button
-          className="return-to-lobby-btn"
-          onClick={() => navigate(`/lobby/${lobbyId}`)}
-        >
-          Back to lobby
-        </button>
-      )}
-
       <div className="leaderboard-page__content">
         <header className="leaderboard-page__header">
           <h1 className="leaderboard-page__title">Leaderboard</h1>

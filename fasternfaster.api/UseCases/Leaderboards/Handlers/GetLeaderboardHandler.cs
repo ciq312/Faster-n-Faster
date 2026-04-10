@@ -6,17 +6,17 @@ namespace FasterNFaster.Api.UseCases.Leaderboards.Handlers;
 
 public class GetLeaderboardHandler(ILeaderboardService leaderboardService) : IHandler<GetLeaderboardCommand, GetLeaderboardResults>
 {
-    private readonly ILeaderboardService _leaderboardService = leaderboardService;
+    private readonly ILeaderboardService leaderboardService = leaderboardService;
 
     public async Task<GetLeaderboardResults> Handle(GetLeaderboardCommand command)
     {
-        IEnumerable<PlayerStatistics> topPlayers = await _leaderboardService.GetTopPlayersAsync(command.Criteria, command.IsDescending, command.PlayersCount);
+        IEnumerable<PlayerStatistics> topPlayers = await leaderboardService.GetTopPlayersAsync(command.Criteria, command.IsDescending, command.PlayersCount);
 
         var results = topPlayers.Select(stat => new LeaderboardResultDTO(stat.Id, stat.User.Nick, stat.BestWPM, stat.BestAccuracy, stat.AvgWPM, stat.AvgAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped)) ?? Enumerable.Empty<LeaderboardResultDTO>();
 
-        GetLeaderboardResults leaderboardResults = new GetLeaderboardResults(results.ToList());
 
-        return leaderboardResults;
+
+        return new GetLeaderboardResults(results.ToList());
     }
 }
 

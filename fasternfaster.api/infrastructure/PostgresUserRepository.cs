@@ -3,14 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure;
 
-public class PostgresUserRepository : IUserRepository
+public class PostgresUserRepository(AppDbContext context) : IUserRepository
 {
-    private readonly AppDbContext appDbContext;
-
-    public PostgresUserRepository(AppDbContext context)
-    {
-        appDbContext = context;
-    }
+    private readonly AppDbContext appDbContext = context;
 
     public async Task AddAsync(User user)
     {
@@ -26,10 +21,6 @@ public class PostgresUserRepository : IUserRepository
     public async Task<User?> GetByTokenAsync(string token)
     {
         return await appDbContext.Users.FirstOrDefaultAsync(u => u.Token == token);
-    }
-    public async Task<bool> DoUserExistByLoginAsync(string login)
-    {
-        return await appDbContext.Users.AnyAsync(x => x.Login == login);
     }
 
     public async Task<bool> DoUserExistByNickAsync(string nick)
