@@ -39,11 +39,9 @@ function ConnectionProvider({ url, children }) {
 
     start();
 
-    subscribe("Error", (error) => {
-      showError(error);
-    });
-
-    return () => connection.stop();
+    return () => {
+      connection.stop();
+    };
   }, [url]);
 
   const invoke = useCallback(async (methodName, ...args) => {

@@ -44,6 +44,6 @@ public class LobbyService : ILobbyService
 
     public bool TryGetPendingRemoval(Guid lobbyId, Guid playerId, out CancellationTokenSource cts)
     {
-        return _pendingRemovals.TryGetValue((playerId, lobbyId), out cts!);
+        return _pendingRemovals.TryRemove((playerId, lobbyId), out cts!);
     }
 }

@@ -11,6 +11,9 @@ public class FastReconnectHandler(ILobbyService lobbyService) : IHandler<FastRec
 
     public async Task Handle(FastReconnectCommand command)
     {
+#if DEBUG
+        Log.Information("storing cancellationtoken for disconnect");
+#endif
         var cts = new CancellationTokenSource();
         lobbyService.StorePendingRemoval(command.LobbyId, command.PlayerId, cts);
 

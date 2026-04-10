@@ -315,7 +315,7 @@ public class GameHub(
 
         try
         {
-            await fastReconnectHandler.Handle(new FastReconnectCommand(playerId, lobbyId));
+            await fastReconnectHandler.Handle(new FastReconnectCommand(lobbyId, playerId));
         }
         catch (OperationCanceledException)
         {

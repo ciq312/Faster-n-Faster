@@ -3,7 +3,7 @@ import { useBannerMessage } from "../../../shared/components/BannerProvider";
 import { useConnection } from "../../connection/ConnectionProvider";
 
 export function useRace() {
-  const { invoke, subscribe } = useConnection();
+  const { invoke, subscribe, isConnected } = useConnection();
   const selfIfRef = useRef(localStorage.getItem("userId"));
   const [isRacing, setIsRacing] = useState(false);
   const [isRaceStarting, setIsRaceStarting] = useState(false);
@@ -47,7 +47,7 @@ export function useRace() {
         setRaceSettings(state.settings);
       }),
 
-      subscribe("RaceStarting", (data) => {
+      subscribe("RaceStarting", () => {
         countdownTimersRef.current.forEach(clearTimeout);
         countdownTimersRef.current = [
           setTimeout(() => setCountdown(2), 1000),
@@ -83,7 +83,7 @@ export function useRace() {
     ];
 
     return () => cleanups.map((fn) => fn());
-  }, []);
+  }, [isConnected]);
 
   const sendProgress = useCallback(async ({ index, mistakes }) => {
     try {
