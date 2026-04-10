@@ -6,10 +6,7 @@ public abstract class Race // ISession in future when new mechanics implemeneted
 {
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
-    public bool IsRaceFinished
-    {
-        get { lock (_raceLock) return _participants.Values.All(p => p.IsFinished); }
-    }
+
     private readonly Dictionary<Guid, RaceParticipant> _participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => _participants;
 
@@ -59,25 +56,8 @@ public abstract class Race // ISession in future when new mechanics implemeneted
 
     public abstract IRaceSettings GetRaceSettings();
 
-
-    // public abstract
-    // {
-    //     lock (_raceLock)
-    //     {
-    //         return _participants.Values
-    //             .Where(p => !p.IsFinished)
-    //             .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color, p.Nick))
-    //             .ToList();
-    //     }
-    // }
-
-    // public bool IsRaceOver()
-    // {
-    //     lock (_raceLock)
-    //     {
-    //         return _participants.Values.All(p => p.IsFinished);
-    //     }
-    // }
-
-
+    public bool IsRaceFinished
+    {
+        get { lock (_raceLock) return _participants.Values.All(p => p.IsFinished); }
+    }
 }

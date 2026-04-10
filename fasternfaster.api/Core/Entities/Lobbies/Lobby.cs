@@ -11,75 +11,28 @@ public class Lobby(string name, bool isPrivate, WordRace race)
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
     public bool IsSessionActive { get; private set; } = false;
-    // public RaceSettings RaceSettings { get; private set; } = new();
     public WordRace Race { get; private set; } = race;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
 
-    // public void SetInitialPassage(string passage)
-    // {
-    //     RaceSettings.SetPassage(passage);
-    //     Race = RaceSettings.BuildRace();
-    // }
-
-    // public void RefreshPassage(Guid hostId, string passage)
-    // {
-    //     lock (_lock)
-    //     {
-    //         ValidateHost(hostId);
-
-    //         if (CurrentStatus != Status.waiting)
-    //             throw new InvalidOperationException("Can only change passage while waiting.");
-
-    //         RaceSettings.SetPassage(passage);
-    //         Race = RaceSettings.BuildRace();
-    //         LobbySettings.UpdateTimestamp();
-    //     }
-    // }
-
-
-    // public void UpdateRaceSettings(Guid hostId, Action<RaceSettings> configure)
-    // {
-    //     lock (_lock)
-    //     {
-    //         ValidateHost(hostId);
-
-    //         if (CurrentStatus != Status.waiting)
-    //             throw new InvalidOperationException("Can only change settings while waiting.");
-
-    //         configure(RaceSettings);
-    //         Race = RaceSettings.BuildRace();
-    //         LobbySettings.UpdateTimestamp();
-    //     }
-    // }
-
-    // public void TransitionStatus(Status newStatus)
-    // {
-    //     if (
-    //         !AllowedTransitions.TryGetValue(CurrentStatus, out var expected)
-    //         || expected != newStatus
-    //     )
-    //         throw new InvalidOperationException(
-    //             $"Cannot transition from '{CurrentStatus}' to '{newStatus}'."
-    //         );
-
-    //     CurrentStatus = newStatus;
-    //     LobbySettings.UpdateTimestamp();
-    // }
 
     private readonly object _lock = new();
 
     public void StartSession()
     {
-        if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
-        if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
+        lock (_lock)
+        {
+            if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
+            if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
 
-        Race.Start(Players.Select(p => (p.User.Id, p.Color, p.User.Nick)));
-        IsSessionActive = true;
+            Race.Start(Players.Select(p => (p.User.Id, p.Color, p.User.Nick)));
+            IsSessionActive = true;
+        }
     }
 
     public void OnSessionEnded()
     {
         if (!IsSessionActive) throw new InvalidOperationException("Session is already not active");
+
         IsSessionActive = false;
     }
     public LobbyPlayer AddPlayer(User user)
@@ -133,37 +86,6 @@ public class Lobby(string name, bool isPrivate, WordRace race)
         }
     }
 
-    // public void StartRace(Guid hostId)
-    // {
-    //     lock (_lock)
-    //     {
-    //         ValidateHost(hostId);
-    //         TransitionStatus(Status.racing);
-
-    //         Race = RaceSettings.BuildRace();
-
-    //         var connectedPlayers = Players
-    //             .Where(p => p.IsConnected)
-    //             .Select(p => (p.User.Id, p.Color, p.User.Nick));
-
-    //         Race.Start(connectedPlayers);
-    //     }
-    // }
-
-    /// <summary>
-    /// Returns the finished race so the caller can read results.
-    /// </summary>
-    // public Race? TryFinishRace()
-    // {
-    //     lock (_lock)
-    //     {
-    //         if (CurrentStatus != Status.racing) return null;
-    //         if (!Race.IsRaceOver()) return null;
-    //         TransitionStatus(Status.waiting);
-    //         var finishedRace = Race;
-    //         return finishedRace;
-    //     }
-    // }
     public LobbyPlayer KickPlayer(Guid hostId, Guid targetPlayerId)
     {
         lock (_lock)
@@ -213,7 +135,11 @@ public class Lobby(string name, bool isPrivate, WordRace race)
         }
     }
 
-    public bool IsPlayerInLobby(Guid id) => Players.Any(p => p.User.Id == id);
+    public bool IsPlayerInLobby(Guid id)
+    {
+
+        lock (_lock) { return Players.Any(p => p.User.Id == id); }
+    }
 
     public IEnumerable<ColorStatus> GetColors()
     => PlayerColors.Palette.Select(c => new

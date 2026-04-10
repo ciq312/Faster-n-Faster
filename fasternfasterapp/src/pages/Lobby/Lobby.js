@@ -1,10 +1,10 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
+import RaceResults from "../../features/game/components/RaceResults";
+import TypingArea from "../../features/game/components/TypingArea/TypingArea";
 import { useLobby } from "../../features/game/hooks/useLobby";
 import { useRace } from "../../features/game/hooks/useRace";
 import Navbar from "../../shared/components/Navbar/Navbar";
-import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
-import TypingArea from "../../features/game/components/TypingArea/TypingArea";
-import RaceResults from "../../features/game/components/RaceResults";
 import "./Lobby.css";
 
 function Lobby() {
@@ -57,6 +57,17 @@ function Lobby() {
           </div>
 
           <div className="lobby-game">
+            {race.tier &&
+              race.raceParticipants.find((p) => lobby.isSelf(p.playerId)) && (
+                <div
+                  key={race.tier.label}
+                  className="tier"
+                  style={{ "--shake": `${Math.min(race.tier.min / 12, 10)}px` }}
+                >
+                  {race.tier.label}
+                </div>
+              )}
+            <dev className="tier">fdsafasdf</dev>
             <div className="countdown-overlay">{race.countdown}</div>
             {race.raceResults ? (
               <RaceResults

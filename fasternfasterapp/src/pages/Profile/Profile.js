@@ -1,6 +1,4 @@
-import { useNavigate } from "react-router-dom";
 import { useFetchProfile } from "../../features/auth/hooks/useFetchProfile";
-import { useLobbyContext } from "../../features/game/hooks/LobbyProvider";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Profile.css";
 
@@ -16,20 +14,10 @@ function formatPercent(value, precision = 2) {
 
 function Profile() {
   const { profileData, isPending } = useFetchProfile();
-  const { lobbyId } = useLobbyContext();
-  const navigate = useNavigate();
 
   return (
     <div className="profile-page">
       <Navbar />
-      {lobbyId && (
-        <button
-          className="return-to-lobby-btn"
-          onClick={() => navigate(`/lobby/${lobbyId}`)}
-        >
-          Back to lobby
-        </button>
-      )}
       <div className="profile-page__content">
         {isPending && (
           <p className="profile-page__loading">Loading profile...</p>

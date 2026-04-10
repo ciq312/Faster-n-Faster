@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useConnection } from "../../connection/ConnectionProvider";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useBannerMessage } from "../../../shared/components/BannerProvider";
+import { useConnection } from "../../connection/ConnectionProvider";
 
 export function useRace() {
   const { invoke, subscribe } = useConnection();
+  const selfIfRef = useRef(localStorage.getItem("userId"));
   const [isRacing, setIsRacing] = useState(false);
   const [isRaceStarting, setIsRaceStarting] = useState(false);
   const [raceSettings, setRaceSettings] = useState(null);
@@ -12,6 +13,27 @@ export function useRace() {
   const { showMessage } = useBannerMessage();
   const countdownTimersRef = useRef([]);
   const [countdown, setCountdown] = useState(null);
+  const [tier, setTier] = useState(null);
+
+  const tiers = [
+    { min: 120, label: "That's can't be real" },
+    { min: 110, label: "Are you a God?" },
+    { min: 100, label: "Are you even a human?" },
+    { min: 90, label: "You are exceptional" },
+    { min: 80, label: "You are insane" },
+    { min: 70, label: "You are pretty good at it" },
+    { min: 60, label: "You are not bad at all" },
+    { min: 50, label: "You've used the keyboard" },
+    { min: 40, label: "You are an average" },
+    { min: 30, label: "You are slightly faster than a turtle" },
+    { min: 20, label: "My grandma does better" },
+    { min: 10, label: "So you can type, huh?" },
+    { min: 0, label: "Type your first word" },
+  ];
+
+  const getTier = (value, tiers) => tiers.find((t) => value >= t.min) ?? null;
+
+  const isSelf = (id) => id == selfIfRef.current;
 
   useEffect(() => {
     const cleanups = [
@@ -54,6 +76,9 @@ export function useRace() {
       }),
       subscribe("RaceState", (state) => {
         setRaceParticipants(state.players);
+        setTier(
+          getTier(state.players.find((p) => isSelf(p.playerId)).wpm, tiers),
+        );
       }),
     ];
 
@@ -115,6 +140,7 @@ export function useRace() {
   return {
     startRace,
     sendProgress,
+    tier,
     refreshPassage,
     changeGameMode,
     changeTimerDuration,

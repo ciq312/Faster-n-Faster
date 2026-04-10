@@ -1,6 +1,6 @@
-import { useRef, useState, useLayoutEffect } from "react";
-import { useTyping } from "../../hooks/useTyping";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useCharPositions } from "../../hooks/useCharPositions";
+import { useTyping } from "../../hooks/useTyping";
 import "./TypingArea.css";
 
 function TypingArea({
@@ -114,6 +114,8 @@ function TypingArea({
           })}
 
           {players.map((p) => {
+            if (p.index < -1 || p.index >= passage.length - 1) return null;
+
             if (p.playerId === selfId) {
               return (
                 <span
@@ -128,12 +130,11 @@ function TypingArea({
                     className="typing-area__caret-label current"
                     style={{ background: p.color }}
                   >
-                    player
+                    you
                   </span>
                 </span>
               );
             }
-            if (p.index < -1 || p.index > passage.length) return null;
             const pos = caretPos(p.index + 1);
             return (
               <span

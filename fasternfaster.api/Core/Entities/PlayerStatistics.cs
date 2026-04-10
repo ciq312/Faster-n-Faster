@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities;
 
-public class PlayerStatistics(Guid id) : IEntity
+public class PlayerStatistics(Guid id)
 {
     public Guid Id { get; set; } = id;
     public User User { get; private set; } = null!;

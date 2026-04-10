@@ -212,6 +212,55 @@
   cursor: default;
 }
 
+/* ── Tier message ── */
+
+.tier {
+  --shake: 32px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--error-light);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 18px;
+  animation: tierShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes tierShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(calc(-1 * var(--shake)));
+  }
+  20% {
+    transform: translateX(var(--shake));
+  }
+  30% {
+    transform: translateX(calc(-0.8 * var(--shake)));
+  }
+  40% {
+    transform: translateX(calc(0.8 * var(--shake)));
+  }
+  50% {
+    transform: translateX(calc(-0.5 * var(--shake)));
+  }
+  60% {
+    transform: translateX(calc(0.5 * var(--shake)));
+  }
+  70% {
+    transform: translateX(calc(-0.3 * var(--shake)));
+  }
+  80% {
+    transform: translateX(calc(0.3 * var(--shake)));
+  }
+  90% {
+    transform: translateX(calc(-0.1 * var(--shake)));
+  }
+}
+
 /* ── Race results ── */
 
 .race-results {

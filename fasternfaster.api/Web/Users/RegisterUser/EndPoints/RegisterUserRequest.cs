@@ -1,3 +1,5 @@
+namespace FasterNFaster.Api.Web.Users.RegisterUser;
+
 public class RegisterUserRequest
 {
     public string Nick { get; set; } = null!;

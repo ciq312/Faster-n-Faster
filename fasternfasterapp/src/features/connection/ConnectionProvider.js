@@ -1,14 +1,13 @@
 import * as signalR from "@microsoft/signalr";
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
-  createContext,
-  useContext,
 } from "react";
 import { useError } from "../../shared/components/BannerProvider";
-
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
@@ -29,10 +28,6 @@ function ConnectionProvider({ url, children }) {
     connection.onreconnecting(() => setIsConnected(false));
     connection.onreconnected(() => setIsConnected(true));
 
-    connection.on("Error", (error) => {
-      showError(error);
-    });
-
     const start = async () => {
       try {
         await connection.start();
@@ -44,8 +39,12 @@ function ConnectionProvider({ url, children }) {
 
     start();
 
+    subscribe("Error", (error) => {
+      showError(error);
+    });
+
     return () => connection.stop();
-  }, [url, showError]);
+  }, [url]);
 
   const invoke = useCallback(async (methodName, ...args) => {
     return connectionRef.current?.invoke(methodName, ...args);

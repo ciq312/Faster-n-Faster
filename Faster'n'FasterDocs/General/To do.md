@@ -11,6 +11,8 @@
 - [ ] Fix logo and text design
 - [ ] Add dynamic messages to lobby
 - [ ] Add player finished event
+- [ ] Fix caret bug
+- [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
 
 ## Architecture — split race construction from lobby creation
 

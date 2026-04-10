@@ -5,11 +5,9 @@ import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import "./Lobbies.css";
-import { useLobbyContext } from "../../features/game/hooks/LobbyProvider";
 import { useError } from "../../shared/components/BannerProvider";
 
 function Lobbies() {
-  const { lobbyId } = useLobbyContext();
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
@@ -51,14 +49,6 @@ function Lobbies() {
   return (
     <div className="lobbies-page">
       <Navbar />
-      {lobbyId && (
-        <button
-          className="return-to-lobby-btn"
-          onClick={() => navigate(`/lobby/${lobbyId}`)}
-        >
-          Back to lobby
-        </button>
-      )}
       <div className="lobbies-page__content">
         <section className="lobby-config">
           <button

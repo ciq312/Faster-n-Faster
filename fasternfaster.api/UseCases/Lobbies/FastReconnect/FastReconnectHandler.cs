@@ -3,21 +3,16 @@ using FasterNFaster.Api.UseCases.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 
-public class FastReconnectHandler : IHandler<FastReconnectCommand>
+public class FastReconnectHandler(ILobbyService lobbyService) : IHandler<FastReconnectCommand>
 {
-    private readonly ILobbyService _lobbyService;
+    private readonly ILobbyService lobbyService = lobbyService;
 
     private readonly int RECONNECT_GRACE_PERIOD_SECONDS = 15;
-
-    public FastReconnectHandler(ILobbyService lobbyService)
-    {
-        _lobbyService = lobbyService;
-    }
 
     public async Task Handle(FastReconnectCommand command)
     {
         var cts = new CancellationTokenSource();
-        _lobbyService.StorePendingRemoval(command.LobbyId, command.PlayerId, cts);
+        lobbyService.StorePendingRemoval(command.LobbyId, command.PlayerId, cts);
 
         await Task.Delay(RECONNECT_GRACE_PERIOD_SECONDS * 1000, cts.Token);
     }

@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Hubs;
@@ -25,13 +26,15 @@ public class BroadcastRaceFinishedHandler : IDomainEventHandler<RaceFinishedEven
 
     public async Task Handle(RaceFinishedEvent e)
     {
-        Log.Logger.Information($"race ended in lobby {e.lobbyId}");
-        await _hub.Clients.Group($"lobby-{e.lobbyId}").SendAsync("RaceEnded", new
+#if DEBUG
+        Log.Logger.Information($"race ended in lobby {e.LobbyId}");
+#endif
+        await _hub.Clients.Group($"lobby-{e.LobbyId}").SendAsync("RaceEnded", new
         {
-            results = e.results
+            results = e.Results
         });
 
-        var lobby = _lobbyStore.Get(e.lobbyId) ?? throw new LobbyNotFoundException(e.lobbyId);
+        var lobby = _lobbyStore.Get(e.LobbyId) ?? throw new LobbyNotFoundException(e.LobbyId);
 
         lobby.OnSessionEnded();
 

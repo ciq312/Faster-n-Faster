@@ -7,21 +7,15 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 
-public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult>
+public class CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passageProvider) : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     const int DEFAULT_PASSAGE_LENGTH = 50;
-    private readonly ILobbyStore _lobbyStore;
-    private readonly IPassageProvider _passageProvider;
-
-    public CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passageProvider)
-    {
-        _lobbyStore = lobbyStore;
-        _passageProvider = passageProvider;
-    }
+    private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly IPassageProvider passageProvider = passageProvider;
 
     public async Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
     {
-        var passage = await _passageProvider.GetPassageAsync(DEFAULT_PASSAGE_LENGTH);
+        var passage = await passageProvider.GetPassageAsync(DEFAULT_PASSAGE_LENGTH);
 
         var race = new WordRace(DEFAULT_PASSAGE_LENGTH);
         race.SetPassage(passage);
@@ -29,16 +23,16 @@ public class CreateLobbyHandler : IHandler<CreateLobbyCommand, CreateLobbyResult
         var lobby = new Lobby(command.LobbyName, command.IsPrivate, race);
         lobby.AssignHost(command.HostId);
 
-        if (command.IsPrivate)
-        {
-            var code = await LobbySettings.GenerateUniqueInviteCode(
-                c => Task.FromResult(_lobbyStore.GetByInviteCode(c) != null));
-            lobby.LobbySettings.SetInviteCode(code);
-        }
+        var code = await LobbySettings.GenerateUniqueInviteCode(
+            c => Task.FromResult(lobbyStore.GetByInviteCode(c) != null));
+        lobby.LobbySettings.SetInviteCode(code);
 
-        _lobbyStore.Add(lobby);
 
+        lobbyStore.Add(lobby);
+
+#if DEBUG
         Log.Information("Created lobby {LobbyId} with host {PlayerId}", lobby.Id, command.HostId);
+#endif
 
         return new CreateLobbyResult(lobby.Id, lobby.Name, lobby.LobbySettings.InviteCode);
     }

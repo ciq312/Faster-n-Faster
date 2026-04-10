@@ -1,6 +1,8 @@
 
 using FastEndpoints;
 
+namespace FasterNFaster.Api.Web.Users.RegisterUser;
+
 public class RegisterUserValidator : Validator<RegisterUserRequest>
 {
     public RegisterUserValidator()

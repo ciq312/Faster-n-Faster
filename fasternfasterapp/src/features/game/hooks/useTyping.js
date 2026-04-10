@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const MAX_OVERFLOW = 6;
 
@@ -36,6 +36,8 @@ export function useTyping({ passage, disabled, onProgress }) {
           setTyped(value);
           if (lastCorrectIndexRef.current + 1 === value.length - 1) {
             lastCorrectIndexRef.current = lastCorrectIndexRef.current + 1;
+            if (lastCorrectIndexRef.current === passage.length - 1)
+              inputRef.current.blur();
           }
         } else {
           setTyped(value);

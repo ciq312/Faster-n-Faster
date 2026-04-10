@@ -1,4 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces.Events;
 
-public record RaceFinishedEvent(Guid lobbyId, IEnumerable<RaceParticipantResult> results) : IDomainEvent;
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races.Events
+{
+    public record RaceFinishedEvent(Guid LobbyId, IEnumerable<RaceParticipantResult> Results) : IDomainEvent;
+}

@@ -39,24 +39,24 @@ function BannerProvider({ children }) {
   }, []);
 
   const showBanner = useCallback(
-    async ({ variant, message, duration = 4000 }) => {
+    async ({ variant, message, duration_MS = 4000 }) => {
       if (bannerRef.current) {
         await closeBanner();
       }
       clearTimers();
-      const next = { variant, message, duration };
+      const next = { variant, message, duration_MS };
       bannerRef.current = next;
       setFading(false);
       setBanner(next);
       timers.current.fade = setTimeout(() => {
         console.log(`fading`);
         setFading(true);
-      }, duration - 400);
+      }, duration_MS - 400);
       timers.current.remove = setTimeout(() => {
         bannerRef.current = null;
         setBanner(null);
         setFading(false);
-      }, duration);
+      }, duration_MS);
     },
     [closeBanner],
   );

@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
 
@@ -15,7 +16,7 @@ public class SaveRaceResultHandler : IDomainEventHandler<RaceFinishedEvent>
 
     public async Task Handle(RaceFinishedEvent domainEvent)
     {
-        foreach (var result in domainEvent.results)
+        foreach (var result in domainEvent.Results)
         {
             var stats = await _db.Statistics.FindAsync(result.LobbyPlayerId);
 

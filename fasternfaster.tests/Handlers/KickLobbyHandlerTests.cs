@@ -14,8 +14,7 @@ public class KickLobbyHandlerTests
         var store = new FakeLobbyStore();
         var lobbyService = new FakeLobbyService();
         var registry = new FakeRaceTickRegistry();
-        var handler = new KickPlayerHandler(store, lobbyService, registry);
-
+        var handler = new KickPlayerHandler(store, lobbyService);
         var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(users[0].Id);
         foreach (var user in users)

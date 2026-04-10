@@ -4,24 +4,17 @@ using FasterNFaster.Api.UseCases.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler : IHandler<DisconnectCommand, DisconnectResult>
+public class DisconnectHandler(ILobbyStore lobbyStore, ILobbyService lobbyService, IRaceTickRegistry raceTickRegistry) : IHandler<DisconnectCommand, DisconnectResult>
 {
-    private readonly ILobbyStore _lobbyStore;
-    private readonly ILobbyService _lobbyService;
-    private readonly IRaceTickRegistry _raceTickRegistry;
-
-    public DisconnectHandler(ILobbyStore lobbyStore, ILobbyService lobbyService, IRaceTickRegistry raceTickRegistry)
-    {
-        _lobbyStore = lobbyStore;
-        _lobbyService = lobbyService;
-        _raceTickRegistry = raceTickRegistry;
-    }
+    private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly ILobbyService lobbyService = lobbyService;
+    private readonly IRaceTickRegistry raceTickRegistry = raceTickRegistry;
 
     public Task<DisconnectResult> Handle(DisconnectCommand command)
     {
-        _lobbyService.RemoveConnection(command.ConnectionId);
+        lobbyService.RemoveConnection(command.ConnectionId);
 
-        var lobby = _lobbyStore.Get(command.LobbyId)
+        var lobby = lobbyStore.Get(command.LobbyId)
             ?? throw new KeyNotFoundException("Lobby not found.");
 
         if (!lobby.IsPlayerInLobby(command.PlayerId))
@@ -54,10 +47,10 @@ public class DisconnectHandler : IHandler<DisconnectCommand, DisconnectResult>
         bool shouldDeregister = lobby.Players.Count == 0;
 
         if (shouldDeregister)
-            _raceTickRegistry.DeregisterLobby(command.LobbyId);
+            raceTickRegistry.DeregisterLobby(command.LobbyId);
 
         if (!lobby.Players.Any())
-            _lobbyStore.Remove(command.LobbyId);
+            lobbyStore.Remove(command.LobbyId);
 
         return Task.FromResult(new DisconnectResult(command.PlayerId, newHostId, shouldDeregister));
     }
