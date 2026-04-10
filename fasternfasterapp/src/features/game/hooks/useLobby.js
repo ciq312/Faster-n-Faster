@@ -8,7 +8,7 @@ import { useLobbyContext } from "./LobbyProvider";
 export function useLobby(lobbyId, inviteCode) {
   const { showError } = useError();
   const { setLobbyId } = useLobbyContext();
-  const { invoke, subscribe } = useConnection();
+  const { invoke, subscribe, isConnected } = useConnection();
   const selfIdRef = useRef(localStorage.getItem("userId"));
   const navigate = useNavigate();
   const isHostRef = useRef(false);
@@ -20,20 +20,25 @@ export function useLobby(lobbyId, inviteCode) {
   const [colors, setColors] = useState(null);
 
   useEffect(() => {
+    if (!isConnected) return;
+
     const connectToLobby = async () => {
       try {
-        console.log("trying to connect");
+        console.log(`connecting to lobby`);
         setLobbyId(lobbyId);
         await invoke("ConnectToLobby", lobbyId, inviteCode);
+        console.log(`connected to lobby`);
       } catch (e) {
         console.log(e);
       }
     };
 
-    connectToLobby();
+    const onLeaveLobby = () => {
+      setLobbyId(null);
+      navigate("/lobbies");
+    };
 
-    eventBus.on("leaveLobby", (data) => setLobbyId(null));
-    eventBus.on("leaveLobby", (data) => navigate("/lobbies"));
+    eventBus.on("leaveLobby", onLeaveLobby);
 
     const cleanups = [
       subscribe("LobbyState", (state) => {
@@ -50,17 +55,21 @@ export function useLobby(lobbyId, inviteCode) {
 
       subscribe("Error", (e) => {
         if (
-          e.toLowerCase().includes("not found") ||
+          e.toLowerCfpase().includes("not found") ||
           e.toLowerCase().includes("not accepting")
         ) {
           eventBus.emit("leaveLobby", { lobbyId });
         }
-        showError(e);
       }),
     ];
 
-    return () => cleanups.map((clean) => clean());
-  }, []);
+    connectToLobby();
+
+    return () => {
+      cleanups.forEach((clean) => clean());
+      eventBus.off("leaveLobby", onLeaveLobby);
+    };
+  }, [isConnected]);
 
   const changeColor = useCallback(async (color) => {
     try {

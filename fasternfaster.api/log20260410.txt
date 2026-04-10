@@ -925,3 +925,857 @@
 2026-04-10 19:14:14.158 +03:00 [INF] race ended in lobby 206d43c4-fb54-4f5a-9c08-dccaab711395
 2026-04-10 19:14:14.167 +03:00 [INF] registring new race in db
 2026-04-10 19:55:35.643 +03:00 [INF] Removed connection PuxbqLZewl4y7JDL5gq2JQ for player "4eda2c70-db0d-44ab-85d5-457b3ae21780" in lobby "206d43c4-fb54-4f5a-9c08-dccaab711395"
+2026-04-10 19:56:07.786 +03:00 [INF] Registered anonymous user "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" as sad
+2026-04-10 19:56:08.482 +03:00 [INF] Getting lobbies
+2026-04-10 19:56:08.486 +03:00 [INF] Got lobbies
+2026-04-10 19:56:08.487 +03:00 [INF] sending lobbies
+2026-04-10 19:56:08.715 +03:00 [INF] Getting lobbies
+2026-04-10 19:56:08.717 +03:00 [INF] Got lobbies
+2026-04-10 19:56:08.718 +03:00 [INF] sending lobbies
+2026-04-10 19:56:09.764 +03:00 [INF] Created lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 19:56:09.869 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:56:09.874 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:56:09.908 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:56:09.911 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:56:14.797 +03:00 [INF] Race started in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:56:57.478 +03:00 [INF] finish position 1 for player sad with wpm 57.13 and accuracy 89.29%
+2026-04-10 19:56:57.485 +03:00 [INF] player finished race in lobby b00bab84-40a8-4580-b21a-94d050eb6d3a
+2026-04-10 19:56:57.513 +03:00 [INF] race ended in lobby b00bab84-40a8-4580-b21a-94d050eb6d3a
+2026-04-10 19:56:57.542 +03:00 [INF] creating player statistics in db
+2026-04-10 19:56:57.570 +03:00 [INF] registring new race in db
+2026-04-10 19:57:18.207 +03:00 [INF] Race started in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 19:58:00.011 +03:00 [INF] finish position 1 for player sad with wpm 60.88 and accuracy 87.98%
+2026-04-10 19:58:00.022 +03:00 [INF] race ended in lobby b00bab84-40a8-4580-b21a-94d050eb6d3a
+2026-04-10 19:58:00.022 +03:00 [INF] player finished race in lobby b00bab84-40a8-4580-b21a-94d050eb6d3a
+2026-04-10 19:58:00.033 +03:00 [INF] registring new race in db
+2026-04-10 20:08:24.469 +03:00 [INF] Race started in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 20:08:34.368 +03:00 [INF] Removed connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b00bab84-40a8-4580-b21a-94d050eb6d3a"
+2026-04-10 20:08:34.922 +03:00 [INF] Getting lobbies
+2026-04-10 20:08:34.924 +03:00 [INF] Got lobbies
+2026-04-10 20:08:34.925 +03:00 [INF] sending lobbies
+2026-04-10 20:08:35.241 +03:00 [INF] Getting lobbies
+2026-04-10 20:08:35.243 +03:00 [INF] Got lobbies
+2026-04-10 20:08:35.245 +03:00 [INF] sending lobbies
+2026-04-10 20:08:35.840 +03:00 [INF] Created lobby "b7473458-568e-40ef-9376-bb355422578e" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:08:35.870 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:08:35.872 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:08:35.879 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:08:35.882 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:08:40.318 +03:00 [INF] Race started in lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:09:00.436 +03:00 [INF] Removed connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "b7473458-568e-40ef-9376-bb355422578e"
+2026-04-10 20:09:00.988 +03:00 [INF] Getting lobbies
+2026-04-10 20:09:00.989 +03:00 [INF] Got lobbies
+2026-04-10 20:09:00.990 +03:00 [INF] sending lobbies
+2026-04-10 20:09:01.300 +03:00 [INF] Getting lobbies
+2026-04-10 20:09:01.301 +03:00 [INF] Got lobbies
+2026-04-10 20:09:01.302 +03:00 [INF] sending lobbies
+2026-04-10 20:09:12.434 +03:00 [INF] Created lobby "14d39d63-78d1-4098-89eb-025e82d08e3f" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:09:12.494 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:09:12.583 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:09:12.586 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:09:12.589 +03:00 [INF] Tracking connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:09:50.984 +03:00 [INF] Race started in lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:11:29.355 +03:00 [INF] finish position 1 for player sad with wpm 26.50 and accuracy 93.89%
+2026-04-10 20:11:29.362 +03:00 [INF] player finished race in lobby 14d39d63-78d1-4098-89eb-025e82d08e3f
+2026-04-10 20:11:29.373 +03:00 [INF] race ended in lobby 14d39d63-78d1-4098-89eb-025e82d08e3f
+2026-04-10 20:11:29.381 +03:00 [INF] registring new race in db
+2026-04-10 20:13:49.116 +03:00 [INF] Getting lobbies
+2026-04-10 20:13:49.119 +03:00 [INF] Got lobbies
+2026-04-10 20:13:49.121 +03:00 [INF] sending lobbies
+2026-04-10 20:13:49.431 +03:00 [INF] Getting lobbies
+2026-04-10 20:13:49.432 +03:00 [INF] Got lobbies
+2026-04-10 20:13:49.434 +03:00 [INF] sending lobbies
+2026-04-10 20:13:50.944 +03:00 [INF] Created lobby "89537379-3c20-4445-8fbb-4c51d56575ce" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:13:50.975 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:13:50.989 +03:00 [INF] Tracking connection -ibazNVy7COWfHNoN70P4w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:13:50.994 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:13:51.000 +03:00 [INF] Tracking connection -ibazNVy7COWfHNoN70P4w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:13:55.887 +03:00 [INF] Race started in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:13:56.839 +03:00 [INF] Removed connection ubc4gTpRHUEhLjluZ1I7Aw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "14d39d63-78d1-4098-89eb-025e82d08e3f"
+2026-04-10 20:14:30.177 +03:00 [INF] finish position 1 for player sad with wpm 69.79 and accuracy 95.95%
+2026-04-10 20:14:30.184 +03:00 [INF] player finished race in lobby 89537379-3c20-4445-8fbb-4c51d56575ce
+2026-04-10 20:14:30.184 +03:00 [INF] race ended in lobby 89537379-3c20-4445-8fbb-4c51d56575ce
+2026-04-10 20:14:30.296 +03:00 [INF] registring new race in db
+2026-04-10 20:14:35.330 +03:00 [INF] Race started in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:15:21.751 +03:00 [INF] finish position 1 for player sad with wpm 52.84 and accuracy 92.38%
+2026-04-10 20:15:21.752 +03:00 [INF] player finished race in lobby 89537379-3c20-4445-8fbb-4c51d56575ce
+2026-04-10 20:15:21.781 +03:00 [INF] race ended in lobby 89537379-3c20-4445-8fbb-4c51d56575ce
+2026-04-10 20:15:21.786 +03:00 [INF] registring new race in db
+2026-04-10 20:15:40.960 +03:00 [INF] Getting lobbies
+2026-04-10 20:15:40.961 +03:00 [INF] Got lobbies
+2026-04-10 20:15:40.962 +03:00 [INF] sending lobbies
+2026-04-10 20:15:41.273 +03:00 [INF] Getting lobbies
+2026-04-10 20:15:41.274 +03:00 [INF] Got lobbies
+2026-04-10 20:15:41.276 +03:00 [INF] sending lobbies
+2026-04-10 20:15:43.343 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:15:43.345 +03:00 [INF] Tracking connection -ibazNVy7COWfHNoN70P4w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:15:43.348 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:15:43.353 +03:00 [INF] Tracking connection -ibazNVy7COWfHNoN70P4w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:39:59.473 +03:00 [INF] Removed connection -ibazNVy7COWfHNoN70P4w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "89537379-3c20-4445-8fbb-4c51d56575ce"
+2026-04-10 20:52:09.865 +03:00 [INF] Getting lobbies
+2026-04-10 20:52:09.866 +03:00 [INF] Got lobbies
+2026-04-10 20:52:09.867 +03:00 [INF] sending lobbies
+2026-04-10 20:52:10.129 +03:00 [INF] Getting lobbies
+2026-04-10 20:52:10.130 +03:00 [INF] Got lobbies
+2026-04-10 20:52:10.131 +03:00 [INF] sending lobbies
+2026-04-10 20:52:10.459 +03:00 [INF] Created lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:52:10.479 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:52:10.481 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:52:10.484 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:52:10.487 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:52:15.352 +03:00 [INF] Race started in lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:52:56.740 +03:00 [INF] finish position 1 for player sad with wpm 61.45 and accuracy 94.83%
+2026-04-10 20:52:56.742 +03:00 [INF] player finished race in lobby 214d412c-d734-40c9-aff9-b9c4e8f413fa
+2026-04-10 20:52:56.802 +03:00 [INF] race ended in lobby 214d412c-d734-40c9-aff9-b9c4e8f413fa
+2026-04-10 20:52:56.808 +03:00 [INF] registring new race in db
+2026-04-10 20:53:29.121 +03:00 [INF] Race started in lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:53:41.481 +03:00 [INF] Removed connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "214d412c-d734-40c9-aff9-b9c4e8f413fa"
+2026-04-10 20:53:42.339 +03:00 [INF] Getting lobbies
+2026-04-10 20:53:42.340 +03:00 [INF] Got lobbies
+2026-04-10 20:53:42.342 +03:00 [INF] sending lobbies
+2026-04-10 20:53:42.605 +03:00 [INF] Getting lobbies
+2026-04-10 20:53:42.606 +03:00 [INF] Got lobbies
+2026-04-10 20:53:42.607 +03:00 [INF] sending lobbies
+2026-04-10 20:53:43.199 +03:00 [INF] Created lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:53:43.218 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b"
+2026-04-10 20:53:43.220 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b"
+2026-04-10 20:53:43.223 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b"
+2026-04-10 20:53:43.225 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b"
+2026-04-10 20:55:33.246 +03:00 [INF] Removed connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "fc2da7de-52eb-46d5-b569-e33271c33a1b"
+2026-04-10 20:55:33.792 +03:00 [INF] Getting lobbies
+2026-04-10 20:55:33.794 +03:00 [INF] Got lobbies
+2026-04-10 20:55:33.795 +03:00 [INF] sending lobbies
+2026-04-10 20:55:33.800 +03:00 [INF] Getting lobbies
+2026-04-10 20:55:33.802 +03:00 [INF] Got lobbies
+2026-04-10 20:55:33.803 +03:00 [INF] sending lobbies
+2026-04-10 20:55:35.543 +03:00 [INF] Created lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 20:55:35.570 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16"
+2026-04-10 20:55:35.579 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16"
+2026-04-10 20:55:35.586 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16"
+2026-04-10 20:55:35.591 +03:00 [INF] Tracking connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16"
+2026-04-10 20:56:31.712 +03:00 [INF] Removed connection z8YvCgg8yj1ZrO-ssxj86g for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "7f5c5eb5-d733-46f4-9104-0bcbc22a9c16"
+2026-04-10 21:08:50.227 +03:00 [INF] Getting lobbies
+2026-04-10 21:08:50.231 +03:00 [INF] Got lobbies
+2026-04-10 21:08:50.232 +03:00 [INF] sending lobbies
+2026-04-10 21:08:50.490 +03:00 [INF] Getting lobbies
+2026-04-10 21:08:50.491 +03:00 [INF] Got lobbies
+2026-04-10 21:08:50.493 +03:00 [INF] sending lobbies
+2026-04-10 21:08:51.379 +03:00 [INF] Created lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:08:51.400 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f"
+2026-04-10 21:08:51.402 +03:00 [INF] Tracking connection K4orcGca6-iT-ijvX1LW5w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f"
+2026-04-10 21:08:51.524 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f"
+2026-04-10 21:08:51.535 +03:00 [INF] Tracking connection K4orcGca6-iT-ijvX1LW5w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f"
+2026-04-10 21:10:55.729 +03:00 [INF] Removed connection K4orcGca6-iT-ijvX1LW5w for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "4eb821b5-ad26-497f-a6ed-4da44cc4a77f"
+2026-04-10 21:11:04.434 +03:00 [INF] Getting lobbies
+2026-04-10 21:11:04.435 +03:00 [INF] Got lobbies
+2026-04-10 21:11:04.436 +03:00 [INF] sending lobbies
+2026-04-10 21:11:04.687 +03:00 [INF] Getting lobbies
+2026-04-10 21:11:04.689 +03:00 [INF] Got lobbies
+2026-04-10 21:11:04.690 +03:00 [INF] sending lobbies
+2026-04-10 21:11:05.108 +03:00 [INF] Created lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:11:05.148 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5"
+2026-04-10 21:11:05.149 +03:00 [INF] Tracking connection AbFtqixnC1HmbrfWvj9zgA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5"
+2026-04-10 21:11:05.153 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5"
+2026-04-10 21:11:05.154 +03:00 [INF] Tracking connection AbFtqixnC1HmbrfWvj9zgA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5"
+2026-04-10 21:11:22.652 +03:00 [INF] Removed connection AbFtqixnC1HmbrfWvj9zgA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "9c2aa92e-d718-4404-b028-23c7b3bef5e5"
+2026-04-10 21:11:59.674 +03:00 [INF] Registered anonymous user "0e4aca2e-1818-475b-9a7d-7732bd3160f2" as sdgf
+2026-04-10 21:12:00.518 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:00.520 +03:00 [INF] Got lobbies
+2026-04-10 21:12:00.522 +03:00 [INF] sending lobbies
+2026-04-10 21:12:00.780 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:00.782 +03:00 [INF] Got lobbies
+2026-04-10 21:12:00.783 +03:00 [INF] sending lobbies
+2026-04-10 21:12:02.856 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:02.857 +03:00 [INF] Got lobbies
+2026-04-10 21:12:02.858 +03:00 [INF] sending lobbies
+2026-04-10 21:12:03.123 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:03.124 +03:00 [INF] Got lobbies
+2026-04-10 21:12:03.125 +03:00 [INF] sending lobbies
+2026-04-10 21:12:03.721 +03:00 [INF] Created lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f" with host "0e4aca2e-1818-475b-9a7d-7732bd3160f2"
+2026-04-10 21:12:03.751 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f"
+2026-04-10 21:12:03.783 +03:00 [INF] Tracking connection MyqxmfWPHAXgJ7_H1NcCpg for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f"
+2026-04-10 21:12:03.786 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f"
+2026-04-10 21:12:03.787 +03:00 [INF] Tracking connection MyqxmfWPHAXgJ7_H1NcCpg for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f"
+2026-04-10 21:12:20.789 +03:00 [INF] Removed connection MyqxmfWPHAXgJ7_H1NcCpg for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "8b2df2d5-35d2-46cb-b00a-d177187c055f"
+2026-04-10 21:12:27.961 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:27.963 +03:00 [INF] Got lobbies
+2026-04-10 21:12:27.964 +03:00 [INF] sending lobbies
+2026-04-10 21:12:46.733 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:46.735 +03:00 [INF] Got lobbies
+2026-04-10 21:12:46.736 +03:00 [INF] sending lobbies
+2026-04-10 21:12:46.794 +03:00 [INF] Getting lobbies
+2026-04-10 21:12:46.795 +03:00 [INF] Got lobbies
+2026-04-10 21:12:46.797 +03:00 [INF] sending lobbies
+2026-04-10 21:12:47.428 +03:00 [INF] Created lobby "25d3d400-cad6-46c9-a496-003611e9e9c9" with host "0e4aca2e-1818-475b-9a7d-7732bd3160f2"
+2026-04-10 21:12:47.448 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "25d3d400-cad6-46c9-a496-003611e9e9c9"
+2026-04-10 21:12:47.450 +03:00 [INF] Tracking connection qe2NKUgrqH3mfNS-dKAk7w for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "25d3d400-cad6-46c9-a496-003611e9e9c9"
+2026-04-10 21:12:47.456 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "25d3d400-cad6-46c9-a496-003611e9e9c9"
+2026-04-10 21:12:47.460 +03:00 [INF] Tracking connection qe2NKUgrqH3mfNS-dKAk7w for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "25d3d400-cad6-46c9-a496-003611e9e9c9"
+2026-04-10 21:13:04.451 +03:00 [INF] Removed connection qe2NKUgrqH3mfNS-dKAk7w for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "25d3d400-cad6-46c9-a496-003611e9e9c9"
+2026-04-10 21:22:58.879 +03:00 [INF] Getting lobbies
+2026-04-10 21:22:58.904 +03:00 [INF] Got lobbies
+2026-04-10 21:22:58.905 +03:00 [INF] sending lobbies
+2026-04-10 21:22:58.910 +03:00 [INF] Getting lobbies
+2026-04-10 21:22:58.911 +03:00 [INF] Got lobbies
+2026-04-10 21:22:58.913 +03:00 [INF] sending lobbies
+2026-04-10 21:24:37.369 +03:00 [INF] Created lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:24:37.401 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:37.403 +03:00 [INF] Tracking connection KDrdaL3ENnRPQ23AFfBcTw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:37.406 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:37.412 +03:00 [INF] Tracking connection KDrdaL3ENnRPQ23AFfBcTw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:40.502 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:40.503 +03:00 [INF] Tracking connection lsxT162PHJq_Yq4wlzn4ZQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:54.386 +03:00 [INF] Removed connection lsxT162PHJq_Yq4wlzn4ZQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:54.573 +03:00 [INF] Removed connection KDrdaL3ENnRPQ23AFfBcTw for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c161bf43-fe0b-44e9-9b7b-02a0cb7cf160"
+2026-04-10 21:24:54.931 +03:00 [INF] Getting lobbies
+2026-04-10 21:24:54.933 +03:00 [INF] Got lobbies
+2026-04-10 21:24:54.934 +03:00 [INF] sending lobbies
+2026-04-10 21:24:55.250 +03:00 [INF] Getting lobbies
+2026-04-10 21:24:55.252 +03:00 [INF] Got lobbies
+2026-04-10 21:24:55.253 +03:00 [INF] sending lobbies
+2026-04-10 21:24:55.848 +03:00 [INF] Created lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:24:55.885 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:24:55.888 +03:00 [INF] Tracking connection lsxT162PHJq_Yq4wlzn4ZQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:24:55.896 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:24:55.911 +03:00 [INF] Tracking connection lsxT162PHJq_Yq4wlzn4ZQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:24:59.235 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:24:59.237 +03:00 [INF] Tracking connection l9b1IEmYPxf5g7TV_2EFwg for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:25:13.397 +03:00 [INF] Removed connection lsxT162PHJq_Yq4wlzn4ZQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:25:49.086 +03:00 [INF] Storing pending removal failed for player a02a0b0a-be52-4b7a-b0d0-5779b4813885 in lobby e00ac0c6-c2c5-46ed-b556-0403725dd5ef.
+2026-04-10 21:25:49.093 +03:00 [INF] Removed connection l9b1IEmYPxf5g7TV_2EFwg for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "a02a0b0a-be52-4b7a-b0d0-5779b4813885"
+2026-04-10 21:25:54.972 +03:00 [INF] Getting lobbies
+2026-04-10 21:25:54.973 +03:00 [INF] Got lobbies
+2026-04-10 21:25:54.974 +03:00 [INF] sending lobbies
+2026-04-10 21:25:54.980 +03:00 [INF] Getting lobbies
+2026-04-10 21:25:54.982 +03:00 [INF] Got lobbies
+2026-04-10 21:25:54.987 +03:00 [INF] sending lobbies
+2026-04-10 21:28:51.877 +03:00 [INF] Created lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71" with host "0e4aca2e-1818-475b-9a7d-7732bd3160f2"
+2026-04-10 21:28:51.916 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:28:51.920 +03:00 [INF] Tracking connection JCPu4egQMSeMN_014yqpcw for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:28:51.923 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:28:51.926 +03:00 [INF] Tracking connection JCPu4egQMSeMN_014yqpcw for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:28:54.715 +03:00 [INF] Player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" joined lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:28:54.718 +03:00 [INF] Tracking connection NFQvkomkZ6hPCyC9FCd7uA for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:29:01.248 +03:00 [INF] Storing pending removal failed for player 1e4a78cf-f937-4aa2-a70e-6b148c95eb71 in lobby 0e4aca2e-1818-475b-9a7d-7732bd3160f2.
+2026-04-10 21:29:01.254 +03:00 [INF] Removed connection NFQvkomkZ6hPCyC9FCd7uA for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:29:05.716 +03:00 [INF] Created lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:29:05.755 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:05.760 +03:00 [INF] Tracking connection WNY5S11wBxd4WF2xLCHTvA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:05.765 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:05.772 +03:00 [INF] Tracking connection WNY5S11wBxd4WF2xLCHTvA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:08.391 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:08.396 +03:00 [INF] Tracking connection vbhsBdx4D8pJJpCNF6vqgQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:08.985 +03:00 [INF] Removed connection JCPu4egQMSeMN_014yqpcw for player "0e4aca2e-1818-475b-9a7d-7732bd3160f2" in lobby "1e4a78cf-f937-4aa2-a70e-6b148c95eb71"
+2026-04-10 21:29:22.610 +03:00 [INF] Removed connection WNY5S11wBxd4WF2xLCHTvA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "53eac3c0-11cc-48eb-94d9-45e4b40e0870"
+2026-04-10 21:29:23.838 +03:00 [INF] Getting lobbies
+2026-04-10 21:29:23.839 +03:00 [INF] Got lobbies
+2026-04-10 21:29:23.841 +03:00 [INF] sending lobbies
+2026-04-10 21:29:23.847 +03:00 [INF] Getting lobbies
+2026-04-10 21:29:23.849 +03:00 [INF] Got lobbies
+2026-04-10 21:29:23.850 +03:00 [INF] sending lobbies
+2026-04-10 21:29:25.062 +03:00 [INF] Created lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:29:25.091 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:25.094 +03:00 [INF] Tracking connection vbhsBdx4D8pJJpCNF6vqgQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:25.097 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:25.099 +03:00 [INF] Tracking connection vbhsBdx4D8pJJpCNF6vqgQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:31.738 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:31.739 +03:00 [INF] Tracking connection knfFkFUT1XfagfNuq9oZuA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:29:46.011 +03:00 [INF] Removed connection vbhsBdx4D8pJJpCNF6vqgQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "cc6452ab-59b1-40f8-b712-1e02d1b1f3ca"
+2026-04-10 21:30:41.891 +03:00 [INF] Getting lobbies
+2026-04-10 21:30:41.897 +03:00 [INF] Got lobbies
+2026-04-10 21:30:41.900 +03:00 [INF] sending lobbies
+2026-04-10 21:30:41.920 +03:00 [INF] Getting lobbies
+2026-04-10 21:30:41.923 +03:00 [INF] Got lobbies
+2026-04-10 21:30:41.927 +03:00 [INF] sending lobbies
+2026-04-10 21:32:26.264 +03:00 [INF] Created lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef" with host "e00ac0c6-c2c5-46ed-b556-0403725dd5ef"
+2026-04-10 21:32:26.288 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:26.291 +03:00 [INF] Tracking connection knfFkFUT1XfagfNuq9oZuA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:26.295 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:26.297 +03:00 [INF] Tracking connection knfFkFUT1XfagfNuq9oZuA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:45.518 +03:00 [INF] Registered anonymous user "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" as fefer
+2026-04-10 21:32:46.075 +03:00 [INF] Getting lobbies
+2026-04-10 21:32:46.077 +03:00 [INF] Got lobbies
+2026-04-10 21:32:46.078 +03:00 [INF] sending lobbies
+2026-04-10 21:32:46.103 +03:00 [INF] Getting lobbies
+2026-04-10 21:32:46.105 +03:00 [INF] Got lobbies
+2026-04-10 21:32:46.106 +03:00 [INF] sending lobbies
+2026-04-10 21:32:47.246 +03:00 [INF] Player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:47.248 +03:00 [INF] Tracking connection Iwwsg9YhNHBCN6Q7zbwQJw for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:47.252 +03:00 [INF] Player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:47.255 +03:00 [INF] Tracking connection Iwwsg9YhNHBCN6Q7zbwQJw for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:49.041 +03:00 [INF] Player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:32:49.042 +03:00 [INF] Tracking connection GKf3LJ4grQ5858kSqfpQYA for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:33:03.295 +03:00 [INF] Removed connection Iwwsg9YhNHBCN6Q7zbwQJw for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:27.992 +03:00 [INF] Storing pending removal failed for player c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef in lobby b7e3a60a-a23d-4813-8f18-91cfb8facd9a.
+2026-04-10 21:37:27.998 +03:00 [INF] Removed connection GKf3LJ4grQ5858kSqfpQYA for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:28.730 +03:00 [INF] Player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:28.737 +03:00 [INF] Tracking connection hZNjKlL9_sSou594kK1RDA for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:28.774 +03:00 [INF] Player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" joined lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:28.779 +03:00 [INF] Tracking connection 9NMuPzuPA0wha5Su5oGLPQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:42.997 +03:00 [INF] Removed connection knfFkFUT1XfagfNuq9oZuA for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:57.999 +03:00 [INF] Storing pending removal failed for player c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef in lobby b7e3a60a-a23d-4813-8f18-91cfb8facd9a.
+2026-04-10 21:37:58.001 +03:00 [INF] Storing pending removal failed for player c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef in lobby e00ac0c6-c2c5-46ed-b556-0403725dd5ef.
+2026-04-10 21:37:58.003 +03:00 [INF] Removed connection 9NMuPzuPA0wha5Su5oGLPQ for player "e00ac0c6-c2c5-46ed-b556-0403725dd5ef" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:37:58.002 +03:00 [INF] Removed connection hZNjKlL9_sSou594kK1RDA for player "b7e3a60a-a23d-4813-8f18-91cfb8facd9a" in lobby "c6e4af21-9f4f-4606-a24c-c7c3f2aeb6ef"
+2026-04-10 21:38:40.892 +03:00 [INF] Registered anonymous user "617413f8-813e-4ae0-a0f1-f6beb8653ecd" as fdsafef
+2026-04-10 21:38:41.591 +03:00 [INF] Getting lobbies
+2026-04-10 21:38:41.595 +03:00 [INF] Got lobbies
+2026-04-10 21:38:41.597 +03:00 [INF] sending lobbies
+2026-04-10 21:38:41.836 +03:00 [INF] Getting lobbies
+2026-04-10 21:38:41.845 +03:00 [INF] Got lobbies
+2026-04-10 21:38:41.851 +03:00 [INF] sending lobbies
+2026-04-10 21:38:43.066 +03:00 [INF] Created lobby "0dda40dc-16b4-47e2-8513-e86b972e852b" with host "617413f8-813e-4ae0-a0f1-f6beb8653ecd"
+2026-04-10 21:38:43.180 +03:00 [INF] Player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" joined lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:38:43.185 +03:00 [INF] Tracking connection AjHRmbu98WHoyN9w3_mn-A for player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" in lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:38:43.218 +03:00 [INF] Player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" joined lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:38:43.221 +03:00 [INF] Tracking connection AjHRmbu98WHoyN9w3_mn-A for player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" in lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:38:46.959 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:38:47.567 +03:00 [INF] Player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" joined lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:38:47.568 +03:00 [INF] Tracking connection mynWlPwvVqxzCiYYGotUOQ for player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" in lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:39:01.977 +03:00 [INF] Removed connection AjHRmbu98WHoyN9w3_mn-A for player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" in lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:40:58.872 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:40:58.875 +03:00 [INF] Storing pending removal failed for player 0dda40dc-16b4-47e2-8513-e86b972e852b in lobby 617413f8-813e-4ae0-a0f1-f6beb8653ecd.
+2026-04-10 21:40:58.875 +03:00 [INF] Removed connection mynWlPwvVqxzCiYYGotUOQ for player "617413f8-813e-4ae0-a0f1-f6beb8653ecd" in lobby "0dda40dc-16b4-47e2-8513-e86b972e852b"
+2026-04-10 21:50:37.913 +03:00 [INF] Registered anonymous user "8745b820-52c3-4f3a-b883-e4d25668a1ea" as dsadfa
+2026-04-10 21:50:38.839 +03:00 [INF] Getting lobbies
+2026-04-10 21:50:38.844 +03:00 [INF] Got lobbies
+2026-04-10 21:50:38.846 +03:00 [INF] sending lobbies
+2026-04-10 21:50:39.104 +03:00 [INF] Getting lobbies
+2026-04-10 21:50:39.106 +03:00 [INF] Got lobbies
+2026-04-10 21:50:39.107 +03:00 [INF] sending lobbies
+2026-04-10 21:50:39.803 +03:00 [INF] Created lobby "03825b15-d790-4ccb-8685-a69b4bebc321" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:50:39.913 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:39.917 +03:00 [INF] Tracking connection ayN-_RixRvLM0OuBA5F6Ww for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:39.951 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:39.954 +03:00 [INF] Tracking connection ayN-_RixRvLM0OuBA5F6Ww for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:42.714 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:50:43.285 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:43.288 +03:00 [INF] Tracking connection yz3-HHMj1xVNGK28QrYbFA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:50:43.289 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:51:06.610 +03:00 [INF] Race started in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:51:17.763 +03:00 [INF] Removed connection yz3-HHMj1xVNGK28QrYbFA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "03825b15-d790-4ccb-8685-a69b4bebc321"
+2026-04-10 21:51:18.624 +03:00 [INF] Getting lobbies
+2026-04-10 21:51:18.625 +03:00 [INF] Got lobbies
+2026-04-10 21:51:18.626 +03:00 [INF] sending lobbies
+2026-04-10 21:51:18.887 +03:00 [INF] Getting lobbies
+2026-04-10 21:51:18.889 +03:00 [INF] Got lobbies
+2026-04-10 21:51:18.890 +03:00 [INF] sending lobbies
+2026-04-10 21:51:21.834 +03:00 [INF] Created lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:51:21.857 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:21.859 +03:00 [INF] Tracking connection yz3-HHMj1xVNGK28QrYbFA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:21.862 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:21.864 +03:00 [INF] Tracking connection yz3-HHMj1xVNGK28QrYbFA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:24.985 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:51:25.613 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:25.616 +03:00 [INF] Tracking connection 1Kt7AtoOy3NBTGnH3Spd3A for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:51:25.616 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:53:55.879 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:53:55.892 +03:00 [INF] Tracking connection 1Kt7AtoOy3NBTGnH3Spd3A for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:54:05.579 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:54:05.587 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby 97df6d8c-9541-4ff3-a27f-8238aa7056c5.
+2026-04-10 21:54:05.594 +03:00 [INF] Removed connection 1Kt7AtoOy3NBTGnH3Spd3A for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "97df6d8c-9541-4ff3-a27f-8238aa7056c5"
+2026-04-10 21:54:07.091 +03:00 [INF] Getting lobbies
+2026-04-10 21:54:07.093 +03:00 [INF] Got lobbies
+2026-04-10 21:54:07.095 +03:00 [INF] sending lobbies
+2026-04-10 21:54:07.101 +03:00 [INF] Getting lobbies
+2026-04-10 21:54:07.102 +03:00 [INF] Got lobbies
+2026-04-10 21:54:07.103 +03:00 [INF] sending lobbies
+2026-04-10 21:54:08.085 +03:00 [INF] Created lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:54:08.123 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:08.126 +03:00 [INF] Tracking connection wQ67tZ_SHvZ9frSRwpnDmQ for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:08.131 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:08.134 +03:00 [INF] Tracking connection wQ67tZ_SHvZ9frSRwpnDmQ for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:09.695 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:54:10.433 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:10.434 +03:00 [INF] Tracking connection xZg6XsIbRFrH5q7Get4sVA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:10.435 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:54:18.731 +03:00 [INF] Race started in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:47.718 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:54:47.722 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby 7acbb357-e2b0-44b5-8947-b10afe1b5e0d.
+2026-04-10 21:54:47.723 +03:00 [INF] Removed connection xZg6XsIbRFrH5q7Get4sVA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "7acbb357-e2b0-44b5-8947-b10afe1b5e0d"
+2026-04-10 21:54:49.087 +03:00 [INF] Getting lobbies
+2026-04-10 21:54:49.089 +03:00 [INF] Got lobbies
+2026-04-10 21:54:49.090 +03:00 [INF] sending lobbies
+2026-04-10 21:54:49.095 +03:00 [INF] Getting lobbies
+2026-04-10 21:54:49.096 +03:00 [INF] Got lobbies
+2026-04-10 21:54:49.096 +03:00 [INF] sending lobbies
+2026-04-10 21:55:23.129 +03:00 [INF] Created lobby "13933d6e-ac9f-43eb-98c2-517fe756516c" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:55:23.155 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:23.157 +03:00 [INF] Tracking connection PPY7Gcedt7XvkwQgGuALhw for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:23.166 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:23.170 +03:00 [INF] Tracking connection PPY7Gcedt7XvkwQgGuALhw for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:24.291 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:55:25.002 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:25.004 +03:00 [INF] Tracking connection E-UV3aKIM1em-UPYcImXJg for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:25.005 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:55:28.335 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:55:28.340 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby 13933d6e-ac9f-43eb-98c2-517fe756516c.
+2026-04-10 21:55:28.341 +03:00 [INF] Removed connection E-UV3aKIM1em-UPYcImXJg for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "13933d6e-ac9f-43eb-98c2-517fe756516c"
+2026-04-10 21:55:29.548 +03:00 [INF] Getting lobbies
+2026-04-10 21:55:29.549 +03:00 [INF] Got lobbies
+2026-04-10 21:55:29.550 +03:00 [INF] sending lobbies
+2026-04-10 21:55:29.858 +03:00 [INF] Getting lobbies
+2026-04-10 21:55:29.859 +03:00 [INF] Got lobbies
+2026-04-10 21:55:29.861 +03:00 [INF] sending lobbies
+2026-04-10 21:55:40.191 +03:00 [INF] Created lobby "2fa3523a-fc13-4a79-a72e-e54501d42879" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:55:40.234 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:40.237 +03:00 [INF] Tracking connection k3EY9-A5sNajghESUpQ-ZA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:40.242 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:40.272 +03:00 [INF] Tracking connection k3EY9-A5sNajghESUpQ-ZA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:41.789 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:55:42.457 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:42.461 +03:00 [INF] Tracking connection Hfct4natEDp7xA34ddvu7g for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:42.461 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:55:44.904 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:55:44.910 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby 2fa3523a-fc13-4a79-a72e-e54501d42879.
+2026-04-10 21:55:44.912 +03:00 [INF] Removed connection Hfct4natEDp7xA34ddvu7g for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "2fa3523a-fc13-4a79-a72e-e54501d42879"
+2026-04-10 21:55:46.041 +03:00 [INF] Getting lobbies
+2026-04-10 21:55:46.042 +03:00 [INF] Got lobbies
+2026-04-10 21:55:46.044 +03:00 [INF] sending lobbies
+2026-04-10 21:55:46.353 +03:00 [INF] Getting lobbies
+2026-04-10 21:55:46.354 +03:00 [INF] Got lobbies
+2026-04-10 21:55:46.355 +03:00 [INF] sending lobbies
+2026-04-10 21:55:50.004 +03:00 [INF] Created lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:55:50.025 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:55:50.032 +03:00 [INF] Tracking connection UZnvs9_FuzW00QNMB16PyA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:55:50.035 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:55:50.048 +03:00 [INF] Tracking connection UZnvs9_FuzW00QNMB16PyA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:56:25.975 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:56:26.648 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:56:26.651 +03:00 [INF] Tracking connection km1RGOESnYKfL2bYDvoh0g for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:56:26.651 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 21:56:38.941 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:56:38.945 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby dbef9b5a-5d8c-48e1-af11-f423eb8fda36.
+2026-04-10 21:56:38.952 +03:00 [INF] Removed connection km1RGOESnYKfL2bYDvoh0g for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "dbef9b5a-5d8c-48e1-af11-f423eb8fda36"
+2026-04-10 21:56:40.110 +03:00 [INF] Getting lobbies
+2026-04-10 21:56:40.111 +03:00 [INF] Got lobbies
+2026-04-10 21:56:40.112 +03:00 [INF] sending lobbies
+2026-04-10 21:56:40.117 +03:00 [INF] Getting lobbies
+2026-04-10 21:56:40.118 +03:00 [INF] Got lobbies
+2026-04-10 21:56:40.120 +03:00 [INF] sending lobbies
+2026-04-10 21:58:18.706 +03:00 [INF] Created lobby "95597094-ae13-4a62-b8e0-792cfd371e7d" with host "8745b820-52c3-4f3a-b883-e4d25668a1ea"
+2026-04-10 21:58:18.752 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:18.754 +03:00 [INF] Tracking connection rFuLVh3V7cGe58ktkBj4dg for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:18.758 +03:00 [INF] Player "8745b820-52c3-4f3a-b883-e4d25668a1ea" joined lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:18.763 +03:00 [INF] Tracking connection rFuLVh3V7cGe58ktkBj4dg for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:20.489 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 21:58:21.320 +03:00 [INF] Cancelling pending removal for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:21.322 +03:00 [INF] Tracking connection j19Q8ev2mUhKWJzTq5VWXA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 21:58:21.322 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 22:03:50.533 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 22:03:50.534 +03:00 [INF] Storing pending removal failed for player 8745b820-52c3-4f3a-b883-e4d25668a1ea in lobby 95597094-ae13-4a62-b8e0-792cfd371e7d.
+2026-04-10 22:03:50.537 +03:00 [INF] Removed connection j19Q8ev2mUhKWJzTq5VWXA for player "8745b820-52c3-4f3a-b883-e4d25668a1ea" in lobby "95597094-ae13-4a62-b8e0-792cfd371e7d"
+2026-04-10 22:04:16.732 +03:00 [INF] Registered anonymous user "153a5705-261f-4776-a36b-5aa21576b58b" as dsafegre
+2026-04-10 22:04:17.712 +03:00 [INF] Getting lobbies
+2026-04-10 22:04:17.717 +03:00 [INF] Got lobbies
+2026-04-10 22:04:17.719 +03:00 [INF] sending lobbies
+2026-04-10 22:04:17.966 +03:00 [INF] Getting lobbies
+2026-04-10 22:04:17.969 +03:00 [INF] Got lobbies
+2026-04-10 22:04:17.971 +03:00 [INF] sending lobbies
+2026-04-10 22:04:18.542 +03:00 [INF] Created lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3" with host "153a5705-261f-4776-a36b-5aa21576b58b"
+2026-04-10 22:04:18.691 +03:00 [INF] Player "153a5705-261f-4776-a36b-5aa21576b58b" joined lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:18.699 +03:00 [INF] Tracking connection qTtGJEL1jTW1cgHQkn9tQw for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:18.749 +03:00 [INF] Player "153a5705-261f-4776-a36b-5aa21576b58b" joined lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:18.753 +03:00 [INF] Tracking connection qTtGJEL1jTW1cgHQkn9tQw for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:25.369 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 22:04:26.150 +03:00 [INF] Cancelling pending removal for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:26.154 +03:00 [INF] Tracking connection 1bs1soAjmcFJtkM4qMGV-A for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:26.155 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 22:04:31.690 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 22:04:32.436 +03:00 [INF] Cancelling pending removal for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:32.440 +03:00 [INF] Tracking connection j9ceSo3jhNsRdzozAzROZw for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:04:32.440 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 22:48:28.638 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 22:48:29.348 +03:00 [INF] Cancelling pending removal for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:48:29.349 +03:00 [INF] Tracking connection n3Sn8TgDJhRCTxQ-nlViiQ for player "153a5705-261f-4776-a36b-5aa21576b58b" in lobby "ed5b28f1-c136-489b-b5a8-9ab769e8aaf3"
+2026-04-10 22:48:29.349 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 22:48:50.278 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 22:59:02.091 +03:00 [INF] Getting lobbies
+2026-04-10 22:59:02.119 +03:00 [INF] Got lobbies
+2026-04-10 22:59:02.120 +03:00 [INF] sending lobbies
+2026-04-10 22:59:23.632 +03:00 [INF] Getting lobbies
+2026-04-10 22:59:23.633 +03:00 [INF] Got lobbies
+2026-04-10 22:59:23.634 +03:00 [INF] sending lobbies
+2026-04-10 22:59:24.804 +03:00 [INF] Getting lobbies
+2026-04-10 22:59:24.805 +03:00 [INF] Got lobbies
+2026-04-10 22:59:24.806 +03:00 [INF] sending lobbies
+2026-04-10 22:59:51.031 +03:00 [INF] Getting lobbies
+2026-04-10 22:59:51.032 +03:00 [INF] Got lobbies
+2026-04-10 22:59:51.033 +03:00 [INF] sending lobbies
+2026-04-10 22:59:52.208 +03:00 [INF] Getting lobbies
+2026-04-10 22:59:52.209 +03:00 [INF] Got lobbies
+2026-04-10 22:59:52.210 +03:00 [INF] sending lobbies
+2026-04-10 23:00:00.318 +03:00 [INF] Getting lobbies
+2026-04-10 23:00:00.319 +03:00 [INF] Got lobbies
+2026-04-10 23:00:00.320 +03:00 [INF] sending lobbies
+2026-04-10 23:22:44.007 +03:00 [INF] Registered anonymous user "43482e2a-791a-44d6-abc4-a36719bf0def" as fdwe
+2026-04-10 23:22:44.897 +03:00 [INF] Getting lobbies
+2026-04-10 23:22:44.899 +03:00 [INF] Got lobbies
+2026-04-10 23:22:44.900 +03:00 [INF] sending lobbies
+2026-04-10 23:22:45.160 +03:00 [INF] Getting lobbies
+2026-04-10 23:22:45.161 +03:00 [INF] Got lobbies
+2026-04-10 23:22:45.162 +03:00 [INF] sending lobbies
+2026-04-10 23:22:48.257 +03:00 [INF] Created lobby "8250398f-72de-4faf-99b6-77cd4f018785" with host "43482e2a-791a-44d6-abc4-a36719bf0def"
+2026-04-10 23:22:48.329 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "8250398f-72de-4faf-99b6-77cd4f018785"
+2026-04-10 23:22:48.332 +03:00 [INF] Tracking connection T8DJff5pWnuF1BUckwyTAg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "8250398f-72de-4faf-99b6-77cd4f018785"
+2026-04-10 23:22:48.352 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "8250398f-72de-4faf-99b6-77cd4f018785"
+2026-04-10 23:22:48.354 +03:00 [INF] Tracking connection T8DJff5pWnuF1BUckwyTAg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "8250398f-72de-4faf-99b6-77cd4f018785"
+2026-04-10 23:22:50.501 +03:00 [INF] Removed connection T8DJff5pWnuF1BUckwyTAg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "8250398f-72de-4faf-99b6-77cd4f018785"
+2026-04-10 23:22:51.036 +03:00 [INF] Getting lobbies
+2026-04-10 23:22:51.037 +03:00 [INF] Got lobbies
+2026-04-10 23:22:51.038 +03:00 [INF] sending lobbies
+2026-04-10 23:22:51.349 +03:00 [INF] Getting lobbies
+2026-04-10 23:22:51.350 +03:00 [INF] Got lobbies
+2026-04-10 23:22:51.351 +03:00 [INF] sending lobbies
+2026-04-10 23:22:52.378 +03:00 [INF] Created lobby "540761c0-d811-4845-921d-a92054116c1f" with host "43482e2a-791a-44d6-abc4-a36719bf0def"
+2026-04-10 23:22:52.391 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:52.393 +03:00 [INF] Tracking connection T8DJff5pWnuF1BUckwyTAg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:52.395 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:52.396 +03:00 [INF] Tracking connection T8DJff5pWnuF1BUckwyTAg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:58.250 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:22:58.860 +03:00 [INF] Cancelling pending removal for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:58.861 +03:00 [INF] Tracking connection 9-hSKPHOsp2P8FHT-AKBsg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:22:58.862 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:22:59.569 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:23:00.198 +03:00 [INF] Cancelling pending removal for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:00.199 +03:00 [INF] Tracking connection 8jrlSRFFts8LganwGqnZEA for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:00.200 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:23:00.961 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:23:01.585 +03:00 [INF] Cancelling pending removal for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:01.587 +03:00 [INF] Tracking connection 5kJmIL_yALl6DLX2P4fQgg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:01.587 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:23:03.533 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:23:04.164 +03:00 [INF] Cancelling pending removal for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:04.165 +03:00 [INF] Tracking connection jExfa48sKu5GVoN5v1rD4g for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:04.165 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:23:06.535 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:23:07.157 +03:00 [INF] Cancelling pending removal for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:07.158 +03:00 [INF] Tracking connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:23:07.158 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:23:10.399 +03:00 [INF] Getting lobbies
+2026-04-10 23:23:10.402 +03:00 [INF] Got lobbies
+2026-04-10 23:23:10.403 +03:00 [INF] sending lobbies
+2026-04-10 23:23:10.719 +03:00 [INF] Getting lobbies
+2026-04-10 23:23:10.720 +03:00 [INF] Got lobbies
+2026-04-10 23:23:10.721 +03:00 [INF] sending lobbies
+2026-04-10 23:36:07.177 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:36:07.179 +03:00 [INF] Tracking connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:36:07.181 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:36:07.182 +03:00 [INF] Tracking connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:36:10.537 +03:00 [INF] Getting lobbies
+2026-04-10 23:36:10.538 +03:00 [INF] Got lobbies
+2026-04-10 23:36:10.539 +03:00 [INF] sending lobbies
+2026-04-10 23:36:10.847 +03:00 [INF] Getting lobbies
+2026-04-10 23:36:10.848 +03:00 [INF] Got lobbies
+2026-04-10 23:36:10.849 +03:00 [INF] sending lobbies
+2026-04-10 23:37:36.876 +03:00 [INF] Getting lobbies
+2026-04-10 23:37:36.877 +03:00 [INF] Got lobbies
+2026-04-10 23:37:36.877 +03:00 [INF] sending lobbies
+2026-04-10 23:37:36.881 +03:00 [INF] Getting lobbies
+2026-04-10 23:37:36.881 +03:00 [INF] Got lobbies
+2026-04-10 23:37:36.882 +03:00 [INF] sending lobbies
+2026-04-10 23:37:46.863 +03:00 [INF] Getting lobbies
+2026-04-10 23:37:46.864 +03:00 [INF] Got lobbies
+2026-04-10 23:37:46.865 +03:00 [INF] sending lobbies
+2026-04-10 23:37:46.868 +03:00 [INF] Getting lobbies
+2026-04-10 23:37:46.869 +03:00 [INF] Got lobbies
+2026-04-10 23:37:46.869 +03:00 [INF] sending lobbies
+2026-04-10 23:38:02.867 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:02.868 +03:00 [INF] Got lobbies
+2026-04-10 23:38:02.868 +03:00 [INF] sending lobbies
+2026-04-10 23:38:02.871 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:02.872 +03:00 [INF] Got lobbies
+2026-04-10 23:38:02.873 +03:00 [INF] sending lobbies
+2026-04-10 23:38:50.238 +03:00 [INF] Registered anonymous user "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" as safd
+2026-04-10 23:38:51.073 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:51.074 +03:00 [INF] Got lobbies
+2026-04-10 23:38:51.075 +03:00 [INF] sending lobbies
+2026-04-10 23:38:51.336 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:51.336 +03:00 [INF] Got lobbies
+2026-04-10 23:38:51.337 +03:00 [INF] sending lobbies
+2026-04-10 23:38:51.728 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:51.730 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:51.732 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:51.733 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:54.762 +03:00 [INF] Removed connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:55.864 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:55.865 +03:00 [INF] Got lobbies
+2026-04-10 23:38:55.866 +03:00 [INF] sending lobbies
+2026-04-10 23:38:56.175 +03:00 [INF] Getting lobbies
+2026-04-10 23:38:56.176 +03:00 [INF] Got lobbies
+2026-04-10 23:38:56.177 +03:00 [INF] sending lobbies
+2026-04-10 23:38:58.040 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:58.041 +03:00 [INF] Tracking connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:58.043 +03:00 [INF] Player "43482e2a-791a-44d6-abc4-a36719bf0def" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:38:58.045 +03:00 [INF] Tracking connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:01.380 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:01.381 +03:00 [INF] Got lobbies
+2026-04-10 23:39:01.381 +03:00 [INF] sending lobbies
+2026-04-10 23:39:02.139 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:02.140 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:02.142 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:02.143 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:04.481 +03:00 [INF] Removed connection cBFTujbQwnNY62lPeEkqGg for player "43482e2a-791a-44d6-abc4-a36719bf0def" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:05.356 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:05.357 +03:00 [INF] Got lobbies
+2026-04-10 23:39:05.357 +03:00 [INF] sending lobbies
+2026-04-10 23:39:05.620 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:05.621 +03:00 [INF] Got lobbies
+2026-04-10 23:39:05.622 +03:00 [INF] sending lobbies
+2026-04-10 23:39:07.993 +03:00 [INF] Removed connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "540761c0-d811-4845-921d-a92054116c1f"
+2026-04-10 23:39:08.869 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:08.870 +03:00 [INF] Got lobbies
+2026-04-10 23:39:08.870 +03:00 [INF] sending lobbies
+2026-04-10 23:39:09.181 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:09.182 +03:00 [INF] Got lobbies
+2026-04-10 23:39:09.182 +03:00 [INF] sending lobbies
+2026-04-10 23:39:10.501 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:10.502 +03:00 [INF] Got lobbies
+2026-04-10 23:39:10.503 +03:00 [INF] sending lobbies
+2026-04-10 23:39:10.821 +03:00 [INF] Getting lobbies
+2026-04-10 23:39:10.822 +03:00 [INF] Got lobbies
+2026-04-10 23:39:10.823 +03:00 [INF] sending lobbies
+2026-04-10 23:40:49.035 +03:00 [INF] Created lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91" with host "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b"
+2026-04-10 23:40:49.055 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:49.056 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:49.057 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:49.058 +03:00 [INF] Tracking connection GRyU04jIesZWyiYjzatRPg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:49.060 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:40:56.490 +03:00 [INF] Cancelling pending removal for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:56.491 +03:00 [INF] Tracking connection UWTk8OQxJqCbzuzW3wMpmg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:56.491 +03:00 [INF] Fast reconnect for player happened
+2026-04-10 23:40:59.268 +03:00 [INF] Removed connection UWTk8OQxJqCbzuzW3wMpmg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6d41045e-787f-47d8-b1a5-a8a927b28c91"
+2026-04-10 23:40:59.797 +03:00 [INF] Getting lobbies
+2026-04-10 23:40:59.798 +03:00 [INF] Got lobbies
+2026-04-10 23:40:59.799 +03:00 [INF] sending lobbies
+2026-04-10 23:40:59.802 +03:00 [INF] Getting lobbies
+2026-04-10 23:40:59.803 +03:00 [INF] Got lobbies
+2026-04-10 23:40:59.804 +03:00 [INF] sending lobbies
+2026-04-10 23:41:24.185 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:24.186 +03:00 [INF] Got lobbies
+2026-04-10 23:41:24.187 +03:00 [INF] sending lobbies
+2026-04-10 23:41:24.447 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:24.448 +03:00 [INF] Got lobbies
+2026-04-10 23:41:24.448 +03:00 [INF] sending lobbies
+2026-04-10 23:41:32.441 +03:00 [INF] Created lobby "ab67e419-13d6-4c11-9525-f02bea400690" with host "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b"
+2026-04-10 23:41:32.454 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "ab67e419-13d6-4c11-9525-f02bea400690"
+2026-04-10 23:41:32.455 +03:00 [INF] Tracking connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "ab67e419-13d6-4c11-9525-f02bea400690"
+2026-04-10 23:41:32.457 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "ab67e419-13d6-4c11-9525-f02bea400690"
+2026-04-10 23:41:32.458 +03:00 [INF] Tracking connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "ab67e419-13d6-4c11-9525-f02bea400690"
+2026-04-10 23:41:41.333 +03:00 [INF] Registered anonymous user "7241d78c-bf49-4cce-888b-ac3914dc1137" as dsafas
+2026-04-10 23:41:42.163 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:42.164 +03:00 [INF] Got lobbies
+2026-04-10 23:41:42.165 +03:00 [INF] sending lobbies
+2026-04-10 23:41:42.429 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:42.430 +03:00 [INF] Got lobbies
+2026-04-10 23:41:42.431 +03:00 [INF] sending lobbies
+2026-04-10 23:41:42.852 +03:00 [INF] Removed connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "ab67e419-13d6-4c11-9525-f02bea400690"
+2026-04-10 23:41:43.398 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:43.399 +03:00 [INF] Got lobbies
+2026-04-10 23:41:43.399 +03:00 [INF] sending lobbies
+2026-04-10 23:41:43.708 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:43.709 +03:00 [INF] Got lobbies
+2026-04-10 23:41:43.710 +03:00 [INF] sending lobbies
+2026-04-10 23:41:44.951 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:44.952 +03:00 [INF] Got lobbies
+2026-04-10 23:41:44.953 +03:00 [INF] sending lobbies
+2026-04-10 23:41:45.012 +03:00 [INF] Getting lobbies
+2026-04-10 23:41:45.013 +03:00 [INF] Got lobbies
+2026-04-10 23:41:45.014 +03:00 [INF] sending lobbies
+2026-04-10 23:42:12.777 +03:00 [INF] Created lobby "6c6cc87f-47bd-4114-970c-3122dc54d723" with host "7241d78c-bf49-4cce-888b-ac3914dc1137"
+2026-04-10 23:42:12.787 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "6c6cc87f-47bd-4114-970c-3122dc54d723"
+2026-04-10 23:42:12.788 +03:00 [INF] Tracking connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6c6cc87f-47bd-4114-970c-3122dc54d723"
+2026-04-10 23:42:12.790 +03:00 [INF] Player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" joined lobby "6c6cc87f-47bd-4114-970c-3122dc54d723"
+2026-04-10 23:42:12.791 +03:00 [INF] Tracking connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6c6cc87f-47bd-4114-970c-3122dc54d723"
+2026-04-10 23:42:15.077 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:15.078 +03:00 [INF] Got lobbies
+2026-04-10 23:42:15.079 +03:00 [INF] sending lobbies
+2026-04-10 23:42:15.437 +03:00 [INF] Removed connection S01PzX1b18PqCJ_Z8GQFCg for player "557af4c1-930e-4bd1-b07f-bb38c2ea4d3b" in lobby "6c6cc87f-47bd-4114-970c-3122dc54d723"
+2026-04-10 23:42:15.969 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:15.970 +03:00 [INF] Got lobbies
+2026-04-10 23:42:15.971 +03:00 [INF] sending lobbies
+2026-04-10 23:42:16.280 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:16.281 +03:00 [INF] Got lobbies
+2026-04-10 23:42:16.282 +03:00 [INF] sending lobbies
+2026-04-10 23:42:16.964 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:16.965 +03:00 [INF] Got lobbies
+2026-04-10 23:42:16.965 +03:00 [INF] sending lobbies
+2026-04-10 23:42:17.017 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:17.018 +03:00 [INF] Got lobbies
+2026-04-10 23:42:17.019 +03:00 [INF] sending lobbies
+2026-04-10 23:42:32.322 +03:00 [INF] Registered anonymous user "8acd3f22-613c-42ec-931a-22bf3fb03b29" as sdafew
+2026-04-10 23:42:33.155 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:33.156 +03:00 [INF] Got lobbies
+2026-04-10 23:42:33.157 +03:00 [INF] sending lobbies
+2026-04-10 23:42:33.428 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:33.429 +03:00 [INF] Got lobbies
+2026-04-10 23:42:33.430 +03:00 [INF] sending lobbies
+2026-04-10 23:42:33.800 +03:00 [INF] Created lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475" with host "8acd3f22-613c-42ec-931a-22bf3fb03b29"
+2026-04-10 23:42:33.821 +03:00 [INF] Player "8acd3f22-613c-42ec-931a-22bf3fb03b29" joined lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475"
+2026-04-10 23:42:33.823 +03:00 [INF] Tracking connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475"
+2026-04-10 23:42:33.825 +03:00 [INF] Player "8acd3f22-613c-42ec-931a-22bf3fb03b29" joined lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475"
+2026-04-10 23:42:33.826 +03:00 [INF] Tracking connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475"
+2026-04-10 23:42:37.318 +03:00 [INF] Registered anonymous user "92afba9b-429c-48c9-9486-522abf1e567c" as fsadf
+2026-04-10 23:42:37.850 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:37.851 +03:00 [INF] Got lobbies
+2026-04-10 23:42:37.851 +03:00 [INF] sending lobbies
+2026-04-10 23:42:37.911 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:37.912 +03:00 [INF] Got lobbies
+2026-04-10 23:42:37.913 +03:00 [INF] sending lobbies
+2026-04-10 23:42:39.765 +03:00 [INF] Removed connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "9f1ee0a7-7f82-4cd8-99c4-f4b4012ff475"
+2026-04-10 23:42:41.184 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:41.185 +03:00 [INF] Got lobbies
+2026-04-10 23:42:41.186 +03:00 [INF] sending lobbies
+2026-04-10 23:42:41.211 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:41.212 +03:00 [INF] Got lobbies
+2026-04-10 23:42:41.213 +03:00 [INF] sending lobbies
+2026-04-10 23:42:41.448 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:41.449 +03:00 [INF] Got lobbies
+2026-04-10 23:42:41.450 +03:00 [INF] sending lobbies
+2026-04-10 23:42:41.528 +03:00 [INF] Getting lobbies
+2026-04-10 23:42:41.529 +03:00 [INF] Got lobbies
+2026-04-10 23:42:41.530 +03:00 [INF] sending lobbies
+2026-04-10 23:43:47.132 +03:00 [INF] Created lobby "c3c96cfc-9868-4671-869a-26d20097298b" with host "8acd3f22-613c-42ec-931a-22bf3fb03b29"
+2026-04-10 23:43:47.146 +03:00 [INF] Player "8acd3f22-613c-42ec-931a-22bf3fb03b29" joined lobby "c3c96cfc-9868-4671-869a-26d20097298b"
+2026-04-10 23:43:47.148 +03:00 [INF] Tracking connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "c3c96cfc-9868-4671-869a-26d20097298b"
+2026-04-10 23:43:47.150 +03:00 [INF] Player "8acd3f22-613c-42ec-931a-22bf3fb03b29" joined lobby "c3c96cfc-9868-4671-869a-26d20097298b"
+2026-04-10 23:43:47.152 +03:00 [INF] Tracking connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "c3c96cfc-9868-4671-869a-26d20097298b"
+2026-04-10 23:43:50.797 +03:00 [INF] Registered anonymous user "8e08c4f3-b8b2-4118-a0b3-f5b2b14d8e6b" as fasdfa
+2026-04-10 23:43:51.633 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:51.634 +03:00 [INF] Got lobbies
+2026-04-10 23:43:51.635 +03:00 [INF] sending lobbies
+2026-04-10 23:43:51.896 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:51.897 +03:00 [INF] Got lobbies
+2026-04-10 23:43:51.898 +03:00 [INF] sending lobbies
+2026-04-10 23:43:53.358 +03:00 [INF] Removed connection 9KjgozjjGCrxJjeatbk_6A for player "8acd3f22-613c-42ec-931a-22bf3fb03b29" in lobby "c3c96cfc-9868-4671-869a-26d20097298b"
+2026-04-10 23:43:54.740 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:54.741 +03:00 [INF] Got lobbies
+2026-04-10 23:43:54.742 +03:00 [INF] sending lobbies
+2026-04-10 23:43:54.865 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:54.866 +03:00 [INF] Got lobbies
+2026-04-10 23:43:54.867 +03:00 [INF] sending lobbies
+2026-04-10 23:43:55.053 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:55.054 +03:00 [INF] Got lobbies
+2026-04-10 23:43:55.054 +03:00 [INF] sending lobbies
+2026-04-10 23:43:55.180 +03:00 [INF] Getting lobbies
+2026-04-10 23:43:55.181 +03:00 [INF] Got lobbies
+2026-04-10 23:43:55.182 +03:00 [INF] sending lobbies
+2026-04-10 23:46:20.815 +03:00 [INF] Registered anonymous user "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" as dfg
+2026-04-10 23:46:21.671 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:21.672 +03:00 [INF] Got lobbies
+2026-04-10 23:46:21.673 +03:00 [INF] sending lobbies
+2026-04-10 23:46:21.934 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:21.935 +03:00 [INF] Got lobbies
+2026-04-10 23:46:21.935 +03:00 [INF] sending lobbies
+2026-04-10 23:46:24.918 +03:00 [INF] Registered anonymous user "256a8a76-4033-4531-a639-7dc19507e4b9" as sdafasdf
+2026-04-10 23:46:25.758 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:25.759 +03:00 [INF] Got lobbies
+2026-04-10 23:46:25.759 +03:00 [INF] sending lobbies
+2026-04-10 23:46:26.022 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:26.023 +03:00 [INF] Got lobbies
+2026-04-10 23:46:26.024 +03:00 [INF] sending lobbies
+2026-04-10 23:46:28.054 +03:00 [INF] Created lobby "2565829e-c346-499e-b06c-2973fe8d88a6" with host "90b54de6-c99e-4b67-9fed-1f2a61ff69d5"
+2026-04-10 23:46:28.070 +03:00 [INF] Player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" joined lobby "2565829e-c346-499e-b06c-2973fe8d88a6"
+2026-04-10 23:46:28.071 +03:00 [INF] Tracking connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "2565829e-c346-499e-b06c-2973fe8d88a6"
+2026-04-10 23:46:28.073 +03:00 [INF] Player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" joined lobby "2565829e-c346-499e-b06c-2973fe8d88a6"
+2026-04-10 23:46:28.075 +03:00 [INF] Tracking connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "2565829e-c346-499e-b06c-2973fe8d88a6"
+2026-04-10 23:46:31.724 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:31.725 +03:00 [INF] Got lobbies
+2026-04-10 23:46:31.725 +03:00 [INF] sending lobbies
+2026-04-10 23:46:36.055 +03:00 [INF] Removed connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "2565829e-c346-499e-b06c-2973fe8d88a6"
+2026-04-10 23:46:37.185 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:37.186 +03:00 [INF] Got lobbies
+2026-04-10 23:46:37.186 +03:00 [INF] sending lobbies
+2026-04-10 23:46:37.448 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:37.449 +03:00 [INF] Got lobbies
+2026-04-10 23:46:37.450 +03:00 [INF] sending lobbies
+2026-04-10 23:46:37.670 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:37.670 +03:00 [INF] Got lobbies
+2026-04-10 23:46:37.671 +03:00 [INF] sending lobbies
+2026-04-10 23:46:37.730 +03:00 [INF] Getting lobbies
+2026-04-10 23:46:37.731 +03:00 [INF] Got lobbies
+2026-04-10 23:46:37.732 +03:00 [INF] sending lobbies
+2026-04-10 23:48:39.789 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:39.789 +03:00 [INF] Got lobbies
+2026-04-10 23:48:39.790 +03:00 [INF] sending lobbies
+2026-04-10 23:48:39.793 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:39.794 +03:00 [INF] Got lobbies
+2026-04-10 23:48:39.795 +03:00 [INF] sending lobbies
+2026-04-10 23:48:41.127 +03:00 [INF] Created lobby "9ccfba93-8705-4897-b899-bc9c7c87949f" with host "90b54de6-c99e-4b67-9fed-1f2a61ff69d5"
+2026-04-10 23:48:41.140 +03:00 [INF] Player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" joined lobby "9ccfba93-8705-4897-b899-bc9c7c87949f"
+2026-04-10 23:48:41.141 +03:00 [INF] Tracking connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "9ccfba93-8705-4897-b899-bc9c7c87949f"
+2026-04-10 23:48:41.143 +03:00 [INF] Player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" joined lobby "9ccfba93-8705-4897-b899-bc9c7c87949f"
+2026-04-10 23:48:41.144 +03:00 [INF] Tracking connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "9ccfba93-8705-4897-b899-bc9c7c87949f"
+2026-04-10 23:48:41.862 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:41.863 +03:00 [INF] Got lobbies
+2026-04-10 23:48:41.863 +03:00 [INF] sending lobbies
+2026-04-10 23:48:41.866 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:41.867 +03:00 [INF] Got lobbies
+2026-04-10 23:48:41.868 +03:00 [INF] sending lobbies
+2026-04-10 23:48:42.522 +03:00 [INF] storing cancellationtoken for disconnect
+2026-04-10 23:48:45.817 +03:00 [INF] Registered anonymous user "92fd3c64-cbd1-469b-8052-51f14d79859f" as fasdfew
+2026-04-10 23:48:46.411 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:46.412 +03:00 [INF] Got lobbies
+2026-04-10 23:48:46.412 +03:00 [INF] sending lobbies
+2026-04-10 23:48:46.660 +03:00 [INF] Getting lobbies
+2026-04-10 23:48:46.661 +03:00 [INF] Got lobbies
+2026-04-10 23:48:46.662 +03:00 [INF] sending lobbies
+2026-04-10 23:48:57.537 +03:00 [INF] Removed connection Xb29KiFTz2yuRK72Yp_RkA for player "90b54de6-c99e-4b67-9fed-1f2a61ff69d5" in lobby "9ccfba93-8705-4897-b899-bc9c7c87949f"
+2026-04-10 23:49:02.997 +03:00 [INF] Registered anonymous user "e0ef3904-f25d-4b8a-96cb-ca9c3fa6f6e3" as fsd
+2026-04-10 23:49:03.835 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:03.836 +03:00 [INF] Got lobbies
+2026-04-10 23:49:03.837 +03:00 [INF] sending lobbies
+2026-04-10 23:49:04.099 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:04.100 +03:00 [INF] Got lobbies
+2026-04-10 23:49:04.101 +03:00 [INF] sending lobbies
+2026-04-10 23:49:05.633 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:05.634 +03:00 [INF] Got lobbies
+2026-04-10 23:49:05.635 +03:00 [INF] sending lobbies
+2026-04-10 23:49:07.591 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:07.592 +03:00 [INF] Got lobbies
+2026-04-10 23:49:07.593 +03:00 [INF] sending lobbies
+2026-04-10 23:49:08.578 +03:00 [INF] Created lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458" with host "92fd3c64-cbd1-469b-8052-51f14d79859f"
+2026-04-10 23:49:08.594 +03:00 [INF] Player "92fd3c64-cbd1-469b-8052-51f14d79859f" joined lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458"
+2026-04-10 23:49:08.595 +03:00 [INF] Tracking connection UB-OLuXB6Vqb9FCq1JjzMw for player "92fd3c64-cbd1-469b-8052-51f14d79859f" in lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458"
+2026-04-10 23:49:08.597 +03:00 [INF] Player "92fd3c64-cbd1-469b-8052-51f14d79859f" joined lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458"
+2026-04-10 23:49:08.598 +03:00 [INF] Tracking connection UB-OLuXB6Vqb9FCq1JjzMw for player "92fd3c64-cbd1-469b-8052-51f14d79859f" in lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458"
+2026-04-10 23:49:12.721 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:12.722 +03:00 [INF] Got lobbies
+2026-04-10 23:49:12.723 +03:00 [INF] sending lobbies
+2026-04-10 23:49:12.961 +03:00 [INF] Removed connection UB-OLuXB6Vqb9FCq1JjzMw for player "92fd3c64-cbd1-469b-8052-51f14d79859f" in lobby "2d41c95c-a05f-4ecc-becf-2ad5979a3458"
+2026-04-10 23:49:13.499 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:13.500 +03:00 [INF] Got lobbies
+2026-04-10 23:49:13.501 +03:00 [INF] sending lobbies
+2026-04-10 23:49:13.809 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:13.810 +03:00 [INF] Got lobbies
+2026-04-10 23:49:13.811 +03:00 [INF] sending lobbies
+2026-04-10 23:49:14.836 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:14.837 +03:00 [INF] Got lobbies
+2026-04-10 23:49:14.838 +03:00 [INF] sending lobbies
+2026-04-10 23:49:15.148 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:15.149 +03:00 [INF] Got lobbies
+2026-04-10 23:49:15.150 +03:00 [INF] sending lobbies
+2026-04-10 23:49:25.865 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:25.865 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:25.866 +03:00 [INF] Got lobbies
+2026-04-10 23:49:25.866 +03:00 [INF] Got lobbies
+2026-04-10 23:49:25.867 +03:00 [INF] sending lobbies
+2026-04-10 23:49:25.867 +03:00 [INF] sending lobbies
+2026-04-10 23:49:25.871 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:25.871 +03:00 [INF] Getting lobbies
+2026-04-10 23:49:25.872 +03:00 [INF] Got lobbies
+2026-04-10 23:49:25.872 +03:00 [INF] Got lobbies
+2026-04-10 23:49:25.873 +03:00 [INF] sending lobbies
+2026-04-10 23:49:25.873 +03:00 [INF] sending lobbies
+2026-04-10 23:51:17.861 +03:00 [INF] Getting lobbies
+2026-04-10 23:51:17.861 +03:00 [INF] Getting lobbies
+2026-04-10 23:51:17.862 +03:00 [INF] Got lobbies
+2026-04-10 23:51:17.862 +03:00 [INF] Got lobbies
+2026-04-10 23:51:17.863 +03:00 [INF] sending lobbies
+2026-04-10 23:51:17.864 +03:00 [INF] sending lobbies
+2026-04-10 23:51:17.867 +03:00 [INF] Getting lobbies
+2026-04-10 23:51:17.867 +03:00 [INF] Getting lobbies
+2026-04-10 23:51:17.868 +03:00 [INF] Got lobbies
+2026-04-10 23:51:17.868 +03:00 [INF] Got lobbies
+2026-04-10 23:51:17.869 +03:00 [INF] sending lobbies
+2026-04-10 23:51:17.870 +03:00 [INF] sending lobbies

@@ -67,7 +67,7 @@ function Lobby() {
                   {race.tier.label}
                 </div>
               )}
-            <dev className="tier">fdsafasdf</dev>
+            <div className="tier">fdsafasdf</div>
             <div className="countdown-overlay">{race.countdown}</div>
             {race.raceResults ? (
               <RaceResults

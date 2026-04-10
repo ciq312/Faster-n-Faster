@@ -8,14 +8,17 @@ export function useFetchProfile() {
   const [profileData, setProfileData] = useState(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const getProfile = async () => {
       try {
+        console.log(`getting profile`);
         const token = localStorage.getItem("token");
         const response = await fetch(`/api/users/me`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          signal: controller.signal,
         });
         if (!response.ok) {
           showError(await extractError(response));
@@ -24,13 +27,16 @@ export function useFetchProfile() {
         const data = await response.json();
         setProfileData(data.dto);
       } catch {
-        showError("Could not connect to server");
+        if (!controller.signal.aborted)
+          showError("Could not connect to server");
       } finally {
-        setIsPending(false);
+        if (!controller.signal.aborted) setIsPending(false);
       }
     };
 
     getProfile();
+
+    return () => controller.abort();
   }, []);
 
   return { profileData, isPending };
