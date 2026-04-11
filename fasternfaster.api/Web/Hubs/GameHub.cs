@@ -291,6 +291,9 @@ public class GameHub(
             }
 
             var lobby = lobbyStore.Get(lobbyId);
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
             if (lobby != null)
                 await broadcaster.BroadcastLobbyState(lobby);
 
@@ -340,6 +343,9 @@ public class GameHub(
             }
 
             var lobby = lobbyStore.Get(lobbyId);
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
             if (lobby != null)
                 await broadcaster.BroadcastLobbyState(lobby);
 

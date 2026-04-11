@@ -25,10 +25,10 @@ export function useRace() {
     { min: 60, label: "You are not bad at all" },
     { min: 50, label: "You've used the keyboard" },
     { min: 40, label: "You are an average" },
-    { min: 30, label: "You are slightly faster than a turtle" },
+    { min: 30, label: "Faster than a turtle" },
     { min: 20, label: "My grandma does better" },
     { min: 10, label: "So you can type, huh?" },
-    { min: 0, label: "Type your first word" },
+    { min: 0, label: "Start Typing already" },
   ];
 
   const getTier = (value, tiers) => tiers.find((t) => value >= t.min) ?? null;
@@ -75,6 +75,7 @@ export function useRace() {
         );
       }),
       subscribe("RaceState", (state) => {
+        console.log(state.players);
         setRaceParticipants(state.players);
         setTier(
           getTier(state.players.find((p) => isSelf(p.playerId)).wpm, tiers),

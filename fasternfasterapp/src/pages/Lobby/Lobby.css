@@ -112,6 +112,36 @@
   overflow: visible;
 }
 
+.lobby-player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lobby-player-row__wpm {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 3px 8px;
+  background: var(--amber-muted);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.lobby-player-row__wpm-value {
+  color: var(--amber);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.lobby-player-row__wpm-unit {
+  color: var(--text-3);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* ── Game area ── */
 
 .lobby-game {
@@ -120,7 +150,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 30px;
 }
 
 .lobby-game__typing-area {
@@ -215,49 +245,94 @@
 /* ── Tier message ── */
 
 .tier {
-  --shake: 32px;
+  --shake: 0px;
+
+  align-self: center;
+
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--error-light);
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  font-size: 2vw;
+  line-height: 1;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   text-align: center;
-  padding: 6px 18px;
-  animation: tierShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  white-space: nowrap;
+
+  color: var(--amber);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+
+  padding: 8px 18px;
+  margin-top: -32px;
+  margin-bottom: 28px;
+
+  transform: skewX(-6deg);
+  transform-origin: center;
+
+  animation:
+    tierSlam 0.55s cubic-bezier(0.16, 1, 0.3, 1) both,
+    tierShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) 0.05s both;
 }
 
+@keyframes tierSlam {
+  0% {
+    opacity: 0;
+    transform: skewX(-6deg) scale(1.35);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: skewX(-6deg) scale(0.97);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: skewX(-6deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* horizontal shake driven by margin so it composes with the skew transform */
 @keyframes tierShake {
   0%,
   100% {
-    transform: translateX(0);
+    margin-left: 0;
+    margin-right: 0;
   }
   10% {
-    transform: translateX(calc(-1 * var(--shake)));
+    margin-left: calc(-2 * var(--shake));
+    margin-right: calc(2 * var(--shake));
   }
   20% {
-    transform: translateX(var(--shake));
+    margin-left: calc(2 * var(--shake));
+    margin-right: calc(-2 * var(--shake));
   }
   30% {
-    transform: translateX(calc(-0.8 * var(--shake)));
+    margin-left: calc(-1.6 * var(--shake));
+    margin-right: calc(1.6 * var(--shake));
   }
   40% {
-    transform: translateX(calc(0.8 * var(--shake)));
+    margin-left: calc(1.6 * var(--shake));
+    margin-right: calc(-1.6 * var(--shake));
   }
   50% {
-    transform: translateX(calc(-0.5 * var(--shake)));
+    margin-left: calc(-1 * var(--shake));
+    margin-right: calc(1 * var(--shake));
   }
   60% {
-    transform: translateX(calc(0.5 * var(--shake)));
+    margin-left: calc(1 * var(--shake));
+    margin-right: calc(-1 * var(--shake));
   }
   70% {
-    transform: translateX(calc(-0.3 * var(--shake)));
+    margin-left: calc(-0.6 * var(--shake));
+    margin-right: calc(0.6 * var(--shake));
   }
   80% {
-    transform: translateX(calc(0.3 * var(--shake)));
+    margin-left: calc(0.6 * var(--shake));
+    margin-right: calc(-0.6 * var(--shake));
   }
   90% {
-    transform: translateX(calc(-0.1 * var(--shake)));
+    margin-left: calc(-0.2 * var(--shake));
+    margin-right: calc(0.2 * var(--shake));
   }
 }
 
