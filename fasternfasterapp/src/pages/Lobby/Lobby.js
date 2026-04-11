@@ -46,17 +46,31 @@ function Lobby() {
         <div className="lobby-arena">
           <div className="lobby-players-col">
             {lobby.players.slice(0, half).map((p) => (
-              <LobbyPlayerCard
-                key={p.id}
-                player={p}
-                colors={lobby.colors}
-                changeColor={lobby.changeColor}
-                isSelf={lobby.isSelf(p.id)}
-              />
+              <div key={p.id} className="lobby-player-row">
+                <LobbyPlayerCard
+                  player={p}
+                  colors={lobby.colors}
+                  changeColor={lobby.changeColor}
+                  isSelf={lobby.isSelf(p.id)}
+                />
+                {race.raceParticipants.find((rp) => rp.playerId === p.id) && (
+                  <div className="lobby-player-row__wpm">
+                    <span className="lobby-player-row__wpm-value">
+                      {Math.round(
+                        race.raceParticipants.find((rp) => rp.playerId === p.id)
+                          .wpm,
+                      )}
+                    </span>
+                    <span className="lobby-player-row__wpm-unit">wpm</span>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
           <div className="lobby-game">
+            <div className="countdown-overlay">{race.countdown}</div>
+
             {race.tier &&
               race.raceParticipants.find((p) => lobby.isSelf(p.playerId)) && (
                 <div
@@ -67,8 +81,7 @@ function Lobby() {
                   {race.tier.label}
                 </div>
               )}
-            <div className="tier">fdsafasdf</div>
-            <div className="countdown-overlay">{race.countdown}</div>
+
             {race.raceResults ? (
               <RaceResults
                 results={race.raceResults}
@@ -84,9 +97,7 @@ function Lobby() {
                 selfId={lobby.selfId}
               />
             ) : (
-              <div className="lobby-game__waiting">
-                waiting for host to start the race...
-              </div>
+              <div className="lobby-game__waiting">Loading...</div>
             )}
             {!(race.isRaceStarting || race.isRacing || race.raceResults) &&
               lobby.isHost && (
