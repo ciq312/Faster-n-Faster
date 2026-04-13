@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 using FasterNFaster.Api.UseCases.Services;
@@ -12,7 +13,8 @@ public class CreateLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var passageProvider = new RandomPassageProvider();
-        var handler = new CreateLobbyHandler(store, passageProvider);
+        var serviceProvider = new FakeLobbyService();
+        var handler = new CreateLobbyHandler(store, passageProvider, serviceProvider);
         var hostId = Guid.NewGuid();
 
         var result = await handler.Handle(
@@ -27,7 +29,8 @@ public class CreateLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var passageProvider = new RandomPassageProvider();
-        var handler = new CreateLobbyHandler(store, passageProvider);
+        var serviceProvider = new FakeLobbyService();
+        var handler = new CreateLobbyHandler(store, passageProvider, serviceProvider);
         var hostId = Guid.NewGuid();
 
         var result = await handler.Handle(
@@ -37,5 +40,17 @@ public class CreateLobbyHandlerTests
         Assert.NotNull(stored);
         Assert.Equal("My Lobby", stored.Name);
         Assert.Equal(hostId, stored.HostId);
+    }
+
+    [Fact]
+    public async Task CreateLobby_ShouldNotAllowCreateLobbyWhenInLobby()
+    {
+        User host = new User("test");
+        var res = await LobbyFactory.WithPlayers(host);
+
+        var handler = new CreateLobbyHandler(res.Store, new RandomPassageProvider(), res.LobbyService);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(new CreateLobbyCommand("test2", false, host.Id)));
+
     }
 }

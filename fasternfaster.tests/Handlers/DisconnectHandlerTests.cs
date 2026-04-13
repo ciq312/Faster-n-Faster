@@ -1,63 +1,49 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.Api.UseCases.Services;
 
 namespace FasterNFaster.Tests.Handlers;
 
 public class DisconnectHandlerTests
 {
-    private (DisconnectHandler handler, FakeLobbyStore store, FakeLobbyService lobbyService, FakeRaceTickRegistry registry, Lobby lobby)
-        SetupWithPlayers(params User[] users)
-    {
-        var store = new FakeLobbyStore();
-        var lobbyService = new FakeLobbyService();
-        var registry = new FakeRaceTickRegistry();
-        var handler = new DisconnectHandler(store, lobbyService, registry);
-
-        var lobby = new Lobby("Test", false, new WordRace(50));
-        lobby.AssignHost(users[0].Id);
-        foreach (var user in users)
-            lobby.AddPlayer(user);
-        store.Seed(lobby);
-
-        return (handler, store, lobbyService, registry, lobby);
-    }
-
     [Fact]
     public async Task Disconnect_LobbyNotFound_ShouldThrow()
     {
-        var store = new FakeLobbyStore();
-        var lobbyService = new FakeLobbyService();
-        var registry = new FakeRaceTickRegistry();
+        var store = new LobbyStore();
+        var lobbyService = new LobbyService();
+        var registry = new RaceTickRegistry();
         var handler = new DisconnectHandler(store, lobbyService, registry);
 
+        var connId = "conn-missing";
+        lobbyService.TrackConnection(connId, Guid.NewGuid(), Guid.NewGuid());
+
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => handler.Handle(new DisconnectCommand("conn1", Guid.NewGuid(), Guid.NewGuid())));
+            () => handler.Handle(new DisconnectCommand(connId, Guid.NewGuid(), Guid.NewGuid())));
     }
 
     [Fact]
     public async Task Disconnect_PlayerNotInLobby_ShouldThrow()
     {
-        var store = new FakeLobbyStore();
-        var lobbyService = new FakeLobbyService();
-        var registry = new FakeRaceTickRegistry();
-        var handler = new DisconnectHandler(store, lobbyService, registry);
-        var lobby = new Lobby("Test", false, new WordRace(50));
-        store.Seed(lobby);
+        var ctx = await LobbyFactory.Empty(Guid.NewGuid());
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
+
+        var unknownPlayerId = Guid.NewGuid();
+        ctx.LobbyService.TrackConnection("conn-fake", ctx.LobbyId, unknownPlayerId);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => handler.Handle(new DisconnectCommand("conn1", lobby.Id, Guid.NewGuid())));
+            () => handler.Handle(new DisconnectCommand("conn-fake", ctx.LobbyId, unknownPlayerId)));
     }
 
     [Fact]
     public async Task Disconnect_ShouldRemovePlayerFromLobby()
     {
-        var host = new User("Host", "host", "pass");
-        var (handler, store, _, _, lobby) = SetupWithPlayers(host);
+        var host = new User("Host", "hostlogin", "password");
+        var ctx = await LobbyFactory.WithPlayers(host);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
+        var lobby = ctx.Lobby;
 
-        await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, host.Id)!;
+        await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, host.Id));
 
         Assert.False(lobby.IsPlayerInLobby(host.Id));
     }
@@ -67,13 +53,15 @@ public class DisconnectHandlerTests
     {
         var host = new User("Host", "hostlogin", "password");
         var player2 = new User("Player2", "player2login", "password");
-        var (handler, _, _, _, lobby) = SetupWithPlayers(host, player2);
+        var ctx = await LobbyFactory.WithPlayers(host, player2);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
 
-        var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, host.Id)!;
+        var result = await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, host.Id));
 
         Assert.Equal(player2.Id, result.NewHostId);
-        Assert.Equal(player2.Id, lobby.HostId);
-        Assert.False(lobby.IsPlayerInLobby(host.Id));
+        Assert.Equal(player2.Id, ctx.Lobby.HostId);
+        Assert.False(ctx.Lobby.IsPlayerInLobby(host.Id));
     }
 
     [Fact]
@@ -81,28 +69,33 @@ public class DisconnectHandlerTests
     {
         var host = new User("Host", "hostlogin", "password");
         var player2 = new User("Player2", "player2login", "password");
-        var (handler, _, _, _, lobby) = SetupWithPlayers(host, player2);
+        var ctx = await LobbyFactory.WithPlayers(host, player2);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
 
-        var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, player2.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, player2.Id)!;
+        var result = await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, player2.Id));
 
         Assert.Null(result.NewHostId);
-        Assert.Equal(host.Id, lobby.HostId);
-        Assert.False(lobby.IsPlayerInLobby(player2.Id));
+        Assert.Equal(host.Id, ctx.Lobby.HostId);
+        Assert.False(ctx.Lobby.IsPlayerInLobby(player2.Id));
     }
 
     [Fact]
     public async Task Disconnect_LastPlayerDuringRace_ShouldDeregisterTicks()
     {
         var host = new User("Host", "hostlogin", "password");
-        var (handler, _, _, registry, lobby) = SetupWithPlayers(host);
+        var ctx = await LobbyFactory.WithPlayers(host);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
 
+        var lobby = ctx.Lobby;
         lobby.Race.Start(lobby.Players.Where(p => p.IsConnected).Select(p => (p.User.Id, p.Color, p.User.Nick)));
-        registry.RegisterLobby(lobby.Id);
+        ctx.Registry.RegisterLobby(ctx.LobbyId);
 
-        var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, host.Id)!;
+        var result = await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, host.Id));
 
         Assert.True(result.ShouldDeregisterTicks);
-        Assert.False(registry.IsRegistered(lobby.Id));
+        Assert.DoesNotContain(ctx.Registry.GetRacingLobbies(), e => e.LobbyId == ctx.LobbyId);
     }
 
     [Fact]
@@ -110,23 +103,30 @@ public class DisconnectHandlerTests
     {
         var host = new User("Host", "hostlogin", "password");
         var player2 = new User("Player2", "player2login", "password");
-        var (handler, _, _, registry, lobby) = SetupWithPlayers(host, player2);
+        var ctx = await LobbyFactory.WithPlayers(host, player2);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
 
+        var lobby = ctx.Lobby;
         lobby.Race.Start(lobby.Players.Where(p => p.IsConnected).Select(p => (p.User.Id, p.Color, p.User.Nick)));
-        registry.RegisterLobby(lobby.Id);
+        ctx.Registry.RegisterLobby(ctx.LobbyId);
 
-        var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, host.Id)!;
+        var result = await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, host.Id));
 
         Assert.False(result.ShouldDeregisterTicks);
-        Assert.True(registry.IsRegistered(lobby.Id));
+        Assert.Contains(ctx.Registry.GetRacingLobbies(), e => e.LobbyId == ctx.LobbyId);
     }
+
     [Fact]
     public async Task Disconnect_LastPlayerInLobby_ShouldRemoveLobby()
     {
         var host = new User("Host", "hostlogin", "password");
-        var (handler, store, lobbyService, _, lobby) = SetupWithPlayers(host);
-        var result = await handler.Handle(new DisconnectCommand("conn1", lobby.Id, host.Id));
+        var ctx = await LobbyFactory.WithPlayers(host);
+        var handler = new DisconnectHandler(ctx.Store, ctx.LobbyService, ctx.Registry);
 
-        Assert.Null(store.Get(lobby.Id));
+        var connId = ctx.LobbyService.GetConnectionId(ctx.LobbyId, host.Id)!;
+        await handler.Handle(new DisconnectCommand(connId, ctx.LobbyId, host.Id));
+
+        Assert.Null(ctx.Store.Get(ctx.LobbyId));
     }
 }

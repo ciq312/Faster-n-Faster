@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractError } from "../../../shared/utils/extractError";
 
 export function useFetchProfile() {
+  const navigate = useNavigate();
   const [isPending, setIsPending] = useState(true);
   const { showError } = useError();
   const [profileData, setProfileData] = useState(null);
@@ -27,10 +29,15 @@ export function useFetchProfile() {
         const data = await response.json();
         setProfileData(data.dto);
       } catch {
-        if (!controller.signal.aborted)
+        if (!controller.signal.aborted) {
           showError("Could not connect to server");
+          navigate("/");
+        }
       } finally {
-        if (!controller.signal.aborted) setIsPending(false);
+        if (!controller.signal.aborted) {
+          setIsPending(false);
+          navigate("/lobbies");
+        }
       }
     };
 

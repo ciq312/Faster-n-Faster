@@ -31,17 +31,15 @@ public class JoinLobbyHandler(ILobbyStore lobbyStore, IUserRepository userRepo, 
             return new JoinLobbyResult(IsReconnect: true);
         }
 
-        // Existing players (e.g. page refresh) bypass invite code check
         if (!lobby.IsPlayerInLobby(command.PlayerId))
         {
             if (lobby.LobbySettings.IsPrivate &&
                 !string.Equals(lobby.LobbySettings.InviteCode, command.InviteCode, StringComparison.OrdinalIgnoreCase))
-            {
                 throw new InvalidOperationException("Invalid invite code.");
-            }
+
 
             var user = await userRepo.GetByIdAsync(command.PlayerId) ?? throw new UserNotFoundException(command.PlayerId);
-            lobby.AddPlayer(user!);
+            lobby.AddPlayer(user);
         }
 #if DEBUG
         Log.Information("Player {PlayerId} joined lobby {LobbyId}", command.PlayerId, lobby.Id);

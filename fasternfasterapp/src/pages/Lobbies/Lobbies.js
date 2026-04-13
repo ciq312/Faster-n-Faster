@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFetchLobbies } from "../../features/lobbies/hooks/useFetchLobbies";
-import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
-import Navbar from "../../shared/components/Navbar/Navbar";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
-import "./Lobbies.css";
+import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
+import { useFetchLobbies } from "../../features/lobbies/hooks/useFetchLobbies";
 import { useError } from "../../shared/components/BannerProvider";
+import Navbar from "../../shared/components/Navbar/Navbar";
+import "./Lobbies.css";
 
 function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
@@ -35,7 +35,7 @@ function Lobbies() {
       );
 
       if (!response.ok) {
-        showError("Invalid invote code");
+        showError("Invalid invite code");
         return;
       }
 

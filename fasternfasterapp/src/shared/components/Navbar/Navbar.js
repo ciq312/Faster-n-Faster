@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useLobbyContext } from "../../../features/game/hooks/LobbyProvider";
 import "./Navbar.css";
 
@@ -10,7 +10,9 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="navbar__logo">faster'n'faster</div>
+      <NavLink to="/" className="navbar__logo">
+        faster'n'faster
+      </NavLink>
       <div className="navbar__links">
         <NavLink to="/lobbies" className="navbar__link">
           lobbies

@@ -14,17 +14,21 @@ public class LeaderboardServiceTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        List<User> users = new List<User>();
         List<PlayerStatistics> statistics = new List<PlayerStatistics>();
 
         for (int i = 1; i <= 5; i++)
         {
-            PlayerStatistics stat = new PlayerStatistics(Guid.NewGuid());
-            RaceParticipantResult result = new RaceParticipantResult(Guid.TryParse(i.ToString(), out Guid id) ? id : Guid.NewGuid(), stat.Id, $"Player{i}", i * 10, 95 - i, i * 5, i * 20, i);
+            User user = new User($"Player{i}");
+            PlayerStatistics stat = new PlayerStatistics(user.Id);
+            RaceParticipantResult result = new RaceParticipantResult(Guid.NewGuid(), stat.Id, user.Nick, i * 10, 95 - i, i * 5, i * 20, i);
             stat.RegisterRace(result);
+            users.Add(user);
             statistics.Add(stat);
         }
 
         using var context = new AppDbContext(_options);
+        context.Users.AddRange(users);
         context.Statistics.AddRange(statistics);
         await context.SaveChangesAsync();
     }
@@ -34,6 +38,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetTopPlayersAsync_ReturnsSortedPlayers()
     {
+
         using var context = new AppDbContext(_options);
         var service = new LeaderboardService(context);
 
@@ -54,6 +59,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetTopPlayersAsync_ReturnsSortedPlayersAsc()
     {
+
         using var context = new AppDbContext(_options);
         var service = new LeaderboardService(context);
 
