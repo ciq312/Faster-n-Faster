@@ -13,7 +13,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         repo.Seed(new User("Existing", "taken", "pass123"));
-        var handler = new RegisterUserHadnler(repo);
+        var handler = new RegisterUserHandler(repo);
 
         await Assert.ThrowsAsync<DuplicateLoginException>(
             () => handler.Handle(new RegisterUserCommand("NewNick", "taken", "pass123"))
@@ -25,7 +25,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         repo.Seed(new User("TakenNick", "existinglogin", "pass123"));
-        var handler = new RegisterUserHadnler(repo);
+        var handler = new RegisterUserHandler(repo);
 
         await Assert.ThrowsAsync<DuplicateNickException>(
             () => handler.Handle(new RegisterUserCommand("TakenNick", "newlogin", "pass123"))
@@ -36,7 +36,7 @@ public class RegisterUserHandlerTests
     public async Task ValidNewUser_ShouldReturnTokenAndId()
     {
         var repo = new FakeUserRepository();
-        var handler = new RegisterUserHadnler(repo);
+        var handler = new RegisterUserHandler(repo);
 
         var result = await handler.Handle(new RegisterUserCommand("Player1", "mylogin", "pass123"));
 

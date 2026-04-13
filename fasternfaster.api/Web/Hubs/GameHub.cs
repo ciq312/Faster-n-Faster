@@ -22,7 +22,7 @@ public class GameHub(
     LobbyStateBroadcaster broadcaster,
     IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
     IHandler<StartRaceCommand> startRaceHandler,
-    IHandler<TransferHostCommand> transferHostHandler,
+    IHandler<TransferHostCommand, TransferHostResult> transferHostHandler,
     IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
     IHandler<UpdateProgressCommand> updateProgressHandler,
     IHandler<DisconnectCommand, DisconnectResult> disconnectHandler,
@@ -36,7 +36,7 @@ public class GameHub(
 
     private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler = joinHandler;
     private readonly IHandler<StartRaceCommand> startRaceHandler = startRaceHandler;
-    private readonly IHandler<TransferHostCommand> transferHostHandler = transferHostHandler;
+    private readonly IHandler<TransferHostCommand, TransferHostResult> transferHostHandler = transferHostHandler;
     private readonly IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler = kickPlayerHandler;
     private readonly IHandler<UpdateProgressCommand> updateProgressHandler = updateProgressHandler;
     private readonly IHandler<DisconnectCommand, DisconnectResult> disconnectHandler = disconnectHandler;
@@ -191,9 +191,9 @@ public class GameHub(
         {
             var (userId, lobbyId, groupName) = GetCallerContext();
 
-            await transferHostHandler.Handle(new TransferHostCommand(userId, lobbyId, targetPlayerId));
+            TransferHostResult result = await transferHostHandler.Handle(new TransferHostCommand(userId, lobbyId, targetPlayerId));
 
-            await Clients.Group(groupName).SendAsync("HostChanged", new { newHostPlayerId = targetPlayerId });
+            await Clients.Group(groupName).SendAsync("HostChanged", new { newHostNick = result.Nick });
 
             logger.LogInformation("Host transferred from {OldHost} to {NewHost} in lobby {LobbyId}",
                 userId, targetPlayerId, lobbyId);

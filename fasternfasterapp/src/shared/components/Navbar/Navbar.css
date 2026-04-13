@@ -18,6 +18,7 @@
   font-weight: 800;
   color: var(--text-1);
   letter-spacing: -0.5px;
+  text-decoration: none;
 }
 
 .navbar__links {
@@ -103,7 +104,11 @@
 }
 
 @keyframes lobbyPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
-

@@ -52,6 +52,9 @@ function Lobby() {
                   colors={lobby.colors}
                   changeColor={lobby.changeColor}
                   isSelf={lobby.isSelf(p.id)}
+                  kickPlayer={lobby.kickPlayer}
+                  transferHost={lobby.transferHost}
+                  isHost={lobby.isHost}
                 />
                 {race.raceParticipants.find((rp) => rp.playerId === p.id) && (
                   <div className="lobby-player-row__wpm">

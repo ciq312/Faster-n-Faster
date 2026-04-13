@@ -72,7 +72,7 @@ public class JoinLobbyHandlerTests
         await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
         await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
 
-        Assert.Single(lobby.Players.Where(p => p.User.Id == user.Id));
+        Assert.Single(lobby.Players, p => p.User.Id == user.Id);
     }
 
     [Fact]

@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
-import { extractError } from "../../../shared/utils/extractError";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
+import { extractError } from "../../../shared/utils/extractError";
 
 export function useFetchLeaderboard() {
+  const navigate = useNavigate();
   const { showError } = useError();
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,8 @@ export function useFetchLeaderboard() {
           return;
         }
         const data = await response.json();
+        await new Promise((res) => setTimeout(() => res(), 300));
+
         setPlayers(data.results);
       } catch {
         showError("Could not connect to server");

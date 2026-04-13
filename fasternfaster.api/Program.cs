@@ -16,7 +16,6 @@ using FasterNFaster.Api.Web.Lobbies.LobbyState;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true)
     .CreateLogger();
 
 if (File.Exists(".env"))

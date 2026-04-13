@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobbies;
 
 namespace FasterNFaster.Api.Infrastructure;
 
@@ -7,8 +8,6 @@ public interface IUserRepository
     Task AddAsync(User user);
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByTokenAsync(string token);
-
-
     Task<bool> DoUserExistByNickAsync(string nick);
 
     Task<User?> GetUserByLoginAsync(string login);

@@ -7,14 +7,17 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 
-public class CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passageProvider) : IHandler<CreateLobbyCommand, CreateLobbyResult>
+public class CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passageProvider, ILobbyService lobbyService) : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     const int DEFAULT_PASSAGE_LENGTH = 50;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IPassageProvider passageProvider = passageProvider;
+    private readonly ILobbyService lobbyService = lobbyService;
 
     public async Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
     {
+        if (lobbyService.IsPlayerInLobby(command.HostId)) throw new InvalidOperationException("Can't create lobby in lobby");
+
         var passage = await passageProvider.GetPassageAsync(DEFAULT_PASSAGE_LENGTH);
 
         var race = new WordRace(DEFAULT_PASSAGE_LENGTH);

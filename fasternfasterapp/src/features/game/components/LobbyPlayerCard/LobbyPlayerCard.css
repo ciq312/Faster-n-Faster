@@ -52,16 +52,7 @@
 }
 
 .player-card__color--self {
-  width: 15px;
-  height: 15px;
-  border-radius: 30%;
-  border: 2px solid rgb(66, 66, 66);
-  flex-shrink: 0;
   cursor: pointer;
-  box-shadow: inset 0 0 0 20px rgba(0, 0, 0, 0.1);
-  transition:
-    opacity 0.15s,
-    transform 0.15s;
 }
 
 .player-card__choose:hover {
@@ -119,4 +110,45 @@
   border-radius: 3px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+}
+
+/* ── Host actions dropdown ── */
+
+.host-actions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.host-actions__btn {
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.host-actions__btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-1);
+}
+
+.host-actions__btn--kick:hover {
+  color: var(--error, #e55);
 }

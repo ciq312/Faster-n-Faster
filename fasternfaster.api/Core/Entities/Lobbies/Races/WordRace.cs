@@ -16,10 +16,10 @@ public class WordRace : Race
 
     public override List<ParticipantSnapshot> GetSnapshot()
     {
-        List<ParticipantSnapshot> snapshot = new();
-        foreach (var participant in Participants.Values) snapshot.Add(new ParticipantSnapshot(participant.Id, participant.Index, participant.GetWPM(), participant.Color, participant.Nick));
-
-        return snapshot;
+        return Participants.Values
+      .Where(p => !p.IsFinished)
+      .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.GetWPM(), p.Color, p.Nick))
+      .ToList();
     }
 
     public override void ProcessUpdate(Guid playerId, int index, int mistakes)

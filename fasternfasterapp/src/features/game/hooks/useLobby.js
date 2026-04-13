@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useError } from "../../../shared/components/BannerProvider";
+import {
+  useBannerMessage,
+  useError,
+} from "../../../shared/components/BannerProvider";
 import { eventBus } from "../../../shared/components/eventBus";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
 
 export function useLobby(lobbyId, inviteCode) {
   const { showError } = useError();
+  const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
   const { invoke, subscribe, isConnected } = useConnection();
   const selfIdRef = useRef(localStorage.getItem("userId"));
@@ -42,7 +46,6 @@ export function useLobby(lobbyId, inviteCode) {
 
     const cleanups = [
       subscribe("LobbyState", (state) => {
-        console.log("LobbyState:", state);
         setPlayers(state.players);
         setLobbyName(state.lobbyName);
         setLobbyMaxPlayers(state.maxPlayers);
@@ -52,12 +55,21 @@ export function useLobby(lobbyId, inviteCode) {
           (el) => el.id === selfIdRef.current,
         ).isHost;
       }),
-
+      subscribe("Kicked", () => {
+        leaveLobby();
+        showMessage(`You was kicked from lobby`);
+      }),
+      subscribe("HostChanged", (data) => {
+        console.log(data);
+        showMessage(`New host is ${data.newHostNick}  `);
+      }),
       subscribe("Error", (e) => {
         if (
-          e.toLowerCfpase().includes("not found") ||
-          e.toLowerCase().includes("not accepting")
+          e.toLowerCase().includes("not found") ||
+          e.toLowerCase().includes("not accepting") ||
+          e.toLowerCase().includes("invalid invite code")
         ) {
+          showError(e);
           eventBus.emit("leaveLobby", { lobbyId });
         }
       }),
@@ -79,6 +91,14 @@ export function useLobby(lobbyId, inviteCode) {
     }
   }, []);
 
+  const kickPlayer = useCallback(async (targetId) => {
+    await invoke("KickPlayer", targetId);
+  });
+
+  const transferHost = useCallback(async (targetId) => {
+    await invoke("TransferHost", targetId);
+  });
+
   const leaveLobby = useCallback(async () => {
     try {
       await invoke("LeaveLobby");
@@ -98,6 +118,8 @@ export function useLobby(lobbyId, inviteCode) {
     isHost: isHostRef.current,
     players,
     lobbyName,
+    kickPlayer,
+    transferHost,
     lobbyMaxPlayers,
     lobbyInviteCode,
     colors,

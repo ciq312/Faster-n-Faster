@@ -36,8 +36,11 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
             req.IsPrivate,
             userId
         );
-
-        var result = await _handler.Handle(command);
-        await Send.CreatedAtAsync("CreateLobby", null, result);
+        try
+        {
+            var result = await _handler.Handle(command);
+            await Send.CreatedAtAsync("CreateLobby", null, result);
+        }
+        catch (InvalidOperationException e) { ThrowError(e.Message, 400); }
     }
 }

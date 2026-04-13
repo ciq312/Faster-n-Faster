@@ -7,16 +7,16 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 
 namespace FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
 
-public class RegisterUserHadnler(IUserRepository repo) : IHandler<RegisterUserCommand, RegisterUserResult>
+public class RegisterUserHandler(IUserRepository repo) : IHandler<RegisterUserCommand, RegisterUserResult>
 {
-    public IUserRepository repo = repo;
+    private readonly IUserRepository repo = repo;
 
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command)
     {
 
         if (await repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNickException(command.Nick);
 
-        if (await repo.GetUserByLoginAsync(command.Login) == null) throw new DuplicateLoginException(command.Login);
+        if (await repo.GetUserByLoginAsync(command.Login) != null) throw new DuplicateLoginException(command.Login);
 
         User user = new(command.Nick, command.Login, command.Password);
 
