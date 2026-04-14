@@ -5,14 +5,9 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class BroadcastPlayerFinishedHandler : IDomainEventHandler<PlayerFinishedEvent>
+public class BroadcastPlayerFinishedHandler(IHubContext<GameHub> hub) : IDomainEventHandler<PlayerFinishedEvent>
 {
-    private readonly IHubContext<GameHub> _hub;
-
-    public BroadcastPlayerFinishedHandler(IHubContext<GameHub> hub)
-    {
-        _hub = hub;
-    }
+    private readonly IHubContext<GameHub> _hub = hub;
 
     public async Task Handle(PlayerFinishedEvent e)
     {

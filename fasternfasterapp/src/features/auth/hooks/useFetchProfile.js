@@ -36,7 +36,6 @@ export function useFetchProfile() {
       } finally {
         if (!controller.signal.aborted) {
           setIsPending(false);
-          navigate("/lobbies");
         }
       }
     };

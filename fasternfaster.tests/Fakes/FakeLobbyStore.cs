@@ -15,6 +15,9 @@ public class FakeLobbyStore : ILobbyStore
 
     public Lobby? Get(Guid id) => _lobbies.FirstOrDefault(l => l.Id == id);
 
+    public Lobby GetRequired(Guid id) => Get(id)
+        ?? throw new KeyNotFoundException($"Lobby {id} not found.");
+
     public Lobby? GetByInviteCode(string code) =>
         _lobbies.FirstOrDefault(l =>
             l.LobbySettings.InviteCode != null &&

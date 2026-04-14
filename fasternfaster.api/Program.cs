@@ -13,6 +13,8 @@ using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
+using FasterNFaster.Api.Web.Hubs.Filters;
+using Microsoft.AspNetCore.SignalR;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -23,7 +25,11 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSignalR();
+builder.Services.AddSingleton<HubExceptionFilter>();
+builder.Services.AddSignalR(options =>
+{
+    options.AddFilter<HubExceptionFilter>();
+});
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();

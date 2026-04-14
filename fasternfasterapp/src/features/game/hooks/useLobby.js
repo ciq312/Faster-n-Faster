@@ -57,7 +57,7 @@ export function useLobby(lobbyId, inviteCode) {
       }),
       subscribe("Kicked", () => {
         leaveLobby();
-        showMessage(`You was kicked from lobby`);
+        showMessage(`You were kicked from lobby`);
       }),
       subscribe("HostChanged", (data) => {
         console.log(data);

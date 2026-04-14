@@ -60,6 +60,24 @@ public class Lobby(string name, bool isPrivate, WordRace race)
         LobbySettings.UpdateTimestamp();
     }
 
+    public LobbyPlayer? TryPromoteNextHost(Guid leavingPlayerId)
+    {
+        lock (_lock)
+        {
+            if (HostId != leavingPlayerId) return null;
+
+            var nextHost = Players
+                .Where(p => p.IsConnected)
+                .OrderBy(p => p.JoinOrder)
+                .FirstOrDefault();
+
+            if (nextHost == null) return null;
+
+            AssignHost(nextHost.User.Id);
+            return nextHost;
+        }
+    }
+
 
     public void ValidateHost(Guid userId)
     {
