@@ -2,23 +2,26 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.UseCases.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
 public class LobbyStore : ILobbyStore
 {
-    private readonly ConcurrentDictionary<Guid, Lobby> _lobbies = new();
+    private readonly ConcurrentDictionary<Guid, Lobby> lobbies = new();
 
-    public void Add(Lobby lobby) => _lobbies[lobby.Id] = lobby;
+    public void Add(Lobby lobby) => lobbies[lobby.Id] = lobby;
 
-    public void Remove(Guid id) => _lobbies.TryRemove(id, out _);
+    public void Remove(Guid id) => lobbies.TryRemove(id, out _);
 
-    public Lobby? Get(Guid id) => _lobbies.GetValueOrDefault(id);
+    public Lobby? Get(Guid id) => lobbies.GetValueOrDefault(id);
 
     public Lobby? GetByInviteCode(string code) =>
-        _lobbies.Values.FirstOrDefault(l =>
+        lobbies.Values.FirstOrDefault(l =>
             l.LobbySettings.InviteCode != null &&
             l.LobbySettings.InviteCode.Equals(code, StringComparison.OrdinalIgnoreCase));
 
-    public IReadOnlyCollection<Lobby> GetAll() => _lobbies.Values.ToList();
+    public IReadOnlyCollection<Lobby> GetAll() => lobbies.Values.ToList();
+
+    public Lobby GetRequired(Guid id) => lobbies.GetValueOrDefault(id) ?? throw new LobbyNotFoundException(id);
 }

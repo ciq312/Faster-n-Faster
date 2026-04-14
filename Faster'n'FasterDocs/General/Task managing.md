@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Add Player host buttons
 - [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
 - [ ] Add user cookies
 - [ ] Add safe passwords in db
@@ -16,6 +15,7 @@ kanban-plugin: board
 
 ## In progress
 
+- [ ] Refactor
 
 
 ## Bugs
@@ -25,6 +25,7 @@ kanban-plugin: board
 ## Done
 
 - [ ] Fix multi lobby creation @{2026-04-13}
+- [ ] Add Player host buttons @{2026-04-13}
 
 
 
