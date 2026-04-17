@@ -8,13 +8,21 @@ using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.Web.DependencyInversion;
-using FasterNFaster.Api.Web.Middleware;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using FasterNFaster.Api.Web.Hubs.Filters;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.IdentityModel.Tokens;
+using FastEndpoints.Security;
+using System.Security.Cryptography;
+using FasterNFaster.Api.Web.Services;
+using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.UseCases.Factories.Interfaces;
+using FasterNFaster.Api.UseCases.Factories.Implementations;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -39,25 +47,61 @@ builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
 builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddScoped<IUserFactory, UserFactory>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
+builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
+builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
 builder.Services.AddScoped<IEventDispatcher, EventDispatcher>();
-builder
-    .Services.AddAuthentication("Token")
-    .AddCookie(
-        "Token",
-        options =>
+// builder
+//     .Services.AddAuthentication("Token")
+//     .AddCookie(
+//         "Token",
+//         options =>
+//         {
+//             options.Events.OnRedirectToLogin = context =>
+//             {
+//                 context.Response.StatusCode = 401;
+//                 return Task.CompletedTask;
+//             };
+//         }
+//     );
+
+var rsa = RSA.Create();
+rsa.ImportRSAPrivateKey(Convert.FromBase64String(builder.Configuration["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
+builder.Services.AddAuthentication(o =>
+{
+    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration.GetSection("JwtOptions:Issuer").Value,
+        ValidAudience = builder.Configuration.GetSection("JwtOptions:Audience").Value,
+        IssuerSigningKey = new RsaSecurityKey(rsa)
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
         {
-            options.Events.OnRedirectToLogin = context =>
-            {
-                context.Response.StatusCode = 401;
-                return Task.CompletedTask;
-            };
+            context.Token = context.Request.Cookies["access_token"];
+            return Task.CompletedTask;
         }
-    );
+    };
+});
+
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
@@ -86,7 +130,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var app = builder.Build();
 
 app.UseCors();
-app.UseMiddleware<TokenAuthMiddleware>();
+// app.UseMiddleware<TokenAuthMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOpenApi();

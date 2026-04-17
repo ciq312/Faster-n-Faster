@@ -8,7 +8,6 @@ namespace FasterNFaster.Api.Core.Entities;
 public class User
 {
     public Guid Id { get; private set; }
-    public string Token { get; private set; } = null!;
 
     [StringLength(30, MinimumLength = 1), Required]
     public string Nick { get; private set; }
@@ -19,9 +18,21 @@ public class User
     [StringLength(100, MinimumLength = 4)]
     public string? Password { get; private set; }
 
+    public string? Token { get; private set; }
+
     public bool IsAnonymous => Login == null;
 
     public PlayerStatistics? Statistics { get; private set; }
+
+
+    public static User Guest(Guid id, string nick)
+    {
+        var user = new User(nick)
+        {
+            Id = id
+        };
+        return user;
+    }
 
     /// <summary>Anonymous user with a chosen nick.</summary>
     public User(string nick) : this(nick, null, null) { }
@@ -29,16 +40,13 @@ public class User
     public User(string nick, string? login, string? password)
     {
         Id = Guid.NewGuid();
-        Token = GenerateToken();
         Nick = nick;
         Login = login;
         Password = password;
+        Token = null;
 
         if (!MiniValidatorPlus.TryValidate(this, out var errors))
             throw new ValidationException(string.Join("; ", errors.Values.SelectMany(e => e)));
     }
 
-    private static string GenerateToken() =>
-        Convert.ToBase64String(Guid.NewGuid().ToByteArray()) +
-        Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 }

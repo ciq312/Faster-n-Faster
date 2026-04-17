@@ -2,16 +2,17 @@ using FastEndpoints;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Factories.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
 
-public class JoinLobbyHandler(ILobbyStore lobbyStore, IUserRepository userRepo, ILobbyService lobbyService) : IHandler<JoinLobbyCommand, JoinLobbyResult>
+public class JoinLobbyHandler(ILobbyStore lobbyStore, IUserFactory userFactory, ILobbyService lobbyService) : IHandler<JoinLobbyCommand, JoinLobbyResult>
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IUserRepository userRepo = userRepo;
+    private readonly IUserFactory userFactory = userFactory;
     private readonly ILobbyService lobbyService = lobbyService;
 
     public async Task<JoinLobbyResult> Handle(JoinLobbyCommand command)
@@ -31,19 +32,23 @@ public class JoinLobbyHandler(ILobbyStore lobbyStore, IUserRepository userRepo, 
             return new JoinLobbyResult(IsReconnect: true);
         }
 
-        if (!lobby.IsPlayerInLobby(command.PlayerId))
-        {
-            if (lobby.LobbySettings.IsPrivate &&
-                !string.Equals(lobby.LobbySettings.InviteCode, command.InviteCode, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Invalid invite code.");
+        if (lobby.IsPlayerInLobby(command.PlayerId)) return new JoinLobbyResult(IsReconnect: true);
 
+        if (lobby.LobbySettings.IsPrivate &&
+                IsCodeCorrect(lobby.LobbySettings.InviteCode, command.InviteCode))
+            throw new InvalidOperationException("Invalid invite code.");
 
-            var user = await userRepo.GetByIdAsync(command.PlayerId) ?? throw new UserNotFoundException(command.PlayerId);
-            lobby.AddPlayer(user);
-        }
+        var user = await userFactory.GetUser(command.PlayerId, command.Nick, command.Role);
+        lobby.AddPlayer(user);
+
 #if DEBUG
         Log.Information("Player {PlayerId} joined lobby {LobbyId}", command.PlayerId, lobby.Id);
 #endif
         return new JoinLobbyResult(IsReconnect: false);
+    }
+
+    private bool IsCodeCorrect(string? codeToCheck, string? actualCode)
+    {
+        return string.Equals(codeToCheck, actualCode, StringComparison.OrdinalIgnoreCase);
     }
 }
