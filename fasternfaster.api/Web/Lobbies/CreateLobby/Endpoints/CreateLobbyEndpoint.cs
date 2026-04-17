@@ -29,7 +29,7 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
     public override async Task HandleAsync(CreateLobbyRequest req, CancellationToken ct)
     {
         var userId = Guid.Parse(
-            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            HttpContext.User.FindFirstValue("UserId")!);
 
         var command = new CreateLobbyCommand(
             req.LobbyName,

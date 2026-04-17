@@ -1,4 +1,6 @@
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using FastEndpoints;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -20,6 +22,7 @@ public class GameHub(
     ILogger<GameHub> logger,
     ILobbyStore lobbyStore,
     ILobbyService lobbyService,
+    ISessionService sessionService,
     LobbyStateBroadcaster broadcaster,
     IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler,
     IHandler<StartRaceCommand> startRaceHandler,
@@ -33,6 +36,7 @@ public class GameHub(
     private readonly ILogger<GameHub> logger = logger;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly ILobbyService lobbyService = lobbyService;
+    private readonly ISessionService sessionService = sessionService;
     private readonly LobbyStateBroadcaster broadcaster = broadcaster;
 
     private readonly IHandler<JoinLobbyCommand, JoinLobbyResult> joinHandler = joinHandler;
@@ -44,34 +48,64 @@ public class GameHub(
     private readonly IHandler<FastReconnectCommand> fastReconnectHandler = fastReconnectHandler;
     private readonly IHandler<RefreshPassageCommand> refreshPassageHandler = refreshPassageHandler;
 
-    private (Guid UserId, Guid LobbyId, string GroupName) GetCallerContext()
+    private (Guid UserId, string Nick, string Role) GetCallerContext()
     {
-        var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        var userIdClaim = Context.User?.FindFirst("UserId")?.Value
             ?? throw new HubException("Not authenticated.");
+
+        var nick = Context.User?.FindFirst("UserName")?.Value
+            ?? throw new HubException("User name claim is missing.");
 
         var userId = Guid.Parse(userIdClaim);
 
-        var conn = lobbyService.GetConnection(Context.ConnectionId)
-            ?? throw new HubException("Not connected to a lobby.");
+        var role = Context.User?.FindFirst(ClaimTypes.Role)?.Value
+            ?? throw new HubException("Role claim is missing.");
 
-        return (userId, conn.LobbyId, $"lobby-{conn.LobbyId}");
+        return (userId, nick, role);
     }
 
+    private bool TryGetLobbyContext(out Guid lobbyId, out string groupName)
+    {
+        var connection = lobbyService.GetConnection(Context.ConnectionId);
+        if (connection == null)
+        {
+            lobbyId = Guid.Empty;
+            groupName = string.Empty;
+            return false;
+        }
+
+        lobbyId = connection.Value.LobbyId;
+        groupName = $"lobby-{lobbyId}";
+        return true;
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        logger.LogInformation("Connection established: {ConnectionId}", Context.ConnectionId);
+        await base.OnConnectedAsync();
+        StoreSession(Context.User?.FindFirst("UserId")?.Value, Context.ConnectionId);
+
+    }
+
+    private void StoreSession(string? userIdClaim, string callerConnectionId)
+    {
+        if (userIdClaim != null && Guid.TryParse(userIdClaim, out var userId))
+            sessionService.SetUserSession(userId, callerConnectionId);
+
+    }
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
-        var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? throw new HubException("Not authenticated.");
+        var userId = GetCallerContext().UserId;
+        var nick = GetCallerContext().Nick;
+        var role = GetCallerContext().Role;
 
-        var userId = Guid.Parse(userIdClaim);
-        var nick = Context.User!.FindFirst(ClaimTypes.Name)!.Value;
+        var result = await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
+
         var groupName = $"lobby-{lobbyId}";
-
-        var result = await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, inviteCode));
-
         lobbyService.TrackConnection(Context.ConnectionId, lobbyId, userId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-        var lobby = lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+        var lobby = lobbyStore.GetRequired(lobbyId);
         await broadcaster.BroadcastLobbyState(lobby);
 
         if (result.IsReconnect)
@@ -88,7 +122,10 @@ public class GameHub(
 
     public async Task StartRace()
     {
-        var (userId, lobbyId, groupName) = GetCallerContext();
+        var userId = GetCallerContext().UserId;
+
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
 
         await startRaceHandler.Handle(new StartRaceCommand(userId, lobbyId));
 
@@ -99,13 +136,18 @@ public class GameHub(
 
     public async Task RefreshPassage()
     {
-        var (userId, lobbyId, _) = GetCallerContext();
+        var userId = GetCallerContext().UserId;
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
+
         await refreshPassageHandler.Handle(new RefreshPassageCommand(userId, lobbyId));
     }
 
     public async Task TransferHost(Guid targetPlayerId)
     {
-        var (userId, lobbyId, _) = GetCallerContext();
+        var userId = GetCallerContext().UserId;
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
 
         await transferHostHandler.Handle(new TransferHostCommand(userId, lobbyId, targetPlayerId));
 
@@ -119,7 +161,9 @@ public class GameHub(
 
     public async Task KickPlayer(Guid targetPlayerId)
     {
-        var (userId, lobbyId, groupName) = GetCallerContext();
+        var userId = GetCallerContext().UserId;
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
 
         var result = await kickPlayerHandler.Handle(new KickPlayerCommand(userId, lobbyId, targetPlayerId));
 
@@ -136,9 +180,12 @@ public class GameHub(
 
     public async Task ChangeColor(string color)
     {
-        var (userId, lobbyId, _) = GetCallerContext();
-        var lobby = lobbyStore.Get(lobbyId)
-            ?? throw new HubException("Lobby not found.");
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
+
+        var userId = GetCallerContext().UserId;
+
+        var lobby = lobbyStore.GetRequired(lobbyId);
 #if DEBUG
         Log.Information($"chaning color to {color}");
 #endif
@@ -148,7 +195,9 @@ public class GameHub(
 
     public async Task UpdateRaceState(int index, int mistakes)
     {
-        var (userId, lobbyId, _) = GetCallerContext();
+        var userId = GetCallerContext().UserId;
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
         await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyId, index, mistakes));
     }
 
@@ -162,7 +211,8 @@ public class GameHub(
         }
 
         var (lobbyId, playerId) = conn.Value;
-        var groupName = $"lobby-{lobbyId}";
+        if (!TryGetLobbyContext(out var _, out var groupName))
+            throw new HubException("Caller is not in a lobby.");
 
         var result = await disconnectHandler.Handle(
             new DisconnectCommand(Context.ConnectionId, lobbyId, playerId));

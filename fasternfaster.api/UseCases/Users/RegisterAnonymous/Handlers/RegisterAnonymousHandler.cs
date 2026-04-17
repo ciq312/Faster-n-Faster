@@ -13,15 +13,11 @@ public class RegisterAnonymousHandler(IUserRepository repo) : IHandler<RegisterA
 
     public async Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command)
     {
-        if (await repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNameException($"User with nick {command.Nick} already exists");
-
         var user = new User(command.Nick);
-
-        await repo.AddAsync(user);
 
 #if DEBUG
         Log.Information("Registered anonymous user {UserId} as {Nick}", user.Id, user.Nick);
 #endif
-        return await Task.FromResult(new RegisterAnonymousResult(user.Token, user.Id));
+        return await Task.FromResult(new RegisterAnonymousResult(user.Nick, user.Id));
     }
 }

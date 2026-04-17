@@ -9,13 +9,13 @@ kanban-plugin: board
 - [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
 - [ ] Add user cookies
 - [ ] Add safe passwords in db
-- [ ] Add registration services
 - [ ] Redesign
+- [ ] Refactor
 
 
 ## In progress
 
-- [ ] Refactor
+- [ ] Add registration services
 
 
 ## Bugs

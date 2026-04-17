@@ -13,9 +13,6 @@ public class RegisterUserHandler(IUserRepository repo) : IHandler<RegisterUserCo
 
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command)
     {
-
-        if (await repo.DoUserExistByNickAsync(command.Nick)) throw new DuplicateNickException(command.Nick);
-
         if (await repo.GetUserByLoginAsync(command.Login) != null) throw new DuplicateLoginException(command.Login);
 
         User user = new(command.Nick, command.Login, command.Password);
@@ -25,6 +22,6 @@ public class RegisterUserHandler(IUserRepository repo) : IHandler<RegisterUserCo
 #endif
         await repo.AddAsync(user);
 
-        return await Task.FromResult(new RegisterUserResult(user.Token, user.Id));
+        return await Task.FromResult(new RegisterUserResult(user.Id, user.Nick));
     }
 }
