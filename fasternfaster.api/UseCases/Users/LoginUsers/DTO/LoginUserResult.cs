@@ -1,3 +1,3 @@
 namespace FasterNFaster.Api.UseCases.Users.LoginUsers;
 
-public record LoginUserResult(string Token, Guid UserId);
+public record LoginUserResult(Guid UserId);

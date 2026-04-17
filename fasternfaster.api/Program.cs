@@ -17,12 +17,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
-using FastEndpoints.Security;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Cryptography;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Api.UseCases.Factories.Interfaces;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
+using Microsoft.AspNetCore.Identity;
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.UseCases.Helpers.Interfaces;
+using FasterNFaster.Api.UseCases.Helpers.Implementations;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -48,6 +52,8 @@ builder.Services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
 builder.Services.AddScoped<AppDbContext>();
 builder.Services.AddScoped<IUserFactory, UserFactory>();
+builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
 builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();

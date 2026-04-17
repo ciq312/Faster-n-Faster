@@ -24,7 +24,6 @@ public class User
 
     public PlayerStatistics? Statistics { get; private set; }
 
-
     public static User Guest(Guid id, string nick)
     {
         var user = new User(nick)
@@ -47,6 +46,11 @@ public class User
 
         if (!MiniValidatorPlus.TryValidate(this, out var errors))
             throw new ValidationException(string.Join("; ", errors.Values.SelectMany(e => e)));
+    }
+
+    public void SetPassword(string newPassword)
+    {
+        Password = newPassword;
     }
 
 }
