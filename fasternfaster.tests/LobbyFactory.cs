@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.UseCases.Factories.Implementations;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
@@ -46,6 +47,7 @@ public static class LobbyFactory
     {
         var store = new LobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var lobbyService = new LobbyService();
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
@@ -56,10 +58,10 @@ public static class LobbyFactory
         var createHandler = new CreateLobbyHandler(store, passageProvider, lobbyService);
         var result = await createHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id));
 
-        var joinHandler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var joinHandler = new JoinLobbyHandler(store, userFactory, lobbyService);
         for (int i = 0; i < users.Length; i++)
         {
-            await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId));
+            await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"));
             lobbyService.TrackConnection($"conn{i}", result.LobbyId, users[i].Id);
         }
 

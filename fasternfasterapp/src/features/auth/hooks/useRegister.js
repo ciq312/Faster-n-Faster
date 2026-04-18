@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { extractError } from "../../../shared/utils/extractError";
 import { useError } from "../../../shared/components/BannerProvider";
+import { extractError } from "../../../shared/utils/extractError";
+import { useLogin } from "./useLogin";
 
 export function useRegister() {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { execute: loginUser } = useLogin();
 
   const execute = async ({ nick, login, password }) => {
     setLoading(true);
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nick, login, password }),
       });
@@ -20,12 +23,11 @@ export function useRegister() {
         showError(await extractError(response));
         return;
       }
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
+      await loginUser({ login, password });
+
       navigate("/lobbies");
-    } catch {
-      showError("Could not connect to server");
+    } catch (err) {
+      showError(err.message || "Could not connect to server");
     } finally {
       setLoading(false);
     }

@@ -1,19 +1,21 @@
 using FastEndpoints;
 using FasterNFaster.Api.Web.Services;
+using FasterNFaster.Api.Web.Services.Interfaces;
 
 namespace FasterNFaster.Api.Web.Users.RefreshToken;
 
-public class RefreshTokenEndpoint(JwtTokenService tokenService) : EndpointWithoutRequest
+public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutRequest
 {
+    private readonly ITokenService tokenService = tokenService;
     public override void Configure()
     {
-        Post("/api/auth/refresh");
-        AllowAnonymous();
+        Get("/api/auth/refresh");
+        Roles("Player");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var refreshToken = HttpContext.Request.Cookies["refresh_token"];
+        var refreshToken = HttpContext.Request.Cookies[Config["Jwt:RefreshTokenCookieName"]!];
 
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -21,18 +23,11 @@ public class RefreshTokenEndpoint(JwtTokenService tokenService) : EndpointWithou
             return;
         }
 
-        var result = tokenService.TryRefresh(refreshToken);
+        if (await tokenService.TryRefreshToken(refreshToken))
+            await Send.OkAsync(cancellation: ct);
 
-        if (result is null)
-        {
-            tokenService.ClearTokenCookies(HttpContext.Response);
+        else
             await Send.UnauthorizedAsync(ct);
-            return;
-        }
 
-        var (accessToken, newRefreshToken) = result.Value;
-        tokenService.SetAccessAndRefreshTokenCookies(HttpContext.Response, accessToken, newRefreshToken);
-
-        await Send.OkAsync();
     }
 }

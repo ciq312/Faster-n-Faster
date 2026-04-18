@@ -2,14 +2,16 @@ using FastEndpoints;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
+using FasterNFaster.Api.Web.Services.Interfaces;
 using FasterNFaster.Api.Web.Users.LoginUser.Endpoints;
 
 namespace FasterNFaster.Api.Web.Users.LoginUser;
 
-public class LoginUserEndpoint(IHandler<LoginUserCommand, LoginUserResult> handler) : Endpoint<LoginUserRequest, LoginUserResult>
+public class LoginUserEndpoint(IHandler<LoginUserCommand, LoginUserResult> handler, ITokenService tokenService) : Endpoint<LoginUserRequest, LoginUserResult>
 {
 
-    public IHandler<LoginUserCommand, LoginUserResult> _handler = handler;
+    private readonly IHandler<LoginUserCommand, LoginUserResult> handler = handler;
+    private readonly ITokenService tokenService = tokenService;
 
     public override void Configure()
     {
@@ -21,7 +23,10 @@ public class LoginUserEndpoint(IHandler<LoginUserCommand, LoginUserResult> handl
     {
         try
         {
-            var result = await _handler.Handle(new LoginUserCommand(req.Login, req.Password));
+            var result = await handler.Handle(new LoginUserCommand(req.Login, req.Password));
+
+            await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
+
             await Send.OkAsync(result, cancellation: ct);
 
         }
@@ -29,8 +34,5 @@ public class LoginUserEndpoint(IHandler<LoginUserCommand, LoginUserResult> handl
         {
             ThrowError(e.Message, 401);
         }
-
-
-
     }
 }

@@ -20,6 +20,6 @@ public class LoginUserHandler(IUserRepository repo, IPasswordHelper passwordHelp
         if (!passwordHelper.VerifyPassword(user, user.Password!, command.Password))
             throw new InvalidCredentialsException();
 
-        return new LoginUserResult(user.Id);
+        return new LoginUserResult(user.Id, user.Nick);
     }
 }
