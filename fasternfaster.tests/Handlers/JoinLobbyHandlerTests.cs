@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Factories.Implementations;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
@@ -17,25 +18,29 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), Guid.NewGuid())));
+            () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), Guid.NewGuid(), "test", "Guest")));
     }
 
     [Fact]
     public async Task JoinLobby_UserNotFound_ShouldThrow()
     {
         var store = new FakeLobbyStore();
+
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var lobby = new Lobby("Test", false, new WordRace(50));
         store.Seed(lobby);
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
         await Assert.ThrowsAsync<UserNotFoundException>(
-            () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), lobby.Id)));
+            () => handler.Handle(new JoinLobbyCommand(Guid.NewGuid(), lobby.Id, "test", "Guest")));
     }
 
     [Fact]
@@ -43,15 +48,16 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var user = new User("Player1", "login1", "pass");
         userRepo.Seed(user);
         var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
-        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
+        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id, "test", "Guest"));
 
         Assert.True(lobby.IsPlayerInLobby(user.Id));
     }
@@ -61,16 +67,17 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var user = new User("Player1", "login1", "pass");
         userRepo.Seed(user);
         var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
-        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
-        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id));
+        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id, "test", "Guest"));
+        await handler.Handle(new JoinLobbyCommand(user.Id, lobby.Id, "test", "Guest"));
 
         Assert.Single(lobby.Players, p => p.User.Id == user.Id);
     }
@@ -80,23 +87,25 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
+
         var lobby = new Lobby("Test", false, new WordRace(50));
         lobby.AssignHost(Guid.NewGuid());
         store.Seed(lobby);
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
         for (int i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
         {
             var player = new User($"Player{i + 1}", $"login{i + 1}", "pass");
             userRepo.Seed(player);
-            await handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id));
+            await handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest"));
         }
         var extraPlayer = new User("ExtraPlayer", "loginExtra", "pass");
         userRepo.Seed(extraPlayer);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => handler.Handle(new JoinLobbyCommand(extraPlayer.Id, lobby.Id)));
+            () => handler.Handle(new JoinLobbyCommand(extraPlayer.Id, lobby.Id, "test", "Guest")));
     }
 
     [Fact]
@@ -104,6 +113,7 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var tickRegistry = new FakeRaceTickRegistry();
         var lobby = new Lobby("Test", false, new WordRace(50));
 
@@ -113,11 +123,11 @@ public class JoinLobbyHandlerTests
 
 
         var lobbyService = new FakeLobbyService();
-        var handler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var handler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
         var player = new User($"Player1", $"login1", "pass");
         userRepo.Seed(player);
-        await handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id));
+        await handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest"));
 
         lobby.StartSession();
 
@@ -131,14 +141,16 @@ public class JoinLobbyHandlerTests
         userRepo.Seed(player);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id)));
+            () => handler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest")));
     }
 
     [Fact]
     public async Task JoinLobby_ShouldNotConnectWhenRacing()
     {
         var store = new FakeLobbyStore();
+
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var tickRegistry = new FakeRaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
         var lobby = new Lobby("Test", false, new WordRace(50));
@@ -149,12 +161,12 @@ public class JoinLobbyHandlerTests
 
 
         var lobbyService = new FakeLobbyService();
-        var joinHandler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var joinHandler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
 
         var player = new User($"Player2", $"login2", "pass");
         userRepo.Seed(player);
-        await joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id));
+        await joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest"));
 
         lobby.StartSession();
 
@@ -165,7 +177,7 @@ public class JoinLobbyHandlerTests
         userRepo.Seed(player);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id)));
+            () => joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest")));
     }
 
 
@@ -174,6 +186,7 @@ public class JoinLobbyHandlerTests
     {
         var store = new FakeLobbyStore();
         var userRepo = new FakeUserRepository();
+        var userFactory = new UserFactory(userRepo);
         var tickRegistry = new FakeRaceTickRegistry();
         var lobby = new Lobby("Test", false, new WordRace(50));
 
@@ -182,7 +195,7 @@ public class JoinLobbyHandlerTests
         store.Seed(lobby);
 
         var lobbyService = new FakeLobbyService();
-        var joinHandler = new JoinLobbyHandler(store, userRepo, lobbyService);
+        var joinHandler = new JoinLobbyHandler(store, userFactory, lobbyService);
 
         lobby.Race.Start(lobby.Players.Where(p => p.IsConnected).Select(p => (p.User.Id, p.Color, p.User.Nick)));
 
@@ -193,7 +206,7 @@ public class JoinLobbyHandlerTests
         var player = new User("Player1", "login1", "pass");
         userRepo.Seed(player);
 
-        await joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id));
+        await joinHandler.Handle(new JoinLobbyCommand(player.Id, lobby.Id, "test", "Guest"));
 
         Assert.True(lobby.IsPlayerInLobby(player.Id));
     }

@@ -5,11 +5,14 @@ using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 using FasterNFaster.Api.Web.Services;
+using FasterNFaster.Api.Web.Services.Interfaces;
 
 namespace FasterNFaster.Api.Web.Users.RegisterUser;
 
-public class RegisterUserEndpoint(IHandler<RegisterUserCommand, RegisterUserResult> handler) : Endpoint<RegisterUserRequest, TokenCreationRequest>
+public class RegisterUserEndpoint(IHandler<RegisterUserCommand, RegisterUserResult> handler) : Endpoint<RegisterUserRequest, RegisterUserResult>
 {
+    private readonly IHandler<RegisterUserCommand, RegisterUserResult> handler = handler;
+
     public override void Configure()
     {
         Post("/api/auth/register");
@@ -22,8 +25,7 @@ public class RegisterUserEndpoint(IHandler<RegisterUserCommand, RegisterUserResu
         {
             var result = await handler.Handle(new RegisterUserCommand(req.Nick, req.Login, req.Password));
 
-            await Send.OkAsync(ct);
-
+            await Send.CreatedAtAsync<RegisterUserEndpoint>(new { UserID = result.UserId }, result, cancellation: ct);
         }
         catch (DuplicateNickException e)
         {

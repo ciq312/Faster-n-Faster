@@ -11,7 +11,7 @@ public class LoginUserHandlerTests
     public async Task LoginNotFound_ShouldThrowKeyNotFound()
     {
         var repo = new FakeUserRepository();
-        var handler = new LoginUserHandler(repo);
+        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("noone", "pass123"))
@@ -23,7 +23,7 @@ public class LoginUserHandlerTests
     {
         var repo = new FakeUserRepository();
         repo.Seed(new User("Player1", "mylogin", "correctpass"));
-        var handler = new LoginUserHandler(repo);
+        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("mylogin", "wrongpass"))
@@ -36,11 +36,10 @@ public class LoginUserHandlerTests
         var repo = new FakeUserRepository();
         var user = new User("Player1", "mylogin", "pass123");
         repo.Seed(user);
-        var handler = new LoginUserHandler(repo);
+        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
         var result = await handler.Handle(new LoginUserCommand("mylogin", "pass123"));
 
-        Assert.Equal(user.Token, result.Token);
         Assert.Equal(user.Id, result.UserId);
     }
 }

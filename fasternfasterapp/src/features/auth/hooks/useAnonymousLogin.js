@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { extractError } from "../../../shared/utils/extractError";
 import { useError } from "../../../shared/components/BannerProvider";
+import { extractError } from "../../../shared/utils/extractError";
 
 export function useAnonymousLogin() {
   const { showError } = useError();
@@ -20,9 +20,6 @@ export function useAnonymousLogin() {
         showError(await extractError(response));
         return;
       }
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
       navigate("/lobbies");
     } catch {
       showError("Could not connect to server");

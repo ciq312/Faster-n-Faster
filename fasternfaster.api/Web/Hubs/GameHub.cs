@@ -50,15 +50,15 @@ public class GameHub(
 
     private (Guid UserId, string Nick, string Role) GetCallerContext()
     {
-        var userIdClaim = Context.User?.FindFirst("UserId")?.Value
+        var userIdClaim = Context.User?.FindFirst("sub")?.Value
             ?? throw new HubException("Not authenticated.");
 
-        var nick = Context.User?.FindFirst("UserName")?.Value
+        var nick = Context.User?.FindFirst("name")?.Value
             ?? throw new HubException("User name claim is missing.");
 
         var userId = Guid.Parse(userIdClaim);
 
-        var role = Context.User?.FindFirst(ClaimTypes.Role)?.Value
+        var role = Context.User?.FindFirst("role")?.Value
             ?? throw new HubException("Role claim is missing.");
 
         return (userId, nick, role);
@@ -231,6 +231,7 @@ public class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var conn = lobbyService.GetConnection(Context.ConnectionId);
+        sessionService.ClearActiveSession(GetCallerContext().UserId);
         if (conn == null)
         {
             await base.OnDisconnectedAsync(exception);

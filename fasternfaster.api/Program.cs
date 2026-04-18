@@ -23,10 +23,13 @@ using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Api.UseCases.Factories.Interfaces;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
-using Microsoft.AspNetCore.Identity;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Helpers.Implementations;
+using Microsoft.AspNetCore.CookiePolicy;
+using FasterNFaster.Api.Web.Options.JwtOptions;
+using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
+using FasterNFaster.Api.Web.Services.Interfaces;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -57,24 +60,18 @@ builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
 builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
-builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddScoped<ITokenService, SlidingJwtTokenService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();
+builder.Services.AddSingleton<ITokenStore, TokenStore>();
+builder.Services.AddSingleton<ICookiesWriter, CookieWriter>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
 builder.Services.AddScoped<IEventDispatcher, EventDispatcher>();
-// builder
-//     .Services.AddAuthentication("Token")
-//     .AddCookie(
-//         "Token",
-//         options =>
-//         {
-//             options.Events.OnRedirectToLogin = context =>
-//             {
-//                 context.Response.StatusCode = 401;
-//                 return Task.CompletedTask;
-//             };
-//         }
-//     );
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection("CookieOptions"));
 
 var rsa = RSA.Create();
 rsa.ImportRSAPrivateKey(Convert.FromBase64String(builder.Configuration["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
@@ -85,16 +82,18 @@ builder.Services.AddAuthentication(o =>
 })
 .AddJwtBearer(options =>
 {
-
+    options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+        RoleClaimType = "role",
+        NameClaimType = "name",
         ValidIssuer = builder.Configuration.GetSection("JwtOptions:Issuer").Value,
         ValidAudience = builder.Configuration.GetSection("JwtOptions:Audience").Value,
-        IssuerSigningKey = new RsaSecurityKey(rsa)
+        IssuerSigningKey = new RsaSecurityKey(rsa),
     };
 
     options.Events = new JwtBearerEvents
@@ -136,7 +135,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var app = builder.Build();
 
 app.UseCors();
-// app.UseMiddleware<TokenAuthMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOpenApi();
@@ -145,3 +143,4 @@ app.UseFastEndpoints();
 app.MapHub<GameHub>("/gameHub");
 
 app.Run();
+

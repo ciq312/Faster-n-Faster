@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { extractError } from "../../../shared/utils/extractError";
 import { useError } from "../../../shared/components/BannerProvider";
+import { extractError } from "../../../shared/utils/extractError";
 
 export function useLogin() {
   const { showError } = useError();
@@ -13,6 +13,7 @@ export function useLogin() {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ login, password }),
       });
@@ -21,11 +22,11 @@ export function useLogin() {
         return;
       }
       const data = await response.json();
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.userName);
       localStorage.setItem("userId", data.userId);
       navigate("/lobbies");
-    } catch {
-      showError("Could not connect to server");
+    } catch (err) {
+      showError(err.message || "Could not connect to server");
     } finally {
       setLoading(false);
     }

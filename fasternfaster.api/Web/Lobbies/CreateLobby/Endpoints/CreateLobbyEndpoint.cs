@@ -24,12 +24,21 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
     public override void Configure()
     {
         Post("/api/lobbies");
+        Roles("Player", "Guest");
     }
 
     public override async Task HandleAsync(CreateLobbyRequest req, CancellationToken ct)
     {
-        var userId = Guid.Parse(
-            HttpContext.User.FindFirstValue("UserId")!);
+        Console.WriteLine($"IsAuthenticated: {User.Identity?.IsAuthenticated}");
+        Console.WriteLine($"Claims: {string.Join(" | ", User.Claims.Select(c =>
+    $"{c.Type}={c.Value}"))}");
+
+        var userIdClaim = User.FindFirstValue("sub");
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            await Send.UnauthorizedAsync(ct);
+            return;
+        }
 
         var command = new CreateLobbyCommand(
             req.LobbyName,

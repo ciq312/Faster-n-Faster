@@ -23,7 +23,7 @@ public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordH
         user.SetPassword(hashedPassword);
 
 #if DEBUG
-        Log.Information($"created user {user.Nick} {user.Login} {user.Password}");
+        Log.Information($"created user {user.Nick} {user.Login}");
 #endif
         await repo.AddAsync(user);
 
