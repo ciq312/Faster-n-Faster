@@ -7,12 +7,8 @@ kanban-plugin: board
 ## To do
 
 - [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
-- [ ] Add user cookies
-- [ ] Add safe passwords in db
-- [ ] Redesign
 - [ ] Refactor
-- [ ] make docker images
-- [ ] apiCall frontend
+- [ ] Redesign
 - [ ] MediatR
 - [ ] LobbyService
 - [ ] Program refactor
@@ -20,7 +16,6 @@ kanban-plugin: board
 
 ## In progress
 
-- [ ] Add registration services
 
 
 ## Bugs
@@ -29,6 +24,11 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Add registration services @{2026-04-23}
+- [ ] apiCall frontend @{2026-04-23}
+- [ ] Add user cookies @{2026-04-23}
+- [ ] make docker images @{2026-04-23}
+- [ ] Add safe passwords in db @{2026-04-23}
 - [ ] Fix multi lobby creation @{2026-04-13}
 - [ ] Add Player host buttons @{2026-04-13}
 
