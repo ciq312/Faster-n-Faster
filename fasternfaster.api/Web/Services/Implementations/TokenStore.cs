@@ -66,6 +66,16 @@ public class TokenStore(IOptions<JwtOptions> options) : ITokenStore
     {
         return Task.FromResult(tokenToId.GetValueOrDefault(refreshToken));
     }
+
+    public Task DeleteAllForUserAsync(Guid userId)
+    {
+        if (idToToken.TryRemove(userId, out var token))
+        {
+            tokenToId.TryRemove(token, out _);
+            refreshTokenExpiries.TryRemove(token, out _);
+        }
+        return Task.CompletedTask;
+    }
 }
 
 // register -> (id, token) -> client get (token) -> refresh -> token

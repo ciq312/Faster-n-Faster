@@ -109,8 +109,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .registration__fields {
@@ -150,6 +154,17 @@
   transition: border-color 0.2s;
 }
 
+.registration__input:-webkit-autofill,
+.registration__input:-webkit-autofill:hover,
+.registration__input:-webkit-autofill:focus,
+.registration__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  -webkit-text-fill-color: var(--text-1);
+  caret-color: var(--amber);
+  transition: background-color 5000s ease-in-out 0s;
+  border-radius: 4px;
+}
+
 .registration__input::placeholder {
   color: var(--text-4);
 }
@@ -174,7 +189,7 @@
   width: 100%;
   margin-top: 24px;
   padding: 13px 0;
-  background: var(--amber);
+  background: var(--amber) !important;
   border: none;
   border-radius: 4px;
   color: var(--bg);
@@ -183,7 +198,9 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background 0.2s, opacity 0.2s;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
 }
 
 .registration__submit:hover:not(:disabled) {
@@ -192,6 +209,76 @@
 
 .registration__submit:disabled {
   opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.registration__forgot {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.registration__forgot:hover {
+  color: var(--amber);
+}
+
+/* ── Divider + Google button ── */
+
+.registration__divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 28px;
+  margin: 4px 0 18px;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.registration__divider::before,
+.registration__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.registration__google-wrap {
+  padding: 0 28px 28px;
+}
+
+.registration__google {
+  width: 100%;
+  padding: 12px 0;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.registration__google:hover:not(:disabled) {
+  border-color: var(--amber-border);
+  color: var(--text-1);
+}
+
+.registration__google:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 

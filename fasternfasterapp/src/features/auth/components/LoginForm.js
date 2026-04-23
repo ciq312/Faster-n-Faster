@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 function LoginForm({ onSubmit, loading }) {
   const [login, setLogin] = useState("");
@@ -44,6 +45,9 @@ function LoginForm({ onSubmit, loading }) {
       >
         {loading ? "loading..." : "log in"}
       </button>
+      <Link to="/forgot-password" className="registration__forgot">
+        forgot password?
+      </Link>
     </form>
   );
 }

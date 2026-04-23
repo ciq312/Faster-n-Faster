@@ -8,7 +8,21 @@ public static class PasswordHelperFactory
 {
     public static PasswordHelper Create()
     {
-        var passwordHasher = new PasswordHasher<User>();
-        return new PasswordHelper(passwordHasher);
+
+        return new PasswordHelper(new FakeHasher());
+    }
+}
+
+public class FakeHasher : IPasswordHasher<User>
+{
+    public string HashPassword(User user, string password)
+    {
+        return password;
+    }
+
+    public PasswordVerificationResult VerifyHashedPassword(User user, string hashedPassword, string providedPassword)
+    {
+        if (hashedPassword == providedPassword) return PasswordVerificationResult.Success;
+        else return PasswordVerificationResult.Failed;
     }
 }

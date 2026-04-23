@@ -10,13 +10,15 @@ public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutR
     public override void Configure()
     {
         Get("/api/auth/refresh");
-        Roles("Player");
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var refreshToken = HttpContext.Request.Cookies[Config["Jwt:RefreshTokenCookieName"]!];
-
+        var refreshToken = HttpContext.Request.Cookies[Config["AuthCookies:RefreshTokenCookieName"]!];
+#if DEBUG
+        Log.Information("Received refresh token request with token: {RefreshToken}", refreshToken);
+#endif
         if (string.IsNullOrEmpty(refreshToken))
         {
             await Send.UnauthorizedAsync(ct);
@@ -24,7 +26,9 @@ public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutR
         }
 
         if (await tokenService.TryRefreshToken(refreshToken))
+        {
             await Send.OkAsync(cancellation: ct);
+        }
 
         else
             await Send.UnauthorizedAsync(ct);

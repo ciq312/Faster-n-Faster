@@ -10,20 +10,22 @@ public class RegisterUserValidatorTests
     [Fact]
     public void ValidRequest_ShouldPass()
     {
-        var request = new RegisterUserRequest { Nick = "Player1", Login = "mylogin", Password = "pass123" };
+        var request = new RegisterUserRequest { Nick = "Player1", Login = "mylogin", Email = "testEmail@gmail.com", Password = "pass123" };
         var result = validator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Theory]
-    [InlineData("", "mylogin", "pass123")]           // empty nick
-    [InlineData("   ", "mylogin", "pass123")]         // whitespace nick
-    [InlineData("Player1", "", "pass123")]            // empty login
-    [InlineData("Player1", "mylogin", "")]            // empty password
-    [InlineData("Player1", "mylogin", "ab")]          // password too short
-    public void InvalidData_ShouldFail(string nick, string login, string password)
+    [InlineData("", "mylogin", "testEmail@gmail.com", "pass123")]           // empty nick
+    [InlineData("   ", "mylogin", "testEmail@gmail.com", "pass123")]         // whitespace nick
+    [InlineData("Player1", "", "testEmail@gmail.com", "pass123")]            // empty login
+    [InlineData("Player1", "mylogin", "testEmail@gmail.com", "")]            // empty password
+    [InlineData("Player1", "mylogin", "testEmail@gmail.com", "ab")]          // password too short
+    [InlineData("Player1", "mylogin", "notemailatall", "ab")]          // not email
+    [InlineData("Player1", "mylogin", "", "ab")]          // no email
+    public void InvalidData_ShouldFail(string nick, string login, string email, string password)
     {
-        var request = new RegisterUserRequest { Nick = nick, Login = login, Password = password };
+        var request = new RegisterUserRequest { Nick = nick, Login = login, Email = email, Password = password };
         var result = validator.TestValidate(request);
         Assert.False(result.IsValid);
     }
@@ -38,6 +40,7 @@ public class RegisterUserValidatorTests
         {
             Nick = new string('a', nickLen),
             Login = new string('a', loginLen),
+            Email = "test@gmail.com",
             Password = new string('a', passLen)
         };
         var result = validator.TestValidate(request);
@@ -54,6 +57,7 @@ public class RegisterUserValidatorTests
         {
             Nick = new string('a', nickLen),
             Login = new string('a', loginLen),
+            Email = "test@gmail.com",
             Password = new string('a', passLen)
         };
         var result = validator.TestValidate(request);

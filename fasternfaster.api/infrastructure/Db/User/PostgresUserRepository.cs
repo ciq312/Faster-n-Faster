@@ -16,11 +16,11 @@ public class PostgresUserRepository(AppDbContext context) : IUserRepository
     public async Task<User?> GetByIdAsync(Guid id)
     {
         return await appDbContext.Users.FindAsync(id);
-
     }
-    public async Task<User?> GetByTokenAsync(string token)
+
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        return await appDbContext.Users.FirstOrDefaultAsync(u => u.Token == token);
+        return await appDbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
     }
 
     public async Task<bool> DoUserExistByNickAsync(string nick)

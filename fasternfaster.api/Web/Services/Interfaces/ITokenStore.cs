@@ -7,5 +7,5 @@ public interface ITokenStore
     Task<bool> IsRefreshTokenValid(string refreshToken);
     Task DeleteRefreshToken(string refreshToken);
     public Task<Guid> GetUserIdByTokenAsync(string refreshToken);
-
+    Task DeleteAllForUserAsync(Guid userId);
 }

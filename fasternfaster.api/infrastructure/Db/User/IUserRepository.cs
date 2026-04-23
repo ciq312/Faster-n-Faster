@@ -7,8 +7,7 @@ public interface IUserRepository
 {
     Task AddAsync(User user);
     Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByTokenAsync(string token);
     Task<bool> DoUserExistByNickAsync(string nick);
-
+    Task<User?> GetByEmailAsync(string email);
     Task<User?> GetUserByLoginAsync(string login);
 }

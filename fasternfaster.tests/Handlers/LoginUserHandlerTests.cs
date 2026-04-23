@@ -35,6 +35,7 @@ public class LoginUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var user = new User("Player1", "mylogin", "pass123");
+        user.SetEmailVerified();
         repo.Seed(user);
         var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 

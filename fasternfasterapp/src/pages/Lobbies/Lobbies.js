@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
@@ -26,12 +26,8 @@ function Lobbies() {
     if (!code) return;
 
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(
         `/api/lobbies/by-code/${encodeURIComponent(code)}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
       );
 
       if (!response.ok) {
