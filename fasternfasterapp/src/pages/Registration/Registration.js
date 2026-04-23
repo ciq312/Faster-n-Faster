@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useAnonymousLogin } from "../../features/auth/hooks/useAnonymousLogin";
-import { useLogin } from "../../features/auth/hooks/useLogin";
-import { useRegister } from "../../features/auth/hooks/useRegister";
 import LoginForm from "../../features/auth/components/LoginForm";
 import SignupForm from "../../features/auth/components/SignupForm";
+import { useAnonymousLogin } from "../../features/auth/hooks/useAnonymousLogin";
+import { useGoogleLogin } from "../../features/auth/hooks/useGoogleLogin";
+import { useLogin } from "../../features/auth/hooks/useLogin";
+import { useRegister } from "../../features/auth/hooks/useRegister";
 import "./Registration.css";
 
 const TABS = [
@@ -19,8 +20,13 @@ function Registration() {
   const anonymousLogin = useAnonymousLogin();
   const login = useLogin();
   const register = useRegister();
+  const googleLogin = useGoogleLogin();
 
-  const loading = anonymousLogin.loading || login.loading || register.loading;
+  const loading =
+    anonymousLogin.loading ||
+    login.loading ||
+    register.loading ||
+    googleLogin.loading;
 
   const handleAnonymousSubmit = (e) => {
     e.preventDefault();
@@ -79,6 +85,21 @@ function Registration() {
         {activeTab === "signup" && (
           <SignupForm onSubmit={register.execute} loading={loading} />
         )}
+
+        <div className="registration__divider">
+          <span>or</span>
+        </div>
+
+        <div className="registration__google-wrap">
+          <button
+            type="button"
+            className="registration__google"
+            onClick={googleLogin.execute}
+            disabled={loading}
+          >
+            continue with google
+          </button>
+        </div>
       </div>
     </div>
   );

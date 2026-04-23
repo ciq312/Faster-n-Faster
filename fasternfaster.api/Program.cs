@@ -30,6 +30,11 @@ using Microsoft.AspNetCore.CookiePolicy;
 using FasterNFaster.Api.Web.Options.JwtOptions;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.Google;
+using FasterNFaster.Api.Web.Options.App;
+using FasterNFaster.Api.Web.Options.Smtp;
+using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
+using FasterNFaster.Api.Infrastructure.Db.Tokens;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -69,9 +74,16 @@ builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
 builder.Services.AddScoped<IEventDispatcher, EventDispatcher>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<ITokenFactory, TokenFactory>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection("CookieOptions"));
+builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection("AuthCookies"));
+builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppUrls"));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+
 
 var rsa = RSA.Create();
 rsa.ImportRSAPrivateKey(Convert.FromBase64String(builder.Configuration["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
@@ -79,6 +91,25 @@ builder.Services.AddAuthentication(o =>
 {
     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+})
+.AddCookie("External", options =>
+{
+    // Short-lived cookie that holds Google claims between challenge and callback only.
+    options.Cookie.Name = "External";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+})
+.AddGoogle("Google", options =>
+{
+    options.ClientId = builder.Configuration["Google:ClientId"]!;
+    options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
+    options.SignInScheme = "External";
+    options.Scope.Add("openid");
+    options.Scope.Add("email");
+    options.Scope.Add("profile");
+    options.CallbackPath = "/api/auth/google/signin";
 })
 .AddJwtBearer(options =>
 {

@@ -1,0 +1,14 @@
+.auth-callback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 48px 20px;
+}
+
+.auth-callback__text {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-3);
+  letter-spacing: 1px;
+}

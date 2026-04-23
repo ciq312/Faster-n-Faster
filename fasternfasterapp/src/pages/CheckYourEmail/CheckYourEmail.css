@@ -1,0 +1,110 @@
+.check-email {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 48px 20px;
+}
+
+.check-email__header {
+  text-align: center;
+  margin-bottom: 52px;
+}
+
+.check-email__logo {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.check-email__tagline {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-3);
+  letter-spacing: 2.5px;
+  text-transform: lowercase;
+}
+
+.check-email__card {
+  width: 420px;
+  max-width: 100%;
+  padding: 28px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.check-email__body {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.check-email__address {
+  color: var(--amber);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.check-email__resend {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--amber);
+  border: none;
+  border-radius: 4px;
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+
+.check-email__resend:hover:not(:disabled) {
+  background: var(--amber-hover);
+}
+
+.check-email__resend:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.check-email__back {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.check-email__back:hover {
+  color: var(--amber);
+}
+
+@media (max-width: 480px) {
+  .check-email__logo {
+    font-size: 1.8rem;
+  }
+
+  .check-email__card {
+    padding: 22px 18px;
+  }
+}

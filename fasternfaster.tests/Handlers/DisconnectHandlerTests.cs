@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Events;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Tests.Fakes;
@@ -20,7 +21,7 @@ public class DisconnectHandlerTests
         var connId = "conn-missing";
         lobbyService.TrackConnection(connId, Guid.NewGuid(), Guid.NewGuid());
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        await Assert.ThrowsAsync<LobbyNotFoundException>(
             () => handler.Handle(new DisconnectCommand(connId, Guid.NewGuid(), Guid.NewGuid())));
     }
 

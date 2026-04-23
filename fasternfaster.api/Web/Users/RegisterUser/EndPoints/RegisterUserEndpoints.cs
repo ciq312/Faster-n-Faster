@@ -23,15 +23,15 @@ public class RegisterUserEndpoint(IHandler<RegisterUserCommand, RegisterUserResu
     {
         try
         {
-            var result = await handler.Handle(new RegisterUserCommand(req.Nick, req.Login, req.Password));
+            var result = await handler.Handle(new RegisterUserCommand(req.Nick, req.Login, req.Email, req.Password));
 
             await Send.CreatedAtAsync<RegisterUserEndpoint>(new { UserID = result.UserId }, result, cancellation: ct);
         }
-        catch (DuplicateNickException e)
+        catch (DuplicateLoginException e)
         {
             ThrowError(e.Message, 409);
         }
-        catch (DuplicateLoginException e)
+        catch (DuplicateEmailException e)
         {
             ThrowError(e.Message, 409);
         }

@@ -11,6 +11,11 @@ kanban-plugin: board
 - [ ] Add safe passwords in db
 - [ ] Redesign
 - [ ] Refactor
+- [ ] make docker images
+- [ ] apiCall frontend
+- [ ] MediatR
+- [ ] LobbyService
+- [ ] Program refactor
 
 
 ## In progress
