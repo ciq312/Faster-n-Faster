@@ -24,7 +24,7 @@ public class GoogleChallengeEndpoint : Endpoint<GoogleChallengeRequest>
 
         // Use SendResultAsync so FastEndpoints executes the IResult and marks the
         // response as sent — calling HttpContext.ChallengeAsync directly leaves the
-        // response unflushed and FE auto-sends an empty response, wiping the 302.
+        // response unflushed a nd FE auto-sends an empty response, wiping the 302.
         await Send.ResultAsync(Results.Challenge(properties, new[] { "Google" }));
     }
 }

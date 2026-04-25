@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractError } from "../../../shared/utils/extractError";
-import { clearAuthState } from "../utils/clearAuthState";
+import { useAuth } from "../AuthContext";
 
 export function useLogin() {
   const { showError } = useError();
+  const { refresh } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -19,9 +20,14 @@ export function useLogin() {
         body: JSON.stringify({ login, password }),
       });
       if (response.status === 403) {
-        const body = await response.clone().json().catch(() => null);
+        const body = await response
+          .clone()
+          .json()
+          .catch(() => null);
         if (body?.code === "EMAIL_NOT_VERIFIED") {
-          navigate(`/check-your-email?email=${encodeURIComponent(body.email ?? login)}`);
+          navigate(
+            `/check-your-email?email=${encodeURIComponent(body.email ?? login)}`,
+          );
           return;
         }
       }
@@ -29,10 +35,7 @@ export function useLogin() {
         showError(await extractError(response));
         return;
       }
-      const data = await response.json();
-      clearAuthState();
-      localStorage.setItem("userName", data.userName);
-      localStorage.setItem("userId", data.userId);
+      await refresh();
       navigate("/lobbies");
     } catch (err) {
       showError(err.message || "Could not connect to server");

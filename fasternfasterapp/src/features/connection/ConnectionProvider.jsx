@@ -7,18 +7,21 @@ import {
   useRef,
   useState,
 } from "react";
-import { useError } from "../../shared/components/BannerProvider";
+import {
+  useBannerMessage,
+  useError,
+} from "../../shared/components/BannerProvider";
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
   const { showError } = useError();
+  const { showMessage } = useBannerMessage();
   const connectionRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(url, { accessTokenFactory: () => token })
+      .withUrl(url)
       .withAutomaticReconnect()
       .build();
 
@@ -33,14 +36,20 @@ function ConnectionProvider({ url, children }) {
         await connection.start();
         setIsConnected(true);
       } catch (err) {
-        console.error(`can't connect to ${url}: `, err);
+        showError("Can't connect to the server");
       }
     };
 
+    const errorSub = () => {
+      connection.on("Error", (e) => showError(e));
+    };
+
     start();
+    errorSub();
 
     return () => {
       connection.stop();
+      return connectionRef.current?.off("Error", (e) => showError(e));
     };
   }, [url]);
 

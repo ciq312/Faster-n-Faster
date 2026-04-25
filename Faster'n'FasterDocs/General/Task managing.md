@@ -7,7 +7,6 @@ kanban-plugin: board
 ## To do
 
 - [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
-- [ ] Refactor
 - [ ] Redesign
 - [ ] MediatR
 - [ ] LobbyService
@@ -16,6 +15,7 @@ kanban-plugin: board
 
 ## In progress
 
+- [ ] Refactor
 
 
 ## Bugs
@@ -31,6 +31,7 @@ kanban-plugin: board
 - [ ] Add safe passwords in db @{2026-04-23}
 - [ ] Fix multi lobby creation @{2026-04-13}
 - [ ] Add Player host buttons @{2026-04-13}
+- [ ] Switch to vite
 
 
 
