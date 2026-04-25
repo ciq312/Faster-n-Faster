@@ -21,6 +21,8 @@ public class LobbyStateBroadcaster
         .SendAsync("LobbyState", state);
     }
 
+
+
     public object GetLobbyState(Lobby lobby)
     {
         var players = lobby.Players.Select(p => new LobbyPlayerDto(
