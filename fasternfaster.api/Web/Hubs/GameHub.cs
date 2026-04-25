@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using FastEndpoints;
+using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -120,6 +121,17 @@ public class GameHub(
         logger.LogInformation("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }
 
+    public async Task RefreshLobby()
+    {
+        if (!TryGetLobbyContext(out var lobbyId, out var groupName))
+            throw new InvalidOperationException("Not in lobby");
+
+        Lobby lobby = lobbyStore.GetRequired(lobbyId);
+
+        object lobbyState = broadcaster.GetLobbyState(lobby);
+
+        await Clients.Caller.SendAsync("LobbyState", lobbyState);
+    }
     public async Task StartRace()
     {
         var userId = GetCallerContext().UserId;
@@ -138,7 +150,7 @@ public class GameHub(
     {
         var userId = GetCallerContext().UserId;
         if (!TryGetLobbyContext(out var lobbyId, out var groupName))
-            throw new HubException("Caller is not in a lobby.");
+            throw new HubException("Not in a lobby.");
 
         await refreshPassageHandler.Handle(new RefreshPassageCommand(userId, lobbyId));
     }
@@ -147,7 +159,7 @@ public class GameHub(
     {
         var userId = GetCallerContext().UserId;
         if (!TryGetLobbyContext(out var lobbyId, out var groupName))
-            throw new HubException("Caller is not in a lobby.");
+            throw new HubException("Not in a lobby.");
 
         await transferHostHandler.Handle(new TransferHostCommand(userId, lobbyId, targetPlayerId));
 
@@ -163,7 +175,7 @@ public class GameHub(
     {
         var userId = GetCallerContext().UserId;
         if (!TryGetLobbyContext(out var lobbyId, out var groupName))
-            throw new HubException("Caller is not in a lobby.");
+            throw new HubException("Not in a lobby.");
 
         var result = await kickPlayerHandler.Handle(new KickPlayerCommand(userId, lobbyId, targetPlayerId));
 
@@ -181,7 +193,7 @@ public class GameHub(
     public async Task ChangeColor(string color)
     {
         if (!TryGetLobbyContext(out var lobbyId, out var groupName))
-            throw new HubException("Caller is not in a lobby.");
+            throw new HubException("Not in a lobby.");
 
         var userId = GetCallerContext().UserId;
 
