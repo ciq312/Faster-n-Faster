@@ -15,7 +15,7 @@ export function useFetchProfile() {
       try {
         console.log(`getting profile`);
         const token = localStorage.getItem("token");
-        const response = await fetch(`/api/users/me`, {
+        const response = await fetch(`/api/users/profiles/me`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useBannerMessage,
   useError,
 } from "../../../shared/components/BannerProvider";
 import { eventBus } from "../../../shared/components/eventBus";
+import { useAuth } from "../../auth/AuthContext";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
 
@@ -13,9 +14,9 @@ export function useLobby(lobbyId, inviteCode) {
   const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
   const { invoke, subscribe, isConnected } = useConnection();
-  const selfIdRef = useRef(localStorage.getItem("userId"));
+  const { userId: selfId } = useAuth();
   const navigate = useNavigate();
-  const isHostRef = useRef(false);
+  const [isHost, setIsHost] = useState(false);
 
   const [players, setPlayers] = useState([]);
   const [lobbyName, setLobbyName] = useState(null);
@@ -24,7 +25,9 @@ export function useLobby(lobbyId, inviteCode) {
   const [colors, setColors] = useState(null);
 
   useEffect(() => {
-    if (!isConnected) return;
+    // Wait for both the SignalR connection and the auth probe — selfId is null
+    // while AuthContext is still resolving /api/auth/me on initial load.
+    if (!isConnected || !selfId) return;
 
     const connectToLobby = async () => {
       try {
@@ -34,6 +37,7 @@ export function useLobby(lobbyId, inviteCode) {
         console.log(`connected to lobby`);
       } catch (e) {
         console.log(e);
+        navigate("/lobbies");
       }
     };
 
@@ -46,14 +50,15 @@ export function useLobby(lobbyId, inviteCode) {
 
     const cleanups = [
       subscribe("LobbyState", (state) => {
+        console.log(state);
         setPlayers(state.players);
         setLobbyName(state.lobbyName);
         setLobbyMaxPlayers(state.maxPlayers);
         setLobbyInviteCode(state.inviteCode);
         setColors(state.colors);
-        isHostRef.current = state.players.find(
-          (el) => el.id === selfIdRef.current,
-        ).isHost;
+        setIsHost(
+          state.players.find((el) => el.id === selfId)?.isHost ?? false,
+        );
       }),
       subscribe("Kicked", () => {
         leaveLobby();
@@ -81,7 +86,7 @@ export function useLobby(lobbyId, inviteCode) {
       cleanups.forEach((clean) => clean());
       eventBus.off("leaveLobby", onLeaveLobby);
     };
-  }, [isConnected]);
+  }, [isConnected, selfId]);
 
   const changeColor = useCallback(async (color) => {
     try {
@@ -108,14 +113,14 @@ export function useLobby(lobbyId, inviteCode) {
     }
   }, []);
 
-  const isSelf = useCallback((id) => id === selfIdRef.current, []);
+  const isSelf = useCallback((id) => id === selfId, [selfId]);
 
   return {
     leaveLobby,
     changeColor,
     isSelf,
-    selfId: selfIdRef.current,
-    isHost: isHostRef.current,
+    selfId,
+    isHost,
     players,
     lobbyName,
     kickPlayer,

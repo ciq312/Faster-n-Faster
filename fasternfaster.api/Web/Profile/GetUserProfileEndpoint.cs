@@ -12,7 +12,7 @@ public class GetUserProfileEndpoint(AppDbContext appDbContext) : EndpointWithout
     private readonly AppDbContext appDbContext = appDbContext;
     public override void Configure()
     {
-        Get("api/users/me");
+        Get("api/users/profiles/me");
     }
 
     public override async Task HandleAsync(CancellationToken ct)
