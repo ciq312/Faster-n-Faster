@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.UseCases.Services;
 

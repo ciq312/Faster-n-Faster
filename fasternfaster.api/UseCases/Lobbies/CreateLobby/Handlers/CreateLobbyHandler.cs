@@ -2,6 +2,8 @@ using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 
@@ -26,7 +28,7 @@ public class CreateLobbyHandler(ILobbyStore lobbyStore, IPassageProvider passage
         var lobby = new Lobby(command.LobbyName, command.IsPrivate, race);
         lobby.AssignHost(command.HostId);
 
-        var code = await LobbySettings.GenerateUniqueInviteCode(
+        var code = await LobbySettings.CreateUniqueInviteCode(
             c => Task.FromResult(lobbyStore.GetByInviteCode(c) != null));
         lobby.LobbySettings.SetInviteCode(code);
 

@@ -1,10 +1,13 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
+using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Core.Lobbies.Colors;
+using FasterNFaster.Api.Core.Lobbies.Events;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
-public class Lobby(string name, bool isPrivate, WordRace race)
+public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     public string Name { get; private set; } = name;
@@ -74,6 +77,7 @@ public class Lobby(string name, bool isPrivate, WordRace race)
             if (nextHost == null) return null;
 
             AssignHost(nextHost.User.Id);
+            RaiseDomainEvent(new HostChangedEvent(Id, nextHost.User.Id, nextHost.User.Nick));
             return nextHost;
         }
     }
@@ -101,10 +105,11 @@ public class Lobby(string name, bool isPrivate, WordRace race)
                 );
 
             AssignHost(newHostId);
+            RaiseDomainEvent(new HostChangedEvent(Id, target.User.Id, target.User.Nick));
         }
     }
 
-    public LobbyPlayer KickPlayer(Guid hostId, Guid targetPlayerId)
+    public void KickPlayer(Guid hostId, Guid targetPlayerId)
     {
         lock (_lock)
         {
@@ -118,8 +123,8 @@ public class Lobby(string name, bool isPrivate, WordRace race)
                 ?? throw new InvalidOperationException("Player not found in this lobby.");
 
             Players.Remove(target);
+            RaiseDomainEvent(new PlayerKickedEvent(target.User.Id, Id, target.User.Nick));
             LobbySettings.UpdateTimestamp();
-            return target;
         }
     }
 
@@ -149,10 +154,16 @@ public class Lobby(string name, bool isPrivate, WordRace race)
                 ?? throw new InvalidOperationException("Player not found in this lobby.");
 
             Players.Remove(player);
+            RaiseDomainEvent(new PlayerDisconnectedEvent(player.User.Id, Id, player.User.Nick));
             LobbySettings.UpdateTimestamp();
         }
     }
+    public async Task GenerateUniqueInviteCode(Func<string, bool> codeExists)
+    {
+        string code = LobbySettings.CreateUniqueInviteCode(codeExists);
 
+        LobbySettings.SetInviteCode(code);
+    }
     public bool IsPlayerInLobby(Guid id)
     {
 

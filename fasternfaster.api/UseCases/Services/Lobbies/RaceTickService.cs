@@ -5,6 +5,7 @@ using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Services;
@@ -13,14 +14,12 @@ public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyStore lobbyStore,
     IHubContext<GameHub> hub,
-    ILogger<RaceTickService> logger,
     IServiceScopeFactory scopeFactory) : BackgroundService
 {
     private readonly IRaceTickRegistry registry = registry;
     private readonly IServiceScopeFactory scopeFactory = scopeFactory;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IHubContext<GameHub> hub = hub;
-    private readonly ILogger<RaceTickService> logger = logger;
 
     private const int TickIntervalMs = 50;
     private const float CountdownSeconds = 3.5f;

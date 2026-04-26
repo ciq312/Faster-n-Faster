@@ -1,3 +1,5 @@
+namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
+
 public interface ISessionService
 {
     public void SetUserSession(Guid userId, string sessionId);

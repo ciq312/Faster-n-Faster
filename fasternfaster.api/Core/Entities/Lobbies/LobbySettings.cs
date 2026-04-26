@@ -2,6 +2,8 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
 public class LobbySettings
 {
+    const int CODE_LENGTH = 6;
+
     private static readonly char[] AlphanumericChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 
@@ -23,14 +25,20 @@ public class LobbySettings
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public static async Task<string> GenerateUniqueInviteCode(Func<string, Task<bool>> codeExists)
+    public string CreateUniqueInviteCode(Func<string, bool> codeExists)
     {
-        const int codeLength = 6;
 
         while (true)
         {
-            var code = string.Create(
-                codeLength,
+            var code = constructCode();
+
+            if (!codeExists(code))
+                return code;
+        }
+    }
+
+    private string constructCode() => string.Create(
+                CODE_LENGTH,
                 Random.Shared,
                 (span, rng) =>
                 {
@@ -38,11 +46,6 @@ public class LobbySettings
                         span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
                 }
             );
-
-            if (!await codeExists(code))
-                return code;
-        }
-    }
 
     public void SetInviteCode(string code)
     {

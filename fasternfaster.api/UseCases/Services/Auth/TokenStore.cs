@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Options.JwtOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
