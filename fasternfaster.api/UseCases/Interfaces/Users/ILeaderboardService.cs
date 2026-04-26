@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Users;
 
 public interface ILeaderboardService
 {

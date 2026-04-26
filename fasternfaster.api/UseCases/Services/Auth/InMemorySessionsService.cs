@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 

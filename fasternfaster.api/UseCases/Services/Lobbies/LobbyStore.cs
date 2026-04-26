@@ -10,10 +10,16 @@ public class LobbyStore : ILobbyStore
 {
     private readonly ConcurrentDictionary<Guid, Lobby> lobbies = new();
 
-    public void Add(Lobby lobby) => lobbies[lobby.Id] = lobby;
+    public void Add(Lobby lobby)
+    {
+        if (!lobbies.TryAdd(lobby.Id, lobby)) throw new InvalidOperationException("Failed to add lobby");
+    }
 
-    public void Remove(Guid id) => lobbies.TryRemove(id, out _);
+    public void Remove(Guid id)
+    {
+        if (!lobbies.TryRemove(id, out _)) throw new InvalidOperationException("Failed to remove lobby");
 
+    }
     public Lobby? Get(Guid id) => lobbies.GetValueOrDefault(id);
 
     public Lobby? GetByInviteCode(string code) =>

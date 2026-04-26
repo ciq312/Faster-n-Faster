@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Services.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface ITokenStore
 {
