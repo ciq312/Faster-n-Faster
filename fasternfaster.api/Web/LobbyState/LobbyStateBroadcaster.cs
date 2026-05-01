@@ -32,7 +32,7 @@ public class LobbyStateBroadcaster(IHubContext<GameHub> hub, ILobbyStore lobbySt
         var race = lobby.Race;
 
         return new LobbyStateDTO(
-            lobby.Id, lobby.Name, race.GetType().Name, race.GetRaceSettings(), lobby.LobbySettings.IsPrivate,
+            lobby.Id, lobby.Name, race.GetType().Name, lobby.IsSessionActive, race.GetRaceSettings(), lobby.LobbySettings.IsPrivate,
             lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
             lobby.GetColors(), [.. players]);
     }

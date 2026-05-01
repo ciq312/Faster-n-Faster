@@ -7,6 +7,7 @@ public record LobbyStateDTO(
     Guid LobbyId,
     string LobbyName,
     string RaceType,
+    bool IsSessionActive,
     IRaceSettings Settings,
     bool IsPrivate,
     string? InviteCode,
