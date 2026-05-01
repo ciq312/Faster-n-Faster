@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Utils;
 using Microsoft.EntityFrameworkCore;
 namespace FasterNFaster.Api.UseCases.Services;

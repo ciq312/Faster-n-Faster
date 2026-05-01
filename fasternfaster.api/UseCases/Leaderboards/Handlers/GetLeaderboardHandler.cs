@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Api.UseCases.Leaderboards.Handlers;
 

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Core.Interfaces.Events;
-using FasterNFaster.Api.Infrastructure.Hubs;
+using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;

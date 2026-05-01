@@ -1,6 +1,8 @@
+using FasterNFaster.Api.Core.Exceptions;
+
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class DuplicateEmailException : Exception
+public class DuplicateEmailException : DomainException
 {
     public string Email { get; private set; }
 

@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
 
+/// <summary>
+/// repository responsible for verifaction tokens email and password reset
+/// </summary>
+/// <param name="dbContext"></param>
 public class TokenRepository(AppDbContext dbContext) : ITokenRepository
 {
     private readonly AppDbContext dbContext = dbContext;

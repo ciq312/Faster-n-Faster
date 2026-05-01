@@ -14,6 +14,10 @@ public class InMemorySessionService(ITokenStore tokenStore) : ISessionService
 
     public void ClearActiveSession(Guid userId)
     {
+
+#if DEBUG
+        Log.Information($"session of user {userId} cleared");
+#endif
         userSessions.Remove(userId, out _);
     }
 
@@ -21,12 +25,15 @@ public class InMemorySessionService(ITokenStore tokenStore) : ISessionService
 
     public void SetUserSession(Guid userId, string sessionId)
     {
+#if DEBUG
+        Log.Information($"session of user {userId} set to {sessionId}");
+#endif
         userSessions[userId] = sessionId;
     }
 
     public async Task InvalidateAll(Guid userId)
     {
         userSessions.Remove(userId, out _);
-        await tokenStore.DeleteAllForUserAsync(userId);
+        await tokenStore.DeleteAllTokensForUserAsync(userId);
     }
 }

@@ -7,16 +7,25 @@ public class PendingRemovalRegistry : IPendingRemovalsRegistry
 {
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> pendingRemovals = new();
 
+    public Task RemovePendingRemoval(Guid userId)
+    {
+        pendingRemovals.Remove(userId, out _);
+        return Task.CompletedTask;
+    }
+
     public Task StorePendingRemoval(Guid userId, CancellationTokenSource cts)
     {
         pendingRemovals[userId] = cts;
         return Task.CompletedTask;
     }
 
-    public Task<bool> TryGetPendingRemoval(Guid userId, out CancellationTokenSource cts)
+    public Task<bool> TryCancelPendingRemoval(Guid userId)
     {
-        cts = pendingRemovals[userId];
+        var cts = pendingRemovals.GetValueOrDefault(userId);
         if (cts == null) return Task.FromResult(false);
+        cts.Cancel();
         return Task.FromResult(true);
     }
+
+
 }

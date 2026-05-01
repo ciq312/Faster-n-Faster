@@ -8,4 +8,8 @@ public record PlayerFinishedEvent(
     Guid PlayerId,
     int? FinishPosition,
     double Wpm,
-    double Accuracy) : IDomainEvent;
+    double Accuracy) : IDomainEvent
+{
+    public Task Dispatch(IEventDispatcher eventDispatcher) => eventDispatcher.Dispatch(this);
+
+}

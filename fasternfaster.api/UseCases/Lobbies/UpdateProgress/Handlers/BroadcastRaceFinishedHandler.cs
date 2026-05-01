@@ -1,28 +1,22 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
-using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class BroadcastRaceFinishedHandler : IDomainEventHandler<RaceFinishedEvent>
+public class BroadcastRaceFinishedHandler(IHubContext<GameHub> hub, ILobbyStore lobbyStore, LobbyStateBroadcaster broadcaster, IPassageProvider passageProvider) : IDomainEventHandler<RaceFinishedEvent>
 {
-    private readonly IHubContext<GameHub> _hub;
-    private readonly ILobbyStore _lobbyStore;
-    private readonly LobbyStateBroadcaster _broadcaster;
+    private readonly IHubContext<GameHub> _hub = hub;
+    private readonly ILobbyStore _lobbyStore = lobbyStore;
+    private readonly LobbyStateBroadcaster _broadcaster = broadcaster;
 
-    private readonly IPassageProvider _passageProvider;
-
-    public BroadcastRaceFinishedHandler(IHubContext<GameHub> hub, ILobbyStore lobbyStore, LobbyStateBroadcaster broadcaster, IPassageProvider passageProvider)
-    {
-        _hub = hub;
-        _lobbyStore = lobbyStore;
-        _broadcaster = broadcaster;
-        _passageProvider = passageProvider;
-    }
+    private readonly IPassageProvider _passageProvider = passageProvider;
 
     public async Task Handle(RaceFinishedEvent e)
     {

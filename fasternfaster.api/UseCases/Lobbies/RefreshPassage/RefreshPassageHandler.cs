@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;

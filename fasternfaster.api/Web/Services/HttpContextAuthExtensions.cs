@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 

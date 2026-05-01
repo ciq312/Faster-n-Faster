@@ -1,6 +1,8 @@
+using FasterNFaster.Api.Core.Exceptions;
+
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class DuplicateLoginException : Exception
+public class DuplicateLoginException : DomainException
 {
     public string Login { get; }
 

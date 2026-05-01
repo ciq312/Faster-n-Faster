@@ -6,4 +6,8 @@ public record RaceFinishedPlayerData(string Nick, Guid PlayerId, int? FinishPosi
 
 public record RaceFinishedEvent(
     Guid LobbyId,
-    IReadOnlyList<RaceFinishedPlayerData> Results) : IDomainEvent;
+    IReadOnlyList<RaceFinishedPlayerData> Results) : IDomainEvent
+{
+    public Task Dispatch(IEventDispatcher eventDispatcher) => eventDispatcher.Dispatch(this);
+
+}
