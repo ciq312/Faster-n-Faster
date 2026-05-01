@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Interfaces;
@@ -29,8 +30,6 @@ public class LoginUserEndpoint(
         try
         {
             var result = await handler.Handle(new LoginUserCommand(req.Login, req.Password));
-
-            await HttpContext.InvalidatePreviousUserIfAuthenticated(sessions);
 
             await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
 

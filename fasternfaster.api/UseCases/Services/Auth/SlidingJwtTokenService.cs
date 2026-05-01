@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using FastEndpoints.Security;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 

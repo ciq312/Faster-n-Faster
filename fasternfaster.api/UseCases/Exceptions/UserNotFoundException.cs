@@ -1,7 +1,9 @@
 
+using FasterNFaster.Api.Core.Exceptions;
+
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class UserNotFoundException : Exception
+public class UserNotFoundException : DomainException
 {
     public Guid UserId { get; }
 

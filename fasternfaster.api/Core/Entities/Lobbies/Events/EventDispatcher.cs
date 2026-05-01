@@ -9,7 +9,9 @@ public class EventDispatcher(IServiceProvider sp) : IEventDispatcher
     public async Task Dispatch<T>(T domainEvent) where T : IDomainEvent
     {
         var handlers = sp.GetServices<IDomainEventHandler<T>>();
-
+#if DEBUG
+        Log.Information($"dispatching event {domainEvent.GetType()}");
+#endif
         foreach (var handler in handlers) await handler.Handle(domainEvent);
     }
 }

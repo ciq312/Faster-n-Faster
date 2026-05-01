@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Interfaces;
 

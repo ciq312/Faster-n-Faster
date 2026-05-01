@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 namespace FasterNFaster.Api.Web.Lobbies.FindLobbyByCode.Endpoints;
 

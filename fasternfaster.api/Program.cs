@@ -4,7 +4,6 @@ using DotNetEnv;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Infrastructure.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.Web.DependencyInversion;
@@ -35,6 +34,11 @@ using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.Smtp;
 using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Web.Hubs;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -49,6 +53,7 @@ builder.Services.AddSingleton<HubExceptionFilter>();
 builder.Services.AddSignalR(options =>
 {
     options.AddFilter<HubExceptionFilter>();
+    options.AddFilter<HubSessionFilter>();
 });
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
@@ -65,6 +70,7 @@ builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
 builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
+builder.Services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
 builder.Services.AddScoped<ITokenService, SlidingJwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();

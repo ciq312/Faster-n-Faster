@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Exceptions;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
@@ -14,13 +15,9 @@ public class HubExceptionFilter(ILogger<HubExceptionFilter> logger) : IHubFilter
         {
             return await next(invocationContext);
         }
-        catch (Exception ex)
+        catch (DomainException ex)
         {
-            logger.LogWarning(ex, "{Method} failed on {ConnectionId}",
-                invocationContext.HubMethodName, invocationContext.Context.ConnectionId);
-
-            await invocationContext.Hub.Clients.Caller.SendAsync("Error", ex.Message);
-            return null;
+            throw new HubException(ex.Message);
         }
     }
 }

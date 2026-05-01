@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Interfaces;
@@ -63,8 +64,6 @@ public class GoogleCallbackEndpoint(
         }
 
         await HttpContext.SignOutAsync("External");
-
-        await HttpContext.InvalidatePreviousUserIfAuthenticated(sessions);
 
         await tokenService.HandlePlayerAuth(user.Id, user.Nick);
 

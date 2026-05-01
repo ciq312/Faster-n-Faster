@@ -1,3 +1,5 @@
+using FasterNFaster.Api.Core.Entities.Lobbies;
+
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface ITokenStore
@@ -7,5 +9,5 @@ public interface ITokenStore
     Task<bool> IsRefreshTokenValid(string refreshToken);
     Task DeleteRefreshToken(string refreshToken);
     public Task<Guid> GetUserIdByTokenAsync(string refreshToken);
-    Task DeleteAllForUserAsync(Guid userId);
+    Task DeleteAllTokensForUserAsync(Guid userId);
 }

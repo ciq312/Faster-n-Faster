@@ -4,23 +4,15 @@ using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 
-public class TransferHostHandler(ILobbyStore lobbyStore, IEventDispatcher eventDispatcher) : IHandler<TransferHostCommand>
+public class TransferHostHandler(ILobbyService lobbyService) : IHandler<TransferHostCommand>
 {
-    private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IEventDispatcher eventDispatcher = eventDispatcher;
-
+    private readonly ILobbyService lobbyService = lobbyService;
     public async Task Handle(TransferHostCommand command)
     {
-        var lobby = lobbyStore.GetRequired(command.LobbyId);
-
-        lobby.TransferHost(command.UserId, command.TargetPlayerId);
-
-        User targetHost = lobby.Players.FirstOrDefault(p => command.TargetPlayerId == p.User.Id)?.User
-            ?? throw new UserNotFoundException(command.TargetPlayerId);
-
-        await eventDispatcher.Dispatch(new HostChangedEvent(lobby.Id, targetHost.Id, targetHost.Nick));
+        await lobbyService.TransferHost(command.HostId, command.UserId);
     }
 }

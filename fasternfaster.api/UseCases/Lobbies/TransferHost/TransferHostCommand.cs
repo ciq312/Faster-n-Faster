@@ -1,3 +1,3 @@
 namespace FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 
-public record TransferHostCommand(Guid UserId, Guid LobbyId, Guid TargetPlayerId);
+public record TransferHostCommand(Guid HostId, Guid LobbyId, Guid UserId);
