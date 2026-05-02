@@ -28,7 +28,7 @@ public class UpdateProgressHandler(ILobbyStore lobbyStore, IEventDispatcher even
 
         if (participant.IsFinished) return;
 
-        race.ProcessUpdate(command.UserId, command.Index, command.Mistakes);
+        race.ProcessUpdate(command.UserId, command.Index, command.Mistakes, command.Typed);
 
         if (participant.IsFinished)
         {

@@ -203,11 +203,11 @@ public class GameHub(
         await broadcaster.BroadcastLobbyState(lobby);
     }
 
-    public async Task UpdateRaceState(int index, int mistakes)
+    public async Task UpdateRaceState(int index, int mistakes, string typed)
     {
         var userId = GetCallerContext().UserId;
         var lobbyContext = await RequireLobbyContext();
-        await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes));
+        await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes, typed));
     }
 
     public async Task LeaveLobby()
