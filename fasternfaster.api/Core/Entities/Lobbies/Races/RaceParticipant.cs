@@ -10,7 +10,7 @@ public class RaceParticipant(Guid id, string color, string nick)
     public Guid Id { get; private set; } = id;
     public string Color { get; private set; } = color;
     public int Index { get; private set; } = -1;
-    public int TotalTyped { get; private set; }
+    public string Typed { get; private set; } = "";
     public int WordsTyped { get; private set; }
     public int Mistakes { get; private set; }
     public bool IsFinished { get; private set; }
@@ -26,7 +26,7 @@ public class RaceParticipant(Guid id, string color, string nick)
     /// Validates and applies a client state snapshot. Clamps invalid values instead of rejecting.
     /// </summary>
     /// <returns>true if the update was accepted (possibly clamped)</returns>
-    public bool ValidateUpdate(int newIndex, int newMistakes, int passageLength)
+    public bool ValidateUpdate(int newIndex, int newMistakes, int passageLength, string typed)
     {
         if (IsFinished)
             return false;
@@ -36,7 +36,11 @@ public class RaceParticipant(Guid id, string color, string nick)
 
         int indexDelta = newIndex - Index;
         if (indexDelta > MAX_INDEX_JUMP)
-            newIndex = Index + MAX_INDEX_JUMP;
+            return false;
+
+        bool didUserRefresh = newIndex == -1 && typed == "";
+
+        if (didUserRefresh) return false;
 
         var now = DateTime.UtcNow;
         double secondsElapsed = (now - LastUpdateAt).TotalSeconds;
@@ -50,6 +54,7 @@ public class RaceParticipant(Guid id, string color, string nick)
         if (newIndex > passageLength)
             newIndex = passageLength;
 
+        Typed = typed;
         Index = newIndex;
         WordsTyped = (Index + 1) / AVERAGE_WORD_LENGTH;
         Mistakes = newMistakes;

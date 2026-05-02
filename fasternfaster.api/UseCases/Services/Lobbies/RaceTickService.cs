@@ -83,7 +83,6 @@ public class RaceTickService(
 
         var players = snapshot
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
-            .Select(s => new { playerId = s.PlayerId, index = s.Index, wpm = s.Wpm, color = s.Color, nick = s.Nick })
             .ToList();
 
         var race = lobby.Race;
@@ -104,6 +103,6 @@ public class RaceTickService(
             return;
         }
 
-        await group.SendAsync("RaceState", new { players });
+        await group.SendAsync("RaceState", players);
     }
 }

@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public record ParticipantSnapshot(Guid PlayerId, int Index, double Wpm, string Color, string Nick);
+public record ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick);
 
 public abstract class Race // ISession in future when new mechanics implemeneted
 {
@@ -30,7 +30,7 @@ public abstract class Race // ISession in future when new mechanics implemeneted
     /// Validates a client state snapshot and checks for finish.
     /// Thread-safe — called from SignalR hub threads.
     /// </summary>
-    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes);
+    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed);
 
     /// <summary>
     /// Returns a thread-safe snapshot of all participants for the tick service.
