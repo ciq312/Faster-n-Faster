@@ -7,6 +7,8 @@ public class FakeUserRepository : IUserRepository
 {
     private readonly List<User> _users = new();
 
+    public IReadOnlyList<User> Users => _users;
+
     public void Seed(User user) => _users.Add(user);
 
     public Task AddAsync(User user)
@@ -27,4 +29,6 @@ public class FakeUserRepository : IUserRepository
 
     public Task<User?> GetUserByLoginAsync(string login)
         => Task.FromResult(_users.FirstOrDefault(u => u.Login == login));
+
+    public Task<bool> IsUserRegistred(Guid id) => Task.FromResult(Users.Any(u => u.Id == id));
 }

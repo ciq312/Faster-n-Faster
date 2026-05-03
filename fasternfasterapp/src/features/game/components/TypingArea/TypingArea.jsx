@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useCharPositions } from "../../hooks/useCharPositions";
 import { useTyping } from "../../hooks/useTyping";
 import "./TypingArea.css";
@@ -10,6 +10,14 @@ function TypingArea({
   opponents: players = [],
   selfId,
 }) {
+
+  const [self, setSelf] = useState(null);
+  
+  useEffect(() => {
+    setSelf(players.filter((p) => p.playerId === selfId).pop());
+  }, [players]);
+  
+
   const {
     typed,
     inputRef,
@@ -21,12 +29,14 @@ function TypingArea({
     passage,
     disabled,
     onProgress,
+    selfTyped: self?.typed,
+    selfCorrectIndex: self?.index,
   });
-
   const { charsRef, containerRef, caretPos } = useCharPositions(
     passage,
     typed.length,
   );
+
   const lastOverflowRef = useRef(null);
   const [selfPos, setSelfPos] = useState({ left: 0, top: 0 });
 

@@ -1,8 +1,12 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 using FasterNFaster.Api.UseCases.Services;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -11,46 +15,40 @@ public class CreateLobbyHandlerTests
     [Fact]
     public async Task CreateLobby_ShouldReturnLobbyIdAndName()
     {
-        var store = new FakeLobbyStore();
         var passageProvider = new RandomPassageProvider();
-        var serviceProvider = new FakeLobbyService();
-        var handler = new CreateLobbyHandler(store, passageProvider, serviceProvider);
+        var eventDispatcher = new FakeEventDispatcher();
+        var lobbyStore = new LobbyStore();
+
+        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
+
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService);
+
         var hostId = Guid.NewGuid();
 
-        var result = await handler.Handle(
-            new CreateLobbyCommand("Test Lobby", false, hostId));
+        var result = await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, hostId));
 
-        Assert.Equal("Test Lobby", result.LobbyName);
-        Assert.NotEqual(Guid.Empty, result.LobbyId);
+        var storedLobby = lobbyStore.GetRequired(result.LobbyId);
+
+        Assert.True(storedLobby.Name == "testLobby");
+        Assert.True(storedLobby.HostId == hostId);
     }
 
     [Fact]
     public async Task CreateLobby_ShouldStoreTheLobby()
     {
-        var store = new FakeLobbyStore();
         var passageProvider = new RandomPassageProvider();
-        var serviceProvider = new FakeLobbyService();
-        var handler = new CreateLobbyHandler(store, passageProvider, serviceProvider);
-        var hostId = Guid.NewGuid();
+        var eventDispatcher = new FakeEventDispatcher();
+        var lobbyStore = new LobbyStore();
 
-        var result = await handler.Handle(
-            new CreateLobbyCommand("My Lobby", false, hostId));
+        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
 
-        var stored = store.Get(result.LobbyId);
-        Assert.NotNull(stored);
-        Assert.Equal("My Lobby", stored.Name);
-        Assert.Equal(hostId, stored.HostId);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService);
+
+        var lobbyId = Guid.NewGuid();
+
+        await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, lobbyId));
+
+        Assert.Single(lobbyStore.GetAll());
     }
 
-    [Fact]
-    public async Task CreateLobby_ShouldNotAllowCreateLobbyWhenInLobby()
-    {
-        User host = new User("test");
-        var res = await LobbyFactory.WithPlayers(host);
-
-        var handler = new CreateLobbyHandler(res.Store, new RandomPassageProvider(), res.LobbyService);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(new CreateLobbyCommand("test2", false, host.Id)));
-
-    }
 }

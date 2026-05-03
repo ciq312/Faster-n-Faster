@@ -18,19 +18,24 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
     public WordRace Race { get; private set; } = race;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
 
-
-    private readonly object _lock = new();
-
-    public void StartSession()
+    public void InitializeSession()
     {
-        lock (_lock)
-        {
-            if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
-            if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
+        if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
+        if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
 
-            Race.Start(Players.Select(p => (p.User.Id, p.Color, p.User.Nick)));
-            IsSessionActive = true;
-        }
+        Race.Reset();
+        IsSessionActive = true;
+    }
+
+    public void LaunchSession()
+    {
+        if (!IsSessionActive) throw new InvalidOperationException("Session is not active.");
+        if (Race.HasStarted) throw new InvalidOperationException("Race already started.");
+
+        foreach (var player in Players)
+            Race.AddParticipant(new RaceParticipant(player.User.Id, player.Color, player.User.Nick));
+
+        Race.Start();
     }
 
     public void OnSessionEnded()
@@ -42,6 +47,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 
     public void Join(User user, string? code)
     {
+        if (IsPlayerInLobby(user.Id)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && isPrivate) throw new InvalidInviteCodeException();
 
         AddPlayer(user);
@@ -50,20 +56,17 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 
     private void AddPlayer(User user)
     {
-        lock (_lock)
-        {
-            if (IsSessionActive)
-                throw new LobbyIsNotAcceptingPlayersException();
+        if (IsSessionActive)
+            throw new LobbyIsNotAcceptingPlayersException();
 
-            if (Players.Count >= LobbySettings.MaxPlayers)
-                throw new LobbyFullException();
+        if (Players.Count >= LobbySettings.MaxPlayers)
+            throw new LobbyFullException();
 
-            var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
-            var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
-            var player = new LobbyPlayer(user, this, joinOrder, color);
-            Players.Add(player);
-            LobbySettings.UpdateTimestamp();
-        }
+        var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
+        var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
+        var player = new LobbyPlayer(user, this, joinOrder, color);
+        Players.Add(player);
+        LobbySettings.UpdateTimestamp();
     }
 
     public void AssignHost(Guid hostId)
@@ -71,8 +74,6 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
         HostId = hostId;
         LobbySettings.UpdateTimestamp();
     }
-
-
 
     public void ValidateHost(Guid userId)
     {
@@ -82,74 +83,64 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 
     public void TransferHost(Guid hostId, Guid newHostId)
     {
-        lock (_lock)
-        {
-            ValidateHost(hostId);
+        ValidateHost(hostId);
 
-            if (hostId == newHostId)
-                throw new InvalidOperationException("Cannot transfer host to yourself.");
+        if (hostId == newHostId)
+            throw new InvalidOperationException("Cannot transfer host to yourself.");
 
-            var target =
-                Players.FirstOrDefault(p => p.User.Id == newHostId && p.IsConnected)
-                ?? throw new InvalidOperationException(
-                    "Target player is not in this lobby or is disconnected."
-                );
+        var target =
+            Players.FirstOrDefault(p => p.User.Id == newHostId && p.IsConnected)
+            ?? throw new InvalidOperationException(
+                "Target player is not in this lobby or is disconnected."
+            );
 
-            AssignHost(newHostId);
-            RaiseDomainEvent(new HostChangedEvent(Id, target.User.Id, target.User.Nick));
-        }
+        AssignHost(newHostId);
+        RaiseDomainEvent(new HostChangedEvent(Id, target.User.Id, target.User.Nick));
     }
 
     public void ChangePlayerColor(Guid playerId, string newColor)
     {
-        lock (_lock)
-        {
-            if (IsSessionActive)
-                throw new InvalidOperationException("Can only change color while waiting.");
+        if (IsSessionActive)
+            throw new InvalidOperationException("Can only change color while waiting.");
 
-            if (Players.Any(p => p.Color == newColor))
-                throw new ColorIsAlreadyTakenException();
+        if (Players.Any(p => p.Color == newColor))
+            throw new ColorIsAlreadyTakenException();
 
-            var player = Players.FirstOrDefault(p => p.User.Id == playerId)
-                ?? throw new InvalidOperationException("Player not found in this lobby.");
+        var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+            ?? throw new InvalidOperationException("Player not found in this lobby.");
 
-            player.ChangeColor(newColor);
-            LobbySettings.UpdateTimestamp();
-        }
+        player.ChangeColor(newColor);
+        LobbySettings.UpdateTimestamp();
     }
 
-    public void RemovePlayer(Guid playerId)
+    public LobbyPlayer RemovePlayer(Guid playerId)
     {
-        lock (_lock)
-        {
-            var player = Players.FirstOrDefault(p => p.User.Id == playerId)
-                ?? throw new InvalidOperationException("Player not found in this lobby.");
+        var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+            ?? throw new InvalidOperationException("Player not found in this lobby.");
 
-            if (IsSessionActive)
-                Race.WithdrawParticipant(playerId);
+        if (IsSessionActive)
+            Race.WithdrawParticipant(playerId);
 
-            Players.Remove(player);
-            PromoteNextIfHost(playerId);
-            RaiseDomainEvent(new PlayerRemovedEvent(player.User.Id, Id, player.User.Nick));
-            LobbySettings.UpdateTimestamp();
-        }
+        Players.Remove(player);
+        PromoteNextIfHost(playerId);
+        RaiseDomainEvent(new PlayerRemovedEvent(player.User.Id, Id, player.User.Nick));
+        LobbySettings.UpdateTimestamp();
+        return player;
     }
+
     private void PromoteNextIfHost(Guid leavingPlayerId)
     {
-        lock (_lock)
-        {
-            if (HostId != leavingPlayerId) return;
+        if (HostId != leavingPlayerId) return;
 
-            var newHost = Players
-               .Where(p => p.IsConnected)
-               .OrderBy(p => p.JoinOrder)
-               .FirstOrDefault();
+        var newHost = Players
+           .Where(p => p.IsConnected)
+           .OrderBy(p => p.JoinOrder)
+           .FirstOrDefault();
 
-            if (newHost == null) return;
+        if (newHost == null) return;
 
-            AssignHost(newHost.User.Id);
-            RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
-        }
+        AssignHost(newHost.User.Id);
+        RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
     }
 
     public async Task GenerateUniqueInviteCode(Func<string, bool> codeExists)
@@ -158,11 +149,10 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 
         LobbySettings.SetInviteCode(code);
     }
-    public bool IsPlayerInLobby(Guid id)
-    {
 
-        lock (_lock) { return Players.Any(p => p.User.Id == id); }
-    }
+    public bool IsPlayerInLobby(Guid id) => Players.Any(p => p.User.Id == id);
+
+    public bool IsEmpty() => Players.Count == 0;
 
     public IEnumerable<ColorStatus> GetColors()
     => PlayerColors.Palette.Select(c => new

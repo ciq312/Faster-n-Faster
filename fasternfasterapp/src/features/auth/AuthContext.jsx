@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { apiCall } from "../../shared/utils/apiCall";
 
 const AuthContext = createContext(null);
@@ -34,12 +40,14 @@ export function AuthProvider({ children }) {
     setStatus("not authenticated");
   }, []);
 
+  const isSelf = useCallback((id) => userId === id, [userId]);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   return (
-    <AuthContext.Provider value={{ userId, userName, status, refresh, clear }}>
+    <AuthContext.Provider value={{ userId, userName, status, refresh, clear, isSelf }}>
       {children}
     </AuthContext.Provider>
   );

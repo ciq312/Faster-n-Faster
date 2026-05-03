@@ -1,17 +1,18 @@
 import {
   createContext,
-  useContext,
-  useState,
   useCallback,
-  useRef,
+  useContext,
   useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import Banner from "./Banner/Banner";
 const BannerContext = createContext();
 
 function BannerProvider({ children }) {
   const bannerRef = useRef(null);
+  const bannerPromiseRef = useRef(null);
   const [banner, setBanner] = useState(null);
   const [fading, setFading] = useState(false);
   const timers = useRef({ fade: null, remove: null });
@@ -41,7 +42,7 @@ function BannerProvider({ children }) {
   const showBanner = useCallback(
     async ({ variant, message, duration_MS = 4000 }) => {
       if (bannerRef.current) {
-        await closeBanner();
+        await bannerPromiseRef.current;
       }
       clearTimers();
       const next = { variant, message, duration_MS };
@@ -49,14 +50,15 @@ function BannerProvider({ children }) {
       setFading(false);
       setBanner(next);
       timers.current.fade = setTimeout(() => {
-        console.log(`fading`);
         setFading(true);
       }, duration_MS - 400);
-      timers.current.remove = setTimeout(() => {
+      bannerPromiseRef.current = new Promise(resolve => {timers.current.remove = setTimeout(() => {
         bannerRef.current = null;
         setBanner(null);
         setFading(false);
+        resolve();
       }, duration_MS);
+    });
     },
     [closeBanner],
   );

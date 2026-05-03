@@ -2,22 +2,28 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
+using Google.Apis.Util;
+using Npgsql.Replication;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
 public class SaveRaceResultHandler : IDomainEventHandler<RaceFinishedEvent>
 {
     private readonly AppDbContext _db;
+    private readonly IUserRepository _repo;
 
-    public SaveRaceResultHandler(AppDbContext db)
+    public SaveRaceResultHandler(AppDbContext db, IUserRepository repo)
     {
         _db = db;
+        _repo = repo;
     }
 
     public async Task Handle(RaceFinishedEvent domainEvent)
     {
         foreach (var result in domainEvent.Results)
         {
+            if (!await _repo.IsUserRegistred(result.LobbyPlayerId)) continue;
+
             var stats = await _db.Statistics.FindAsync(result.LobbyPlayerId);
 
             if (stats == null)
@@ -33,5 +39,4 @@ public class SaveRaceResultHandler : IDomainEventHandler<RaceFinishedEvent>
 
         await _db.SaveChangesAsync();
     }
-
 }

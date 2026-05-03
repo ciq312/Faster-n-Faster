@@ -25,6 +25,7 @@ namespace FasterNFaster.Api.Web.Hubs;
 public class GameHub(
     ILogger<GameHub> logger,
     ILobbyStore lobbyStore,
+    ILobbyService lobbyService,
     ISessionService sessionService,
     LobbyStateBroadcaster broadcaster,
     IHandler<JoinLobbyCommand> joinHandler,
@@ -54,13 +55,13 @@ public class GameHub(
         return (userId, nick, role);
     }
 
-    private async Task<LobbyContext> RequireLobbyContext()
+    private Task<LobbyContext> RequireLobbyContext()
     {
-        var lobbyId = await lobbyStore.GetLobbyPlayerIn(GetCallerContext().UserId);
-        if (lobbyId == default) throw new InvalidOperationException("Not in lobby");
+        var lobbyId = lobbyService.GetLobbyOfPlayer(GetCallerContext().UserId)
+            ?? throw new InvalidOperationException("Not in lobby");
 
         var groupName = $"lobby-{lobbyId}";
-        return new LobbyContext(lobbyId, groupName);
+        return Task.FromResult(new LobbyContext(lobbyId, groupName));
     }
 
     private record LobbyContext(Guid LobbyId, string GroupName);
@@ -99,9 +100,8 @@ public class GameHub(
 
     private async Task AddToGroupIfInLobby(Guid userId, string callerConnectionId)
     {
-        var lobbyId = await lobbyStore.GetLobbyPlayerIn(userId);
-
-        if (lobbyId == default) return;
+        var lobbyId = lobbyService.GetLobbyOfPlayer(userId);
+        if (lobbyId is null) return;
 
         logger.LogDebug($"adding  user {userId} to group lobby-{lobbyId} ");
 
@@ -192,15 +192,12 @@ public class GameHub(
     public async Task ChangeColor(string color)
     {
         var lobbyContext = await RequireLobbyContext();
-
         var userId = GetCallerContext().UserId;
-
-        var lobby = lobbyStore.GetRequired(lobbyContext.LobbyId);
 
         logger.LogDebug($"chaning color to {color}");
 
-        lobby.ChangePlayerColor(userId, color);
-        await broadcaster.BroadcastLobbyState(lobby);
+        await lobbyService.ChangePlayerColor(lobbyContext.LobbyId, userId, color);
+        await broadcaster.BroadcastLobbyState(lobbyContext.LobbyId);
     }
 
     public async Task UpdateRaceState(int index, int mistakes, string typed)
@@ -223,14 +220,15 @@ public class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
-        Guid lobbyId = await lobbyStore.GetLobbyPlayerIn(userId);
+        var maybeLobbyId = lobbyService.GetLobbyOfPlayer(userId);
 
-        if (lobbyId == default)
+        if (maybeLobbyId is null)
         {
             await base.OnDisconnectedAsync(exception);
             return;
         }
 
+        var lobbyId = maybeLobbyId.Value;
         string groupName = $"lobby-{lobbyId}";
 
 

@@ -7,9 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Web.Profile;
 
-public class GetUserProfileEndpoint(AppDbContext appDbContext) : EndpointWithoutRequest<GetUserProfileResult>
+public class GetUserProfileEndpoint(AppDbContext appDbContext, IUserRepository repo) : EndpointWithoutRequest<GetUserProfileResult>
 {
     private readonly AppDbContext appDbContext = appDbContext;
+
     public override void Configure()
     {
         Get("api/users/profiles/me");
@@ -17,8 +18,9 @@ public class GetUserProfileEndpoint(AppDbContext appDbContext) : EndpointWithout
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var userId = Guid.Parse(
-            HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) ThrowError("Not authorized", 401);
+
+        if (!await repo.IsUserRegistred(userId)) ThrowError("Not registred player", 401);
 
         var stats = await appDbContext.Statistics.FirstOrDefaultAsync(s => s.User.Id == userId);
 

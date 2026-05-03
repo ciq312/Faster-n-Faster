@@ -56,7 +56,7 @@ public class RaceParticipant(Guid id, string color, string nick)
 
         Typed = typed;
         Index = newIndex;
-        WordsTyped = (Index + 1) / AVERAGE_WORD_LENGTH;
+        WordsTyped = Typed.Split(" ").Length;
         Mistakes = newMistakes;
         LastUpdateAt = now;
 

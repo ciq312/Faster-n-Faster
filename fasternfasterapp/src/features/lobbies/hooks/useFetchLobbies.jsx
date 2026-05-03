@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { extractError } from "../../../shared/utils/extractError";
+import { useCallback, useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
+import { extractHttpError } from "../../../shared/utils/extractHttpError";
 
 export function useFetchLobbies() {
   const { showError } = useError();
@@ -14,7 +14,7 @@ export function useFetchLobbies() {
       try {
         const response = await fetch("/api/lobbies");
         if (!response.ok) {
-          showError(await extractError(response));
+          showError(await extractHttpError(response));
           setLoading(false);
           return;
         }

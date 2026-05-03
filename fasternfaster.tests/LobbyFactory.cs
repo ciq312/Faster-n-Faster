@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
@@ -15,7 +16,8 @@ public record LobbyTestContext(
     LobbyService LobbyService,
     RaceTickRegistry Registry,
     FakeUserRepository UserRepo,
-    Guid LobbyId)
+    Guid LobbyId,
+    FakeEventDispatcher EventDispatcher)
 {
     public Lobby Lobby => Store.Get(LobbyId)!;
 }
@@ -27,16 +29,17 @@ public static class LobbyFactory
     /// </summary>
     public static async Task<LobbyTestContext> Empty(Guid hostId)
     {
-        var store = new LobbyStore();
-        var lobbyService = new LobbyService();
+        var eventDispatcher = new FakeEventDispatcher();
+        var lobbyStore = new LobbyStore();
+        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
 
-        var createHandler = new CreateLobbyHandler(store, passageProvider, lobbyService);
+        var createHandler = new CreateLobbyHandler(passageProvider, lobbyService);
         var result = await createHandler.Handle(new CreateLobbyCommand("Test", false, hostId));
 
-        return new LobbyTestContext(store, lobbyService, registry, userRepo, result.LobbyId);
+        return new LobbyTestContext(lobbyStore, lobbyService, registry, userRepo, result.LobbyId, eventDispatcher);
     }
 
     /// <summary>
@@ -45,26 +48,36 @@ public static class LobbyFactory
     /// </summary>
     public static async Task<LobbyTestContext> WithPlayers(params User[] users)
     {
-        var store = new LobbyStore();
         var userRepo = new FakeUserRepository();
         var userFactory = new UserFactory(userRepo);
-        var lobbyService = new LobbyService();
+
+        var eventDispatcher = new FakeEventDispatcher();
+        var lobbyStore = new LobbyStore();
+        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 
         foreach (var user in users)
             userRepo.Seed(user);
 
-        var createHandler = new CreateLobbyHandler(store, passageProvider, lobbyService);
+        var createHandler = new CreateLobbyHandler(passageProvider, lobbyService);
         var result = await createHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id));
 
-        var joinHandler = new JoinLobbyHandler(store, userFactory, lobbyService);
+        var joinHandler = new JoinLobbyHandler(userFactory, lobbyService);
         for (int i = 0; i < users.Length; i++)
         {
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"));
-            lobbyService.TrackConnection($"conn{i}", result.LobbyId, users[i].Id);
         }
 
-        return new LobbyTestContext(store, lobbyService, registry, userRepo, result.LobbyId);
+        return new LobbyTestContext(lobbyStore, lobbyService, registry, userRepo, result.LobbyId, eventDispatcher);
+    }
+    public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()
+    {
+        User host = new User("host");
+        User other = new User("other");
+
+        var context = await WithPlayers(host, other);
+
+        return (host, other, context);
     }
 }
