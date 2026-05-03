@@ -66,7 +66,9 @@ public class ResetPasswordHandlerTests
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
-        await ctx.TokenStore.StoreRefreshToken(ctx.User.Id, "refresh-X");
+        var tokenFactory = new TokenFactory();
+        var token = tokenFactory.GetToken(ctx.User.Id, TokenType.PasswordReset);
+        await ctx.TokenRepo.Add(token);
 
         await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword));
 
@@ -74,7 +76,7 @@ public class ResetPasswordHandlerTests
         Assert.Equal(NewPassword, ctx.User.Password);
         Assert.Empty(ctx.TokenRepo.tokens);
         Assert.Null(ctx.Sessions.GetActiveSession(ctx.User.Id));
-        Assert.False(await ctx.TokenStore.IsRefreshTokenValid("refresh-X"));
+        Assert.Null(await ctx.TokenRepo.GetLatestForUserAsync(ctx.User.Id, TokenType.PasswordReset));
     }
 
     [Fact]

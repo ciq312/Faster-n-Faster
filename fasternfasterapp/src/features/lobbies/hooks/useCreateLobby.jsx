@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { apiCall } from "../../../shared/utils/apiCall";
-import { extractError } from "../../../shared/utils/extractError";
+import { extractHttpError } from "../../../shared/utils/extractHttpError";
+import { useJoinLobby } from "./useJoinLobby";
 
 export function useCreateLobby() {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {joinLobby} = useJoinLobby();
 
   const execute = async (lobbyData) => {
     setLoading(true);
@@ -21,20 +23,19 @@ export function useCreateLobby() {
       });
 
       if (!response.ok) {
-        showError(await extractError(response));
+        showError(await extractHttpError(response));
         return false;
       }
       const data = await response.json();
-      navigate(`/lobby/${data.lobbyId}`, {
-        state: { inviteCode: data.inviteCode },
-      });
+      await joinLobby(data.lobbyId, data.inviteCode);
       return true;
-    } catch {
-      showError("Could not connect to server");
+    } catch (e){
+      showError(e.message);
       return false;
     } finally {
       setLoading(false);
     }
+
   };
 
   return { execute, loading };

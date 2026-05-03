@@ -4,6 +4,7 @@ import { useConnection } from "../../features/connection/ConnectionProvider";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
 import { useFetchLobbies } from "../../features/lobbies/hooks/useFetchLobbies";
+import { useJoinLobby } from "../../features/lobbies/hooks/useJoinLobby";
 import { useError } from "../../shared/components/BannerProvider";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Lobbies.css";
@@ -11,6 +12,7 @@ import "./Lobbies.css";
 function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { joinLobby } = useJoinLobby();
   const { invoke, subscribe, isConnected } = useConnection();
   const navigate = useNavigate();
   const fetchLobbies = useFetchLobbies();
@@ -38,7 +40,7 @@ function Lobbies() {
       }
 
       const data = await response.json();
-      navigate(`/lobby/${data.lobbyId}`, { state: { inviteCode: code } });
+      joinLobby(data.lobbyId, code);
     } catch {
       showError("Could not connect to server.");
     }
@@ -105,7 +107,7 @@ function Lobbies() {
                       </div>
                       <button
                         className="lobby-card__join"
-                        onClick={() => navigate(`/lobby/${lobby.id}`)}
+                        onClick={() => joinLobby(lobby.id)}
                       >
                         join lobby
                       </button>

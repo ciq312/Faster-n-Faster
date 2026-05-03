@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
-import { extractError } from "../../../shared/utils/extractError";
+import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { useAuth } from "../AuthContext";
 
 export function useLogin() {
@@ -32,7 +32,7 @@ export function useLogin() {
         }
       }
       if (!response.ok) {
-        showError(await extractError(response));
+        showError(await extractHttpError(response));
         return;
       }
       await refresh();

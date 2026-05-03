@@ -1,4 +1,4 @@
-export async function extractError(response) {
+export async function extractHttpError(response) {
   try {
     const body = await response.json();
     if (body.errors) {

@@ -13,12 +13,14 @@ namespace FasterNFaster.Api.UseCases.Services;
 public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyStore lobbyStore,
+    ILobbyService lobbyService,
     IHubContext<GameHub> hub,
     IServiceScopeFactory scopeFactory) : BackgroundService
 {
     private readonly IRaceTickRegistry registry = registry;
     private readonly IServiceScopeFactory scopeFactory = scopeFactory;
     private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly ILobbyService lobbyService = lobbyService;
     private readonly IHubContext<GameHub> hub = hub;
 
     private const int TickIntervalMs = 50;
@@ -64,6 +66,7 @@ public class RaceTickService(
 
         if (elapsed >= CountdownSeconds)
         {
+            await lobbyService.LaunchSession(entry.LobbyId);
             await group.SendAsync("RaceStarted");
 #if DEBUG
             Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);

@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useBannerMessage } from "../../../shared/components/BannerProvider";
+import { useAuth } from "../../auth/AuthContext";
 import { useConnection } from "../../connection/ConnectionProvider";
 
 export function useRace() {
-  const { invoke, subscribe, isConnected } = useConnection();
-  const selfIfRef = useRef(localStorage.getItem("userId"));
+  const { subscribe, isConnected } = useConnection();
+  const { isSelf } = useAuth();
   const [isRacing, setIsRacing] = useState(false);
   const [isRaceStarting, setIsRaceStarting] = useState(false);
   const [raceSettings, setRaceSettings] = useState(null);
   const [raceResults, setRaceResults] = useState(null);
   const [raceParticipants, setRaceParticipants] = useState([]);
-  const { showMessage } = useBannerMessage();
   const countdownTimersRef = useRef([]);
   const [countdown, setCountdown] = useState(null);
   const [tier, setTier] = useState(null);
 
   const tiers = [
-    { min: 120, label: "That's can't be real" },
+    { min: 120, label: "That can't be real" },
     { min: 110, label: "Are you a God?" },
     { min: 100, label: "Are you even a human?" },
     { min: 90, label: "You are exceptional" },
@@ -28,12 +27,10 @@ export function useRace() {
     { min: 30, label: "Faster than a turtle" },
     { min: 20, label: "My grandma does better" },
     { min: 10, label: "So you can type, huh?" },
-    { min: 0, label: "Start Typing already" },
+    { min: 0, label: "Are you asleep?" },
   ];
 
   const getTier = (value, tiers) => tiers.find((t) => value >= t.min) ?? null;
-
-  const isSelf = (id) => id == selfIfRef.current;
 
   useEffect(() => {
     const cleanups = [
@@ -45,6 +42,7 @@ export function useRace() {
 
       subscribe("LobbyState", (state) => {
         setRaceSettings(state.settings);
+        setIsRacing(state.isSessionActive);
       }),
 
       subscribe("RaceStarting", () => {
@@ -60,8 +58,6 @@ export function useRace() {
       }),
 
       subscribe("RaceStarted", () => {
-        console.log("Race started");
-
         countdownTimersRef.current.forEach(clearTimeout);
         countdownTimersRef.current = [];
         setIsRaceStarting(false);
@@ -69,83 +65,23 @@ export function useRace() {
         setIsRacing(true);
       }),
 
-      subscribe("PlayerFinished", (data) => {
-        showMessage(
-          `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
-        );
-      }),
       subscribe("RaceState", (state) => {
-        console.log(state.players);
-        setRaceParticipants(state.players);
-        setTier(
-          getTier(state.players.find((p) => isSelf(p.playerId)).wpm, tiers),
-        );
+        setRaceParticipants(state);
+        // setTier( 
+        //   getTier(state.players.find((p) => isSelf(p.playerId)).wpm, tiers),
+        // );
       }),
     ];
 
     return () => cleanups.map((fn) => fn());
   }, [isConnected]);
 
-  const sendProgress = useCallback(async ({ index, mistakes }) => {
-    try {
-      await invoke("UpdateRaceState", index, mistakes);
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
-  const startRace = useCallback(async () => {
-    try {
-      await invoke("StartRace");
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
-  const changeGameMode = useCallback(async (mode) => {
-    try {
-      await invoke("ChangeGameMode", mode);
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
-  const changeWordCount = useCallback(async (count) => {
-    try {
-      await invoke("ChangeWordCount", count);
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
-  const changeTimerDuration = useCallback(async (duration) => {
-    try {
-      await invoke("ChangeTimerDuration", duration);
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
-  const refreshPassage = useCallback(async () => {
-    try {
-      await invoke("RefreshPassage");
-    } catch (e) {
-      console.log(e);
-    }
-  }, []);
-
   const dismissResults = useCallback(() => {
     setRaceResults(null);
   }, []);
 
   return {
-    startRace,
-    sendProgress,
     tier,
-    refreshPassage,
-    changeGameMode,
-    changeTimerDuration,
-    changeWordCount,
     dismissResults,
     isRacing,
     isRaceStarting,

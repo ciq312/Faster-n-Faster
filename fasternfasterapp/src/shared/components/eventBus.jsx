@@ -9,7 +9,6 @@ export const eventBus = {
     if (cbs) listeners[event] = cbs.filter((fn) => fn !== cb);
   },
   emit(event, data) {
-    console.log(`bus emmiting`);
     listeners[event]?.forEach((cb) => cb(data));
   },
 };

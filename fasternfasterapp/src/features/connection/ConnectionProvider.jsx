@@ -7,13 +7,16 @@ import {
   useRef,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useBannerMessage,
   useError,
 } from "../../shared/components/BannerProvider";
+import { extractHubError } from "../../shared/utils/extractHubError";
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
+  const navigate = useNavigate();
   const { showError } = useError();
   const { showMessage } = useBannerMessage();
   const connectionRef = useRef(null);
@@ -21,7 +24,9 @@ function ConnectionProvider({ url, children }) {
 
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(url)
+      .withUrl(url, {
+        withCredentials: true,
+      })
       .withAutomaticReconnect()
       .build();
 
@@ -44,8 +49,16 @@ function ConnectionProvider({ url, children }) {
       connection.on("Error", (e) => showError(e));
     };
 
+    const anotherSessionSub = () => {
+      connection.on("AnotherSessionStarted", () => {
+        showMessage("Someone else logged into your account");
+        navigate("/");
+      });
+    };
+
     start();
     errorSub();
+    anotherSessionSub();
 
     return () => {
       connection.stop();
@@ -54,7 +67,11 @@ function ConnectionProvider({ url, children }) {
   }, [url]);
 
   const invoke = useCallback(async (methodName, ...args) => {
-    return connectionRef.current?.invoke(methodName, ...args);
+    try {
+      return connectionRef.current?.invoke(methodName, ...args);
+    } catch (e) {
+      showError(extractHubError());
+    }
   }, []);
 
   const subscribe = useCallback((methodName, callback) => {

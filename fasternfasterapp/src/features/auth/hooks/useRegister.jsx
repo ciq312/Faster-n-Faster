@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
-import { extractError } from "../../../shared/utils/extractError";
 
 export function useRegister() {
   const { showError } = useError();
@@ -18,7 +17,7 @@ export function useRegister() {
         body: JSON.stringify({ nick, login, email, password }),
       });
       if (!response.ok) {
-        showError(await extractError(response));
+        showError(await extractHttpError(response));
         return;
       }
       navigate(`/check-your-email?email=${encodeURIComponent(email)}`);

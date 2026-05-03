@@ -6,6 +6,7 @@ public abstract class Race // ISession in future when new mechanics implemeneted
 {
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
+    public bool HasStarted { get; private set; }
 
     private readonly Dictionary<Guid, RaceParticipant> _participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => _participants;
@@ -14,16 +15,24 @@ public abstract class Race // ISession in future when new mechanics implemeneted
     protected int _nextFinishPosition = 1;
 
 
-    public virtual void Start(IEnumerable<(Guid Id, string Color, string nick)> players)
+    public virtual void AddParticipant(RaceParticipant participant)
+    {
+        if (HasStarted) throw new InvalidOperationException("Cannot add participants to a started race.");
+        _participants[participant.Id] = participant;
+    }
+
+    public virtual void Start()
+    {
+        if (HasStarted) throw new InvalidOperationException("Race already started.");
+        StartTime = DateTime.UtcNow;
+        HasStarted = true;
+    }
+
+    public virtual void Reset()
     {
         _participants.Clear();
         _nextFinishPosition = 1;
-
-        StartTime = DateTime.UtcNow;
-
-        // in future for players that are not spectators 
-        foreach (var (Id, Color, nick) in players)
-            _participants[Id] = new RaceParticipant(Id, Color, nick);
+        HasStarted = false;
     }
 
     /// <summary>
@@ -39,9 +48,13 @@ public abstract class Race // ISession in future when new mechanics implemeneted
 
     public IEnumerable<RaceParticipantResult> GetRaceStatics()
     {
-        List<RaceParticipantResult> results = [];
-        foreach (var participant in Participants) results.Add(participant.Value.Result!);
-        return results;
+        lock (_raceLock)
+        {
+            return _participants.Values
+                .Where(p => p.Result != null)
+                .Select(p => p.Result!)
+                .ToList();
+        }
     }
 
     public void WithdrawParticipant(Guid playerId)

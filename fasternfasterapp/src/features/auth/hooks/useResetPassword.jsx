@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannerMessage, useError } from "../../../shared/components/BannerProvider";
-import { extractError } from "../../../shared/utils/extractError";
 
 export function useResetPassword() {
   const { showError } = useError();
@@ -18,7 +17,7 @@ export function useResetPassword() {
         body: JSON.stringify({ token, newPassword }),
       });
       if (!response.ok) {
-        showError(await extractError(response));
+        showError(await extractHttpError(response));
         return { ok: false };
       }
       showMessage("password updated — please log in");

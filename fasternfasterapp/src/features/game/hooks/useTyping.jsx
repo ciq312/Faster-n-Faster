@@ -1,49 +1,80 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useConnection } from "../../connection/ConnectionProvider";
 
 const MAX_OVERFLOW = 6;
 
-export function useTyping({ passage, disabled, onProgress }) {
+export function useTyping({
+  passage,
+  disabled,
+  onProgress,
+  selfTyped,
+  selfCorrectIndex,
+}) {
   const [typed, setTyped] = useState("");
   const mistakesRef = useRef(0);
   const inputRef = useRef(null);
   const lastCorrectIndexRef = useRef(-1);
   const nextSep = useRef(-1);
+  const needResyncRef = useRef(true);
+  const { isConnected } = useConnection();
 
+  useEffect(() => {
+    if (!isConnected) {
+      needResyncRef.current = true;
+      console.log("needResync");
+    }
+  }, [isConnected]);
+  useEffect(() => {
+    if (!needResyncRef.current) return;
+    if (selfTyped === undefined || selfCorrectIndex === undefined) return;
+    console.log(
+      `resync happened with values typed : ${selfTyped}  and index : ${selfCorrectIndex} `,
+    );
+    setTyped(selfTyped);
+    lastCorrectIndexRef.current = selfCorrectIndex;
+    nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
+    needResyncRef.current = false;
+  }, [selfTyped, passage, selfCorrectIndex]);
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;
       const value = e.target.value;
 
-      if (value.length > typed.length + 1) return;
-      if (value.length > passage.length) return;
-      if (value.length < typed.length - 1) return;
-
-      if (
+      const isMaxOverflow =
         value.length > typed.length &&
-        value.length - 1 - lastCorrectIndexRef.current > MAX_OVERFLOW
-      )
-        return;
+        value.length - 1 - lastCorrectIndexRef.current > MAX_OVERFLOW;
+      if (isMaxOverflow) return;
 
-      if (value.length > typed.length) {
+      const isNewCharTyped = value.length - 1 === typed.length;
+      const IsCharDeleted = value.length + 1 === typed.length;
+
+      if (isNewCharTyped) {
         const newChar = value[value.length - 1];
-        if (
+        const isPreviousBeforeSpaceInCorrect =
           newChar === ` ` &&
-          lastCorrectIndexRef.current !== value.length - 1 - 1
-        ) {
-          return;
-        }
-        if (newChar === passage[value.length - 1]) {
+          lastCorrectIndexRef.current !== value.length - 1 - 1;
+
+        if (isPreviousBeforeSpaceInCorrect) return;
+
+        const isNewCharCorrect = newChar === passage[value.length - 1];
+        if (isNewCharCorrect) {
           setTyped(value);
-          if (lastCorrectIndexRef.current + 1 === value.length - 1) {
+          const isPreviousCharCorrect =
+            lastCorrectIndexRef.current + 1 === value.length - 1;
+          if (isPreviousCharCorrect) {
             lastCorrectIndexRef.current = lastCorrectIndexRef.current + 1;
-            if (lastCorrectIndexRef.current === passage.length - 1)
-              inputRef.current.blur();
+            const IsLastChar =
+              lastCorrectIndexRef.current === passage.length - 1;
+            if (IsLastChar) inputRef.current.blur();
           }
         } else {
-          setTyped(value);
-          mistakesRef.current++;
+          const handleMistake = () => {
+            setTyped(value);
+            mistakesRef.current++;
+          };
+          handleMistake();
         }
-      } else if (value.length < typed.length) {
+      } else if (IsCharDeleted) {
         lastCorrectIndexRef.current = Math.min(
           lastCorrectIndexRef.current,
           value.length - 1,
@@ -53,16 +84,21 @@ export function useTyping({ passage, disabled, onProgress }) {
 
       nextSep.current = passage.indexOf(" ", lastCorrectIndexRef.current + 1);
 
+      const isFinal = lastCorrectIndexRef.current === passage.length - 1;
       onProgress?.({
         index: lastCorrectIndexRef.current,
         mistakes: mistakesRef.current,
+        typed: value,
+        final: isFinal,
       });
     },
     [typed.length, passage, disabled, onProgress],
   );
 
   useEffect(() => {
-    if (!disabled) inputRef.current?.focus();
+    if (!disabled) {
+      inputRef.current?.focus();
+    }
   }, [disabled]);
 
   const focusInput = useCallback(

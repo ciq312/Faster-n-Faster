@@ -23,28 +23,28 @@ function Profile() {
           <p className="profile-page__loading">Loading profile...</p>
         )}
 
-        {!isPending && profileData && (
+        {!isPending && (
           <>
             <header className="profile-page__header">
               <span className="profile-page__eyebrow">Profile</span>
-              <h1 className="profile-page__nick">{profileData.nick}</h1>
+              <h1 className="profile-page__nick">{profileData?.nick}</h1>
               <p className="profile-page__meta">
                 <span className="profile-page__meta-accent">
-                  {profileData.racesTyped}
+                  {profileData?.racesTyped}
                 </span>{" "}
-                {profileData.racesTyped === 1 ? "race" : "races"}
+                {profileData?.racesTyped === 1 ? "race" : "races"}
                 <span className="profile-page__meta-sep">·</span>
                 <span className="profile-page__meta-accent">
-                  {profileData.wins}
+                  {profileData?.wins}
                 </span>{" "}
-                {profileData.wins === 1 ? "win" : "wins"}
+                {profileData?.wins === 1 ? "win" : "wins"}
               </p>
             </header>
 
             <section className="profile-hero">
               <span className="profile-hero__label">Best WPM</span>
               <span className="profile-hero__value">
-                {Math.trunc(formatNumber(profileData.bestWPM))}
+                {(formatNumber(profileData?.bestWPM))}
                 <span className="profile-hero__unit"></span>
               </span>
             </section>
@@ -53,39 +53,39 @@ function Profile() {
               <div className="profile-stat">
                 <span className="profile-stat__label">Avg WPM</span>
                 <span className="profile-stat__value">
-                  {formatNumber(profileData.avgWPM)}
+                  {formatNumber(profileData?.avgWPM)}
                 </span>
               </div>
               <div className="profile-stat">
                 <span className="profile-stat__label">Best Accuracy</span>
                 <span className="profile-stat__value">
-                  {formatPercent(profileData.bestAccuracy)}
+                  {formatPercent(profileData?.bestAccuracy)}
                   <span className="profile-stat__suffix">%</span>
                 </span>
               </div>
               <div className="profile-stat">
                 <span className="profile-stat__label">Avg Accuracy</span>
                 <span className="profile-stat__value">
-                  {formatPercent(profileData.avgAccuracy)}
+                  {formatPercent(profileData?.avgAccuracy)}
                   <span className="profile-stat__suffix">%</span>
                 </span>
               </div>
               <div className="profile-stat">
                 <span className="profile-stat__label">Words Typed</span>
                 <span className="profile-stat__value">
-                  {formatNumber(profileData.wordsTyped)}
+                  {formatNumber(profileData?.wordsTyped)}
                 </span>
               </div>
               <div className="profile-stat">
                 <span className="profile-stat__label">Races Typed</span>
                 <span className="profile-stat__value">
-                  {formatNumber(profileData.racesTyped)}
+                  {formatNumber(profileData?.racesTyped)}
                 </span>
               </div>
               <div className="profile-stat">
                 <span className="profile-stat__label">Wins</span>
                 <span className="profile-stat__value">
-                  {formatNumber(profileData.wins)}
+                  {formatNumber(profileData?.wins)}
                 </span>
               </div>
             </section>

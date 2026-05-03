@@ -29,10 +29,6 @@ public class CreateLobbyEndpoint : Endpoint<CreateLobbyRequest, CreateLobbyResul
 
     public override async Task HandleAsync(CreateLobbyRequest req, CancellationToken ct)
     {
-        Log.Information($"IsAuthenticated: {User.Identity?.IsAuthenticated}");
-        Log.Information($"Claims: {string.Join(" | ", User.Claims.Select(c =>
-    $"{c.Type}={c.Value}"))}");
-
         var userIdClaim = User.FindFirstValue("sub");
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
         {

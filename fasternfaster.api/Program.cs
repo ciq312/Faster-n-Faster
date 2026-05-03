@@ -90,9 +90,9 @@ builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection(
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppUrls"));
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
-
 var rsa = RSA.Create();
 rsa.ImportRSAPrivateKey(Convert.FromBase64String(builder.Configuration["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
+
 builder.Services.AddAuthentication(o =>
 {
     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

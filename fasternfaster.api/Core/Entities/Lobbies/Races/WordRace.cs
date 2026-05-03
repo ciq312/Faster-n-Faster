@@ -16,16 +16,21 @@ public class WordRace : Race
 
     public override List<ParticipantSnapshot> GetSnapshot()
     {
-        return Participants.Values
-      .Where(p => !p.IsFinished)
-      .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick))
-      .ToList();
+        // Enumerate under the race lock; ProcessUpdate mutates participant state on hub threads.
+        lock (_raceLock)
+        {
+            return Participants.Values
+                .Where(p => !p.IsFinished)
+                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick))
+                .ToList();
+        }
     }
 
     public override void ProcessUpdate(Guid playerId, int index, int mistakes, string typed)
     {
         lock (_raceLock)
         {
+            if (!HasStarted) return;
             if (Passage == null) throw new NullReferenceException("passage isn't set");
             var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
 

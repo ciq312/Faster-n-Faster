@@ -23,7 +23,7 @@ public class TokenStoreTests
         var token = "refresh-A";
 
         await store.StoreRefreshToken(userId, token);
-        await store.DeleteAllForUserAsync(userId);
+        await store.DeleteAllTokensForUserAsync(userId);
 
         Assert.False(await store.IsRefreshTokenValid(token));
     }
@@ -40,7 +40,7 @@ public class TokenStoreTests
         await store.StoreRefreshToken(userA, tokenA);
         await store.StoreRefreshToken(userB, tokenB);
 
-        await store.DeleteAllForUserAsync(userA);
+        await store.DeleteAllTokensForUserAsync(userA);
 
         Assert.False(await store.IsRefreshTokenValid(tokenA));
         Assert.True(await store.IsRefreshTokenValid(tokenB));
@@ -52,7 +52,7 @@ public class TokenStoreTests
         var store = CreateStore();
         var unknownUser = Guid.NewGuid();
 
-        await store.DeleteAllForUserAsync(unknownUser);
+        await store.DeleteAllTokensForUserAsync(unknownUser);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class TokenStoreTests
         var token = "refresh-A";
 
         await store.StoreRefreshToken(userId, token);
-        await store.DeleteAllForUserAsync(userId);
+        await store.DeleteAllTokensForUserAsync(userId);
 
         Assert.Equal(Guid.Empty, await store.GetUserIdByTokenAsync(token));
     }
