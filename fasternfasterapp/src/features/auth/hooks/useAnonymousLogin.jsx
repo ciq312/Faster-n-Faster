@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { useAuth } from "../AuthContext";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useAnonymousLogin() {
   const { showError } = useError();
@@ -13,7 +14,7 @@ export function useAnonymousLogin() {
   const execute = async (nick) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/guest", {
+      const response = await fetch(`${API_BASE}/api/auth/guest`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nick }),

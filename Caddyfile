@@ -1,0 +1,9 @@
+faster-n-faster.com, www.faster-n-faster.com {
+    encode gzip zstd
+
+    reverse_proxy frontend:3000 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For {remote_host}
+        header_up Host {host}
+    }
+}

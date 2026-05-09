@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useAuth } from "../AuthContext";
 import { clearAuthState } from "../utils/clearAuthState";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useLogout() {
   const { clear } = useAuth();
@@ -15,7 +16,7 @@ export function useLogout() {
   const execute = async () => {
     setLoading(true);
     try {
-      await fetch("/api/auth/logout", {
+      await fetch(`${API_BASE}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

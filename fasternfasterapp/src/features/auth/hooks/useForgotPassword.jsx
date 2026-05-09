@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 const COOLDOWN_SECONDS = 15;
 
@@ -20,7 +21,7 @@ export function useForgotPassword() {
     setLoading(true);
     try {
       // Server always returns 200 regardless of whether the email exists (no enumeration).
-      await fetch("/api/auth/forgot-password", {
+      await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

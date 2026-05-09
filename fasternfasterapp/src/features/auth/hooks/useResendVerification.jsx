@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 const COOLDOWN_SECONDS = 15;
 
@@ -18,7 +19,7 @@ export function useResendVerification() {
     if (!email || loading || cooldown > 0) return;
     setLoading(true);
     try {
-      await fetch("/api/auth/resend-verification", {
+      await fetch(`${API_BASE}/api/auth/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { useAuth } from "../AuthContext";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useLogin() {
   const { showError } = useError();
@@ -13,7 +14,7 @@ export function useLogin() {
   const execute = async ({ login, password }) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

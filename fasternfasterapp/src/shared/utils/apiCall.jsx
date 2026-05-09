@@ -1,12 +1,14 @@
+export const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 export async function apiCall(url, options) {
-  let response = await fetch(url, { credentials: "include", ...options });
+  let response = await fetch(`${API_BASE}${url}`, { credentials: "include", ...options });
   if (response.status === 401) {
-    const refreshResponse = await fetch("/api/auth/refresh", {
+    const refreshResponse = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "GET",
       credentials: "include",
     });
     if (!refreshResponse.ok) return response;
-    response = await fetch(url, { credentials: "include", ...options });
+    response = await fetch(`${API_BASE}${url}`, { credentials: "include", ...options });
   }
   return response;
 }

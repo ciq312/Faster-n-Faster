@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useFetchLeaderboard() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export function useFetchLeaderboard() {
     async (crit, desc, count) => {
       setLoading(true);
       try {
-        const response = await fetch("/api/leaderboards", {
+        const response = await fetch(`${API_BASE}/api/leaderboards`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
