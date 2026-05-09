@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../features/auth/AuthContext";
 import LoginForm from "../../features/auth/components/LoginForm";
 import SignupForm from "../../features/auth/components/SignupForm";
 import { useAnonymousLogin } from "../../features/auth/hooks/useAnonymousLogin";
@@ -16,6 +18,19 @@ const TABS = [
 function Registration() {
   const [activeTab, setActiveTab] = useState("anonymous");
   const [nick, setNick] = useState("");
+  const { status } = useAuth();
+  const navigate = useNavigate();
+  // Only redirect on the loading → authenticated transition (i.e. /me just resolved).
+  // If Registration is mounted with status already "authenticated", the user got here
+  // intentionally (e.g. clicked the logo to switch accounts) — leave them on the form.
+  const prevStatusRef = useRef(status);
+
+  useEffect(() => {
+    if (prevStatusRef.current === "loading" && status === "authenticated") {
+      navigate("/lobbies", { replace: true });
+    }
+    prevStatusRef.current = status;
+  }, [status, navigate]);
 
   const anonymousLogin = useAnonymousLogin();
   const login = useLogin();

@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ExternalLogin> ExternalLogins { get; set; }
     public DbSet<Token> Tokens { get; set; }
     public DbSet<PlayerStatistics> Statistics { get; set; }
+    public DbSet<BannedPlayer> BannedPlayers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +49,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BannedPlayer>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.UserId).IsUnique();
+            b.Property(x => x.Reason).HasMaxLength(200);
         });
     }
 }

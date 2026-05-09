@@ -14,19 +14,20 @@ public class MeEndpoint : EndpointWithoutRequest<MeResponse>
     {
         var userIdClaim = User.FindFirstValue("sub");
         var userName = User.FindFirstValue("name");
+        var role = User.FindFirstValue("role");
 
 #if DEBUG
-        Log.Information($"id : {userIdClaim}, name : {userName}");
+        Log.Information($"id : {userIdClaim}, name : {userName}, role : {role}");
 #endif
 
-        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userName))
+        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(role))
         {
             await Send.UnauthorizedAsync(ct);
             return;
         }
 
-        await Send.OkAsync(new MeResponse(Guid.Parse(userIdClaim), userName), ct);
+        await Send.OkAsync(new MeResponse(Guid.Parse(userIdClaim), userName, role), ct);
     }
 }
 
-public record MeResponse(Guid UserId, string UserName);
+public record MeResponse(Guid UserId, string UserName, string Role);

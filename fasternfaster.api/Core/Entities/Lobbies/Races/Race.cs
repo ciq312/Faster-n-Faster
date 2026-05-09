@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public record ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick);
+public record ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 
 public abstract class Race // ISession in future when new mechanics implemeneted
 {

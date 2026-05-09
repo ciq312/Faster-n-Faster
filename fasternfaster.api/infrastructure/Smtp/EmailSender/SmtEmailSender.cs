@@ -37,10 +37,18 @@ public class SmtpEmailSender(IOptions<SmtpOptions> smtp, IOptions<AppOptions> ap
         message.Subject = subject;
         message.Body = body;
 
+        var secureOptions = smtp.UseStartTls
+            ? MailKit.Security.SecureSocketOptions.StartTls
+            : MailKit.Security.SecureSocketOptions.None;
+
         using var client = new SmtpClient();
-        await client.ConnectAsync(smtp.Host, smtp.Port, MailKit.Security.SecureSocketOptions.None);
-        // await client.AuthenticateAsync(user, pass); // skip for Papercut
+        await client.ConnectAsync(smtp.Host, smtp.Port, secureOptions);
+        if (!string.IsNullOrEmpty(smtp.Username))
+            await client.AuthenticateAsync(smtp.Username, smtp.Password);
         await client.SendAsync(message);
+#if DEBUG
+        Log.Information($"email send to {receiverEmailAddress}");
+#endif
         await client.DisconnectAsync(true);
     }
 }

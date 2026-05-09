@@ -6,6 +6,43 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.profile-page__logout {
+  position: absolute;
+  top: 70px; /* navbar is 54px tall */
+  right: 32px;
+  z-index: 2;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.profile-page__logout:hover:not(:disabled) {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: var(--bg-elevated);
+}
+
+.profile-page__logout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .profile-page__logout {
+    top: 62px;
+    right: 16px;
+    padding: 6px 12px;
+  }
 }
 
 .profile-page__content {

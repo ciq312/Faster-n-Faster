@@ -22,6 +22,7 @@ export function useJoinLobby() {
             navigate(`/lobby/${lobbyId}`);
         }
         catch (e) {
+            console.log(e);
             showError(extractHubError(e));
         }
     }, [isConnected]);
