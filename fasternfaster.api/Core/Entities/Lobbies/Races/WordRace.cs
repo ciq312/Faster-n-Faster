@@ -21,7 +21,7 @@ public class WordRace : Race
         {
             return Participants.Values
                 .Where(p => !p.IsFinished)
-                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick))
+                .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick, p.Mistakes))
                 .ToList();
         }
     }
@@ -34,7 +34,7 @@ public class WordRace : Race
             if (Passage == null) throw new NullReferenceException("passage isn't set");
             var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
 
-            if (!racer.ValidateUpdate(index, mistakes, Passage.Length, typed)) throw new InvalidDataException("Invalid update");
+            racer.UpdateProgress(index, typed, mistakes, Passage);
 
             if (!racer.IsFinished && racer.Index >= Passage.Length - 1)
                 racer.MarkFinished(_nextFinishPosition++, Passage.Split(' ').Length);

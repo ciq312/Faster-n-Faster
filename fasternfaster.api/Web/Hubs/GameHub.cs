@@ -2,6 +2,7 @@ using System.Reflection.Metadata;
 using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -18,14 +19,17 @@ using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Web.Hubs;
 
+[Authorize]
 public class GameHub(
     ILogger<GameHub> logger,
     ILobbyStore lobbyStore,
     ILobbyService lobbyService,
+    IBanService banService,
     ISessionService sessionService,
     LobbyStateBroadcaster broadcaster,
     IHandler<JoinLobbyCommand> joinHandler,
@@ -71,7 +75,15 @@ public class GameHub(
         logger.LogDebug("Connection established: {ConnectionId}", Context.ConnectionId);
         await base.OnConnectedAsync();
 
-        await StoreSession(GetCallerContext().UserId, Context.ConnectionId);
+        var userId = GetCallerContext().UserId;
+        if (await banService.IsBannedAsync(userId))
+        {
+            await Clients.Caller.SendAsync("Banned", "You are banned");
+            Context.Abort();
+            return;
+        }
+
+        await StoreSession(userId, Context.ConnectionId);
     }
 
     private async Task StoreSession(Guid userId, string callerConnectionId)
@@ -111,16 +123,24 @@ public class GameHub(
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
         var userId = GetCallerContext().UserId;
+
+        if (await banService.IsBannedAsync(userId))
+        {
+            await Clients.Caller.SendAsync("Banned", "You are banned");
+            Context.Abort();
+            return;
+        }
+
         var nick = GetCallerContext().Nick;
         var role = GetCallerContext().Role;
-
-        await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
-
-        var groupName = $"lobby-{lobbyId}";
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-
         try
         {
+            await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
+
+            var groupName = $"lobby-{lobbyId}";
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+
             var lobby = lobbyStore.GetRequired(lobbyId);
 
             await broadcaster.BroadcastLobbyState(lobby);
@@ -134,6 +154,10 @@ public class GameHub(
         catch (LobbyNotFoundException)
         {
             throw new HubException("Lobby not found");
+        }
+        catch (InvalidOperationException e)
+        {
+            if (e.Message.StartsWith("Can't join")) throw new HubException(e.Message);
         }
     }
 
@@ -204,7 +228,18 @@ public class GameHub(
     {
         var userId = GetCallerContext().UserId;
         var lobbyContext = await RequireLobbyContext();
-        await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes, typed));
+
+        try
+        {
+            await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes, typed));
+        }
+        catch (CheaterDetectedException ex)
+        {
+            await banService.BanAsync(userId, ex.Reason);
+            await lobbyService.RemoveFromLobby(userId);
+            await Clients.Caller.SendAsync("Banned", $"Cheating detected: {ex.Reason}");
+            Context.Abort();
+        }
     }
 
     public async Task LeaveLobby()

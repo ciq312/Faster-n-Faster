@@ -17,9 +17,6 @@ public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutR
     public override async Task HandleAsync(CancellationToken ct)
     {
         var refreshToken = HttpContext.Request.Cookies[Config["AuthCookies:RefreshTokenCookieName"]!];
-#if DEBUG
-        Log.Information("Received refresh token request with token: {RefreshToken}", refreshToken);
-#endif
         if (string.IsNullOrEmpty(refreshToken))
         {
             await Send.UnauthorizedAsync(ct);

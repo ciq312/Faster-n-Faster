@@ -9,6 +9,7 @@ export function useTyping({
   onProgress,
   selfTyped,
   selfCorrectIndex,
+  selfMistakes,
 }) {
   const [typed, setTyped] = useState("");
   const mistakesRef = useRef(0);
@@ -28,13 +29,14 @@ export function useTyping({
     if (!needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
     console.log(
-      `resync happened with values typed : ${selfTyped}  and index : ${selfCorrectIndex} `,
+      `resync happened with values typed : ${selfTyped}  and index : ${selfCorrectIndex}  and mistakes : ${selfMistakes} `,
     );
     setTyped(selfTyped);
     lastCorrectIndexRef.current = selfCorrectIndex;
     nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
+    mistakesRef.current = selfMistakes ?? 0;
     needResyncRef.current = false;
-  }, [selfTyped, passage, selfCorrectIndex]);
+  }, [selfTyped, passage, selfCorrectIndex, selfMistakes]);
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;

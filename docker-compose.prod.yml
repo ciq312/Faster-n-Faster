@@ -1,0 +1,24 @@
+services:
+  postgres:
+    ports: !reset []
+    restart: unless-stopped
+
+  redis:
+    ports: !reset []
+
+  api:
+    ports: !reset []
+    pull_policy: missing
+    restart: unless-stopped
+
+  frontend:
+    ports: !reset []
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend

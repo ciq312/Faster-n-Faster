@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../features/auth/AuthContext";
 import { useFetchProfile } from "../../features/auth/hooks/useFetchProfile";
+import { useLogout } from "../../features/auth/hooks/useLogout";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Profile.css";
 
@@ -14,10 +17,31 @@ function formatPercent(value, precision = 2) {
 
 function Profile() {
   const { profileData, isPending } = useFetchProfile();
+  const { isGuest } = useAuth();
+  const logout = useLogout();
+  const navigate = useNavigate();
 
   return (
     <div className="profile-page">
       <Navbar />
+      {isGuest ? (
+        <button
+          className="profile-page__logout"
+          onClick={() => navigate("/")}
+          type="button"
+        >
+          register now
+        </button>
+      ) : (
+        <button
+          className="profile-page__logout"
+          onClick={logout.execute}
+          disabled={logout.loading}
+          type="button"
+        >
+          {logout.loading ? "logging out..." : "log out"}
+        </button>
+      )}
       <div className="profile-page__content">
         {isPending && (
           <p className="profile-page__loading">Loading profile...</p>

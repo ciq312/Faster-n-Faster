@@ -56,9 +56,17 @@ function ConnectionProvider({ url, children }) {
       });
     };
 
+    const bannedSub = () => {
+      connection.on("Banned", (reason) => {
+        showError(reason || "You are banned");
+        navigate("/");
+      });
+    };
+
     start();
     errorSub();
     anotherSessionSub();
+    bannedSub();
 
     return () => {
       connection.stop();
@@ -70,7 +78,8 @@ function ConnectionProvider({ url, children }) {
     try {
       return connectionRef.current?.invoke(methodName, ...args);
     } catch (e) {
-      showError(extractHubError());
+      console.log(e);
+      showError(extractHubError(e));
     }
   }, []);
 

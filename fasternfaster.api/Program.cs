@@ -13,6 +13,7 @@ using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using FasterNFaster.Api.Web.Hubs.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
@@ -39,9 +40,12 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Web.Hubs;
+using FasterNFaster.Api.UseCases.Services.Auth;
+using StackExchange.Redis;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
+    .WriteTo.File("log.txt")
     .CreateLogger();
 
 if (File.Exists(".env"))
@@ -49,12 +53,17 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
+var redisConn = builder.Configuration.GetConnectionString("Redis") ?? throw new NullReferenceException("Redis conn string not found");
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
+
 builder.Services.AddSingleton<HubExceptionFilter>();
 builder.Services.AddSignalR(options =>
 {
     options.AddFilter<HubExceptionFilter>();
     options.AddFilter<HubSessionFilter>();
-});
+})
+.AddStackExchangeRedis(redisConn);
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
@@ -68,18 +77,19 @@ builder.Services.AddScoped<IUserFactory, UserFactory>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
 builder.Services.AddSingleton<ILobbyService, LobbyService>();
+builder.Services.AddScoped<IBanService, BanService>();
 builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
 builder.Services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
 builder.Services.AddScoped<ITokenService, SlidingJwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();
-builder.Services.AddSingleton<ITokenStore, TokenStore>();
+builder.Services.AddSingleton<ITokenStore, RedisTokenStore>();
 builder.Services.AddSingleton<ICookiesWriter, CookieWriter>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
-builder.Services.AddScoped<IEventDispatcher, EventDispatcher>();
+builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<ITokenFactory, TokenFactory>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
@@ -146,16 +156,15 @@ builder.Services.AddAuthentication(o =>
 
 builder.Services.AddAuthorization();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:AllowedOrigins not configured");
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "http://172.20.10.3:3000",
-                "http://10.8.0.5:3000"
-            )
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -170,6 +179,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
       options.UseNpgsql(conString));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownNetworks = { },
+    KnownProxies = { }
+});
 
 app.UseCors();
 app.UseAuthentication();

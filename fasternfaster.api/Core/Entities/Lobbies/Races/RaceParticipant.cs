@@ -1,23 +1,55 @@
+using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public class RaceParticipant(Guid id, string color, string nick)
+public class RaceParticipant
 {
-    const int MAX_INDEX_JUMP = 10000;
-    const double MAX_CHARS_PER_SECOND = 3000;
-    const int AVERAGE_WORD_LENGTH = 5;
+    const double MAX_WPM_POSSIBLE = 1500;
+    const double MAX_CHARS_PER_SECOND = MAX_WPM_POSSIBLE * 5 / 60; // ~25 chars per second
 
-    public string Nick { get; private set; } = nick;
-    public Guid Id { get; private set; } = id;
-    public string Color { get; private set; } = color;
-    public int Index { get; private set; } = -1;
+    private readonly Func<DateTime> _now;
+
+    public RaceParticipant(Guid id, string color, string nick, Func<DateTime>? now = null)
+    {
+        _now = now ?? (() => DateTime.UtcNow);
+        Id = id;
+        Color = color;
+        Nick = nick;
+        StartedAt = _now();
+        LastUpdateAt = _now();
+    }
+
+    public string Nick { get; private set; }
+    public Guid Id { get; private set; }
+    public string Color { get; private set; }
+    public int Index
+    {
+        get;
+
+        private set
+        {
+            if (value < -1) throw new InvalidDataException("Invalid index");
+
+            field = value;
+        }
+    } = -1;
     public string Typed { get; private set; } = "";
     public int WordsTyped { get; private set; }
-    public int Mistakes { get; private set; }
+    public int Mistakes
+    {
+        get;
+        private set
+        {
+            if (value < 0) throw new InvalidDataException("Invalid mistakes number");
+
+            field = value;
+        }
+    } = 0;
     public bool IsFinished { get; private set; }
     public int? FinishPosition { get; private set; }
     public DateTime? FinishedAt { get; private set; }
-    public DateTime StartedAt { get; private set; } = DateTime.UtcNow;
-    public DateTime LastUpdateAt { get; private set; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; private set; }
+    public DateTime LastUpdateAt { get; private set; }
 
     public RaceParticipantResult? Result { get; private set; } = null!;
 
@@ -26,42 +58,53 @@ public class RaceParticipant(Guid id, string color, string nick)
     /// Validates and applies a client state snapshot. Clamps invalid values instead of rejecting.
     /// </summary>
     /// <returns>true if the update was accepted (possibly clamped)</returns>
-    public bool ValidateUpdate(int newIndex, int newMistakes, int passageLength, string typed)
+    /// can ban | can already be finished 
+    public void UpdateProgress(int newIndex, string newTyped, int newMistakes, string passage)
     {
         if (IsFinished)
-            return false;
+            return;
 
-        if (newIndex < -1 || newMistakes < 0)
-            return false;
+        if (DidUserRefresh(newIndex, newTyped)) return;
 
-        int indexDelta = newIndex - Index;
-        if (indexDelta > MAX_INDEX_JUMP)
-            return false;
+        ValidateUpdate(newIndex, newTyped, passage, newMistakes);
 
-        bool didUserRefresh = newIndex == -1 && typed == "";
+        Typed = newTyped;
+        Index = newIndex;
+        WordsTyped = passage[..(newIndex + 1)].Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        Mistakes = newMistakes;
+        LastUpdateAt = _now();
+    }
 
-        if (didUserRefresh) return false;
+    private bool DidUserRefresh(int newIndex, string typed) => newIndex == -1 && typed == "";
 
-        var now = DateTime.UtcNow;
+    private void ValidateUpdate(int newIndex, string newTyped, string passage, int newMistakes)
+    {
+        ValidateWPM(newIndex);
+        ValidateIndexCorrespondence(newIndex, newTyped, passage);
+        ValidateMistakes(newMistakes);
+    }
+
+    private void ValidateWPM(int newIndex)
+    {
+        var now = _now();
         double secondsElapsed = (now - LastUpdateAt).TotalSeconds;
+        int indexDelta = newIndex - Index;
+
         if (secondsElapsed > 0 && indexDelta > 0)
         {
             double charsPerSecond = indexDelta / secondsElapsed;
-            if (charsPerSecond > MAX_CHARS_PER_SECOND)
-                newIndex = Index + (int)(MAX_CHARS_PER_SECOND * secondsElapsed);
+            if (charsPerSecond > MAX_CHARS_PER_SECOND) throw new CheaterDetectedException("typing speed exceeds human limit");
         }
-
-        if (newIndex > passageLength)
-            newIndex = passageLength;
-
-        Typed = typed;
-        Index = newIndex;
-        WordsTyped = Typed.Split(" ").Length;
-        Mistakes = newMistakes;
-        LastUpdateAt = now;
-
-
-        return true;
+    }
+    private void ValidateIndexCorrespondence(int newIndex, string newTyped, string passage)
+    {
+        if (newIndex + 1 > newTyped.Length) throw new CheaterDetectedException("typed shorter than reported index");
+        if (newIndex + 1 > passage.Length) throw new CheaterDetectedException("reported index exceeds passage length");
+        if (newTyped[..(newIndex + 1)] != passage[..(newIndex + 1)]) throw new CheaterDetectedException("typed prefix does not match passage");
+    }
+    private void ValidateMistakes(int newMistakes)
+    {
+        if (newMistakes < Mistakes) throw new CheaterDetectedException("mistakes count decreased");
     }
 
     public void MarkFinished(int position, int wordsTyped)
@@ -71,7 +114,7 @@ public class RaceParticipant(Guid id, string color, string nick)
 #endif
         IsFinished = true;
         FinishPosition = position;
-        FinishedAt = DateTime.UtcNow;
+        FinishedAt = _now();
         Result = new RaceParticipantResult(
                Guid.NewGuid()
                , Id
@@ -86,17 +129,18 @@ public class RaceParticipant(Guid id, string color, string nick)
     public void MarkWithdrawn()
     {
         IsFinished = true;
-        FinishedAt = DateTime.UtcNow;
+        FinishedAt = _now();
     }
     public float GetWPM()
     {
-        float minutesElapsed = (float)(DateTime.UtcNow - StartedAt).TotalMinutes;
+        float minutesElapsed = (float)(_now() - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
         return WordsTyped / minutesElapsed;
     }
 
     public float GetAccuracy()
     {
+        if (Index < 0) throw new InvalidOperationException("Index can't be negative");
         return 1 - (float)Mistakes / (Index + 1);
     }
 

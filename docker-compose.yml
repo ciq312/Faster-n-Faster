@@ -15,6 +15,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   api:
     container_name: backend
     pull_policy: never
@@ -23,6 +38,7 @@ services:
       dockerfile: Dockerfile
     environment:
         ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+        ConnectionStrings__Redis: redis:6379
         JwtOptions__JWT_PRIVATE_TOKEN: ${JWTOPTIONS__JWT_PRIVATE_TOKEN}
         Google__ClientId: ${GOOGLE__CLIENTID}
         Google__ClientSecret: ${GOOGLE__CLIENTSECRET}
@@ -31,7 +47,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
   frontend:
     container_name: front
     pull_policy: never
@@ -45,3 +64,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

@@ -6,9 +6,7 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety
 - [ ] Redesign
-- [ ] LobbyService
 - [ ] Program refactor
 
 
@@ -23,6 +21,8 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Add per-lobby SemaphoreSlim locks in hub/handlers for concurrency safety @{2026-05-04}
+- [ ] LobbyService
 - [ ] guest race finish @{2026-05-03}
 - [ ] profile @{2026-05-03}
 - [ ] Add registration services @{2026-04-23}
