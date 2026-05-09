@@ -15,10 +15,20 @@ services:
     ports: !reset []
     restart: unless-stopped
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
     restart: unless-stopped
-    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - frontend
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannerMessage, useError } from "../../../shared/components/BannerProvider";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useResetPassword() {
   const { showError } = useError();
@@ -11,7 +12,7 @@ export function useResetPassword() {
   const execute = async ({ token, newPassword }) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword }),

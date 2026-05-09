@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
+import { API_BASE } from "../../../shared/utils/apiCall";
 
 export function useFetchLobbies() {
   const { showError } = useError();
@@ -12,7 +13,7 @@ export function useFetchLobbies() {
     setLobbies([]);
     setTimeout(async () => {
       try {
-        const response = await fetch("/api/lobbies");
+        const response = await fetch(`${API_BASE}/api/lobbies`);
         if (!response.ok) {
           showError(await extractHttpError(response));
           setLoading(false);
