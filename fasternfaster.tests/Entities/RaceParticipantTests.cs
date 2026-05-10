@@ -6,7 +6,7 @@ namespace FasterNFaster.Tests.Entities;
 
 public class RaceParticipantTests
 {
-    private const string Passage = "the quick brown fox jumps over the lazy dog";
+    private const string Passage = "the quick brown fox jumps over the lazy dog pepe lolo gege roro gsgs asdge eergwegro oiwernoiewnviown weoriweoieoif woerignwoeig";
 
     private static (RaceParticipant Participant, FakeClock Clock) CreateParticipant()
     {
@@ -16,6 +16,52 @@ public class RaceParticipantTests
     }
 
     // -------- happy path --------
+    [Fact]
+    public void ValidateWpm_ShouldNotThrowOnEarlyBurst()
+    {
+        var (participant, clock) = CreateParticipant();
+
+        participant.UpdateProgress(0, "t", 0, Passage);
+
+        clock.Advance(TimeSpan.FromMilliseconds(50));
+
+        participant.UpdateProgress(10, "the quick b", 0, Passage);
+
+        Assert.Equal("the quick b", participant.Typed);
+    }
+    [Fact]
+    public void ValidateWpm_ShouldNotThrowOnBurstLowerMaxPossible()
+    {
+        var (participant, clock) = CreateParticipant();
+
+        participant.UpdateProgress(0, "t", 0, Passage);
+
+        clock.Advance(TimeSpan.FromMilliseconds(3000));
+
+        participant.UpdateProgress(20, "the quick brown fox j", 0, Passage);
+
+        clock.Advance(TimeSpan.FromMilliseconds(50));
+
+        participant.UpdateProgress(25, "the quick brown fox jumps ", 0, Passage);
+
+        Assert.Equal("the quick brown fox jumps ", participant.Typed);
+    }
+
+    [Fact]
+    public void ValidateWpm_ShouldNotThrowOnDefaultSustainedWpm()
+    {
+        var (participant, clock) = CreateParticipant();
+
+        participant.UpdateProgress(0, "t", 0, Passage);
+
+        clock.Advance(TimeSpan.FromMilliseconds(3000));// 1500 milsec ~ 0.025 min
+
+        participant.UpdateProgress(30, "the quick brown fox jumps over ", 0, Passage);
+
+        //30 index ~ 6 words ~ 240 wpm - appropriate 
+
+        Assert.Equal("the quick brown fox jumps over ", participant.Typed);
+    }
 
     [Fact]
     public void UpdateProgress_AcceptsValidProgress_UpdatesAllFields()
@@ -56,31 +102,37 @@ public class RaceParticipantTests
     }
 
     // -------- WPM --------
-
     [Fact]
-    public void ValidateWpm_AllowsTwoCharsIn100Ms()
+    public void ValidateWpm_ThrowsOnTooHighBurstAfterMinIndex()
     {
         var (participant, clock) = CreateParticipant();
-        // seed at index 0 with no elapsed time (WPM check skipped on first call)
+
         participant.UpdateProgress(0, "t", 0, Passage);
 
         clock.Advance(TimeSpan.FromMilliseconds(100));
-        participant.UpdateProgress(2, "the", 0, Passage); // delta = 2 → 20 chars/sec
+        var ex = Assert.Throws<CheaterDetectedException>(() =>
+        {
+            participant.UpdateProgress(15, "the quick brown ", 0, Passage);
+        });
 
-        Assert.Equal(2, participant.Index);
+        Assert.Equal("Burst wpm", ex.Reason);
     }
 
     [Fact]
-    public void ValidateWpm_ThrowsCheater_OnFiveCharsIn100Ms()
+    public void ValidateWpm_ThrowsOnTooHighSustainedAfterMinIndex()
     {
         var (participant, clock) = CreateParticipant();
+
         participant.UpdateProgress(0, "t", 0, Passage);
 
-        clock.Advance(TimeSpan.FromMilliseconds(100));
+        clock.Advance(TimeSpan.FromMilliseconds(1000));// 1/60
+        var ex = Assert.Throws<CheaterDetectedException>(() =>
+        {
+            participant.UpdateProgress(30, "the quick brown fox jumps over ", 0, Passage);
+            // ~ 6 words 
+        });
 
-        var ex = Assert.Throws<CheaterDetectedException>(
-            () => participant.UpdateProgress(5, "the q", 0, Passage)); // delta = 5 → 50 chars/sec
-        Assert.Equal("typing speed exceeds human limit", ex.Reason);
+        Assert.Equal("Sustained wpm", ex.Reason);
     }
 
     [Fact]

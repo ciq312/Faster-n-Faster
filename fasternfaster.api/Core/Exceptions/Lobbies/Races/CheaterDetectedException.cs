@@ -1,7 +1,7 @@
 namespace FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
 
 public class CheaterDetectedException(string reason)
-    : DomainException($"Cheater detected: {reason}")
+    : DomainException($"Cheating detected")
 {
     public string Reason { get; } = reason;
 }
