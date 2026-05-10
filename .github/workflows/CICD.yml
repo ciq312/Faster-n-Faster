@@ -15,7 +15,7 @@ jobs:
       Solution_name: FasterNFaster.Api.sln
       Test_project_path: fasternfaster.tests/FasterNFaster.Tests.csproj
       Api_project_path: fasternfaster.api/FasterNFaster.Api.csproj
-      
+      Api_project_name: FasterNFaster.Api.csproj
       
     steps:
     - uses: actions/checkout@v4
@@ -26,6 +26,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore $Api_project_path
     - name: Build
-      run: dotnet build $Api_Project_path --no-restore
+      run: dotnet build $Api_project_name --no-restore
     - name: Test
       run: dotnet test $Test_project_path --no-build --verbosity normal
