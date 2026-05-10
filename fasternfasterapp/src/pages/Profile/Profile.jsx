@@ -17,7 +17,7 @@ function formatPercent(value, precision = 2) {
 
 function Profile() {
   const { profileData, isPending } = useFetchProfile();
-  const { isGuest } = useAuth();
+  const {isGuest} = useAuth();
   const logout = useLogout();
   const navigate = useNavigate();
 
