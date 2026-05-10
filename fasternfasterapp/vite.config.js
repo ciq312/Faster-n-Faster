@@ -1,7 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   server: {
     port: 3000,
@@ -15,15 +15,16 @@ export default defineConfig({
       },
     },
   },
-  // Allow JSX inside .js files so we don't have to rename every component.
+
   esbuild: {
     loader: "jsx",
     include: /src\/.*\.jsx?$/,
     exclude: [],
+    drop: mode === "production" ? ["console", "debugger"] : [],
   },
   optimizeDeps: {
     esbuildOptions: {
       loader: { ".js": "jsx" },
     },
   },
-});
+}));

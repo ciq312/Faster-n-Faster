@@ -76,9 +76,9 @@ function ConnectionProvider({ url, children }) {
 
   const invoke = useCallback(async (methodName, ...args) => {
     try {
-      return connectionRef.current?.invoke(methodName, ...args);
+      return await connectionRef.current?.invoke(methodName, ...args);
     } catch (e) {
-      console.log(e);
+      console.log(e.message);
       showError(extractHubError(e));
     }
   }, []);

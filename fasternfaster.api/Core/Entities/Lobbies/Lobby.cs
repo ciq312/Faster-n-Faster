@@ -17,6 +17,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
     public bool IsSessionActive { get; private set; } = false;
     public WordRace Race { get; private set; } = race;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
+    public List<Guid> BannedPlayersIds = new List<Guid>();
 
     public void InitializeSession()
     {
@@ -49,6 +50,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
     {
         if (IsPlayerInLobby(user.Id)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && isPrivate) throw new InvalidInviteCodeException();
+        if (IsPlayerBanned(user.Id)) throw new PlayerBannedInLobbyException();
 
         AddPlayer(user);
     }
@@ -143,6 +145,8 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
         RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
     }
 
+    public void BanPlayer(Guid id) => BannedPlayersIds.Add(id);
+
     public async Task GenerateUniqueInviteCode(Func<string, bool> codeExists)
     {
         string code = LobbySettings.CreateUniqueInviteCode(codeExists);
@@ -157,5 +161,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
     public IEnumerable<ColorStatus> GetColors()
     => PlayerColors.Palette.Select(c => new
     ColorStatus(c, !Players.Any(p => p.Color == c)));
+
+    public bool IsPlayerBanned(Guid id) => BannedPlayersIds.Contains(id);
 
 }
