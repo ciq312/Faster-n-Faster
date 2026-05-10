@@ -79,7 +79,7 @@ public class RaceParticipant
 
     private void ValidateUpdate(int newIndex, string newTyped, string passage, int newMistakes)
     {
-        // ValidateWPM(newIndex);
+        ValidateWPM(newIndex);
         ValidateIndexCorrespondence(newIndex, newTyped, passage);
         ValidateMistakes(newMistakes);
     }
