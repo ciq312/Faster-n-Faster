@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Api", "FasterNFaster.Api.csproj", "{36951267-E4A3-2940-EE41-6D2EEA2C3B34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fasternfaster.tests", "..\fasternfaster.tests\fasternfaster.tests.csproj", "{81394F16-65B4-4846-BC58-0B33CEEAB867}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Tests", "..\fasternfaster.tests\FasterNFaster.Tests.csproj", "{81394F16-65B4-4846-BC58-0B33CEEAB867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
