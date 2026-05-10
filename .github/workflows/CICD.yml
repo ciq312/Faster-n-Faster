@@ -26,6 +26,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore $Api_project_path
     - name: Build
-      run: dotnet build $Api_project_name --no-restore
+      run: dotnet build $Solution_name --no-restore
     - name: Test
       run: dotnet test $Test_project_path --no-build --verbosity normal
