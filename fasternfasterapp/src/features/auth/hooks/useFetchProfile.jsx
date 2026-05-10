@@ -9,7 +9,7 @@ export function useFetchProfile() {
   const [isPending, setIsPending] = useState(true);
   const { showError } = useError();
   const {showMessage } = useBannerMessage();
-  const { userName} = useAuth();
+  const { userName, isGuest } = useAuth();
   const [profileData, setProfileData] = useState(null);
 
   useEffect(() => {
@@ -21,7 +21,6 @@ export function useFetchProfile() {
         if (!response.ok) {
           console.log(response);
           setProfileData({ nick: userName });
-          showMessage(`Register to see the results of your races`);
           }
         else {
         const data = await response.json();
@@ -34,6 +33,11 @@ export function useFetchProfile() {
     };
 
     getProfile();
+  }, []);
+
+  useEffect(() => {
+    console.log(isGuest);
+      if (isGuest) showMessage(`Register to see the results of your races`);
   }, []);
 
   return { profileData, isPending };
