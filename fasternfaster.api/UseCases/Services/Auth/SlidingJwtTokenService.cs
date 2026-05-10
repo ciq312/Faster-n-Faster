@@ -39,6 +39,7 @@ public class SlidingJwtTokenService(
 #if DEBUG
         Log.Information($"Handling guest auth for guestId: {guestId}, guestName: {guestName}");
 #endif
+        cookiesWriter.DeleteTokensCookies();
 
         var guestAccessToken = jwtTokenFactory.CreateGuestAccessToken(guestId.ToString(), guestName);
 

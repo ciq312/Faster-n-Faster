@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isSelf = useCallback((id) => userId === id, [userId]);
+  
   const isGuest = role === "Guest";
 
   useEffect(() => {
