@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      Solution_name: FasterNFaster.Api.sln
+      Solution_name: fasternfaster.api/FasterNFaster.Api.sln
       Test_project_path: fasternfaster.tests/FasterNFaster.Tests.csproj
       Api_project_path: fasternfaster.api/FasterNFaster.Api.csproj
       Api_project_name: FasterNFaster.Api.csproj
@@ -24,8 +24,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore  ${{ env.Api_project_path }}
+      run: dotnet restore  ${{ env.Solution_name }}
     - name: Build
-      run: dotnet build  ${{ env.Api_project_path }} --no-restore
+      run: dotnet build  ${{ env.Solution_name }} --no-restore
     - name: Test
       run: dotnet test  ${{ env.Test_project_path }} --no-build --verbosity normal
