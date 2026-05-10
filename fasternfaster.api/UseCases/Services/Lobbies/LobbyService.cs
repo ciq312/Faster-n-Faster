@@ -9,6 +9,7 @@ using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.Core.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
@@ -65,8 +66,11 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
         LobbyPlayer kicked = null!;
         await WithLobby(lobbyId, l =>
         {
+            if (l.IsSessionActive) throw new DomainException("Can't kick when racing");
+
             l.ValidateHost(hostId);
             kicked = l.RemovePlayer(userId);
+            l.BanPlayer(kicked.User.Id);
         });
 
         await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
@@ -83,7 +87,7 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
         if (lobby is null) return Task.CompletedTask;
         if (!lobby.IsEmpty()) return Task.CompletedTask;
 
-        lobbyStore.Remove(lobbyId); 
+        lobbyStore.Remove(lobbyId);
         if (gates.TryRemove(lobbyId, out var sem)) sem.Dispose();
         return Task.CompletedTask;
     }
