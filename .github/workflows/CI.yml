@@ -1,4 +1,4 @@
-name: CICD
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  backend-build:
 
     runs-on: ubuntu-latest
     
@@ -29,3 +29,18 @@ jobs:
       run: dotnet build  ${{ env.Solution_name }} --no-restore
     - name: Test
       run: dotnet test  ${{ env.Test_project_path }} --no-build --verbosity normal
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fasternfasterapp
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: fasternfasterapp/package-lock.json
+    - run: npm ci --legacy-peer-deps
+    - run: npm run build
