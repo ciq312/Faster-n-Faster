@@ -102,7 +102,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           set -e
-          cd /opt/faster-n-faster
+          cd /opt/Faster-n-Faster
           git pull --ff-only
           docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
           docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
