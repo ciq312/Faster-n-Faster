@@ -24,8 +24,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore $env:Api_project_path
+      run: dotnet restore $Api_project_path
     - name: Build
-      run: dotnet build $env:Api_Project_path --no-restore
+      run: dotnet build $Api_Project_path --no-restore
     - name: Test
-      run: dotnet test $env:Test_project_path --no-build --verbosity normal
+      run: dotnet test $Test_project_path --no-build --verbosity normal
