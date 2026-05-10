@@ -10,7 +10,13 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    
+    env:
+      Solution_name: FasterNFaster.Api.sln
+      Test_project_path: fasternfaster.tests/FasterNFaster.Tests.csproj
+      Api_project_path: fasternfaster.api/FasterNFaster.Api.csproj
+      
+      
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -18,8 +24,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore $env:Api_project_path
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build $env:Api_Project_path --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test $env:Test_project_path --no-build --verbosity normal
