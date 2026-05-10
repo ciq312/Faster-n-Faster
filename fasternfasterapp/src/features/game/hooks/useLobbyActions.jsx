@@ -1,12 +1,13 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useError } from "../../../shared/components/BannerProvider";
+import { useBannerMessage, useError } from "../../../shared/components/BannerProvider";
 import { ROUTES } from "../../../shared/utils/routes";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
 
 export function useLobbyActions() {
   const { invoke, subscribe, isConnected } = useConnection();
+  const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
   const { showError } = useError();
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export function useLobbyActions() {
         );
       }),
       subscribe("Kicked", () => {
+        console.log("kicked");
         showMessage(`You were kicked from lobby`);
         lobbyCleanup();
         navigate(ROUTES.LOBBIES);
@@ -34,7 +36,7 @@ export function useLobbyActions() {
         showMessage(`New host is ${data.newHostNick}`);
       }),
     ];
-    return cleanups.forEach((fn) => fn());
+    return () => cleanups.forEach((fn) => fn());
   }, [isConnected]);
 
   const changeColor = useCallback(async (color) => {

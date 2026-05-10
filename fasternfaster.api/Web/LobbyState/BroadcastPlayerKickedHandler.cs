@@ -17,13 +17,15 @@ public class BroadcastPlayerKickedHandler(LobbyStateBroadcaster broadcaster, IHu
     private readonly ISessionService sessionService = sessionService;
     public async Task Handle(PlayerKickedEvent domainEvent)
     {
-
         var groupName = $"lobby-{domainEvent.LobbyId}";
         var kickedConnectionId = sessionService.GetActiveSession(domainEvent.UserId);
 
-        await hub.Groups.RemoveFromGroupAsync(kickedConnectionId!, groupName);
+        if (kickedConnectionId == null) return;
+
+        Log.Information("broadcasting kicked");
+        await hub.Groups.RemoveFromGroupAsync(kickedConnectionId, groupName);
         await hub.Clients.Group(groupName).SendAsync("PlayerKicked", new PlayerKickedDTO(domainEvent.UserId, domainEvent.Nick));
-        await hub.Clients.Client(kickedConnectionId!).SendAsync("Kicked");
+        await hub.Clients.Client(kickedConnectionId).SendAsync("Kicked");
 
         await broadcaster.BroadcastLobbyState(domainEvent.LobbyId);
     }

@@ -8,15 +8,15 @@ public class KickPlayerHandler(ILobbyService lobbyService) : IHandler<KickPlayer
 {
     private readonly ILobbyService lobbyService = lobbyService;
 
-    public Task<KickPlayerResult> Handle(KickPlayerCommand command)
+    public async Task<KickPlayerResult> Handle(KickPlayerCommand command)
     {
 
-        lobbyService.KickPlayer(command.UserId, command.TargetPlayerId);
+        await lobbyService.KickPlayer(command.UserId, command.TargetPlayerId);
 
 #if DEBUG
         Log.Information($"kicked player with id {command.TargetPlayerId} in lobby {command.LobbyId}");
 #endif
 
-        return Task.FromResult(new KickPlayerResult(command.TargetPlayerId));
+        return new KickPlayerResult(command.TargetPlayerId);
     }
 }
