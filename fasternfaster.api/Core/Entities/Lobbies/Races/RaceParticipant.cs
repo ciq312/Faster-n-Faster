@@ -4,8 +4,12 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public class RaceParticipant
 {
-    const double MAX_WPM_POSSIBLE = 1500;
-    const double MAX_CHARS_PER_SECOND = MAX_WPM_POSSIBLE * 5 / 60; // ~25 chars per second
+    const double SUSTAINED_MAX_WPM = 300;
+    const double BURST_MAX_WPM = 1500;
+    const int AVERAGE_WORD_LENGTH = 5;
+    const double BURST_MAX_CHARS_PER_SECOND = BURST_MAX_WPM * AVERAGE_WORD_LENGTH / 60; // ~125 chars per second
+    const int BURST_MIN_INDEX_DELTA = 15;       // skip burst check on small bursts (1-2 words)
+    const int SUSTAINED_CHECK_MIN_INDEX = 30;   // warmup: don't apply sustained check before this many chars
 
     private readonly Func<DateTime> _now;
 
@@ -87,13 +91,29 @@ public class RaceParticipant
     private void ValidateWPM(int newIndex)
     {
         var now = _now();
-        double secondsElapsed = (now - LastUpdateAt).TotalSeconds;
         int indexDelta = newIndex - Index;
 
-        if (secondsElapsed > 0 && indexDelta > 0)
+        // Burst check: only flags physically impossible spikes (paste/script).
+        // Gated by BURST_MIN_INDEX_DELTA so natural fast 1-2 word bursts don't trip it.
+        double secondsSinceLastUpdate = (now - LastUpdateAt).TotalSeconds;
+        if (secondsSinceLastUpdate > 0 && indexDelta >= BURST_MIN_INDEX_DELTA)
         {
-            double charsPerSecond = indexDelta / secondsElapsed;
-            if (charsPerSecond > MAX_CHARS_PER_SECOND) throw new CheaterDetectedException("typing speed exceeds human limit");
+            double charsPerSecond = indexDelta / secondsSinceLastUpdate;
+            if (charsPerSecond > BURST_MAX_CHARS_PER_SECOND)
+                throw new CheaterDetectedException("Burst wpm");
+        }
+
+        // Sustained check: average WPM since race start. Skipped during warmup
+        // because early-race WPM math is dominated by noise on a few keystrokes.
+        if (newIndex + 1 >= SUSTAINED_CHECK_MIN_INDEX)
+        {
+            double minutesSinceStart = (now - StartedAt).TotalMinutes;
+            if (minutesSinceStart > 0)
+            {
+                double sustainedWpm = (newIndex + 1) / AVERAGE_WORD_LENGTH / minutesSinceStart;
+                if (sustainedWpm > SUSTAINED_MAX_WPM)
+                    throw new CheaterDetectedException("Sustained wpm");
+            }
         }
     }
     private void ValidateIndexCorrespondence(int newIndex, string newTyped, string passage)
