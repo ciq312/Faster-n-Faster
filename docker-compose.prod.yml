@@ -7,12 +7,15 @@ services:
     ports: !reset []
 
   api:
+    image: ghcr.io/ciq312/fasternfaster-api:latest
     ports: !reset []
-    pull_policy: missing
+    pull_policy: always
     restart: unless-stopped
 
   frontend:
+    image: ghcr.io/ciq312/fasternfaster-frontend:latest
     ports: !reset []
+    pull_policy: always
     restart: unless-stopped
 
   caddy:
