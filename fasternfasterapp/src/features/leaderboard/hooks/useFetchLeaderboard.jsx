@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
-import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { API_BASE } from "../../../shared/utils/apiCall";
+import { extractHttpError } from "../../../shared/utils/extractHttpError";
 
 export function useFetchLeaderboard() {
   const navigate = useNavigate();
@@ -31,7 +31,6 @@ export function useFetchLeaderboard() {
           return;
         }
         const data = await response.json();
-        await new Promise((res) => setTimeout(() => res(), 300));
 
         setPlayers(data.results);
       } catch {

@@ -66,19 +66,20 @@
 
 .typing-area__caret {
   position: absolute;
+  opacity: 20%;
   left: 0;
   top: 0;
   width: 2px;
   height: 1.4em;
   border-radius: 1px;
   pointer-events: none;
-  opacity: 0.85;
   z-index: 1;
   transition: transform 0.15s ease-out;
   will-change: transform;
 }
 .current {
   z-index: 100;
+  opacity: 100%;
 }
 
 /* ── Opponent label ── */
