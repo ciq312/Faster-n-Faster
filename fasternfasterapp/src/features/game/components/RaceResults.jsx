@@ -15,11 +15,10 @@ function RaceResults({ results, selfId, onDismiss }) {
         <tbody>
           {results
             .sort((r1, r2) => {
-              if (r1 === null) return r2;
-              if (r2 === null) return r1;
-              else {
-                r1.finishPosition - r2.finishPosition;
-              }
+              if (r1 === null && r2 === null) return 0;
+              if (r1 === null) return 1;
+              if (r2 === null) return -1;
+              return r1.finishPosition - r2.finishPosition;
             })
             .map(
               (r) =>
