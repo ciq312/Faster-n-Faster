@@ -68,7 +68,7 @@ function ConnectionProvider({ url, children }) {
         const t0 = performance.now();
         await connection.invoke("Ping", Date.now());
         const rtt = performance.now() - t0;
-        console.log(rtt);
+        console.warn(`latency is: ${rtt}`);
       }, 3000);
     };
 

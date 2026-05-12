@@ -13,14 +13,15 @@ export default defineConfig(({ mode }) => ({
         target: "http://localhost:8080",
         ws: true,
       },
-    },  
+    },
   },
 
   esbuild: {
     loader: "jsx",
     include: /src\/.*\.jsx?$/,
     exclude: [],
-    drop: mode === "production" ? ["console", "debugger"] : [],
+    drop: mode === "production" ? ["debugger"] : [],
+    pure: mode === "production" ? ["console.log", "console.debug"] : [],
   },
   optimizeDeps: {
     esbuildOptions: {
