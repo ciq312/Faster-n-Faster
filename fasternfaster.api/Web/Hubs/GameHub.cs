@@ -251,6 +251,7 @@ public class GameHub(
 
         logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", playerId, lobbyContext.LobbyId);
     }
+    public Task<long> Ping(long clientSentMs) => Task.FromResult(clientSentMs);
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
