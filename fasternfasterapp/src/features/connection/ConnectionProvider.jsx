@@ -63,10 +63,20 @@ function ConnectionProvider({ url, children }) {
       });
     };
 
+    const latencyCheck = () => {
+      setInterval(async () => {
+        const t0 = performance.now();
+        await connection.invoke("Ping", Date.now());
+        const rtt = performance.now() - t0;
+        console.log(rtt);
+      }, 3000);
+    };
+
     start();
     errorSub();
     anotherSessionSub();
     bannedSub();
+    latencyCheck();
 
     return () => {
       connection.stop();
