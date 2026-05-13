@@ -52,3 +52,9 @@ desktop.ini
 # Obsidian
 #=========================
 .obsidian/
+
+#=========================
+# Test
+#=========================
+loadtest/
+profiling/
