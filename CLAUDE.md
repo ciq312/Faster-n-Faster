@@ -104,3 +104,70 @@ FastEndPoints/ endpoints for every new request```
 
 - Environment config via `.env`: DB connection strings, Redis URL, CORS origins.
 - Docs are in `Faster'n'FasterDocs/General/` (Obsidian vault) — `spec.md` is the authoritative spec.
+
+## Production Deployment
+
+The app runs on a Hetzner-style VPS in Lithuania (≈3.8 GB RAM, no swap configured) at `/opt/Faster-n-Faster`. Everything is Dockerized.
+
+### Topology
+
+```
+Browser
+  │
+  ▼
+Caddy (container, ports 80/443)         — TLS termination, gzip/zstd, automatic Let's Encrypt
+  │
+  ├─ /api/*, /gameHub → currently routed by frontend nginx (suboptimal — see "Known issues")
+  └─ everything else  → frontend:3000
+                          │
+                          ▼
+                       Frontend container (nginx:alpine on :3000)
+                          ├─ serves built React static files from /usr/share/nginx/html
+                          └─ proxies /api/ and /gameHub to api:8080  ← extra hop
+                                                    │
+                                                    ▼
+                                              API container (dotnet FasterNFaster.Api.dll on :8080)
+                                                    │
+                                                    ├──→ postgresDB (postgres:15)
+                                                    └──→ redis (redis:7-alpine, 256mb maxmemory, allkeys-lru)
+```
+
+- Composition: `docker-compose.yml` + `docker-compose.prod.yml` (prod overlay swaps `build:` for prebuilt `ghcr.io/ciq312/...:latest` images and removes published ports for non-edge services).
+- Services: `postgresDB`, `redis`, `backend` (the API, container_name), `front` (the frontend, container_name), `caddy`.
+- Caddy talks to other containers via Docker's internal DNS (service names: `api`, `frontend`).
+- The Caddyfile currently only routes everything to `frontend:3000`. The frontend container's `nginx.conf` proxies `/api/` and `/gameHub` upstream to `api:8080`. This means **two reverse proxies sit between Caddy and the API** — should be collapsed into one (route in Caddy directly).
+
+### CICD (`.github/workflows/CICD.yml`)
+
+- `backend-build`: `dotnet restore/build/test` on Ubuntu, .NET 8.
+- `frontend-build`: `npm ci --legacy-peer-deps && npm run build` on Node 22.
+- `publish-api` / `publish-frontend`: build and push images to GHCR (`ghcr.io/ciq312/fasternfaster-api`, `ghcr.io/ciq312/fasternfaster-frontend`), tagged `:latest` and `:${sha}`.
+- `deploy`: SSH to the server, `cd /opt/Faster-n-Faster && git pull --ff-only && docker compose -f docker-compose.yml -f docker-compose.prod.yml pull && up -d && docker image prune -f`.
+- Triggers on push/PR to `main`. Publish + deploy only run on push to `main`.
+
+### Frontend Dockerfile
+
+- Multi-stage: `node:22-alpine` → `npm ci && npm run build`, then `nginx:alpine` serving `/usr/share/nginx/html`. Exposes 3000. No Vite dev server in prod.
+
+### Backend process
+
+- Inside the `backend` container the app runs as **root**: `dotnet FasterNFaster.Api.dll`, PID 1 in the container.
+- Framework-dependent deployment (uses the runtime in the base image, not self-contained).
+
+### Known issues to fix (not yet done)
+
+1. **Double reverse proxy for `/api/*` and `/gameHub`** — Caddy → frontend nginx → API. Should route directly from Caddy to `api:8080` and remove the proxy blocks from `fasternfasterapp/nginx.conf`. One less hop, simpler ops, more reliable WebSocket upgrades.
+2. **API container runs as root** — should set a non-root `USER` in the API Dockerfile. Without this, an RCE in the app gets the attacker root inside the container (and possibly host escape via docker socket if mounted). Also blocks `dotnet-counters` from attaching without sudo gymnastics.
+3. **No swap on the host** — 3.8 GB RAM with `Swap: 0B`. If memory pressure hits, OOM killer takes a process down. Add a 2 GB swapfile with `vm.swappiness=10` as a safety net.
+4. **No DB migrations in deploy step** — once the schema starts changing, deploys will start booting against a stale DB. Add `dotnet ef database update` (or a migration-on-startup gate) to the deploy flow.
+5. **No rollback path** — `:latest` tag is the only way back. Tagging with `${sha}` exists, so a manual rollback is `docker compose ... up -d` with an overridden image tag. Worth documenting an emergency runbook.
+6. **`drop: ["console", "debugger"]` in `vite.config.js`** — strips *all* `console.*` calls in prod, including `.warn` and `.error`. Switch to `pure: ["console.log", "console.debug"]` so real errors still surface in the browser console / error trackers.
+7. **`setInterval` for the latency check in `ConnectionProvider.jsx` is never cleared on unmount** — leaks an interval per remount (HMR, route changes, StrictMode). Return the id and `clearInterval` in the cleanup function.
+8. **`UpdateRaceState` broadcasts likely too noisy** — `LobbyStateBroadcaster.BroadcastLobbyState` is called after progress updates. If it sends full lobby state to all players per keystroke, that's N² messages/sec. Should broadcast a slim per-player progress event and throttle (e.g. flush every 100ms).
+9. **The hub echoes a player's own progress back to themselves** if broadcasts use `Clients.Group`. Use `Clients.OthersInGroup` for progress, since the typing player already knows what they typed.
+
+### Diagnostic tooling on the server
+
+- Use `dotnet-counters` and `dotnet-trace` **inside** the `backend` container (the API has PID 1 there). The host has no dotnet CLI on PATH for the `deploy` user.
+- Quick way: `docker exec -it backend bash`, install `dotnet-counters` as a global tool, attach to PID 1.
+- Counter to watch first under load: `threadpool-queue-length` in `System.Runtime`. Sustained > 0 indicates thread starvation (blocking sync calls on a hot path) and is the most common cause of latency spikes.
