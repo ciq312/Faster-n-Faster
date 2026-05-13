@@ -12,7 +12,6 @@ import {
   useBannerMessage,
   useError,
 } from "../../shared/components/BannerProvider";
-import { extractHubError } from "../../shared/utils/extractHubError";
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
@@ -64,7 +63,7 @@ function ConnectionProvider({ url, children }) {
     };
 
     const latencyCheck = () => {
-      setInterval(async () => {
+      return setInterval(async () => {
         const t0 = performance.now();
         await connection.invoke("Ping", Date.now());
         const rtt = performance.now() - t0;
@@ -76,21 +75,17 @@ function ConnectionProvider({ url, children }) {
     errorSub();
     anotherSessionSub();
     bannedSub();
-    latencyCheck();
+    const latencyCheckId = latencyCheck();
 
     return () => {
       connection.stop();
       return connectionRef.current?.off("Error", (e) => showError(e));
+      clearInterval(latencyCheckId);
     };
   }, [url]);
 
   const invoke = useCallback(async (methodName, ...args) => {
-    try {
-      return await connectionRef.current?.invoke(methodName, ...args);
-    } catch (e) {
-      console.log(e.message);
-      showError(extractHubError(e));
-    }
+    await connectionRef.current?.invoke(methodName, ...args);
   }, []);
 
   const subscribe = useCallback((methodName, callback) => {
