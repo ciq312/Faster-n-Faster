@@ -56,5 +56,6 @@ desktop.ini
 #=========================
 # Test
 #=========================
+tools/
 loadtest/
 profiling/
