@@ -17,17 +17,15 @@ public class RaceTickService(
     ILobbyStore lobbyStore,
     IHubContext<GameHub> hub,
     IRaceTransitionService raceTransitionService,
-    IRaceService raceService,
-    IServiceScopeFactory scopeFactory) : BackgroundService
+    IRaceService raceService) : BackgroundService
 {
     private readonly IRaceService raceService = raceService;
     private readonly IRaceTickRegistry registry = registry;
     private readonly IRaceTransitionService raceTransitionService = raceTransitionService;
-    private readonly IServiceScopeFactory scopeFactory = scopeFactory;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IHubContext<GameHub> hub = hub;
 
-    private const int TickIntervalMs = 50;
+    private const int TickIntervalMs = 100;
     private const float CountdownSeconds = 3.5f;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -92,22 +90,6 @@ public class RaceTickService(
         var players = snapshot
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
             .ToList();
-
-        // if (race.IsRaceFinished)
-        // {
-        //     var results = race.GetRaceStatics();
-        //     registry.DeregisterLobby(entry.LobbyId);
-        //     using var scope = scopeFactory.CreateScope();
-        //     var dispatcher = scope.ServiceProvider.GetRequiredService<IEventDispatcher>();
-        //     await dispatcher.Dispatch(new RaceFinishedEvent(entry.LobbyId, results));
-        //     return;
-        // }
-
-        // if (players.Count == 0)
-        // {
-        //     registry.DeregisterLobby(entry.LobbyId);
-        //     return;
-        // }
 
         await group.SendAsync("RaceState", players);
     }

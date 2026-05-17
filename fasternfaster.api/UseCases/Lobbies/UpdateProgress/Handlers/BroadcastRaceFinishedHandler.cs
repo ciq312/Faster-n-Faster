@@ -35,7 +35,7 @@ ILobbySessionService lobbySessionService) : IDomainEventHandler<RaceFinishedEven
         lobby.OnSessionEnded();
 
         await lobbySessionService.RefreshPassage(lobby.HostId);
-        
+
         if (lobby != null)
             await _broadcaster.BroadcastLobbyState(lobby);
     }

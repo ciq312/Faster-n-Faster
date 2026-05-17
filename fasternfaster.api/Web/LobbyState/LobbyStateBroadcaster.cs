@@ -15,7 +15,7 @@ public class LobbyStateBroadcaster(IHubContext<GameHub> hub, ILobbyStore lobbySt
 
     public async Task BroadcastLobbyState(Lobby lobby)
     {
-        var state = GetLobbyState(lobby);
+        var state = await GetLobbyState(lobby);
         await hub.Clients.Group($"lobby-{lobby.Id}")
         .SendAsync("LobbyState", state);
     }
