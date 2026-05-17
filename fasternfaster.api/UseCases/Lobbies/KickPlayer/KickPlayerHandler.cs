@@ -4,14 +4,14 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 
-public class KickPlayerHandler(ILobbyService lobbyService) : IHandler<KickPlayerCommand, KickPlayerResult>
+public class KickPlayerHandler(ILobbySessionService lobbySessionService) : IHandler<KickPlayerCommand, KickPlayerResult>
 {
-    private readonly ILobbyService lobbyService = lobbyService;
+    private readonly ILobbySessionService lobbySessionService = lobbySessionService;
 
     public async Task<KickPlayerResult> Handle(KickPlayerCommand command)
     {
 
-        await lobbyService.KickPlayer(command.UserId, command.TargetPlayerId);
+        await lobbySessionService.KickPlayer(command.UserId, command.TargetPlayerId);
 
 #if DEBUG
         Log.Information($"kicked player with id {command.TargetPlayerId} in lobby {command.LobbyId}");

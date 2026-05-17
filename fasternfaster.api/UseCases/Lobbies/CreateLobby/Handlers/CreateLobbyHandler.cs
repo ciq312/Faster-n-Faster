@@ -11,11 +11,11 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 
-public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyService lobbyService) : IHandler<CreateLobbyCommand, CreateLobbyResult>
+public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyService lobbyService, IRaceService raceService) : IHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     const int DEFAULT_PASSAGE_LENGTH = 50;
-    private readonly IPassageProvider passageProvider = passageProvider;
     private readonly ILobbyService lobbyService = lobbyService;
+    private readonly IRaceService raceService = raceService;
 
     public async Task<CreateLobbyResult> Handle(CreateLobbyCommand command)
     {
@@ -24,8 +24,9 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyService 
         var race = new WordRace(DEFAULT_PASSAGE_LENGTH);
         race.SetPassage(passage);
 
-        Lobby lobby = await lobbyService.CreateLobby(command.LobbyName, command.IsPrivate, race, command.HostId);
+        Lobby lobby = await lobbyService.CreateLobby(command.LobbyName, command.IsPrivate, command.HostId);
 
+        raceService.RegisterRace(lobby.Id, race);
 #if DEBUG
         Log.Information("Created lobby {LobbyId} with host {PlayerId}", lobby.Id, command.HostId);
 #endif

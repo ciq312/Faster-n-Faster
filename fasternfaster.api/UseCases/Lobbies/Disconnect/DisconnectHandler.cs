@@ -8,14 +8,12 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
 public class DisconnectHandler(
-    ILobbyService lobbyService
+    ILobbySessionService lobbySessionService
     ) : IHandler<DisconnectCommand>
 {
-    private readonly ILobbyService lobbyService = lobbyService;
 
     public async Task Handle(DisconnectCommand command)
     {
-        await lobbyService.RemoveFromLobby(command.PlayerId);
-
+        await lobbySessionService.RemovePlayerFromLobby(command.PlayerId);
     }
 }

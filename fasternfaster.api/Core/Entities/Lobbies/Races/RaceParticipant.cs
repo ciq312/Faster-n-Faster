@@ -5,7 +5,7 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 public class RaceParticipant
 {
     const double SUSTAINED_MAX_WPM = 300;
-    const double BURST_MAX_WPM = 1500;
+    const double BURST_MAX_WPM = 600;
     const int AVERAGE_WORD_LENGTH = 5;
     const double BURST_MAX_CHARS_PER_SECOND = BURST_MAX_WPM * AVERAGE_WORD_LENGTH / 60; // ~125 chars per second
     const int BURST_MIN_INDEX_DELTA = 15;       // skip burst check on small bursts (1-2 words)
@@ -150,6 +150,7 @@ public class RaceParticipant
     {
         IsFinished = true;
         FinishedAt = _now();
+        
     }
     public float GetWPM()
     {

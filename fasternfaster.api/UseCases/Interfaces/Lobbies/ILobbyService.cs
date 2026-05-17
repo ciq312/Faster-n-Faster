@@ -7,16 +7,12 @@ namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 public interface ILobbyService
 {
     Task JoinLobby(User user, Guid lobbyId, string? code);
-    Task RemoveFromLobby(Guid userId);
-    Task KickPlayer(Guid hostId, Guid userId);
-    Task RemoveLobbyIfEmpty(Guid lobbyId);
     Task TransferHost(Guid hostId, Guid userId);
-    Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, WordRace race, Guid creatorId);
-
-    Task StartRace(Guid lobbyId);
-    Task LaunchSession(Guid lobbyId);
+    Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId);
     Task ChangePlayerColor(Guid lobbyId, Guid userId, string color);
-    Task SetRacePassage(Guid lobbyId, Guid hostId, string passage);
 
-    Guid? GetLobbyOfPlayer(Guid userId);
+    Guid? GetLobbyIdOfPlayer(Guid userId);
+    Guid GetLobbyIdOfPlayerRequired(Guid userId);
+    Lobby GetLobbyOfPlayerRequired(Guid userId);
+    Lobby GetLobbyRequired(Guid lobbyId);
 }

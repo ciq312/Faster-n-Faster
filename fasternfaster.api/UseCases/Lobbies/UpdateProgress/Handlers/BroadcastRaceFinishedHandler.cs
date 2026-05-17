@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
@@ -10,13 +11,14 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class BroadcastRaceFinishedHandler(IHubContext<GameHub> hub, ILobbyStore lobbyStore, LobbyStateBroadcaster broadcaster, IPassageProvider passageProvider) : IDomainEventHandler<RaceFinishedEvent>
+public class BroadcastRaceFinishedHandler(IHubContext<GameHub> hub, ILobbyStore lobbyStore,
+LobbyStateBroadcaster broadcaster,
+ILobbySessionService lobbySessionService) : IDomainEventHandler<RaceFinishedEvent>
 {
     private readonly IHubContext<GameHub> _hub = hub;
     private readonly ILobbyStore _lobbyStore = lobbyStore;
     private readonly LobbyStateBroadcaster _broadcaster = broadcaster;
-
-    private readonly IPassageProvider _passageProvider = passageProvider;
+    private readonly ILobbySessionService lobbySessionService = lobbySessionService;
 
     public async Task Handle(RaceFinishedEvent e)
     {
@@ -32,9 +34,8 @@ public class BroadcastRaceFinishedHandler(IHubContext<GameHub> hub, ILobbyStore 
 
         lobby.OnSessionEnded();
 
-        var race = lobby.Race;
-        race.SetPassage(await _passageProvider.GetPassageAsync(race.WordCount));
-
+        await lobbySessionService.RefreshPassage(lobby.HostId);
+        
         if (lobby != null)
             await _broadcaster.BroadcastLobbyState(lobby);
     }
