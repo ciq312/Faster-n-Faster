@@ -6,6 +6,9 @@ kanban-plugin: board
 
 ## To do
 
+- [ ] lobby leave
+- [ ] progress save
+- [ ] lobby clear
 - [ ] Redesign
 - [ ] Program refactor
 
