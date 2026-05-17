@@ -1,6 +1,16 @@
 faster-n-faster.com, www.faster-n-faster.com {
     encode gzip zstd
 
+    @backend path /api/* /gameHub /gameHub/*
+    reverse_proxy @backend api:8080 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For {remote_host}
+        header_up Host {host}
+        transport http {
+            read_timeout 86400s
+        }
+    }
+
     reverse_proxy frontend:3000 {
         header_up X-Forwarded-Proto {scheme}
         header_up X-Forwarded-For {remote_host}
