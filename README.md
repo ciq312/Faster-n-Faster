@@ -88,3 +88,12 @@ Configure environment via `.env`:
 - Random passage selection from a pool
 - Spectator mode
 - Mobile-first design
+
+//Profiling 
+ docker exec -d backend sh -c ' /opt/tools/dotnet-counters collect -p 1 \
+  --format csv -o /tmp/counters.csv 
+  \  --counters System.Runtime,Microsoft.AspNetCore.Hosting & echo $! > /tmp/counters.pid'
+ 
+docker exec backend sh -c 'kill -INT $(cat /tmp/counters.pid)'
+
+docker cp backend:/tmp/counters.csv ./200UsersCountersProd.csv
