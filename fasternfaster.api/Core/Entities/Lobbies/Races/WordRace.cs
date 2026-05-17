@@ -31,6 +31,8 @@ public class WordRace : Race
 
         var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
 
+        if (racer.IsFinished) return;
+
         racer.UpdateProgress(index, typed, mistakes, Passage);
 
         if (IsRacerFinished(racer))
@@ -48,8 +50,6 @@ public class WordRace : Race
     public override void Reset()
     {
         base.Reset();
-        Passage = null;
-        WordCount = 0;
     }
     private int GetNumberWordsInPassage()
     {

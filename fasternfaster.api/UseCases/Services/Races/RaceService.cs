@@ -90,10 +90,18 @@ public class RaceService(IAggregateRootHelper aggregateRootHelper,
         return race;
     }
 
+    private bool TryGetActiveRace(Guid lobbyId, out (SemaphoreSlim, Race) race)
+    {
+        race = races.GetValueOrDefault(lobbyId);
+        if (race == default) return false;
+        return true;
+    }
+
     private async Task WithRace(Guid lobbyId, Action<Race> action)
     {
-        var (gate, race) = GetActiveRace(lobbyId);
+        if (!TryGetActiveRace(lobbyId, out var raceGate)) return;
 
+        var (gate, race) = raceGate;
         await gate.WaitAsync();
 
         try

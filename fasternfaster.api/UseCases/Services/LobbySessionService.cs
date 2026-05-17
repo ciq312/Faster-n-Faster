@@ -54,11 +54,12 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
     }
     public async Task KickPlayer(Guid hostId, Guid userId)
     {
-        Guid lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(userId);
+        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
 
         await lobbyCoordinator.KickPlayer(hostId, userId);
 
-        await raceCoordinator.WithdrawParticipant(lobbyId, userId);
+        if (lobby.IsSessionActive)
+            await raceCoordinator.WithdrawParticipant(lobby.Id, userId);
     }
 
     public async Task RefreshPassage(Guid userId)
@@ -74,10 +75,11 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
 
     public async Task RemovePlayerFromLobby(Guid userId)
     {
-        Guid lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(userId);
+        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
 
         await lobbyCoordinator.RemoveFromLobby(userId);
 
-        await raceCoordinator.WithdrawParticipant(lobbyId, userId);
+        if (lobby.IsSessionActive)
+            await raceCoordinator.WithdrawParticipant(lobby.Id, userId);
     }
 }
