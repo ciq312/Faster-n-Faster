@@ -2,14 +2,16 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Handlers;
 
-public class GetLobbiesHandler(ILobbyStore lobbyStore) : IHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService) : IHandler<GetLobbiesQuery, GetLobbiesResult>
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
+    private readonly IRaceService raceService = raceService;
 
     public Task<GetLobbiesResult> Handle(GetLobbiesQuery query)
     {
@@ -19,7 +21,7 @@ public class GetLobbiesHandler(ILobbyStore lobbyStore) : IHandler<GetLobbiesQuer
             .Select(l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                l.Race.GetType().ToString(),
+                raceService.GetRaceType(l.Id).ToString(),
                 l.LobbySettings.IsPrivate,
                 l.IsSessionActive.ToString(),
                 l.Players.Count,

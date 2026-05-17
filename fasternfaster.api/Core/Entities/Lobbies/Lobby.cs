@@ -8,36 +8,25 @@ using FasterNFaster.Api.Core.Lobbies.Events;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
-public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
+public class Lobby(string name, bool isPrivate) : AggregateRoot
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     public string Name { get; private set; } = name;
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
     public bool IsSessionActive { get; private set; } = false;
-    public WordRace Race { get; private set; } = race;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     public List<Guid> BannedPlayersIds = new List<Guid>();
 
-    public void InitializeSession()
+    public void StartSession()
     {
         if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
         if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
 
-        Race.Reset();
         IsSessionActive = true;
     }
 
-    public void LaunchSession()
-    {
-        if (!IsSessionActive) throw new InvalidOperationException("Session is not active.");
-        if (Race.HasStarted) throw new InvalidOperationException("Race already started.");
-
-        foreach (var player in Players)
-            Race.AddParticipant(new RaceParticipant(player.User.Id, player.Color, player.User.Nick));
-
-        Race.Start();
-    }
+    public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.User.Id, x.Color, x.User.Nick)).ToList();
 
     public void OnSessionEnded()
     {
@@ -48,7 +37,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
 
     public void Join(User user, string? code)
     {
-        if (IsPlayerInLobby(user.Id)) return;
+        if (IsPlayerIn(user.Id)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && isPrivate) throw new InvalidInviteCodeException();
         if (IsPlayerBanned(user.Id)) throw new PlayerBannedInLobbyException();
 
@@ -120,9 +109,6 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
         var player = Players.FirstOrDefault(p => p.User.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
 
-        if (IsSessionActive)
-            Race.WithdrawParticipant(playerId);
-
         Players.Remove(player);
         PromoteNextIfHost(playerId);
         RaiseDomainEvent(new PlayerRemovedEvent(player.User.Id, Id, player.User.Nick));
@@ -145,7 +131,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
         RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
     }
 
-    public void BanPlayer(Guid id) => BannedPlayersIds.Add(id);
+    public void BanPlayer(Guid userId) => BannedPlayersIds.Add(userId);
 
     public async Task GenerateUniqueInviteCode(Func<string, bool> codeExists)
     {
@@ -154,7 +140,7 @@ public class Lobby(string name, bool isPrivate, WordRace race) : AggregateRoot
         LobbySettings.SetInviteCode(code);
     }
 
-    public bool IsPlayerInLobby(Guid id) => Players.Any(p => p.User.Id == id);
+    public bool IsPlayerIn(Guid userId) => Players.Any(p => p.User.Id == userId);
 
     public bool IsEmpty() => Players.Count == 0;
 

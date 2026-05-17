@@ -10,14 +10,15 @@ using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Core.Helpers;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatcher) : ILobbyService
+public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregateRootHelper, IEventDispatcher eventDispatcher) : ILobbyService, ILobbyCoordinator
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IEventDispatcher eventDispatcher = eventDispatcher;
-
+    private readonly IAggregateRootHelper aggregateRootHelper = aggregateRootHelper;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
 
     private readonly ConcurrentDictionary<Guid, Guid> playerToLobby = new();
@@ -34,12 +35,12 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
 #endif
     }
 
-    public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, WordRace race, Guid creatorId)
+    public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
     {
         if (playerToLobby.ContainsKey(creatorId))
             throw new InvalidOperationException("Can't create a lobby while in lobby");
 
-        Lobby lobby = new(LobbyName, isPrivate, race);
+        Lobby lobby = new(LobbyName, isPrivate);
         lobby.AssignHost(creatorId);
         await lobby.GenerateUniqueInviteCode((c) => lobbyStore.GetByInviteCode(c) != null);
 
@@ -53,15 +54,15 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
 
     public async Task TransferHost(Guid hostId, Guid userId)
     {
-        var lobbyId = RequireLobbyOfPlayer(userId);
+        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
 
         await WithLobby(lobbyId, l => l.TransferHost(hostId, userId));
-        await DispatchLobbyEvents(lobbyStore.GetRequired(lobbyId));
+        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
     }
 
     public async Task KickPlayer(Guid hostId, Guid userId)
     {
-        var lobbyId = RequireLobbyOfPlayer(userId);
+        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer kicked = null!;
         await WithLobby(lobbyId, l =>
@@ -74,61 +75,60 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
         });
 
         await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
-        await DispatchLobbyEvents(lobbyStore.GetRequired(lobbyId));
+        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
 
 #if DEBUG
         Log.Information($"Player {userId} was kicked from lobby {lobbyId}");
 #endif
     }
 
-    public Task RemoveLobbyIfEmpty(Guid lobbyId)
-    {
-        var lobby = lobbyStore.Get(lobbyId);
-        if (lobby is null) return Task.CompletedTask;
-        if (!lobby.IsEmpty()) return Task.CompletedTask;
-
-        lobbyStore.Remove(lobbyId);
-        if (gates.TryRemove(lobbyId, out var sem)) sem.Dispose();
-        return Task.CompletedTask;
-    }
-
     public async Task RemoveFromLobby(Guid userId)
     {
-        var lobbyId = RequireLobbyOfPlayer(userId);
+        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer removed = null!;
         await WithLobby(lobbyId, l => removed = l.RemovePlayer(userId));
 
         await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick));
-        await DispatchLobbyEvents(lobbyStore.GetRequired(lobbyId));
+        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
 
 #if DEBUG
         Log.Information($"Player {userId} was removed from lobby {lobbyId}");
 #endif
     }
 
-    public Task StartRace(Guid lobbyId) =>
-        WithLobby(lobbyId, lobby => lobby.InitializeSession());
+    public async Task StartSession(Guid lobbyId, Guid hostId)
+    {
+        await WithLobby(lobbyId, lobby =>
+        {
+            lobby.ValidateHost(hostId);
+            lobby.StartSession();
+        });
+    }
+    public Task RemoveLobby(Guid lobbyId)
+    {
+        lobbyStore.Remove(lobbyId);
+        if (gates.TryRemove(lobbyId, out var sem)) sem.Dispose();
+        return Task.CompletedTask;
+    }
 
-    public Task LaunchSession(Guid lobbyId) =>
-        WithLobby(lobbyId, lobby => lobby.LaunchSession());
 
     public Task ChangePlayerColor(Guid lobbyId, Guid userId, string color) =>
         WithLobby(lobbyId, lobby => lobby.ChangePlayerColor(userId, color));
 
-    public Task SetRacePassage(Guid lobbyId, Guid hostId, string passage) =>
-        WithLobby(lobbyId, lobby =>
-        {
-            lobby.ValidateHost(hostId);
-            lobby.Race.SetPassage(passage);
-        });
-
-    public Guid? GetLobbyOfPlayer(Guid userId) =>
+    public Guid? GetLobbyIdOfPlayer(Guid userId) =>
         playerToLobby.TryGetValue(userId, out var id) ? id : null;
 
-    private Guid RequireLobbyOfPlayer(Guid userId) =>
-        GetLobbyOfPlayer(userId) ?? throw new UserNotFoundException(userId);
+    public Guid GetLobbyIdOfPlayerRequired(Guid userId) =>
+        GetLobbyIdOfPlayer(userId) ?? throw new UserNotFoundException(userId);
 
+    public Lobby GetLobbyRequired(Guid lobbyId) => lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+
+    public Lobby GetLobbyOfPlayerRequired(Guid userId)
+    {
+        Guid lobbyId = GetLobbyIdOfPlayerRequired(userId);
+        return lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+    }
     private async Task WithLobby(Guid lobbyId, Action<Lobby> action)
     {
         var sem = gates.GetOrAdd(lobbyId, _ => new SemaphoreSlim(1, 1));
@@ -150,9 +150,8 @@ public class LobbyService(ILobbyStore lobbyStore, IEventDispatcher eventDispatch
         }
     }
 
-    private async Task DispatchLobbyEvents(Lobby lobby)
+    public async Task ValidateHost(Guid lobbyId, Guid hostId)
     {
-        foreach (var domainEvent in lobby.DomainEvents) await domainEvent.Dispatch(eventDispatcher);
-        lobby.ClearEvents();
+        await WithLobby(lobbyId, l => l.ValidateHost(hostId));
     }
 }

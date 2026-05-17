@@ -42,6 +42,9 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.UseCases.Services.Auth;
 using StackExchange.Redis;
+using FasterNFaster.Api.Core.Helpers;
+using FasterNFaster.Api.UseCases.Services.Races;
+using FasternFaster.Api.UseCases.Interfaces;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -76,7 +79,6 @@ builder.Services.AddScoped<AppDbContext>();
 builder.Services.AddScoped<IUserFactory, UserFactory>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
-builder.Services.AddSingleton<ILobbyService, LobbyService>();
 builder.Services.AddScoped<IBanService, BanService>();
 builder.Services.AddSingleton<ISessionService, InMemorySessionService>();
 builder.Services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
@@ -94,6 +96,17 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<ITokenFactory, TokenFactory>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
+builder.Services.AddSingleton<IAggregateRootHelper, AggregateRootHelper>();
+builder.Services.AddSingleton<ILobbySessionService, LobbySessionService>();
+builder.Services.AddSingleton<RaceService>();
+builder.Services.AddSingleton<IRaceCoordinator>(sp => sp.GetRequiredService<RaceService>());
+builder.Services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());
+builder.Services.AddSingleton<LobbyService>();
+builder.Services.AddSingleton<ILobbyCoordinator>(sp => sp.GetRequiredService<LobbyService>());
+builder.Services.AddSingleton<ILobbyService>(sp => sp.GetRequiredService<LobbyService>());
+builder.Services.AddSingleton<LobbySessionService>();
+builder.Services.AddSingleton<IRaceTransitionService>(sp => sp.GetRequiredService<LobbySessionService>());
+builder.Services.AddSingleton<ILobbySessionService>(sp => sp.GetRequiredService<LobbySessionService>());
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection("AuthCookies"));

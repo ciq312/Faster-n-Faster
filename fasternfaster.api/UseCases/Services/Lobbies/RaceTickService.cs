@@ -1,3 +1,4 @@
+using FasternFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
@@ -5,6 +6,7 @@ using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -13,14 +15,16 @@ namespace FasterNFaster.Api.UseCases.Services;
 public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyStore lobbyStore,
-    ILobbyService lobbyService,
     IHubContext<GameHub> hub,
+    IRaceTransitionService raceTransitionService,
+    IRaceService raceService,
     IServiceScopeFactory scopeFactory) : BackgroundService
 {
+    private readonly IRaceService raceService = raceService;
     private readonly IRaceTickRegistry registry = registry;
+    private readonly IRaceTransitionService raceTransitionService = raceTransitionService;
     private readonly IServiceScopeFactory scopeFactory = scopeFactory;
     private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly ILobbyService lobbyService = lobbyService;
     private readonly IHubContext<GameHub> hub = hub;
 
     private const int TickIntervalMs = 50;
@@ -66,7 +70,8 @@ public class RaceTickService(
 
         if (elapsed >= CountdownSeconds)
         {
-            await lobbyService.LaunchSession(entry.LobbyId);
+            await raceTransitionService.StartRaceInternal(entry.LobbyId);
+
             await group.SendAsync("RaceStarted");
 #if DEBUG
             Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);
@@ -77,7 +82,7 @@ public class RaceTickService(
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby, IClientProxy group)
     {
-        var snapshot = lobby.Race.GetSnapshot();
+        var snapshot = await raceService.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players
             .Where(p => p.IsConnected)
@@ -88,23 +93,21 @@ public class RaceTickService(
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
             .ToList();
 
-        var race = lobby.Race;
+        // if (race.IsRaceFinished)
+        // {
+        //     var results = race.GetRaceStatics();
+        //     registry.DeregisterLobby(entry.LobbyId);
+        //     using var scope = scopeFactory.CreateScope();
+        //     var dispatcher = scope.ServiceProvider.GetRequiredService<IEventDispatcher>();
+        //     await dispatcher.Dispatch(new RaceFinishedEvent(entry.LobbyId, results));
+        //     return;
+        // }
 
-        if (race.IsRaceFinished)
-        {
-            var results = race.GetRaceStatics();
-            registry.DeregisterLobby(entry.LobbyId);
-            using var scope = scopeFactory.CreateScope();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IEventDispatcher>();
-            await dispatcher.Dispatch(new RaceFinishedEvent(entry.LobbyId, results));
-            return;
-        }
-
-        if (players.Count == 0)
-        {
-            registry.DeregisterLobby(entry.LobbyId);
-            return;
-        }
+        // if (players.Count == 0)
+        // {
+        //     registry.DeregisterLobby(entry.LobbyId);
+        //     return;
+        // }
 
         await group.SendAsync("RaceState", players);
     }

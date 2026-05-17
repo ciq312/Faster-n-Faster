@@ -29,6 +29,7 @@ public class GameHub(
     ILogger<GameHub> logger,
     ILobbyStore lobbyStore,
     ILobbyService lobbyService,
+    ILobbySessionService lobbySessionService,
     IBanService banService,
     ISessionService sessionService,
     LobbyStateBroadcaster broadcaster,
@@ -61,7 +62,7 @@ public class GameHub(
 
     private Task<LobbyContext> RequireLobbyContext()
     {
-        var lobbyId = lobbyService.GetLobbyOfPlayer(GetCallerContext().UserId)
+        var lobbyId = lobbyService.GetLobbyIdOfPlayer(GetCallerContext().UserId)
             ?? throw new InvalidOperationException("Not in lobby");
 
         var groupName = $"lobby-{lobbyId}";
@@ -112,7 +113,7 @@ public class GameHub(
 
     private async Task AddToGroupIfInLobby(Guid userId, string callerConnectionId)
     {
-        var lobbyId = lobbyService.GetLobbyOfPlayer(userId);
+        var lobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
         if (lobbyId is null) return;
 
         logger.LogDebug($"adding  user {userId} to group lobby-{lobbyId} ");
@@ -236,7 +237,7 @@ public class GameHub(
         catch (CheaterDetectedException ex)
         {
             await banService.BanAsync(userId, ex.Reason);
-            await lobbyService.RemoveFromLobby(userId);
+            await lobbySessionService.RemovePlayerFromLobby(userId);
             await Clients.Caller.SendAsync("Banned", $"Cheating detected: {ex.Reason}");
             Context.Abort();
         }
@@ -256,7 +257,7 @@ public class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
-        var maybeLobbyId = lobbyService.GetLobbyOfPlayer(userId);
+        var maybeLobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
 
         if (maybeLobbyId is null)
         {
