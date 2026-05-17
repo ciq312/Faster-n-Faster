@@ -35,62 +35,59 @@ function ConnectionProvider({ url, children }) {
     connection.onreconnecting(() => setIsConnected(false));
     connection.onreconnected(() => setIsConnected(true));
 
+    const errorHandler = (e) => showError(e);
+    const anotherSessionHandler = () => {
+      showMessage("Someone else logged into your account");
+      navigate("/");
+    };
+    const bannedHandler = (reason) => {
+      showError(reason || "You are banned");
+      navigate("/");
+    };
+
+    connection.on("Error", errorHandler);
+    connection.on("AnotherSessionStarted", anotherSessionHandler);
+    connection.on("Banned", bannedHandler);
+
+    const latencyCheckId = setInterval(async () => {
+      if (connection.state !== signalR.HubConnectionState.Connected) return;
+      try {
+        const t0 = performance.now();
+        await connection.invoke("Ping", Date.now());
+        console.warn(`latency is: ${performance.now() - t0}`);
+      } catch {}
+    }, 3000);
+
     const start = async () => {
       try {
         await connection.start();
         setIsConnected(true);
       } catch (err) {
         showError("Can't connect to the server");
+        setIsConnected(false);
       }
     };
 
-    const errorSub = () => {
-      connection.on("Error", (e) => showError(e));
-    };
-
-    const anotherSessionSub = () => {
-      connection.on("AnotherSessionStarted", () => {
-        showMessage("Someone else logged into your account");
-        navigate("/");
-      });
-    };
-
-    const bannedSub = () => {
-      connection.on("Banned", (reason) => {
-        showError(reason || "You are banned");
-        navigate("/");
-      });
-    };
-
-    const latencyCheck = () => {
-      return setInterval(async () => {
-        const t0 = performance.now();
-        await connection.invoke("Ping", Date.now());
-        const rtt = performance.now() - t0;
-        console.warn(`latency is: ${rtt}`);
-      }, 3000);
-    };
-
     start();
-    errorSub();
-    anotherSessionSub();
-    bannedSub();
-    const latencyCheckId = latencyCheck();
 
     return () => {
-      connection.stop();
-      return connectionRef.current?.off("Error", (e) => showError(e));
       clearInterval(latencyCheckId);
+      connection.off("Error", errorHandler);
+      connection.off("AnotherSessionStarted", anotherSessionHandler);
+      connection.off("Banned", bannedHandler);
+      connection.stop();
     };
   }, [url]);
 
-  const invoke = useCallback(async (methodName, ...args) => {
-    await connectionRef.current?.invoke(methodName, ...args);
-  }, []);
+  const invoke = useCallback(
+    (methodName, ...args) => connectionRef.current?.invoke(methodName, ...args),
+    [],
+  );
 
   const subscribe = useCallback((methodName, callback) => {
-    connectionRef.current?.on(methodName, callback);
-    return () => connectionRef.current?.off(methodName, callback);
+    const conn = connectionRef.current;
+    conn?.on(methodName, callback);
+    return () => conn?.off(methodName, callback);
   }, []);
 
   const disconnect = useCallback(() => {

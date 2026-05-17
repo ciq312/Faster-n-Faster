@@ -6,16 +6,12 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "../../game/hooks/LobbyProvider";
 
 export function useJoinLobby() {
-    const {invoke, subsribe, isConnected} = useConnection();
+    const {invoke, isConnected} = useConnection();
     const navigate = useNavigate();
     const { showError } = useError();
     const { setLobbyId } = useLobbyContext();
 
     const joinLobby = useCallback(async (lobbyId,  inviteCode = null) => {
-        if (!isConnected) {
-            showError("Not connected");
-            return;
-        } 
         try {
             await invoke("ConnectToLobby", lobbyId,  inviteCode);
             setLobbyId(lobbyId);
@@ -25,7 +21,7 @@ export function useJoinLobby() {
             console.log(e);
             showError(extractHubError(e));
         }
-    }, [isConnected]);
+    }, []);
 
     return { joinLobby };
 }   

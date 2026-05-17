@@ -23,12 +23,14 @@ export function useLobby() {
 
     const cleanups = [
       subscribe("LobbyState", (state) => {
+        const self = state.players.find((p) => isSelf(p.id));
+        if (!self) return;
         setPlayers(state.players);
         setLobbyName(state.lobbyName);
         setLobbyMaxPlayers(state.maxPlayers);
         setLobbyInviteCode(state.inviteCode);
         setColors(state.colors);
-        setIsHost(state.players.find((p) => isSelf(p.id)).isHost);
+        setIsHost(self.isHost);
       }),
     ];
 

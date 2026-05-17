@@ -15,7 +15,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyService);
+        var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id));
 
@@ -27,7 +27,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyService);
+        var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id));
 

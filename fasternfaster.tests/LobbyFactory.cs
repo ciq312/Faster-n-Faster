@@ -1,19 +1,24 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
 using FasterNFaster.Api.UseCases.Services;
+using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FasterNFaster.Tests;
 
 public record LobbyTestContext(
     LobbyStore Store,
     LobbyService LobbyService,
+    LobbySessionService LobbySessionService,
     RaceTickRegistry Registry,
     FakeUserRepository UserRepo,
     Guid LobbyId,
@@ -31,15 +36,18 @@ public static class LobbyFactory
     {
         var eventDispatcher = new FakeEventDispatcher();
         var lobbyStore = new LobbyStore();
-        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
+        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(eventDispatcher), eventDispatcher);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
+        var raceService = new RaceService(new AggregateRootHelper(eventDispatcher), passageProvider, NullLogger<RaceService>.Instance);
 
-        var createHandler = new CreateLobbyHandler(passageProvider, lobbyService);
-        var result = await createHandler.Handle(new CreateLobbyCommand("Test", false, hostId));
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
+        var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId));
 
-        return new LobbyTestContext(lobbyStore, lobbyService, registry, userRepo, result.LobbyId, eventDispatcher);
+        var lobbySessionService = new LobbySessionService(lobbyService, raceService, lobbyService, raceService, registry);
+
+        return new LobbyTestContext(lobbyStore, lobbyService, lobbySessionService, registry, userRepo, result.LobbyId, eventDispatcher);
     }
 
     /// <summary>
@@ -53,15 +61,16 @@ public static class LobbyFactory
 
         var eventDispatcher = new FakeEventDispatcher();
         var lobbyStore = new LobbyStore();
-        var lobbyService = new LobbyService(lobbyStore, eventDispatcher);
+        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(eventDispatcher), eventDispatcher);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 
         foreach (var user in users)
             userRepo.Seed(user);
 
-        var createHandler = new CreateLobbyHandler(passageProvider, lobbyService);
-        var result = await createHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id));
+        var raceService = new RaceService(new AggregateRootHelper(eventDispatcher), passageProvider, NullLogger<RaceService>.Instance);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
+        var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id));
 
         var joinHandler = new JoinLobbyHandler(userFactory, lobbyService);
         for (int i = 0; i < users.Length; i++)
@@ -69,7 +78,8 @@ public static class LobbyFactory
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"));
         }
 
-        return new LobbyTestContext(lobbyStore, lobbyService, registry, userRepo, result.LobbyId, eventDispatcher);
+        var lobbySessionService = new LobbySessionService(lobbyService, raceService, lobbyService, raceService, registry);
+        return new LobbyTestContext(lobbyStore, lobbyService, lobbySessionService, registry, userRepo, result.LobbyId, eventDispatcher);
     }
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()
     {
