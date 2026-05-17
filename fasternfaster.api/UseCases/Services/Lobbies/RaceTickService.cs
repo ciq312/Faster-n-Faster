@@ -25,7 +25,7 @@ public class RaceTickService(
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IHubContext<GameHub> hub = hub;
 
-    private const int TickIntervalMs = 100;
+    private const int TickIntervalMs = 200;
     private const float CountdownSeconds = 3.5f;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
