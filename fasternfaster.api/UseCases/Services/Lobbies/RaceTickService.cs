@@ -5,6 +5,7 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
@@ -17,16 +18,19 @@ public class RaceTickService(
     ILobbyStore lobbyStore,
     IHubContext<GameHub> hub,
     IRaceTransitionService raceTransitionService,
-    IRaceService raceService) : BackgroundService
+    IRaceService raceService,
+    ISessionService sessionService) : BackgroundService
 {
     private readonly IRaceService raceService = raceService;
     private readonly IRaceTickRegistry registry = registry;
     private readonly IRaceTransitionService raceTransitionService = raceTransitionService;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IHubContext<GameHub> hub = hub;
+    private readonly ISessionService sessionService = sessionService;
 
     private const int TickIntervalMs = 200;
     private const float CountdownSeconds = 3.5f;
+    private const int PerClientSendTimeoutMs = 150;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -36,29 +40,31 @@ public class RaceTickService(
         {
             var lobbies = registry.GetRacingLobbies();
 
-            foreach (var entry in lobbies)
+            await Task.WhenAll(lobbies.Select(TickLobby));
+        }
+    }
+
+    private async Task TickLobby(RacingLobbyEntry entry)
+    {
+        try
+        {
+            var lobby = lobbyStore.Get(entry.LobbyId);
+            if (lobby == null)
             {
-                try
-                {
-                    var lobby = lobbyStore.Get(entry.LobbyId);
-                    if (lobby == null)
-                    {
-                        registry.DeregisterLobby(entry.LobbyId);
-                        continue;
-                    }
-
-                    var group = hub.Clients.Group($"lobby-{entry.LobbyId}");
-
-                    if (entry.Phase == RacePhase.Countdown)
-                        await HandleCountdown(entry, lobby, group);
-                    else
-                        await HandleRacing(entry, lobby, group);
-                }
-                catch (Exception ex)
-                {
-                    Log.Information(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
-                }
+                registry.DeregisterLobby(entry.LobbyId);
+                return;
             }
+
+            var group = hub.Clients.Group($"lobby-{entry.LobbyId}");
+
+            if (entry.Phase == RacePhase.Countdown)
+                await HandleCountdown(entry, lobby, group);
+            else
+                await HandleRacing(entry, lobby, group);
+        }
+        catch (Exception ex)
+        {
+            Log.Information(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
         }
     }
 
@@ -91,6 +97,28 @@ public class RaceTickService(
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
             .ToList();
 
-        await group.SendAsync("RaceState", players);
+        var sends = lobby.Players
+            .Where(p => p.IsConnected)
+            .Select(p => SendToPlayerWithTimeout(p.User.Id, "RaceState", players));
+
+        await Task.WhenAll(sends);
+    }
+
+    private async Task SendToPlayerWithTimeout(Guid userId, string method, object payload)
+    {
+        var connectionId = sessionService.GetActiveSession(userId);
+        if (connectionId is null) return;
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(PerClientSendTimeoutMs));
+        try
+        {
+            await hub.Clients.Client(connectionId).SendAsync(method, payload, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+#if DEBUG
+            Log.Warning("Send to user {UserId} timed out", userId);
+#endif
+        }
     }
 }
