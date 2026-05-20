@@ -116,6 +116,12 @@ function Registration() {
           </button>
         </div>
       </div>
+
+      <footer className="registration__footer">
+        <span>© {new Date().getFullYear()} faster'n'faster</span>
+        <span className="registration__footer-sep">·</span>
+        <a href="mailto:lesha.mak34@gmail.com">contact</a>
+      </footer>
     </div>
   );
 }

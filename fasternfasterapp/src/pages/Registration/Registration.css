@@ -282,6 +282,35 @@
   cursor: not-allowed;
 }
 
+/* ── Footer ── */
+
+.registration__footer {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+  animation: arrive 0.5s ease 0.16s both;
+}
+
+.registration__footer a {
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.registration__footer a:hover {
+  color: var(--amber);
+}
+
+.registration__footer-sep {
+  color: var(--text-4);
+  opacity: 0.6;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 480px) {
