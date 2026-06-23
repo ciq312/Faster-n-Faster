@@ -31,10 +31,6 @@ public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordH
         string hashedPassword = passwordHelper.HashPassword(user, command.Password);
         user.SetPassword(hashedPassword);
 
-#if DEBUG
-        Log.Information($"created user {user.Nick}");
-#endif
-
         await repo.AddAsync(user);
 
         var verificationToken = tokenFactory.GetToken(user.Id, TokenType.EmailVerification);

@@ -14,9 +14,6 @@ public class BroadcastPlayerPromotedHandler(LobbyStateBroadcaster broadcaster, I
     private readonly IHubContext<GameHub> hub = hub;
     public async Task Handle(HostChangedEvent domainEvent)
     {
-#if DEBUG
-        Log.Information("host changed event handling");
-#endif
         string groupName = $"lobby-{domainEvent.LobbyId}";
         await hub.Clients.Group(groupName).SendAsync("HostChanged", new HostChangedDTO(domainEvent.NewHostId, domainEvent.NewHostNick));
         await broadcaster.BroadcastLobbyState(domainEvent.LobbyId);

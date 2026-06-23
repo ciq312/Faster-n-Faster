@@ -30,9 +30,6 @@ public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService)
             ))
             .ToList();
 
-#if DEBUG
-        Log.Information("Got lobbies");
-#endif
         return Task.FromResult(new GetLobbiesResult(lobbies));
     }
 }

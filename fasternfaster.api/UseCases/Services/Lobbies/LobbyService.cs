@@ -30,10 +30,6 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
             throw new AlreadyInLobbyException();
 
         await WithLobby(lobbyId, lobby => lobby.Join(user, code));
-
-#if DEBUG
-        Log.Information($"Player {user.Id} joined lobby {lobbyId}");
-#endif
     }
 
     public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
@@ -43,13 +39,9 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
 
         Lobby lobby = new(LobbyName, isPrivate);
         lobby.AssignHost(creatorId);
-        await lobby.GenerateUniqueInviteCode((c) => lobbyStore.GetByInviteCode(c) != null);
+        lobby.GenerateUniqueInviteCode(c => lobbyStore.GetByInviteCode(c) != null);
 
         lobbyStore.Add(lobby);
-
-#if DEBUG
-        Log.Information($"Player {creatorId} created lobby {lobby.Id}");
-#endif
         return lobby;
     }
 
@@ -77,10 +69,6 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
 
         await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
         aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
-
-#if DEBUG
-        Log.Information($"Player {userId} was kicked from lobby {lobbyId}");
-#endif
     }
 
     public async Task RemoveFromLobby(Guid userId)
@@ -92,10 +80,6 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
 
         await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick));
         aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
-
-#if DEBUG
-        Log.Information($"Player {userId} was removed from lobby {lobbyId}");
-#endif
     }
 
     public async Task StartSession(Guid lobbyId, Guid hostId)

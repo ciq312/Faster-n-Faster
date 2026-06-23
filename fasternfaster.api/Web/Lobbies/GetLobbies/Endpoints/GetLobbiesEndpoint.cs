@@ -22,9 +22,7 @@ public class GetLobbiesEndpoint : EndpointWithoutRequest<GetLobbiesResult>
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        Log.Information("Getting lobbies");
         var response = await _handler.Handle(new GetLobbiesQuery());
-        Log.Information("sending lobbies");
         await Send.OkAsync(response, ct);
     }
 }

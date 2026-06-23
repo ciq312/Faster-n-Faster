@@ -8,7 +8,7 @@ public interface IRaceCoordinator
 
     public Task WithdrawParticipant(Guid lobbyId, Guid userId);
 
-    public Task AddPaticipants(Guid lobbyId, List<RaceParticipant> participants);
+    public Task AddParticipants(Guid lobbyId, List<RaceParticipant> participants);
 
     public Task StartRace(Guid lobbyId);
 }

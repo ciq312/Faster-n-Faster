@@ -16,7 +16,7 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
     public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
     public bool IsSessionActive { get; private set; } = false;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
-    public List<Guid> BannedPlayersIds = new List<Guid>();
+    private List<Guid> bannedPlayerIds = new List<Guid>();
 
     public void StartSession()
     {
@@ -131,12 +131,11 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
         RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
     }
 
-    public void BanPlayer(Guid userId) => BannedPlayersIds.Add(userId);
+    public void BanPlayer(Guid userId) => bannedPlayerIds.Add(userId);
 
-    public async Task GenerateUniqueInviteCode(Func<string, bool> codeExists)
+    public void GenerateUniqueInviteCode(Func<string, bool> codeExists)
     {
         string code = LobbySettings.CreateUniqueInviteCode(codeExists);
-
         LobbySettings.SetInviteCode(code);
     }
 
@@ -145,9 +144,8 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
     public bool IsEmpty() => Players.Count == 0;
 
     public IEnumerable<ColorStatus> GetColors()
-    => PlayerColors.Palette.Select(c => new
-    ColorStatus(c, !Players.Any(p => p.Color == c)));
+        => PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)));
 
-    public bool IsPlayerBanned(Guid id) => BannedPlayersIds.Contains(id);
+    public bool IsPlayerBanned(Guid id) => bannedPlayerIds.Contains(id);
 
 }

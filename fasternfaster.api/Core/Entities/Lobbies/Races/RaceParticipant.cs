@@ -129,9 +129,6 @@ public class RaceParticipant
 
     public void MarkFinished(int position, int wordsTyped)
     {
-#if DEBUG
-        Log.Information($"finish position {position} for player {Nick} with wpm {GetWPM():F2} and accuracy {GetAccuracy():P2}");
-#endif
         IsFinished = true;
         FinishPosition = position;
         FinishedAt = _now();
