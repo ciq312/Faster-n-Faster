@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
@@ -11,9 +11,7 @@ public class BroadcastPlayerFinishedHandler(IHubContext<GameHub> hub) : IDomainE
 
     public async Task Handle(PlayerFinishedEvent e)
     {
-        Log.Logger.Information($"player finished race in lobby {e.LobbyId}");
-
-        await _hub.Clients.Group($"lobby-{e.LobbyId}").SendAsync("PlayerFinished", new
+        await _hub.Clients.Group(LobbyGroup(e.LobbyId)).SendAsync(Methods.PlayerFinished, new
         {
             nick = e.Nick,
             playerId = e.PlayerId,

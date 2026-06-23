@@ -44,7 +44,6 @@ using FasterNFaster.Api.UseCases.Services.Auth;
 using StackExchange.Redis;
 using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.UseCases.Services.Races;
-using FasternFaster.Api.UseCases.Interfaces;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
