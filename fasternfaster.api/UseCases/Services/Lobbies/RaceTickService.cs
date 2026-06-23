@@ -1,4 +1,4 @@
-using FasternFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
@@ -10,6 +10,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using FasternFaster.Api.UseCases.Interfaces;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
@@ -19,7 +20,8 @@ public class RaceTickService(
     IHubContext<GameHub> hub,
     IRaceTransitionService raceTransitionService,
     IRaceService raceService,
-    ISessionService sessionService) : BackgroundService
+    ISessionService sessionService,
+    ILogger<RaceTickService> logger) : BackgroundService
 {
     private readonly IRaceService raceService = raceService;
     private readonly IRaceTickRegistry registry = registry;
@@ -27,6 +29,7 @@ public class RaceTickService(
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IHubContext<GameHub> hub = hub;
     private readonly ISessionService sessionService = sessionService;
+    private readonly ILogger<RaceTickService> logger = logger;
 
     private const int TickIntervalMs = 200;
     private const float CountdownSeconds = 3.5f;
@@ -64,7 +67,7 @@ public class RaceTickService(
         }
         catch (Exception ex)
         {
-            Log.Information(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
+            logger.LogError(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
         }
     }
 
@@ -75,11 +78,7 @@ public class RaceTickService(
         if (elapsed >= CountdownSeconds)
         {
             await raceTransitionService.StartRaceInternal(entry.LobbyId);
-
             await group.SendAsync("RaceStarted");
-#if DEBUG
-            Log.Information("Race started in lobby {LobbyId}", entry.LobbyId);
-#endif
             registry.TransitionToRacing(entry.LobbyId);
         }
     }
@@ -116,9 +115,7 @@ public class RaceTickService(
         }
         catch (OperationCanceledException)
         {
-#if DEBUG
-            Log.Warning("Send to user {UserId} timed out", userId);
-#endif
+            logger.LogWarning("Send to user {UserId} timed out", userId);
         }
     }
 }

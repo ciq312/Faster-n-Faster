@@ -23,11 +23,11 @@ public class RaceService(IAggregateRootHelper aggregateRootHelper,
         return Task.FromResult(WithRaceRead(lobbyId, race => race.GetSnapshot()));
     }
 
-    public Task ProcessUpdate(Guid lobbyId, Guid playerdId, int index, int mistakes, string typed)
+    public Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed)
     {
         WithRaceWrite(lobbyId, race =>
         {
-            race.ProcessUpdate(playerdId, index, mistakes, typed);
+            race.ProcessUpdate(playerId, index, mistakes, typed);
 
             WrapRaceEvents(race, lobbyId);
 
@@ -41,7 +41,7 @@ public class RaceService(IAggregateRootHelper aggregateRootHelper,
         WithRaceWrite(lobbyId, race => race.Start());
         return Task.CompletedTask;
     }
-    public Task AddPaticipants(Guid lobbyId, List<RaceParticipant> participants)
+    public Task AddParticipants(Guid lobbyId, List<RaceParticipant> participants)
     {
         WithRaceWrite(lobbyId, race => race.AddParticipants(participants));
         return Task.CompletedTask;
@@ -71,7 +71,7 @@ public class RaceService(IAggregateRootHelper aggregateRootHelper,
         logger.LogDebug($"new race registered for lobby {lobbyId}");
         races[lobbyId] = (new ReaderWriterLockSlim(), race);
     }
-    public void RemoveRegistredRace(Guid lobbyId)
+    public void RemoveRegisteredRace(Guid lobbyId)
     {
         logger.LogDebug($"removing race for lobby {lobbyId}");
         if (races.TryRemove(lobbyId, out var entry))

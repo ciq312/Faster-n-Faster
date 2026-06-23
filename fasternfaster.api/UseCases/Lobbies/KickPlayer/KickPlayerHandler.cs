@@ -13,10 +13,6 @@ public class KickPlayerHandler(ILobbySessionService lobbySessionService) : IHand
 
         await lobbySessionService.KickPlayer(command.UserId, command.TargetPlayerId);
 
-#if DEBUG
-        Log.Information($"kicked player with id {command.TargetPlayerId} in lobby {command.LobbyId}");
-#endif
-
         return new KickPlayerResult(command.TargetPlayerId);
     }
 }

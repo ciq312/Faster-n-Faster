@@ -27,9 +27,6 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyService 
         Lobby lobby = await lobbyService.CreateLobby(command.LobbyName, command.IsPrivate, command.HostId);
 
         raceService.RegisterRace(lobby.Id, race);
-#if DEBUG
-        Log.Information("Created lobby {LobbyId} with host {PlayerId}", lobby.Id, command.HostId);
-#endif
 
         return new CreateLobbyResult(lobby.Id, lobby.LobbySettings.InviteCode);
     }

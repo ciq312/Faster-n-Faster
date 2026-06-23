@@ -2,41 +2,30 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
-using Google.Apis.Util;
-using Npgsql.Replication;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class SaveRaceResultHandler : IDomainEventHandler<RaceFinishedEvent>
+public class SaveRaceResultHandler(AppDbContext db, IUserRepository repo, ILogger<SaveRaceResultHandler> logger) : IDomainEventHandler<RaceFinishedEvent>
 {
-    private readonly AppDbContext _db;
-    private readonly IUserRepository _repo;
-
-    public SaveRaceResultHandler(AppDbContext db, IUserRepository repo)
-    {
-        _db = db;
-        _repo = repo;
-    }
-
     public async Task Handle(RaceFinishedEvent domainEvent)
     {
         foreach (var result in domainEvent.Results)
         {
-            if (!await _repo.IsUserRegistred(result.LobbyPlayerId)) continue;
+            if (!await repo.IsUserRegistred(result.LobbyPlayerId)) continue;
 
-            var stats = await _db.Statistics.FindAsync(result.LobbyPlayerId);
+            var stats = await db.Statistics.FindAsync(result.LobbyPlayerId);
 
             if (stats == null)
             {
-                Log.Information("creating player statistics in db");
+                logger.LogDebug("Creating player statistics for {PlayerId}", result.LobbyPlayerId);
                 stats = new PlayerStatistics(result.LobbyPlayerId);
-                _db.Statistics.Add(stats);
+                db.Statistics.Add(stats);
             }
-            Log.Information("registring new race in db");
 
+            logger.LogDebug("Registering race result for {PlayerId}", result.LobbyPlayerId);
             stats.RegisterRace(result);
         }
 
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
     }
 }

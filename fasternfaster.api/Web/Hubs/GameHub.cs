@@ -90,9 +90,7 @@ public class GameHub(
         var previousSessionId = sessionService.GetActiveSession(userId);
         if (previousSessionId != null && previousSessionId != callerConnectionId)
         {
-#if DEBUG
-            Log.Information($"Handling another session");
-#endif
+            logger.LogDebug("Handling another session for user {UserId}", userId);
             await HandleSessionRestart(userId, callerConnectionId, previousSessionId);
         }
 

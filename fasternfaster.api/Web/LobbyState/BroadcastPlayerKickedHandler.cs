@@ -22,7 +22,6 @@ public class BroadcastPlayerKickedHandler(LobbyStateBroadcaster broadcaster, IHu
 
         if (kickedConnectionId == null) return;
 
-        Log.Information("broadcasting kicked");
         await hub.Groups.RemoveFromGroupAsync(kickedConnectionId, groupName);
         await hub.Clients.Group(groupName).SendAsync("PlayerKicked", new PlayerKickedDTO(domainEvent.UserId, domainEvent.Nick));
         await hub.Clients.Client(kickedConnectionId).SendAsync("Kicked");

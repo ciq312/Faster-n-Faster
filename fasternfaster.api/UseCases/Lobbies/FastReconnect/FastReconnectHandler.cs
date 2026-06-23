@@ -12,9 +12,6 @@ public class FastReconnectHandler(IPendingRemovalsRegistry pendingRemovalsRegist
 
     public async Task Handle(FastReconnectCommand command)
     {
-#if DEBUG
-        Log.Information("storing cancellationtoken for disconnect");
-#endif
         var cts = new CancellationTokenSource();
 
         await pendingRemovalsRegistry.StorePendingRemoval(command.PlayerId, cts);

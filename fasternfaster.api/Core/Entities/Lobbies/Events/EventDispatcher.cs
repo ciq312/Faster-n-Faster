@@ -8,9 +8,6 @@ public class EventDispatcher(IServiceScopeFactory scopeFactory) : IEventDispatch
     {
         using var scope = scopeFactory.CreateScope();
         var handlers = scope.ServiceProvider.GetServices<IDomainEventHandler<T>>();
-#if DEBUG
-        Log.Information($"dispatching event {domainEvent.GetType()}");
-#endif
         foreach (var handler in handlers) await handler.Handle(domainEvent);
     }
 }

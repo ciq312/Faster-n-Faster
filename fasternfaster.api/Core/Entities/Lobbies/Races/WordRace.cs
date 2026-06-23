@@ -47,10 +47,6 @@ public class WordRace : Race
     private bool IsRacerFinished(RaceParticipant racer) => racer.Index >= Passage!.Length - 1;
 
 
-    public override void Reset()
-    {
-        base.Reset();
-    }
     private int GetNumberWordsInPassage()
     {
         if (Passage == null) throw new InvalidOperationException("Passage is null");

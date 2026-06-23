@@ -1,10 +1,11 @@
 using FasternFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Services;
 
 public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
   IRaceCoordinator raceCoordinator,
@@ -30,7 +31,7 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
 
         var participants = lobby.GetRaceParticipants();
 
-        await raceCoordinator.AddPaticipants(lobbyId, participants);
+        await raceCoordinator.AddParticipants(lobbyId, participants);
 
         raceTickRegistry.RegisterLobby(lobbyId);
     }
@@ -47,7 +48,7 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
         {
             await lobbyCoordinator.RemoveLobby(lobbyId);
 
-            raceService.RemoveRegistredRace(lobbyId);
+            raceService.RemoveRegisteredRace(lobbyId);
 
             raceTickRegistry.DeregisterLobby(lobbyId);
         }

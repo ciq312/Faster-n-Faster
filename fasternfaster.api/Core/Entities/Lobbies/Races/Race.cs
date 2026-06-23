@@ -46,7 +46,7 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
 
     public abstract List<ParticipantSnapshot> GetSnapshot();
 
-    public IEnumerable<RaceParticipantResult> GetRaceStatics() =>
+    public IEnumerable<RaceParticipantResult> GetRaceResults() =>
         participants.Values
             .Where(p => p.Result != null)
             .Select(p => p.Result!);
@@ -67,7 +67,7 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
 
     protected void OnRaceFinished()
     {
-        RaiseDomainEvent(new RaceFinishedEvent(GetRaceStatics().ToList()));
+        RaiseDomainEvent(new RaceFinishedEvent(GetRaceResults().ToList()));
         EndTime = DateTime.UtcNow;
         Reset();
     }

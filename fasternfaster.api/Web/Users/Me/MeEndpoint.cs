@@ -16,10 +16,6 @@ public class MeEndpoint : EndpointWithoutRequest<MeResponse>
         var userName = User.FindFirstValue("name");
         var role = User.FindFirstValue("role");
 
-#if DEBUG
-        Log.Information($"id : {userIdClaim}, name : {userName}, role : {role}");
-#endif
-
         if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(role))
         {
             await Send.UnauthorizedAsync(ct);
