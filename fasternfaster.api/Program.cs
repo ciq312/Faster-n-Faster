@@ -95,6 +95,7 @@ builder.Services.AddScoped<ITokenFactory, TokenFactory>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
 builder.Services.AddSingleton<IAggregateRootHelper, AggregateRootHelper>();
+builder.Services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
 builder.Services.AddSingleton<RaceService>();
 builder.Services.AddSingleton<IRaceCoordinator>(sp => sp.GetRequiredService<RaceService>());
 builder.Services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());

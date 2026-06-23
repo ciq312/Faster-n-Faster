@@ -34,10 +34,7 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
 
         raceTickRegistry.RegisterLobby(lobbyId);
     }
-    public async Task StartRaceInternal(Guid lobbyId)
-    {
-        await raceCoordinator.StartRace(lobbyId);
-    }
+    public Task StartRaceInternal(Guid lobbyId) => raceCoordinator.StartRace(lobbyId);
 
     public async Task RemoveLobbyIfEmpty(Guid lobbyId)
     {
