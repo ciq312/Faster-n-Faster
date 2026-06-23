@@ -1,4 +1,3 @@
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
@@ -10,7 +9,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using FasternFaster.Api.UseCases.Interfaces;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
@@ -58,7 +57,7 @@ public class RaceTickService(
                 return;
             }
 
-            var group = hub.Clients.Group($"lobby-{entry.LobbyId}");
+            var group = hub.Clients.Group(LobbyGroup(entry.LobbyId));
 
             if (entry.Phase == RacePhase.Countdown)
                 await HandleCountdown(entry, lobby, group);
@@ -78,7 +77,7 @@ public class RaceTickService(
         if (elapsed >= CountdownSeconds)
         {
             await raceTransitionService.StartRaceInternal(entry.LobbyId);
-            await group.SendAsync("RaceStarted");
+            await group.SendAsync(Methods.RaceStarted);
             registry.TransitionToRacing(entry.LobbyId);
         }
     }
@@ -98,7 +97,7 @@ public class RaceTickService(
 
         var sends = lobby.Players
             .Where(p => p.IsConnected)
-            .Select(p => SendToPlayerWithTimeout(p.User.Id, "RaceState", players));
+            .Select(p => SendToPlayerWithTimeout(p.User.Id, Methods.RaceState, players));
 
         await Task.WhenAll(sends);
     }

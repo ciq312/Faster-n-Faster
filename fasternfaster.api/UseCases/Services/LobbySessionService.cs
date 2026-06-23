@@ -1,4 +1,3 @@
-using FasternFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Interfaces;

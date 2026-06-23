@@ -4,6 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Lobbies.LobbyState;
 
@@ -16,8 +17,8 @@ public class LobbyStateBroadcaster(IHubContext<GameHub> hub, ILobbyStore lobbySt
     public async Task BroadcastLobbyState(Lobby lobby)
     {
         var state = await GetLobbyState(lobby);
-        await hub.Clients.Group($"lobby-{lobby.Id}")
-        .SendAsync("LobbyState", state);
+        await hub.Clients.Group(LobbyGroup(lobby.Id))
+            .SendAsync(Methods.LobbyState, state);
     }
 
     public async Task BroadcastLobbyState(Guid lobbyId)
@@ -26,7 +27,7 @@ public class LobbyStateBroadcaster(IHubContext<GameHub> hub, ILobbyStore lobbySt
         await BroadcastLobbyState(lobby);
     }
 
-    public async Task<object> GetLobbyState(Lobby lobby)
+    public async Task<LobbyStateDTO> GetLobbyState(Lobby lobby)
     {
         var players = lobby.Players.Select(p => new LobbyPlayerDto(
             p.User.Id, p.IsHost, p.User.Nick, p.JoinOrder, p.IsConnected, p.Color));
