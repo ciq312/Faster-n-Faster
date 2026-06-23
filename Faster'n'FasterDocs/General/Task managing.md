@@ -7,23 +7,23 @@ kanban-plugin: board
 ## To do
 
 - [ ] SRP: thin out GameHub — move cheat→ban→remove→abort out of UpdateRaceState into a handler/service
-- [ ] SRP: dedupe ban check (OnConnectedAsync + ConnectToLobby) and centralize `lobby-{id}` group key
+- [x] SRP: dedupe ban check (OnConnectedAsync + ConnectToLobby) and centralize `lobby-{id}` group key
 - [ ] SRP: extract IPlayerLocationRegistry (playerToLobby index) out of LobbyService
 - [x] SRP: fix LobbySessionService namespace (Services not Interfaces)
 - [ ] SRP/config: extract IAntiCheatPolicy with configurable thresholds out of RaceParticipant
 - [ ] OCP: make RaceService mode-agnostic — remove `as WordRace` casts so Timer mode can be added
-- [ ] DIP: decouple RaceTickService from IHubContext<GameHub> via IRaceBroadcaster (UseCases must not depend on Web/SignalR)
+- [x] DIP: decouple RaceTickService from IHubContext<GameHub> via IRaceBroadcaster (UseCases must not depend on Web/SignalR)
 - [x] Use typed exceptions instead of string-matching messages (ConnectToLobby "Can't join")
-- [ ] Replace fake async (Task.FromResult/Task.CompletedTask over sync work) in RaceService/LobbySessionService
+- [x] Replace fake async (LobbySessionService.StartRaceInternal)
 - [ ] Fix TOCTOU: LobbySessionService reads IsSessionActive outside the lobby lock
 - [x] Consistent logging: inject ILogger<T>, use structured templates (drop static Serilog Log + interpolation)
 - [x] Encapsulate Lobby.BannedPlayersIds (public field → private set)
 - [x] Remove misleading async on Lobby.GenerateUniqueInviteCode (no await)
-- [ ] Return LobbyStateDTO from LobbyStateBroadcaster instead of object; stop sending anonymous objects
+- [x] Return LobbyStateDTO from LobbyStateBroadcaster instead of object; stop sending anonymous objects
 - [x] Remove pointless WordRace.Reset() override
 - [x] Fix namespace≠folder mismatches and FasterNFaster/FasternFaster spelling
 - [x] Fix public API typos: AddPaticipants, RemoveRegistredRace, GetRaceStatics, playerdId
-- [ ] Centralize SignalR method names + lobby group key as constants
+- [x] Centralize SignalR method names + lobby group key as constants
 
 
 ## In progress
