@@ -81,7 +81,7 @@ public class RaceService(IAggregateRootHelper aggregateRootHelper,
     private (ReaderWriterLockSlim, Race) GetActiveRace(Guid lobbyId)
     {
         var race = races.GetValueOrDefault(lobbyId);
-        if (race == default) throw new NullReferenceException("Race not set");
+        if (race == default) throw new InvalidOperationException("Race not set");
         return race;
     }
 
