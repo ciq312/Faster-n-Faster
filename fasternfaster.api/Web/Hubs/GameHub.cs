@@ -1,10 +1,8 @@
-using System.Reflection.Metadata;
 using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
@@ -134,32 +132,19 @@ public class GameHub(
 
         var nick = GetCallerContext().Nick;
         var role = GetCallerContext().Role;
-        try
-        {
-            await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
+        await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
 
-            var groupName = $"lobby-{lobbyId}";
-            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        var groupName = $"lobby-{lobbyId}";
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
+        var lobby = lobbyStore.GetRequired(lobbyId);
 
-            var lobby = lobbyStore.GetRequired(lobbyId);
+        await broadcaster.BroadcastLobbyState(lobby);
 
-            await broadcaster.BroadcastLobbyState(lobby);
+        await Clients.OthersInGroup(groupName)
+            .SendAsync("PlayerJoined", new { playerId = userId, displayName = nick });
 
-            await Clients.OthersInGroup(groupName)
-                .SendAsync("PlayerJoined", new { playerId = userId, displayName = nick });
-
-            logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
-
-        }
-        catch (LobbyNotFoundException)
-        {
-            throw new HubException("Lobby not found");
-        }
-        catch (InvalidOperationException e)
-        {
-            if (e.Message.StartsWith("Can't join")) throw new HubException(e.Message);
-        }
+        logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }
 
     public async Task RefreshLobby()

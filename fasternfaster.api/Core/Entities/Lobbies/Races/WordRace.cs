@@ -27,7 +27,7 @@ public class WordRace : Race
     {
         if (!HasStarted) return;
 
-        if (Passage == null) throw new NullReferenceException("passage isn't set");
+        if (Passage == null) throw new InvalidOperationException("passage isn't set");
 
         var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
 
@@ -53,7 +53,7 @@ public class WordRace : Race
     }
     private int GetNumberWordsInPassage()
     {
-        if (Passage == null) throw new NullReferenceException("Passage is null");
+        if (Passage == null) throw new InvalidOperationException("Passage is null");
         return Passage.Split(' ').Length;
     }
     public void SetPassage(string passage)
@@ -63,7 +63,7 @@ public class WordRace : Race
 
     public override WordRaceSettings GetRaceSettings()
     {
-        if (Passage == null) throw new NullReferenceException("Passage is null");
+        if (Passage == null) throw new InvalidOperationException("Passage is null");
         return new WordRaceSettings(Passage, WordCount);
     }
 

@@ -10,6 +10,7 @@ using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.Core.Helpers;
 
 namespace FasterNFaster.Api.UseCases.Services;
@@ -26,7 +27,7 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
     public async Task JoinLobby(User user, Guid lobbyId, string? code)
     {
         if (playerToLobby.TryGetValue(user.Id, out var existingLobbyId) && existingLobbyId != lobbyId)
-            throw new InvalidOperationException("Can't join when in lobby");
+            throw new AlreadyInLobbyException();
 
         await WithLobby(lobbyId, lobby => lobby.Join(user, code));
 
