@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
-public interface ILobbyCoordinator
+public interface ILobbyInternals
 {
     Task ValidateHost(Guid lobbyId, Guid hostId);
     Task RemoveFromLobby(Guid userId);

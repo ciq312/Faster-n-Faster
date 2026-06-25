@@ -1,15 +1,13 @@
 using FastEndpoints;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
+using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.ResetPassword;
 
-public class ResetPasswordEndpoint(IHandler<ResetPasswordCommand> handler) : Endpoint<ResetPasswordRequest>
+public class ResetPasswordEndpoint(ISender sender) : Endpoint<ResetPasswordRequest>
 {
-    private readonly IHandler<ResetPasswordCommand> handler = handler;
-
     public override void Configure()
     {
         Post("/api/auth/reset-password");
@@ -20,13 +18,11 @@ public class ResetPasswordEndpoint(IHandler<ResetPasswordCommand> handler) : End
     {
         try
         {
-            await handler.Handle(new ResetPasswordCommand(req.Token, req.NewPassword));
+            await sender.Send(new ResetPasswordCommand(req.Token, req.NewPassword), ct);
             await Send.OkAsync(cancellation: ct);
         }
         catch (TokenNotFoundException)
         {
-            // Invalid, expired, or wrong-type tokens all collapse to the same 400
-            // so the response can't be used to probe token state.
             ThrowError("This link is invalid or expired", 400);
         }
         catch (UserNotFoundException)

@@ -5,28 +5,32 @@ using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.Core.Helpers;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregateRootHelper, IEventDispatcher eventDispatcher) : ILobbyService, ILobbyCoordinator
+public class LobbyService(
+    ILobbyStore lobbyStore,
+    IAggregateRootHelper aggregateRootHelper,
+    IPublisher publisher,
+    IPlayerLocationRegistry locationRegistry) : ILobbyService, ILobbyInternals
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IEventDispatcher eventDispatcher = eventDispatcher;
+    private readonly IPublisher publisher = publisher;
     private readonly IAggregateRootHelper aggregateRootHelper = aggregateRootHelper;
+    private readonly IPlayerLocationRegistry locationRegistry = locationRegistry;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
-
-    private readonly ConcurrentDictionary<Guid, Guid> playerToLobby = new();
 
     public async Task JoinLobby(User user, Guid lobbyId, string? code)
     {
-        if (playerToLobby.TryGetValue(user.Id, out var existingLobbyId) && existingLobbyId != lobbyId)
+        if (locationRegistry.GetLobbyIdOfPlayer(user.Id) is Guid existingId && existingId != lobbyId)
             throw new AlreadyInLobbyException();
 
         await WithLobby(lobbyId, lobby => lobby.Join(user, code));
@@ -34,7 +38,7 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
 
     public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
     {
-        if (playerToLobby.ContainsKey(creatorId))
+        if (locationRegistry.GetLobbyIdOfPlayer(creatorId) != null)
             throw new InvalidOperationException("Can't create a lobby while in lobby");
 
         Lobby lobby = new(LobbyName, isPrivate);
@@ -47,15 +51,15 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
 
     public async Task TransferHost(Guid hostId, Guid userId)
     {
-        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
+        var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         await WithLobby(lobbyId, l => l.TransferHost(hostId, userId));
-        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
+        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
     public async Task KickPlayer(Guid hostId, Guid userId)
     {
-        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
+        var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer kicked = null!;
         await WithLobby(lobbyId, l =>
@@ -67,19 +71,19 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
             l.BanPlayer(kicked.User.Id);
         });
 
-        await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
-        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
+        await publisher.Publish(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
+        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
     public async Task RemoveFromLobby(Guid userId)
     {
-        var lobbyId = GetLobbyIdOfPlayerRequired(userId);
+        var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer removed = null!;
         await WithLobby(lobbyId, l => removed = l.RemovePlayer(userId));
 
-        await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick));
-        aggregateRootHelper.DispatchRootEvents(lobbyStore.GetRequired(lobbyId));
+        await publisher.Publish(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick));
+        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
     public async Task StartSession(Guid lobbyId, Guid hostId)
@@ -90,6 +94,7 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
             lobby.StartSession();
         });
     }
+
     public Task RemoveLobby(Guid lobbyId)
     {
         lobbyStore.Remove(lobbyId);
@@ -97,23 +102,21 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
         return Task.CompletedTask;
     }
 
-
     public Task ChangePlayerColor(Guid lobbyId, Guid userId, string color) =>
         WithLobby(lobbyId, lobby => lobby.ChangePlayerColor(userId, color));
 
-    public Guid? GetLobbyIdOfPlayer(Guid userId) =>
-        playerToLobby.TryGetValue(userId, out var id) ? id : null;
+    public Guid? GetLobbyIdOfPlayer(Guid userId) => locationRegistry.GetLobbyIdOfPlayer(userId);
 
-    public Guid GetLobbyIdOfPlayerRequired(Guid userId) =>
-        GetLobbyIdOfPlayer(userId) ?? throw new UserNotFoundException(userId);
+    public Guid GetLobbyIdOfPlayerRequired(Guid userId) => locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
     public Lobby GetLobbyRequired(Guid lobbyId) => lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
 
     public Lobby GetLobbyOfPlayerRequired(Guid userId)
     {
-        Guid lobbyId = GetLobbyIdOfPlayerRequired(userId);
+        Guid lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
         return lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
     }
+
     private async Task WithLobby(Guid lobbyId, Action<Lobby> action)
     {
         var sem = gates.GetOrAdd(lobbyId, _ => new SemaphoreSlim(1, 1));
@@ -126,8 +129,8 @@ public class LobbyService(ILobbyStore lobbyStore, IAggregateRootHelper aggregate
             action(lobby);
             var after = lobby.Players.Select(p => p.User.Id).ToHashSet();
 
-            foreach (var added in after.Except(before)) playerToLobby[added] = lobbyId;
-            foreach (var removed in before.Except(after)) playerToLobby.TryRemove(removed, out _);
+            foreach (var added in after.Except(before)) locationRegistry.Track(added, lobbyId);
+            foreach (var removed in before.Except(after)) locationRegistry.Untrack(removed);
         }
         finally
         {

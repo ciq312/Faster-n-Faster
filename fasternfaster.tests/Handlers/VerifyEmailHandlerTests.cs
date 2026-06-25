@@ -33,7 +33,7 @@ public class VerifyEmailHandlerTests
 
         await Assert.ThrowsAsync<TokenNotFoundException>(async () =>
         {
-            await handler.Handle(new VerifyEmailCommand("wrongTokenIHope"));
+            await handler.Handle(new VerifyEmailCommand("wrongTokenIHope"), CancellationToken.None);
         });
     }
 
@@ -49,7 +49,7 @@ public class VerifyEmailHandlerTests
 
         var handler = new VerifyEmailHandler(userRepo, tokenRepo);
 
-        await handler.Handle(new VerifyEmailCommand(tokenVal));
+        await handler.Handle(new VerifyEmailCommand(tokenVal), CancellationToken.None);
 
         return (user, setup);
     }

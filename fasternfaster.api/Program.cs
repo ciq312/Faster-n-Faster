@@ -6,10 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Services;
-using FasterNFaster.Api.Web.DependencyInversion;
 using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Core.Interfaces.Events;
-using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using FasterNFaster.Api.Web.Hubs.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,6 +41,8 @@ using FasterNFaster.Api.UseCases.Services.Auth;
 using StackExchange.Redis;
 using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.UseCases.Services.Races;
+using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasternFaster.Api.UseCases.Interfaces;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -69,11 +68,10 @@ builder.Services.AddSignalR(options =>
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
-builder.Services.AddHandlers();
-builder.Services.AddDomainEventHandlers();
 builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
+builder.Services.AddScoped<IStatisticsRepository, PostgresStatisticsRepository>();
 builder.Services.AddScoped<IUserFactory, UserFactory>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();
@@ -89,27 +87,34 @@ builder.Services.AddSingleton<ICookiesWriter, CookieWriter>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddHostedService<RaceTickService>();
 builder.Services.AddScoped<LobbyStateBroadcaster>();
-builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<ITokenFactory, TokenFactory>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
 builder.Services.AddSingleton<IAggregateRootHelper, AggregateRootHelper>();
+builder.Services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
+builder.Services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 builder.Services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
 builder.Services.AddSingleton<RaceService>();
 builder.Services.AddSingleton<IRaceCoordinator>(sp => sp.GetRequiredService<RaceService>());
 builder.Services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());
 builder.Services.AddSingleton<LobbyService>();
-builder.Services.AddSingleton<ILobbyCoordinator>(sp => sp.GetRequiredService<LobbyService>());
+builder.Services.AddSingleton<ILobbyInternals>(sp => sp.GetRequiredService<LobbyService>());
 builder.Services.AddSingleton<ILobbyService>(sp => sp.GetRequiredService<LobbyService>());
 builder.Services.AddSingleton<LobbySessionService>();
 builder.Services.AddSingleton<IRaceTransitionService>(sp => sp.GetRequiredService<LobbySessionService>());
 builder.Services.AddSingleton<ILobbySessionService>(sp => sp.GetRequiredService<LobbySessionService>());
-
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.LicenseKey = builder.Configuration["MediatR:LicenseKey"];
+}
+);
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
 builder.Services.Configure<AuthCookiesOptions>(builder.Configuration.GetSection("AuthCookies"));
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppUrls"));
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<AntiCheatOptions>(builder.Configuration.GetSection("AntiCheat"));
 
 var rsa = RSA.Create();
 rsa.ImportRSAPrivateKey(Convert.FromBase64String(builder.Configuration["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);

@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Events;
-using FasterNFaster.Api.Web.LobbyState;
 using FasterNFaster.Tests;
 
 public class LobbyServiceTests
@@ -16,7 +15,7 @@ public class LobbyServiceTests
         await context.LobbyService.TransferHost(host.Id, other.Id);
 
         Assert.True(context.Lobby.HostId == other.Id);
-        Assert.Single(context.EventDispatcher.Dispatched);
-        Assert.True(context.EventDispatcher.Dispatched[0] is HostChangedEvent);
+        Assert.Single(context.Publisher.Published);
+        Assert.True(context.Publisher.Published[0] is HostChangedEvent);
     }
 }

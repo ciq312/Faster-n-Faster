@@ -14,7 +14,7 @@ public class LoginUserHandlerTests
         var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
-            () => handler.Handle(new LoginUserCommand("noone", "pass123"))
+            () => handler.Handle(new LoginUserCommand("noone", "pass123"), CancellationToken.None)
         );
     }
 
@@ -26,7 +26,7 @@ public class LoginUserHandlerTests
         var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
-            () => handler.Handle(new LoginUserCommand("mylogin", "wrongpass"))
+            () => handler.Handle(new LoginUserCommand("mylogin", "wrongpass"), CancellationToken.None)
         );
     }
 
@@ -39,7 +39,7 @@ public class LoginUserHandlerTests
         repo.Seed(user);
         var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
 
-        var result = await handler.Handle(new LoginUserCommand("mylogin", "pass123"));
+        var result = await handler.Handle(new LoginUserCommand("mylogin", "pass123"), CancellationToken.None);
 
         Assert.Equal(user.Id, result.UserId);
     }

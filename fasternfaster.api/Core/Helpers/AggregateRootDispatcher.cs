@@ -1,18 +1,21 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Interfaces.Events;
+using MediatR;
 
 namespace FasterNFaster.Api.Core.Helpers;
 
-public class AggregateRootHelper(IEventDispatcher eventDispatcher) : IAggregateRootHelper
+public class AggregateRootHelper(IPublisher publisher) : IAggregateRootHelper
 {
-    public void DispatchRootEvents(AggregateRoot root)
+    public async Task DispatchRootEventsAsync(AggregateRoot root)
     {
-        foreach (var domainEvent in root.DomainEvents) domainEvent.Dispatch(eventDispatcher);
+        var events = root.DomainEvents.ToList();
         root.ClearEvents();
+        foreach (var domainEvent in events)
+            await publisher.Publish(domainEvent);
     }
 }
 
 public interface IAggregateRootHelper
 {
-    void DispatchRootEvents(AggregateRoot root);
+    Task DispatchRootEventsAsync(AggregateRoot root);
 }

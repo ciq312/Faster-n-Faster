@@ -26,7 +26,7 @@ public class RegisterUserHandlerTests
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await Assert.ThrowsAsync<DuplicateLoginException>(
-            () => handler.Handle(new RegisterUserCommand("NewNick", "taken", "testemail@gmail.com", "pass123"))
+            () => handler.Handle(new RegisterUserCommand("NewNick", "taken", "testemail@gmail.com", "pass123"), CancellationToken.None)
         );
     }
 
@@ -40,7 +40,7 @@ public class RegisterUserHandlerTests
 
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
-        var result = await handler.Handle(new RegisterUserCommand("Player1", "mylogin", "testemail@gmail.com", "pass123"));
+        var result = await handler.Handle(new RegisterUserCommand("Player1", "mylogin", "testemail@gmail.com", "pass123"), CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.UserId);
     }
@@ -59,7 +59,7 @@ public class RegisterUserHandlerTests
 
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
-        await Assert.ThrowsAsync<DuplicateEmailException>(() => handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass")));
+        await Assert.ThrowsAsync<DuplicateEmailException>(() => handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None));
     }
     [Fact]
     public async Task SentEmail_ShouldBuild()
@@ -70,7 +70,7 @@ public class RegisterUserHandlerTests
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
-        await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"));
+        await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 
         Assert.Single(emailSender.Sent);
         Assert.Equal("test@gmail.com", emailSender.Sent[0].Email);
@@ -86,7 +86,7 @@ public class RegisterUserHandlerTests
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
-        await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"));
+        await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 
         Assert.Single(tokenRepo.tokens);
         Assert.True(tokenRepo.tokens[0] is Token);
