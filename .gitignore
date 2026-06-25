@@ -39,7 +39,6 @@ yarn-error.log*
 Thumbs.db
 desktop.ini
 
-.claude
 
 # ========================
 # IDE
@@ -57,5 +56,3 @@ desktop.ini
 # Test
 #=========================
 tools/
-loadtest/
-profiling/
