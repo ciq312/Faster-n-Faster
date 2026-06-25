@@ -7,5 +7,6 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races
     [JsonDerivedType(typeof(WordRaceSettings), "word")]
     public interface IRaceSettings
     {
+        string RaceType { get; }
     }
 }

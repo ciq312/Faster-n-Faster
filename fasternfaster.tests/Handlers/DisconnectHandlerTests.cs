@@ -17,7 +17,7 @@ public class DisconnectHandlerTests
 
         var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
 
-        await disconnectHandler.Handle(new DisconnectCommand(other.Id));
+        await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
         Assert.Single(context.Lobby.Players);
         Assert.True(context.Lobby.Players.ToList()[0].User.Id == host.Id);
@@ -29,7 +29,7 @@ public class DisconnectHandlerTests
 
         var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
 
-        await disconnectHandler.Handle(new DisconnectCommand(host.Id));
+        await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
         Assert.Single(context.Lobby.Players);
         Assert.True(context.Lobby.Players.ToList()[0].User.Id == context.Lobby.HostId);

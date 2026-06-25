@@ -1,13 +1,13 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
-using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class SaveRaceResultHandler(AppDbContext db, IUserRepository repo, ILogger<SaveRaceResultHandler> logger) : IDomainEventHandler<RaceFinishedEvent>
+public class SaveRaceResultHandler(AppDbContext db, IUserRepository repo, ILogger<SaveRaceResultHandler> logger) : INotificationHandler<RaceFinishedEvent>
 {
-    public async Task Handle(RaceFinishedEvent domainEvent)
+    public async Task Handle(RaceFinishedEvent domainEvent, CancellationToken cancellationToken)
     {
         foreach (var result in domainEvent.Results)
         {

@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
+using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
@@ -15,7 +16,6 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
 
     protected int nextFinishPosition = 1;
 
-
     public void AddParticipant(RaceParticipant participant)
     {
         if (HasStarted) throw new InvalidOperationException("Cannot add participants to a started race.");
@@ -25,10 +25,9 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
     public void AddParticipants(IEnumerable<RaceParticipant> newParticipants)
     {
         foreach (var participant in newParticipants)
-        {
             AddParticipant(participant);
-        }
     }
+
     public virtual void Start()
     {
         if (HasStarted) throw new InvalidOperationException("Race already started.");
@@ -42,7 +41,8 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
         nextFinishPosition = 1;
         HasStarted = false;
     }
-    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed);
+
+    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed, IAntiCheatPolicy policy);
 
     public abstract List<ParticipantSnapshot> GetSnapshot();
 
@@ -51,8 +51,6 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
             .Where(p => p.Result != null)
             .Select(p => p.Result!);
 
-
-
     public void WithdrawParticipant(Guid playerId)
     {
         var participant = participants.GetValueOrDefault(playerId);
@@ -60,10 +58,15 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
         participant.MarkWithdrawn();
         if (IsRaceFinished())
             OnRaceFinished();
-
     }
 
     public abstract IRaceSettings GetRaceSettings();
+
+    // Returns word count if this race type uses a fixed passage, null otherwise.
+    public virtual int? GetPassageWordCount() => null;
+
+    // Applies a freshly fetched passage. No-op for race types without passages.
+    public virtual void ApplyPassage(string passage) { }
 
     protected void OnRaceFinished()
     {
@@ -71,6 +74,6 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
         EndTime = DateTime.UtcNow;
         Reset();
     }
-    public bool IsRaceFinished() => participants.Values.All(p => p.IsFinished);
 
+    public bool IsRaceFinished() => participants.Values.All(p => p.IsFinished);
 }

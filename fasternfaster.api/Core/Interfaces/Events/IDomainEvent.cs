@@ -1,6 +1,5 @@
+using MediatR;
+
 namespace FasterNFaster.Api.Core.Interfaces.Events;
 
-public interface IDomainEvent
-{
-    Task Dispatch(IEventDispatcher eventDispatcher);
-}
+public interface IDomainEvent : INotification { }

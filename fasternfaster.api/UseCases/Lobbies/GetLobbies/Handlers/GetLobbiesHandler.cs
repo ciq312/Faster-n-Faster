@@ -1,19 +1,14 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Handlers;
 
-public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService) : IHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {
-    private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IRaceService raceService = raceService;
-
-    public Task<GetLobbiesResult> Handle(GetLobbiesQuery query)
+    public Task<GetLobbiesResult> Handle(GetLobbiesQuery query, CancellationToken cancellationToken)
     {
         var lobbies = lobbyStore
             .GetAll()
@@ -21,7 +16,7 @@ public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService)
             .Select(l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                raceService.GetRaceType(l.Id).ToString(),
+                raceService.GetRaceSettings(l.Id).RaceType,
                 l.LobbySettings.IsPrivate,
                 l.IsSessionActive.ToString(),
                 l.Players.Count,

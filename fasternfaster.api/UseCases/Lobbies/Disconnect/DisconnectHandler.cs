@@ -1,18 +1,12 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Events;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(
-    ILobbySessionService lobbySessionService
-    ) : IHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbySessionService lobbySessionService) : IRequestHandler<DisconnectCommand>
 {
-
-    public async Task Handle(DisconnectCommand command)
+    public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
         await lobbySessionService.RemovePlayerFromLobby(command.PlayerId);
     }
