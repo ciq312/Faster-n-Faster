@@ -43,6 +43,7 @@ using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasternFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Services.Users;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -72,6 +73,7 @@ builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
 builder.Services.AddScoped<IStatisticsRepository, PostgresStatisticsRepository>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IUserFactory, UserFactory>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPasswordHelper, PasswordHelper>();

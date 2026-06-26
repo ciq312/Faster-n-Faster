@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Api.Web.Profile;
 
-public class GetUserProfileEndpoint(IUserRepository repo, IStatisticsRepository statsRepo) : EndpointWithoutRequest<GetUserProfileResult>
+public class GetUserProfileEndpoint(IUserProfileService profileService) : EndpointWithoutRequest<GetUserProfileResult>
 {
     public override void Configure()
     {
@@ -14,9 +14,7 @@ public class GetUserProfileEndpoint(IUserRepository repo, IStatisticsRepository 
     {
         if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) ThrowError("Not authorized", 401);
 
-        if (!await repo.IsUserRegistred(userId)) ThrowError("Not registered player", 401);
-
-        var stats = await statsRepo.GetByUserIdAsync(userId);
+        var stats = await profileService.GetProfileAsync(userId);
 
         if (stats == null) ThrowError("No statistics for this player", 404);
 
