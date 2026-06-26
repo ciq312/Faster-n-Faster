@@ -1,22 +1,14 @@
-using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 
-public class KickPlayerHandler(ILobbySessionService lobbySessionService) : IHandler<KickPlayerCommand, KickPlayerResult>
+public class KickPlayerHandler(ILobbySessionService lobbySessionService) : IRequestHandler<KickPlayerCommand, KickPlayerResult>
 {
-    private readonly ILobbySessionService lobbySessionService = lobbySessionService;
-
-    public async Task<KickPlayerResult> Handle(KickPlayerCommand command)
+    public async Task<KickPlayerResult> Handle(KickPlayerCommand command, CancellationToken cancellationToken)
     {
-
         await lobbySessionService.KickPlayer(command.UserId, command.TargetPlayerId);
-
-#if DEBUG
-        Log.Information($"kicked player with id {command.TargetPlayerId} in lobby {command.LobbyId}");
-#endif
-
         return new KickPlayerResult(command.TargetPlayerId);
     }
 }

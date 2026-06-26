@@ -11,7 +11,7 @@ public class HubSessionFilter(ISessionService sessionService, ILobbyStore lobbyS
     private readonly ILobbyStore lobbyStore = lobbyStore;
 
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext invocationContext, Func<HubInvocationContext, ValueTask<object?>> next)
-    {
+{
         var userIdClaim = invocationContext.Context.User?.FindFirst("sub")?.Value;
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
             throw new HubException("Not authorized");

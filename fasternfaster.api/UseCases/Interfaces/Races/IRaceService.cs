@@ -6,12 +6,11 @@ public interface IRaceService
 {
     Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId);
 
-    Task ProcessUpdate(Guid lobbyId, Guid playerdId, int index, int mistakes, string typed);
+    Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed);
 
     void RegisterRace(Guid lobbyId, Race race);
 
-    void RemoveRegistredRace(Guid lobbyId);
+    void RemoveRegisteredRace(Guid lobbyId);
 
-    Type GetRaceType(Guid lobbyId);
-    Task<IRaceSettings> GetRaceSettings(Guid lobbyId);
+    IRaceSettings GetRaceSettings(Guid lobbyId);
 }

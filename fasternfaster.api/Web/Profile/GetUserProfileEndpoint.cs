@@ -1,16 +1,11 @@
-using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
-using Microsoft.EntityFrameworkCore;
-
+using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Api.Web.Profile;
 
-public class GetUserProfileEndpoint(AppDbContext appDbContext, IUserRepository repo) : EndpointWithoutRequest<GetUserProfileResult>
+public class GetUserProfileEndpoint(IUserProfileService profileService) : EndpointWithoutRequest<GetUserProfileResult>
 {
-    private readonly AppDbContext appDbContext = appDbContext;
-
     public override void Configure()
     {
         Get("api/users/profiles/me");
@@ -18,15 +13,15 @@ public class GetUserProfileEndpoint(AppDbContext appDbContext, IUserRepository r
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) ThrowError("Not authorized", 401);
+        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId))
+            throw new UnauthorizedException("Not authorized");
 
-        if (!await repo.IsUserRegistred(userId)) ThrowError("Not registred player", 401);
+        var stats = await profileService.GetProfileAsync(userId);
 
-        var stats = await appDbContext.Statistics.FirstOrDefaultAsync(s => s.User.Id == userId);
+        if (stats == null) throw new NotFoundException("No statistics for this player");
 
-        if (stats == null) ThrowError("No statistics for this player", 404);
-
-        await Send.OkAsync(new GetUserProfileResult(new UserStatisticsDTO(stats.User.Nick, stats.Wins, stats.RacesTyped, stats.BestWPM, stats.AvgWPM, stats.BestAccuracy, stats.AvgAccuracy, stats.WordsTyped)), ct);
+        await Send.OkAsync(new GetUserProfileResult(
+            new UserStatisticsDTO(stats!.User.Nick, stats.Wins, stats.RacesTyped, stats.BestWPM, stats.AvgWPM, stats.BestAccuracy, stats.AvgAccuracy, stats.WordsTyped)), ct);
     }
 }
 

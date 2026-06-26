@@ -70,7 +70,7 @@ public class ResetPasswordHandlerTests
         var token = tokenFactory.GetToken(ctx.User.Id, TokenType.PasswordReset);
         await ctx.TokenRepo.Add(token);
 
-        await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword));
+        await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None);
 
         // FakeHasher returns the raw password as its "hash", so asserting on Password works directly.
         Assert.Equal(NewPassword, ctx.User.Password);
@@ -86,7 +86,7 @@ public class ResetPasswordHandlerTests
         string originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
-            ctx.Handler.Handle(new ResetPasswordCommand("not-a-real-token", NewPassword)));
+            ctx.Handler.Handle(new ResetPasswordCommand("not-a-real-token", NewPassword), CancellationToken.None));
 
         Assert.Equal(originalPassword, ctx.User.Password);
     }
@@ -99,7 +99,7 @@ public class ResetPasswordHandlerTests
         string originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
-            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword)));
+            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None));
 
         Assert.Equal(originalPassword, ctx.User.Password);
         // Token is deliberately not auto-purged on failed verify — operator / scheduled cleanup owns that.
@@ -124,7 +124,7 @@ public class ResetPasswordHandlerTests
         string originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
-            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword)));
+            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None));
 
         Assert.Equal(originalPassword, ctx.User.Password);
     }
@@ -133,9 +133,9 @@ public class ResetPasswordHandlerTests
     public async Task ReusedToken_Throws()
     {
         var ctx = await BuildWithValidResetToken();
-        await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword));
+        await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None);
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
-            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, "anotherpass")));
+            ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, "anotherpass"), CancellationToken.None));
     }
 }

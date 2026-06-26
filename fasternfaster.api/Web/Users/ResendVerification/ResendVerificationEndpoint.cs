@@ -1,13 +1,11 @@
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
+using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.ResendVerification;
 
-public class ResendVerificationEndpoint(IHandler<ResendVerificationCommand> handler) : Endpoint<ResendVerificationRequest>
+public class ResendVerificationEndpoint(ISender sender) : Endpoint<ResendVerificationRequest>
 {
-    private readonly IHandler<ResendVerificationCommand> handler = handler;
-
     public override void Configure()
     {
         Post("/api/auth/resend-verification");
@@ -16,8 +14,7 @@ public class ResendVerificationEndpoint(IHandler<ResendVerificationCommand> hand
 
     public override async Task HandleAsync(ResendVerificationRequest req, CancellationToken ct)
     {
-        await handler.Handle(new ResendVerificationCommand(req.Email));
-
+        await sender.Send(new ResendVerificationCommand(req.Email), ct);
         await Send.OkAsync(cancellation: ct);
     }
 }

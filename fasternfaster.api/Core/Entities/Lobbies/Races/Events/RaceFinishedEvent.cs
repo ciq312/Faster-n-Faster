@@ -14,11 +14,7 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races.Events
             }
             private set;
         }
-        public Task Dispatch(IEventDispatcher eventDispatcher) => eventDispatcher.Dispatch(this);
 
-        public void WrapRaceContext(Guid lobbyId)
-        {
-            LobbyId = lobbyId;
-        }
+        public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
     }
 }

@@ -46,9 +46,6 @@ public class SmtpEmailSender(IOptions<SmtpOptions> smtp, IOptions<AppOptions> ap
         if (!string.IsNullOrEmpty(smtp.Username))
             await client.AuthenticateAsync(smtp.Username, smtp.Password);
         await client.SendAsync(message);
-#if DEBUG
-        Log.Information($"email send to {receiverEmailAddress}");
-#endif
         await client.DisconnectAsync(true);
     }
 }
