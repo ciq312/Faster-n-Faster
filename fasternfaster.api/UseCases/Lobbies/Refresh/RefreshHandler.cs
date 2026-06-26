@@ -1,16 +1,12 @@
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
-using FasterNFaster.Api.UseCases.Services;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Refresh;
 
-public class RefreshHandler(IPendingRemovalsRegistry pendingRemovalsRegistry) : IHandler<RefreshCommand>
+public class RefreshHandler(IPendingRemovalsRegistry pendingRemovalsRegistry) : IRequestHandler<RefreshCommand>
 {
-    private readonly IPendingRemovalsRegistry pendingRemovalsRegistry = pendingRemovalsRegistry;
-    public async Task Handle(RefreshCommand command)
+    public async Task Handle(RefreshCommand command, CancellationToken cancellationToken)
     {
-        if (await pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId))
-            return;
+        await pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
     }
 }

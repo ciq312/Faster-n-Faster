@@ -1,12 +1,13 @@
 using FasternFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
+public class LobbySessionService(ILobbyInternals lobbyCoordinator,
   IRaceCoordinator raceCoordinator,
   ILobbyService lobbyService,
   IRaceService raceService,
@@ -14,7 +15,7 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
   ) : ILobbySessionService, IRaceTransitionService
 {
     private readonly IRaceTickRegistry raceTickRegistry = raceTickRegistry;
-    private readonly ILobbyCoordinator lobbyCoordinator = lobbyCoordinator;
+    private readonly ILobbyInternals lobbyCoordinator = lobbyCoordinator;
     private readonly IRaceCoordinator raceCoordinator = raceCoordinator;
     private readonly ILobbyService lobbyService = lobbyService;
     private readonly IRaceService raceService = raceService;
@@ -30,14 +31,11 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
 
         var participants = lobby.GetRaceParticipants();
 
-        await raceCoordinator.AddPaticipants(lobbyId, participants);
+        await raceCoordinator.AddParticipants(lobbyId, participants);
 
         raceTickRegistry.RegisterLobby(lobbyId);
     }
-    public async Task StartRaceInternal(Guid lobbyId)
-    {
-        await raceCoordinator.StartRace(lobbyId);
-    }
+    public Task StartRaceInternal(Guid lobbyId) => raceCoordinator.StartRace(lobbyId);
 
     public async Task RemoveLobbyIfEmpty(Guid lobbyId)
     {
@@ -47,7 +45,7 @@ public class LobbySessionService(ILobbyCoordinator lobbyCoordinator,
         {
             await lobbyCoordinator.RemoveLobby(lobbyId);
 
-            raceService.RemoveRegistredRace(lobbyId);
+            raceService.RemoveRegisteredRace(lobbyId);
 
             raceTickRegistry.DeregisterLobby(lobbyId);
         }

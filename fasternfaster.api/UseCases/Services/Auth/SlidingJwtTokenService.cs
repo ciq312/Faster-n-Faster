@@ -22,9 +22,6 @@ public class SlidingJwtTokenService(
 
     public async Task HandlePlayerAuth(Guid userId, string userName)
     {
-#if DEBUG
-        Log.Information($"Handling player auth for userId: {userId}, userName: {userName}");
-#endif
         var accessToken = jwtTokenFactory.CreateAccessToken(userId.ToString(), userName);
         var refreshToken = jwtTokenFactory.CreateRefreshToken();
 
@@ -36,9 +33,6 @@ public class SlidingJwtTokenService(
 
     public Task HandleGuestAuth(Guid guestId, string guestName)
     {
-#if DEBUG
-        Log.Information($"Handling guest auth for guestId: {guestId}, guestName: {guestName}");
-#endif
         cookiesWriter.DeleteTokensCookies();
 
         var guestAccessToken = jwtTokenFactory.CreateGuestAccessToken(guestId.ToString(), guestName);
@@ -57,10 +51,6 @@ public class SlidingJwtTokenService(
 
         var user = await repo.GetByIdAsync(userId);
         if (user == null) return false;
-
-#if DEBUG
-        Log.Information($"Refreshing token for userId: {userId}, userName: {user.Nick}");
-#endif
 
         if (await tokenStore.TryRefreshToken(oldRefreshToken, newRefreshToken))
         {

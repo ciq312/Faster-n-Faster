@@ -30,7 +30,7 @@ public class RequestPasswordResetHandlerTests
     {
         var (handler, setup) = await Build();
 
-        await handler.Handle(new RequestPasswordResetCommand("ghost@nowhere.com"));
+        await handler.Handle(new RequestPasswordResetCommand("ghost@nowhere.com"), CancellationToken.None);
 
         Assert.Empty(setup.TokenRepo.tokens);
         Assert.Empty(setup.EmailSender.SentPasswordResets);
@@ -41,7 +41,7 @@ public class RequestPasswordResetHandlerTests
     {
         var (handler, setup) = await Build();
 
-        await handler.Handle(new RequestPasswordResetCommand(KnownEmail));
+        await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 
         var token = Assert.Single(setup.TokenRepo.tokens);
         Assert.Equal(TokenType.PasswordReset, token.Type);
@@ -66,7 +66,7 @@ public class RequestPasswordResetHandlerTests
 
         var handler = new RequestPasswordResetHandler(userRepo, tokenRepo, tokenFactory, emailSender);
 
-        await handler.Handle(new RequestPasswordResetCommand("google@user.com"));
+        await handler.Handle(new RequestPasswordResetCommand("google@user.com"), CancellationToken.None);
 
         Assert.Empty(tokenRepo.tokens);
         Assert.Empty(emailSender.SentPasswordResets);
@@ -77,8 +77,8 @@ public class RequestPasswordResetHandlerTests
     {
         var (handler, setup) = await Build();
 
-        await handler.Handle(new RequestPasswordResetCommand(KnownEmail));
-        await handler.Handle(new RequestPasswordResetCommand(KnownEmail));
+        await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
+        await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 
         // Only one token, only one email — second call short-circuited.
         Assert.Single(setup.TokenRepo.tokens);
@@ -90,11 +90,11 @@ public class RequestPasswordResetHandlerTests
     {
         var (handler, setup) = await Build();
 
-        await handler.Handle(new RequestPasswordResetCommand(KnownEmail));
+        await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
         // Simulate cooldown elapsed by backdating the first token's CreatedAt.
         setup.TokenRepo.tokens[0].CreatedAt = DateTime.UtcNow.AddSeconds(-30);
 
-        await handler.Handle(new RequestPasswordResetCommand(KnownEmail));
+        await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 
         // RemoveAllForUser(PasswordReset) runs before issuing the new token, so exactly one remains.
         Assert.Single(setup.TokenRepo.tokens);

@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
-using FasterNFaster.Api.UseCases.Interfaces;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 
@@ -10,7 +10,7 @@ public class RequestPasswordResetHandler(
     IUserRepository userRepo,
     ITokenRepository tokenRepo,
     ITokenFactory tokenFactory,
-    IEmailSender emailSender) : IHandler<RequestPasswordResetCommand>
+    IEmailSender emailSender) : IRequestHandler<RequestPasswordResetCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
     private readonly ITokenRepository tokenRepo = tokenRepo;
@@ -19,7 +19,7 @@ public class RequestPasswordResetHandler(
 
     private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);
 
-    public async Task Handle(RequestPasswordResetCommand command)
+    public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;

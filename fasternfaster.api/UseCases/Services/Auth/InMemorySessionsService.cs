@@ -12,24 +12,11 @@ public class InMemorySessionService(ITokenStore tokenStore) : ISessionService
     private readonly ConcurrentDictionary<Guid, string> userSessions = new();
     private readonly ITokenStore tokenStore = tokenStore;
 
-    public void ClearActiveSession(Guid userId)
-    {
-
-#if DEBUG
-        Log.Information($"session of user {userId} cleared");
-#endif
-        userSessions.Remove(userId, out _);
-    }
+    public void ClearActiveSession(Guid userId) => userSessions.Remove(userId, out _);
 
     public string? GetActiveSession(Guid userId) => userSessions.GetValueOrDefault(userId);
 
-    public void SetUserSession(Guid userId, string sessionId)
-    {
-#if DEBUG
-        Log.Information($"session of user {userId} set to {sessionId}");
-#endif
-        userSessions[userId] = sessionId;
-    }
+    public void SetUserSession(Guid userId, string sessionId) => userSessions[userId] = sessionId;
 
     public async Task InvalidateAll(Guid userId)
     {

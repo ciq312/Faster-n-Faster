@@ -4,13 +4,6 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 public class RaceParticipant
 {
-    const double SUSTAINED_MAX_WPM = 300;
-    const double BURST_MAX_WPM = 600;
-    const int AVERAGE_WORD_LENGTH = 5;
-    const double BURST_MAX_CHARS_PER_SECOND = BURST_MAX_WPM * AVERAGE_WORD_LENGTH / 60; // ~125 chars per second
-    const int BURST_MIN_INDEX_DELTA = 15;       // skip burst check on small bursts (1-2 words)
-    const int SUSTAINED_CHECK_MIN_INDEX = 30;   // warmup: don't apply sustained check before this many chars
-
     private readonly Func<DateTime> _now;
 
     public RaceParticipant(Guid id, string color, string nick, Func<DateTime>? now = null)
@@ -29,11 +22,9 @@ public class RaceParticipant
     public int Index
     {
         get;
-
         private set
         {
             if (value < -1) throw new InvalidDataException("Invalid index");
-
             field = value;
         }
     } = -1;
@@ -45,7 +36,6 @@ public class RaceParticipant
         private set
         {
             if (value < 0) throw new InvalidDataException("Invalid mistakes number");
-
             field = value;
         }
     } = 0;
@@ -57,20 +47,16 @@ public class RaceParticipant
 
     public RaceParticipantResult? Result { get; private set; } = null!;
 
-
     /// <summary>
     /// Validates and applies a client state snapshot. Clamps invalid values instead of rejecting.
     /// </summary>
-    /// <returns>true if the update was accepted (possibly clamped)</returns>
-    /// can ban | can already be finished 
     public void UpdateProgress(int newIndex, string newTyped, int newMistakes, string passage)
     {
-        if (IsFinished)
-            return;
-
+        if (IsFinished) return;
         if (DidUserRefresh(newIndex, newTyped)) return;
 
-        ValidateUpdate(newIndex, newTyped, passage, newMistakes);
+        ValidateIndexCorrespondence(newIndex, newTyped, passage);
+        ValidateMistakes(newMistakes);
 
         Typed = newTyped;
         Index = newIndex;
@@ -81,47 +67,13 @@ public class RaceParticipant
 
     private bool DidUserRefresh(int newIndex, string typed) => newIndex == -1 && typed == "";
 
-    private void ValidateUpdate(int newIndex, string newTyped, string passage, int newMistakes)
-    {
-        ValidateWPM(newIndex);
-        ValidateIndexCorrespondence(newIndex, newTyped, passage);
-        ValidateMistakes(newMistakes);
-    }
-
-    private void ValidateWPM(int newIndex)
-    {
-        var now = _now();
-        int indexDelta = newIndex - Index;
-
-        // Burst check: only flags physically impossible spikes (paste/script).
-        // Gated by BURST_MIN_INDEX_DELTA so natural fast 1-2 word bursts don't trip it.
-        double secondsSinceLastUpdate = (now - LastUpdateAt).TotalSeconds;
-        if (secondsSinceLastUpdate > 0 && indexDelta >= BURST_MIN_INDEX_DELTA)
-        {
-            double charsPerSecond = indexDelta / secondsSinceLastUpdate;
-            if (charsPerSecond > BURST_MAX_CHARS_PER_SECOND)
-                throw new CheaterDetectedException("Burst wpm");
-        }
-
-        // Sustained check: average WPM since race start. Skipped during warmup
-        // because early-race WPM math is dominated by noise on a few keystrokes.
-        if (newIndex + 1 >= SUSTAINED_CHECK_MIN_INDEX)
-        {
-            double minutesSinceStart = (now - StartedAt).TotalMinutes;
-            if (minutesSinceStart > 0)
-            {
-                double sustainedWpm = (newIndex + 1) / AVERAGE_WORD_LENGTH / minutesSinceStart;
-                if (sustainedWpm > SUSTAINED_MAX_WPM)
-                    throw new CheaterDetectedException("Sustained wpm");
-            }
-        }
-    }
     private void ValidateIndexCorrespondence(int newIndex, string newTyped, string passage)
     {
         if (newIndex + 1 > newTyped.Length) throw new CheaterDetectedException("typed shorter than reported index");
         if (newIndex + 1 > passage.Length) throw new CheaterDetectedException("reported index exceeds passage length");
         if (newTyped[..(newIndex + 1)] != passage[..(newIndex + 1)]) throw new CheaterDetectedException("typed prefix does not match passage");
     }
+
     private void ValidateMistakes(int newMistakes)
     {
         if (newMistakes < Mistakes) throw new CheaterDetectedException("mistakes count decreased");
@@ -129,29 +81,19 @@ public class RaceParticipant
 
     public void MarkFinished(int position, int wordsTyped)
     {
-#if DEBUG
-        Log.Information($"finish position {position} for player {Nick} with wpm {GetWPM():F2} and accuracy {GetAccuracy():P2}");
-#endif
         IsFinished = true;
         FinishPosition = position;
         FinishedAt = _now();
         Result = new RaceParticipantResult(
-               Guid.NewGuid()
-               , Id
-               , Nick
-               , GetWPM()
-               , GetAccuracy()
-               , Mistakes
-               , wordsTyped
-               , FinishPosition);
+            Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, wordsTyped, FinishPosition);
     }
 
     public void MarkWithdrawn()
     {
         IsFinished = true;
         FinishedAt = _now();
-        
     }
+
     public float GetWPM()
     {
         float minutesElapsed = (float)(_now() - StartedAt).TotalMinutes;
@@ -164,5 +106,4 @@ public class RaceParticipant
         if (Index < 0) throw new InvalidOperationException("Index can't be negative");
         return 1 - (float)Mistakes / (Index + 1);
     }
-
 }

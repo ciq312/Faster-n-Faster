@@ -1,17 +1,10 @@
-using System.Reflection.Metadata;
-using FastEndpoints;
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.BanForCheat;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
-using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
@@ -19,31 +12,23 @@ using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Hubs;
 
 [Authorize]
-public class GameHub(
+public partial class GameHub(
     ILogger<GameHub> logger,
     ILobbyStore lobbyStore,
     ILobbyService lobbyService,
-    ILobbySessionService lobbySessionService,
     IBanService banService,
     ISessionService sessionService,
-    LobbyStateBroadcaster broadcaster,
-    IHandler<JoinLobbyCommand> joinHandler,
-    IHandler<StartRaceCommand> startRaceHandler,
-    IHandler<TransferHostCommand> transferHostHandler,
-    IHandler<KickPlayerCommand, KickPlayerResult> kickPlayerHandler,
-    IHandler<UpdateProgressCommand> updateProgressHandler,
-    IHandler<DisconnectCommand> disconnectHandler,
-    IHandler<FastReconnectCommand> fastReconnectHandler,
-    IHandler<RefreshPassageCommand> refreshPassageHandler,
-    IHandler<RefreshCommand> refreshHandler) : Hub
+    ILobbyStateBroadcaster broadcaster,
+    ISender sender) : Hub
 {
-
     private (Guid UserId, string Nick, string Role) GetCallerContext()
     {
         var userIdClaim = Context.User?.FindFirst("sub")?.Value
@@ -60,13 +45,20 @@ public class GameHub(
         return (userId, nick, role);
     }
 
-    private Task<LobbyContext> RequireLobbyContext()
+    private LobbyContext RequireLobbyContext()
     {
         var lobbyId = lobbyService.GetLobbyIdOfPlayer(GetCallerContext().UserId)
             ?? throw new InvalidOperationException("Not in lobby");
 
-        var groupName = $"lobby-{lobbyId}";
-        return Task.FromResult(new LobbyContext(lobbyId, groupName));
+        return new LobbyContext(lobbyId, LobbyGroup(lobbyId));
+    }
+
+    private async Task<bool> AbortIfBannedAsync(Guid userId)
+    {
+        if (!await banService.IsBannedAsync(userId)) return false;
+        await Clients.Caller.SendAsync(Methods.Banned, "You are banned");
+        Context.Abort();
+        return true;
     }
 
     private record LobbyContext(Guid LobbyId, string GroupName);
@@ -77,12 +69,7 @@ public class GameHub(
         await base.OnConnectedAsync();
 
         var userId = GetCallerContext().UserId;
-        if (await banService.IsBannedAsync(userId))
-        {
-            await Clients.Caller.SendAsync("Banned", "You are banned");
-            Context.Abort();
-            return;
-        }
+        if (await AbortIfBannedAsync(userId)) return;
 
         await StoreSession(userId, Context.ConnectionId);
     }
@@ -92,23 +79,20 @@ public class GameHub(
         var previousSessionId = sessionService.GetActiveSession(userId);
         if (previousSessionId != null && previousSessionId != callerConnectionId)
         {
-#if DEBUG
-            Log.Information($"Handling another session");
-#endif
+            logger.LogDebug("Handling another session for user {UserId}", userId);
             await HandleSessionRestart(userId, callerConnectionId, previousSessionId);
         }
 
-        logger.LogDebug($"previous sessionId : {previousSessionId} and callerId : {callerConnectionId}");
+        logger.LogDebug("Previous sessionId: {PreviousSession}, callerId: {CallerId}", previousSessionId, callerConnectionId);
 
         sessionService.SetUserSession(userId, callerConnectionId);
         await AddToGroupIfInLobby(userId, callerConnectionId);
-
     }
 
     private async Task HandleSessionRestart(Guid userId, string callerConnectionId, string previousSession)
     {
         sessionService.ClearActiveSession(userId);
-        await Clients.Client(previousSession).SendAsync("AnotherSessionStarted");
+        await Clients.Client(previousSession).SendAsync(Methods.AnotherSessionStarted);
     }
 
     private async Task AddToGroupIfInLobby(Guid userId, string callerConnectionId)
@@ -116,71 +100,47 @@ public class GameHub(
         var lobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
         if (lobbyId is null) return;
 
-        logger.LogDebug($"adding  user {userId} to group lobby-{lobbyId} ");
-
-        await Groups.AddToGroupAsync(callerConnectionId, $"lobby-{lobbyId}");
+        logger.LogDebug("Adding user {UserId} to group {Group}", userId, LobbyGroup(lobbyId.Value));
+        await Groups.AddToGroupAsync(callerConnectionId, LobbyGroup(lobbyId.Value));
     }
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
-        var userId = GetCallerContext().UserId;
+        var (userId, nick, role) = GetCallerContext();
 
-        if (await banService.IsBannedAsync(userId))
-        {
-            await Clients.Caller.SendAsync("Banned", "You are banned");
-            Context.Abort();
-            return;
-        }
+        if (await AbortIfBannedAsync(userId)) return;
 
-        var nick = GetCallerContext().Nick;
-        var role = GetCallerContext().Role;
-        try
-        {
-            await joinHandler.Handle(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
+        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
 
-            var groupName = $"lobby-{lobbyId}";
-            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        var groupName = LobbyGroup(lobbyId);
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
+        var lobby = lobbyStore.GetRequired(lobbyId);
+        await broadcaster.BroadcastLobbyState(lobby);
 
-            var lobby = lobbyStore.GetRequired(lobbyId);
+        await Clients.OthersInGroup(groupName)
+            .SendAsync(Methods.PlayerJoined, new PlayerJoinedDTO(userId, nick));
 
-            await broadcaster.BroadcastLobbyState(lobby);
-
-            await Clients.OthersInGroup(groupName)
-                .SendAsync("PlayerJoined", new { playerId = userId, displayName = nick });
-
-            logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
-
-        }
-        catch (LobbyNotFoundException)
-        {
-            throw new HubException("Lobby not found");
-        }
-        catch (InvalidOperationException e)
-        {
-            if (e.Message.StartsWith("Can't join")) throw new HubException(e.Message);
-        }
+        logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }
 
     public async Task RefreshLobby()
     {
-        LobbyContext lobbyContext = await RequireLobbyContext();
+        LobbyContext lobbyContext = RequireLobbyContext();
+        var lobby = lobbyStore.GetRequired(lobbyContext.LobbyId);
 
-        Lobby lobby = lobbyStore.GetRequired(lobbyContext.LobbyId);
-
-        await refreshHandler.Handle(new RefreshCommand(lobby.Id, GetCallerContext().UserId));
-
+        await sender.Send(new RefreshCommand(lobby.Id, GetCallerContext().UserId));
         await broadcaster.BroadcastLobbyState(lobby);
     }
+
     public async Task StartRace()
     {
         var userId = GetCallerContext().UserId;
+        var lobbyContext = RequireLobbyContext();
 
-        var lobbyContext = await RequireLobbyContext();
+        await sender.Send(new StartRaceCommand(userId, lobbyContext.LobbyId));
 
-        await startRaceHandler.Handle(new StartRaceCommand(userId, lobbyContext.LobbyId));
-
-        await Clients.Group(lobbyContext.GroupName).SendAsync("RaceStarting", new { countdownSeconds = 3 });
+        await Clients.Group(lobbyContext.GroupName).SendAsync(Methods.RaceStarting, new RaceStartingDTO(3));
 
         logger.LogDebug("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyContext.LobbyId, userId);
     }
@@ -188,17 +148,17 @@ public class GameHub(
     public async Task RefreshPassage()
     {
         var userId = GetCallerContext().UserId;
-        var lobbyContext = await RequireLobbyContext();
+        var lobbyContext = RequireLobbyContext();
 
-        await refreshPassageHandler.Handle(new RefreshPassageCommand(userId, lobbyContext.LobbyId));
+        await sender.Send(new RefreshPassageCommand(userId, lobbyContext.LobbyId));
     }
 
     public async Task TransferHost(Guid targetPlayerId)
     {
         var userId = GetCallerContext().UserId;
-        var lobbyContext = await RequireLobbyContext();
+        var lobbyContext = RequireLobbyContext();
 
-        await transferHostHandler.Handle(new TransferHostCommand(userId, lobbyContext.LobbyId, targetPlayerId));
+        await sender.Send(new TransferHostCommand(userId, lobbyContext.LobbyId, targetPlayerId));
 
         logger.LogDebug("Host transferred from {OldHost} to {NewHost} in lobby {LobbyId}",
             userId, targetPlayerId, lobbyContext.LobbyId);
@@ -207,19 +167,19 @@ public class GameHub(
     public async Task KickPlayer(Guid targetPlayerId)
     {
         var userId = GetCallerContext().UserId;
-        var lobbyContext = await RequireLobbyContext();
+        var lobbyContext = RequireLobbyContext();
 
-        await kickPlayerHandler.Handle(new KickPlayerCommand(userId, lobbyContext.LobbyId, targetPlayerId));
+        await sender.Send(new KickPlayerCommand(userId, lobbyContext.LobbyId, targetPlayerId));
 
         logger.LogDebug("Player {TargetId} kicked from lobby {LobbyId}", targetPlayerId, lobbyContext.LobbyId);
     }
 
     public async Task ChangeColor(string color)
     {
-        var lobbyContext = await RequireLobbyContext();
+        var lobbyContext = RequireLobbyContext();
         var userId = GetCallerContext().UserId;
 
-        logger.LogDebug($"chaning color to {color}");
+        logger.LogDebug("Changing color to {Color} for user {UserId}", color, userId);
 
         await lobbyService.ChangePlayerColor(lobbyContext.LobbyId, userId, color);
         await broadcaster.BroadcastLobbyState(lobbyContext.LobbyId);
@@ -228,30 +188,30 @@ public class GameHub(
     public async Task UpdateRaceState(int index, int mistakes, string typed)
     {
         var userId = GetCallerContext().UserId;
-        var lobbyContext = await RequireLobbyContext();
+        var lobbyContext = RequireLobbyContext();
 
         try
         {
-            await updateProgressHandler.Handle(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes, typed));
+            await sender.Send(new UpdateProgressCommand(userId, lobbyContext.LobbyId, index, mistakes, typed));
         }
         catch (CheaterDetectedException ex)
         {
-            await banService.BanAsync(userId, ex.Reason);
-            await lobbySessionService.RemovePlayerFromLobby(userId);
-            await Clients.Caller.SendAsync("Banned", $"Cheating detected: {ex.Reason}");
+            await sender.Send(new BanForCheatCommand(userId, ex.Reason));
+            await Clients.Caller.SendAsync(Methods.Banned, $"Cheating detected: {ex.Reason}");
             Context.Abort();
         }
     }
 
     public async Task LeaveLobby()
     {
-        var (playerId, nick, role) = GetCallerContext();
-        var lobbyContext = await RequireLobbyContext();
+        var (playerId, _, _) = GetCallerContext();
+        var lobbyContext = RequireLobbyContext();
 
-        await disconnectHandler.Handle(new DisconnectCommand(playerId));
+        await sender.Send(new DisconnectCommand(playerId));
 
-        logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", playerId, lobbyContext.LobbyId);
+        logger.LogDebug("Player {PlayerId} left lobby {LobbyId}", playerId, lobbyContext.LobbyId);
     }
+
     public Task<long> Ping(long clientSentMs) => Task.FromResult(clientSentMs);
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -266,13 +226,12 @@ public class GameHub(
         }
 
         var lobbyId = maybeLobbyId.Value;
-        string groupName = $"lobby-{lobbyId}";
-
+        string groupName = LobbyGroup(lobbyId);
 
         try
         {
-            await fastReconnectHandler.Handle(new FastReconnectCommand(lobbyId, userId));
-            await disconnectHandler.Handle(new DisconnectCommand(userId));
+            await sender.Send(new FastReconnectCommand(lobbyId, userId));
+            await sender.Send(new DisconnectCommand(userId));
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
 
@@ -288,9 +247,7 @@ public class GameHub(
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Fast reconnect for player happened");
-            return;
+            logger.LogDebug("Fast reconnect for player {PlayerId}", userId);
         }
     }
-
 }

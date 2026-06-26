@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
-using FasterNFaster.Api.UseCases.Interfaces;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ResendVerification;
 
@@ -10,7 +10,7 @@ public class ResendVerificationHandler(
     IUserRepository userRepo,
     ITokenRepository tokenRepo,
     ITokenFactory tokenFactory,
-    IEmailSender emailSender) : IHandler<ResendVerificationCommand>
+    IEmailSender emailSender) : IRequestHandler<ResendVerificationCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
     private readonly ITokenRepository tokenRepo = tokenRepo;
@@ -19,7 +19,7 @@ public class ResendVerificationHandler(
 
     private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);
 
-    public async Task Handle(ResendVerificationCommand command)
+    public async Task Handle(ResendVerificationCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;

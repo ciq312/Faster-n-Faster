@@ -1,3 +1,5 @@
+using MediatR;
+
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public record DisconnectCommand(Guid PlayerId);
+public record DisconnectCommand(Guid PlayerId) : IRequest;

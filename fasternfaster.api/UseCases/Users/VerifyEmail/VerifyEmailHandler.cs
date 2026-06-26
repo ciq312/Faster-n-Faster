@@ -2,17 +2,16 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces;
-using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
-using Npgsql.Replication;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.VerifyEmail;
 
-public class VerifyEmailHandler(IUserRepository repo, ITokenRepository tokenRepository) : IHandler<VerifyEmailCommand>
+public class VerifyEmailHandler(IUserRepository repo, ITokenRepository tokenRepository) : IRequestHandler<VerifyEmailCommand>
 {
     private readonly IUserRepository repo = repo;
     private readonly ITokenRepository tokenRepository = tokenRepository;
-    public async Task Handle(VerifyEmailCommand command)
+
+    public async Task Handle(VerifyEmailCommand command, CancellationToken cancellationToken)
     {
         Token token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException(command.Token);
 

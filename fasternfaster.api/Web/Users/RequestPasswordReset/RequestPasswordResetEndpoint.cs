@@ -1,13 +1,11 @@
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
+using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.RequestPasswordReset;
 
-public class RequestPasswordResetEndpoint(IHandler<RequestPasswordResetCommand> handler) : Endpoint<RequestPasswordResetRequest>
+public class RequestPasswordResetEndpoint(ISender sender) : Endpoint<RequestPasswordResetRequest>
 {
-    private readonly IHandler<RequestPasswordResetCommand> handler = handler;
-
     public override void Configure()
     {
         Post("/api/auth/forgot-password");
@@ -18,7 +16,7 @@ public class RequestPasswordResetEndpoint(IHandler<RequestPasswordResetCommand> 
     // all no-op silently so callers can't enumerate accounts.
     public override async Task HandleAsync(RequestPasswordResetRequest req, CancellationToken ct)
     {
-        await handler.Handle(new RequestPasswordResetCommand(req.Email));
+        await sender.Send(new RequestPasswordResetCommand(req.Email), ct);
         await Send.OkAsync(cancellation: ct);
     }
 }

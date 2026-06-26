@@ -18,10 +18,6 @@ public record PlayerFinishedEvent(
         }
         private set;
     }
-    public Task Dispatch(IEventDispatcher eventDispatcher) => eventDispatcher.Dispatch(this);
 
-    public void WrapRaceContext(Guid lobbyId)
-    {
-        LobbyId = lobbyId;
-    }
+    public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
 }

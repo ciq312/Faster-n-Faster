@@ -1,6 +1,9 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Entities;
 
@@ -15,52 +18,43 @@ public class RaceParticipantTests
         return (participant, clock);
     }
 
+    private static ConfiguredAntiCheatPolicy DefaultPolicy() =>
+        new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
+
     // -------- happy path --------
     [Fact]
     public void ValidateWpm_ShouldNotThrowOnEarlyBurst()
     {
         var (participant, clock) = CreateParticipant();
-
         participant.UpdateProgress(0, "t", 0, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(50));
 
-        participant.UpdateProgress(10, "the quick b", 0, Passage);
-
-        Assert.Equal("the quick b", participant.Typed);
+        // delta < BurstMinIndexDelta (15), so burst check is skipped
+        AntiCheatCheck.ValidateWPM(participant, 10, DefaultPolicy(), clock.Now);
     }
+
     [Fact]
     public void ValidateWpm_ShouldNotThrowOnBurstLowerMaxPossible()
     {
         var (participant, clock) = CreateParticipant();
-
         participant.UpdateProgress(0, "t", 0, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(3000));
-
         participant.UpdateProgress(20, "the quick brown fox j", 0, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(50));
 
-        participant.UpdateProgress(25, "the quick brown fox jumps ", 0, Passage);
-
-        Assert.Equal("the quick brown fox jumps ", participant.Typed);
+        // 5 chars in 50ms ≈ 100 chars/sec, within default burst limit
+        AntiCheatCheck.ValidateWPM(participant, 25, DefaultPolicy(), clock.Now);
     }
 
     [Fact]
     public void ValidateWpm_ShouldNotThrowOnDefaultSustainedWpm()
     {
         var (participant, clock) = CreateParticipant();
-
         participant.UpdateProgress(0, "t", 0, Passage);
+        clock.Advance(TimeSpan.FromMilliseconds(3000));
 
-        clock.Advance(TimeSpan.FromMilliseconds(3000));// 1500 milsec ~ 0.025 min
-
-        participant.UpdateProgress(30, "the quick brown fox jumps over ", 0, Passage);
-
-        //30 index ~ 6 words ~ 240 wpm - appropriate 
-
-        Assert.Equal("the quick brown fox jumps over ", participant.Typed);
+        // 30 index ~ 6 words ~ 240 wpm — within default sustained limit
+        AntiCheatCheck.ValidateWPM(participant, 30, DefaultPolicy(), clock.Now);
     }
 
     [Fact]
@@ -106,14 +100,11 @@ public class RaceParticipantTests
     public void ValidateWpm_ThrowsOnTooHighBurstAfterMinIndex()
     {
         var (participant, clock) = CreateParticipant();
-
         participant.UpdateProgress(0, "t", 0, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(100));
+
         var ex = Assert.Throws<CheaterDetectedException>(() =>
-        {
-            participant.UpdateProgress(15, "the quick brown ", 0, Passage);
-        });
+            AntiCheatCheck.ValidateWPM(participant, 15, DefaultPolicy(), clock.Now));
 
         Assert.Equal("Burst wpm", ex.Reason);
     }
@@ -122,15 +113,12 @@ public class RaceParticipantTests
     public void ValidateWpm_ThrowsOnTooHighSustainedAfterMinIndex()
     {
         var (participant, clock) = CreateParticipant();
-
         participant.UpdateProgress(0, "t", 0, Passage);
+        clock.Advance(TimeSpan.FromMilliseconds(1000));
 
-        clock.Advance(TimeSpan.FromMilliseconds(1000));// 1/60
+        // ~6 words in 1 sec ≈ 360 wpm, over default 300 wpm limit
         var ex = Assert.Throws<CheaterDetectedException>(() =>
-        {
-            participant.UpdateProgress(30, "the quick brown fox jumps over ", 0, Passage);
-            // ~ 6 words 
-        });
+            AntiCheatCheck.ValidateWPM(participant, 30, DefaultPolicy(), clock.Now));
 
         Assert.Equal("Sustained wpm", ex.Reason);
     }
@@ -140,9 +128,11 @@ public class RaceParticipantTests
     {
         var (participant, clock) = CreateParticipant();
         participant.UpdateProgress(2, "the", 0, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(100));
-        participant.UpdateProgress(2, "the", 1, Passage); // same index, mistakes increased
+
+        // same index → delta = 0, burst check skipped
+        AntiCheatCheck.ValidateWPM(participant, 2, DefaultPolicy(), clock.Now);
+        participant.UpdateProgress(2, "the", 1, Passage);
 
         Assert.Equal(2, participant.Index);
         Assert.Equal(1, participant.Mistakes);
@@ -151,8 +141,10 @@ public class RaceParticipantTests
     [Fact]
     public void ValidateWpm_DoesNotThrow_OnFirstCallWhenZeroSecondsElapsed()
     {
-        var (participant, _) = CreateParticipant();
+        var (participant, clock) = CreateParticipant();
 
+        // no time has passed → secondsSinceLastUpdate == 0, burst check skipped
+        AntiCheatCheck.ValidateWPM(participant, 2, DefaultPolicy(), clock.Now);
         participant.UpdateProgress(2, "the", 0, Passage);
 
         Assert.Equal(2, participant.Index);

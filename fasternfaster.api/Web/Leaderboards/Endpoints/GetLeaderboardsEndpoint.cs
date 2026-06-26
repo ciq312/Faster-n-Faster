@@ -1,12 +1,11 @@
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Leaderboards;
+using MediatR;
 
 namespace FasterNFaster.Api.Web.Leaderboards;
 
-public class GetLeaderboardsEndpoint(IHandler<GetLeaderboardCommand, GetLeaderboardResults> handler) : Endpoint<GetLeaderboardsRequest, GetLeaderboardResults>
+public class GetLeaderboardsEndpoint(ISender sender) : Endpoint<GetLeaderboardsRequest, GetLeaderboardResults>
 {
-    private readonly IHandler<GetLeaderboardCommand, GetLeaderboardResults> _handler = handler;
     public override void Configure()
     {
         Post("/api/leaderboards");
@@ -15,9 +14,7 @@ public class GetLeaderboardsEndpoint(IHandler<GetLeaderboardCommand, GetLeaderbo
 
     public override async Task HandleAsync(GetLeaderboardsRequest req, CancellationToken ct)
     {
-        var response = await _handler.Handle(new GetLeaderboardCommand(req.Criteria, req.IsDescending, req.PlayersCount));
-
+        var response = await sender.Send(new GetLeaderboardCommand(req.Criteria, req.IsDescending, req.PlayersCount), ct);
         await Send.OkAsync(response, cancellation: ct);
     }
-
 }

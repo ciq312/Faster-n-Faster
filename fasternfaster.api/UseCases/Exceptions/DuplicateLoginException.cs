@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class DuplicateLoginException : DomainException
+public class DuplicateLoginException : ConflictException
 {
     public string Login { get; }
 

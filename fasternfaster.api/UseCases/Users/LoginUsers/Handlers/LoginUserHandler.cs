@@ -2,17 +2,16 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.LoginUsers;
 
-public class LoginUserHandler(IUserRepository repo, IPasswordHelper passwordHelper) : IHandler<LoginUserCommand, LoginUserResult>
+public class LoginUserHandler(IUserRepository repo, IPasswordHelper passwordHelper) : IRequestHandler<LoginUserCommand, LoginUserResult>
 {
     private readonly IUserRepository userRepo = repo;
     private readonly IPasswordHelper passwordHelper = passwordHelper;
 
-    public async Task<LoginUserResult> Handle(LoginUserCommand command)
+    public async Task<LoginUserResult> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
         User user = await userRepo.GetUserByLoginAsync(command.Login)
             ?? throw new InvalidCredentialsException();

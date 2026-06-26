@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class DuplicateEmailException : DomainException
+public class DuplicateEmailException : ConflictException
 {
     public string Email { get; private set; }
 
