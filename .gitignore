@@ -12,7 +12,6 @@ obj/
 *.publishproj
 appsettings.Development.json
 
-
 # ========================
 # Node / React
 # ========================
@@ -52,9 +51,7 @@ desktop.ini
 # Obsidian
 #=========================
 .obsidian/
-Faster'n'FasterDocs
-feature
-specs
+
 #=========================
 # Test
 #=========================
