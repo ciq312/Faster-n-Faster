@@ -113,6 +113,12 @@ Faster-n-Faster/
 
 ```bash
 cp .env.example .env   # fill in values
+
+cd fasternfasterapp 
+npm install
+npm run dev
+
+cd fasternfaster.api
 docker compose up --build
 ```
 
