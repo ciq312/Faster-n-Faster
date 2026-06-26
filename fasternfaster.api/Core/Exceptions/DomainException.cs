@@ -1,9 +1,3 @@
 namespace FasterNFaster.Api.Core.Exceptions;
 
-public class DomainException : Exception
-{
-    public DomainException() { }
-
-    public DomainException(string message) : base(message) { }
-
-}
+public class DomainException(string message) : StatusException(message) { }

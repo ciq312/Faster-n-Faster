@@ -69,6 +69,8 @@ builder.Services.AddSignalR(options =>
 builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+builder.Services.AddExceptionHandler<StatusExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<ILobbyStore, LobbyStore>();
 builder.Services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 builder.Services.AddScoped<IUserRepository, PostgresUserRepository>();
@@ -204,6 +206,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseExceptionHandler();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,

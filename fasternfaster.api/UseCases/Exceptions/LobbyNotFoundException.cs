@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Exceptions;
 
-public class LobbyNotFoundException : DomainException
+public class LobbyNotFoundException : NotFoundException
 {
     public Guid LobbyId { get; }
 
