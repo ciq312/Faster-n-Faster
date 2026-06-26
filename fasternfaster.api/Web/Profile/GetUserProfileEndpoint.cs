@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Api.Web.Profile;
@@ -12,11 +13,12 @@ public class GetUserProfileEndpoint(IUserProfileService profileService) : Endpoi
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) ThrowError("Not authorized", 401);
+        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId))
+            throw new UnauthorizedException("Not authorized");
 
         var stats = await profileService.GetProfileAsync(userId);
 
-        if (stats == null) ThrowError("No statistics for this player", 404);
+        if (stats == null) throw new NotFoundException("No statistics for this player");
 
         await Send.OkAsync(new GetUserProfileResult(
             new UserStatisticsDTO(stats!.User.Nick, stats.Wins, stats.RacesTyped, stats.BestWPM, stats.AvgWPM, stats.BestAccuracy, stats.AvgAccuracy, stats.WordsTyped)), ct);

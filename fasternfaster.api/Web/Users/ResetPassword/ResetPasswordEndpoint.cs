@@ -1,6 +1,4 @@
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using MediatR;
 
@@ -16,19 +14,8 @@ public class ResetPasswordEndpoint(ISender sender) : Endpoint<ResetPasswordReque
 
     public override async Task HandleAsync(ResetPasswordRequest req, CancellationToken ct)
     {
-        try
-        {
-            await sender.Send(new ResetPasswordCommand(req.Token, req.NewPassword), ct);
-            await Send.OkAsync(cancellation: ct);
-        }
-        catch (TokenNotFoundException)
-        {
-            ThrowError("This link is invalid or expired", 400);
-        }
-        catch (UserNotFoundException)
-        {
-            ThrowError("This link is invalid or expired", 400);
-        }
+        await sender.Send(new ResetPasswordCommand(req.Token, req.NewPassword), ct);
+        await Send.OkAsync(cancellation: ct);
     }
 }
 

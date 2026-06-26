@@ -29,11 +29,7 @@ public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, 
             return;
         }
 
-        try
-        {
-            var result = await sender.Send(new CreateLobbyCommand(req.LobbyName, req.IsPrivate, userId), ct);
-            await Send.CreatedAtAsync("CreateLobby", null, result);
-        }
-        catch (InvalidOperationException e) { ThrowError(e.Message, 400); }
+        var result = await sender.Send(new CreateLobbyCommand(req.LobbyName, req.IsPrivate, userId), ct);
+        await Send.CreatedAtAsync("CreateLobby", null, result);
     }
 }

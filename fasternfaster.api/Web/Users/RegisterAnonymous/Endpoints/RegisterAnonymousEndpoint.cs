@@ -1,5 +1,6 @@
 using System.Data;
 using FastEndpoints;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Results;
@@ -35,7 +36,7 @@ public class RegisterAnonymousEndpoint(ITokenService tokenService) : Endpoint<Re
         }
         catch (DuplicateNameException e)
         {
-            ThrowError(e.Message, 409);
+            throw new ConflictException(e.Message);
         }
 
     }

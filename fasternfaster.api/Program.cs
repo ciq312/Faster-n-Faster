@@ -44,6 +44,7 @@ using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasternFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Services.Users;
+using FasterNFaster.Api.Web.Exceptions;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
