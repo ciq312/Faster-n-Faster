@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
@@ -23,10 +24,6 @@ public class LoginUserEndpoint(ISender sender, ITokenService tokenService, ISess
             var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
             await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
             await Send.OkAsync(result, cancellation: ct);
-        }
-        catch (InvalidCredentialsException e)
-        {
-            ThrowError(e.Message, 401);
         }
         catch (EmailNotVerifiedException e)
         {

@@ -39,7 +39,7 @@ public class LobbyService(
     public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
     {
         if (locationRegistry.GetLobbyIdOfPlayer(creatorId) != null)
-            throw new InvalidOperationException("Can't create a lobby while in lobby");
+            throw new AlreadyInLobbyException();
 
         Lobby lobby = new(LobbyName, isPrivate);
         lobby.AssignHost(creatorId);
