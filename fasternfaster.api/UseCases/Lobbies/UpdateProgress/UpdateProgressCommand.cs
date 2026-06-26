@@ -2,4 +2,4 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 
-public record UpdateProgressCommand(Guid UserId, Guid LobbyId, int Index, int Mistakes, string Typed) : IRequest;
+public record UpdateProgressCommand(Guid UserId, int Index, int Mistakes, string Typed) : IRequest;

@@ -2,7 +2,7 @@ namespace FasterNFaster.Api.UseCases.Interfaces;
 
 public interface ILobbySessionService
 {
-    public Task RefreshPassage(Guid lobbyId);
+    public Task RefreshPassage(Guid userId);
 
     public Task KickPlayer(Guid hostId, Guid userId);
 
