@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Exceptions.Lobbies;
 
-public class ColorIsAlreadyTakenException : DomainException
+public class ColorIsAlreadyTakenException : ConflictException
 {
     public ColorIsAlreadyTakenException() : base("Color is taken. Choose another.") { }
 }

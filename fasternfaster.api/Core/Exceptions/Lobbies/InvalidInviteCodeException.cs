@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Core.Exceptions.Lobbies;
 
-public class InvalidInviteCodeException : DomainException
+public class InvalidInviteCodeException : NotFoundException
 {
     public InvalidInviteCodeException() : base("Invalid invite code.") { }
 }

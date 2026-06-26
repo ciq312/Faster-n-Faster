@@ -1,3 +1,3 @@
 namespace FasterNFaster.Api.Core.Exceptions.Lobbies;
 
-public class AlreadyInLobbyException() : DomainException("Already in a lobby.");
+public class AlreadyInLobbyException() : ConflictException("Already in a lobby.");

@@ -15,7 +15,7 @@ public class HubExceptionFilter(ILogger<HubExceptionFilter> logger) : IHubFilter
         {
             return await next(invocationContext);
         }
-        catch (DomainException ex)
+        catch (StatusException ex)
         {
             throw new HubException(ex.Message);
         }
