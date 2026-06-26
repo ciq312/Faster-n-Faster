@@ -2,4 +2,4 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 
-public record StartRaceCommand(Guid UserId, Guid LobbyId) : IRequest;
+public record StartRaceCommand(Guid UserId) : IRequest<Guid>;
