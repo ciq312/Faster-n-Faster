@@ -64,7 +64,7 @@ public class LobbyService(
         LobbyPlayer kicked = null!;
         await WithLobby(lobbyId, l =>
         {
-            if (l.IsSessionActive) throw new DomainException("Can't kick when racing");
+            if (l.IsSessionActive) throw new ConflictException("Can't kick when racing");
 
             l.ValidateHost(hostId);
             kicked = l.RemovePlayer(userId);
