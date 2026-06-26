@@ -26,7 +26,7 @@ public partial class GameHub(
     ILobbyService lobbyService,
     IBanService banService,
     ISessionService sessionService,
-    LobbyStateBroadcaster broadcaster,
+    ILobbyStateBroadcaster broadcaster,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick, string Role) GetCallerContext()
