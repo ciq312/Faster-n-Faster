@@ -10,7 +10,7 @@ public class AggregateRootHelper(IEventDispatcher dispatcher) : IAggregateRootHe
         var events = root.DomainEvents.ToList();
         root.ClearEvents();
         foreach (var domainEvent in events)
-            await domainEvent.Dispatch(dispatcher);
+            await dispatcher.Dispatch((dynamic)domainEvent, CancellationToken.None);
     }
 }
 
