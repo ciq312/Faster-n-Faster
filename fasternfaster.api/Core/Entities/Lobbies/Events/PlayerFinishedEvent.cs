@@ -20,7 +20,4 @@ public record PlayerFinishedEvent(
     }
 
     public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
-
-    public Task Dispatch(IEventDispatcher dispatcher, CancellationToken ct = default) =>
-        dispatcher.Dispatch(this, ct);
 }

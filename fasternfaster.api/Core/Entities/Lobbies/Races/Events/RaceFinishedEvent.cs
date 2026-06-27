@@ -16,7 +16,4 @@ public record RaceFinishedEvent(IEnumerable<RaceParticipantResult> Results) : ID
     }
 
     public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
-
-    public Task Dispatch(IEventDispatcher dispatcher, CancellationToken ct = default) =>
-        dispatcher.Dispatch(this, ct);
 }
