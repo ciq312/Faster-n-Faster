@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using MediatR;
@@ -10,7 +11,7 @@ using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 namespace FasterNFaster.Api.Web.LobbyState;
 
 public class BroadcastPlayerKickedHandler(
-    LobbyStateBroadcaster broadcaster,
+    ILobbyStateBroadcaster broadcaster,
     IHubContext<GameHub> hub,
     ISessionService sessionService) : INotificationHandler<DomainEventNotification<PlayerKickedEvent>>
 {

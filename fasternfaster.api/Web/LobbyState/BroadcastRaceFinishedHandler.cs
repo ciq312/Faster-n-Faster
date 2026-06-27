@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
@@ -10,7 +11,7 @@ namespace FasterNFaster.Api.Web.LobbyState;
 
 public class BroadcastRaceFinishedHandler(
     IHubContext<GameHub> hub,
-    LobbyStateBroadcaster broadcaster) : INotificationHandler<RaceSessionEndedEvent>
+    ILobbyStateBroadcaster broadcaster) : INotificationHandler<RaceSessionEndedEvent>
 {
     public async Task Handle(RaceSessionEndedEvent e, CancellationToken cancellationToken)
     {

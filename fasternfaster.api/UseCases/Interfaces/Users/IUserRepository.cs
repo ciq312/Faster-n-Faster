@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Users;
 

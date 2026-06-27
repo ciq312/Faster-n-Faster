@@ -1,5 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface ITokenStore

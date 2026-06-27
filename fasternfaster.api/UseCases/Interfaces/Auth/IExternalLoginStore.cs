@@ -1,5 +1,3 @@
-using FasterNFaster.Api.Core.Entities;
-
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface IExternalLoginStore

@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.UseCases.Events;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using MediatR;
@@ -8,7 +9,7 @@ using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.LobbyState;
 
-public class BroadcastPlayerPromotedHandler(LobbyStateBroadcaster broadcaster, IHubContext<GameHub> hub)
+public class BroadcastPlayerPromotedHandler(ILobbyStateBroadcaster broadcaster, IHubContext<GameHub> hub)
     : INotificationHandler<DomainEventNotification<HostChangedEvent>>
 {
     public async Task Handle(DomainEventNotification<HostChangedEvent> notification, CancellationToken cancellationToken)
