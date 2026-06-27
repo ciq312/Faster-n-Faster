@@ -1,7 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.Smtp;
-using MailKit;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -45,7 +44,7 @@ public class SmtpEmailSender(IOptions<SmtpOptions> smtp, IOptions<AppOptions> ap
         using var client = new SmtpClient();
         await client.ConnectAsync(smtp.Host, smtp.Port, secureOptions);
         if (!string.IsNullOrEmpty(smtp.Username))
-            await client.AuthenticateAsync(smtp.Username, smtp.Password);
+            await client.AuthenticateAsync(smtp.Username, smtp.Password!);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }

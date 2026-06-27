@@ -1,10 +1,7 @@
 using System.Collections.Concurrent;
-using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
@@ -12,18 +9,18 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.Core.Helpers;
-using MediatR;
+using FasterNFaster.Api.Core.Interfaces.Events;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
 public class LobbyService(
     ILobbyStore lobbyStore,
     IAggregateRootHelper aggregateRootHelper,
-    IPublisher publisher,
+    IEventDispatcher eventDispatcher,
     IPlayerLocationRegistry locationRegistry) : ILobbyService, ILobbyInternals
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IPublisher publisher = publisher;
+    private readonly IEventDispatcher eventDispatcher = eventDispatcher;
     private readonly IAggregateRootHelper aggregateRootHelper = aggregateRootHelper;
     private readonly IPlayerLocationRegistry locationRegistry = locationRegistry;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
@@ -71,7 +68,7 @@ public class LobbyService(
             l.BanPlayer(kicked.User.Id);
         });
 
-        await publisher.Publish(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick));
+        await eventDispatcher.Dispatch((dynamic)new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick), CancellationToken.None);
         await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
@@ -82,7 +79,7 @@ public class LobbyService(
         LobbyPlayer removed = null!;
         await WithLobby(lobbyId, l => removed = l.RemovePlayer(userId));
 
-        await publisher.Publish(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick));
+        await eventDispatcher.Dispatch((dynamic)new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick), CancellationToken.None);
         await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 

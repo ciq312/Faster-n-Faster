@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Web.Hubs;
-using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
@@ -10,7 +10,7 @@ using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 namespace FasterNFaster.Api.Web.LobbyState;
 
 public class BroadcastPlayerDisconnectedHandler(
-    LobbyStateBroadcaster broadcaster,
+    ILobbyStateBroadcaster broadcaster,
     IHubContext<GameHub> hub,
     ISessionService sessionService) : INotificationHandler<DomainEventNotification<PlayerDisconnectedEvent>>
 {

@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 

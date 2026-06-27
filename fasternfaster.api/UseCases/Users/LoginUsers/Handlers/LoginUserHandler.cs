@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Users;

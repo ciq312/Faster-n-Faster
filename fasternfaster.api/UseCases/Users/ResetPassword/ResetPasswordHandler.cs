@@ -5,7 +5,6 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ResetPassword;
