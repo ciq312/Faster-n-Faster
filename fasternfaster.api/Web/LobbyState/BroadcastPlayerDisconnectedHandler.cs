@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Hubs;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
@@ -8,19 +9,19 @@ using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.LobbyState;
 
-public class BroadcastPlayerDisconnectedHandler(LobbyStateBroadcaster broadcaster, IHubContext<GameHub> hub, ISessionService sessionService) : INotificationHandler<PlayerDisconnectedEvent>
+public class BroadcastPlayerDisconnectedHandler(
+    LobbyStateBroadcaster broadcaster,
+    IHubContext<GameHub> hub,
+    ISessionService sessionService) : INotificationHandler<DomainEventNotification<PlayerDisconnectedEvent>>
 {
-    private readonly LobbyStateBroadcaster broadcaster = broadcaster;
-    private readonly IHubContext<GameHub> hub = hub;
-    private readonly ISessionService sessionService = sessionService;
-
-    public async Task Handle(PlayerDisconnectedEvent domainEvent, CancellationToken cancellationToken)
+    public async Task Handle(DomainEventNotification<PlayerDisconnectedEvent> notification, CancellationToken cancellationToken)
     {
-        var groupName = LobbyGroup(domainEvent.LobbyId);
-        var disconnectedConnectionId = sessionService.GetActiveSession(domainEvent.UserId);
+        var e = notification.Event;
+        var groupName = LobbyGroup(e.LobbyId);
+        var disconnectedConnectionId = sessionService.GetActiveSession(e.UserId);
         await hub.Groups.RemoveFromGroupAsync(disconnectedConnectionId!, groupName);
-        await hub.Clients.Group(groupName).SendAsync(Methods.PlayerDisconnected, new PlayerDisconnectedDTO(domainEvent.UserId, domainEvent.Nick));
-        await broadcaster.BroadcastLobbyState(domainEvent.LobbyId);
+        await hub.Clients.Group(groupName).SendAsync(Methods.PlayerDisconnected, new PlayerDisconnectedDTO(e.UserId, e.Nick));
+        await broadcaster.BroadcastLobbyState(e.LobbyId);
     }
 }
 

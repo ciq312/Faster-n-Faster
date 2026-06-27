@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
@@ -46,6 +47,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
         services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
         services.AddSingleton<IAggregateRootHelper, AggregateRootHelper>();
+        services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 
         services.AddScoped<ITokenService, SlidingJwtTokenService>();

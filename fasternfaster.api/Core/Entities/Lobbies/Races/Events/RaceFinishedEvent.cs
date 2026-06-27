@@ -1,20 +1,22 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Core.Interfaces.Events;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races.Events
-{
-    public record RaceFinishedEvent(IEnumerable<RaceParticipantResult> Results) : IDomainEvent, IRaceEvent
-    {
-        public Guid LobbyId
-        {
-            get
-            {
-                if (field == default) throw new NullReferenceException("LobbyId isn't wrapped");
-                return field;
-            }
-            private set;
-        }
+namespace FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 
-        public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
+public record RaceFinishedEvent(IEnumerable<RaceParticipantResult> Results) : IDomainEvent, IRaceEvent
+{
+    public Guid LobbyId
+    {
+        get
+        {
+            if (field == default) throw new NullReferenceException("LobbyId isn't wrapped");
+            return field;
+        }
+        private set;
     }
+
+    public void WrapRaceContext(Guid lobbyId) => LobbyId = lobbyId;
+
+    public Task Dispatch(IEventDispatcher dispatcher, CancellationToken ct = default) =>
+        dispatcher.Dispatch(this, ct);
 }
