@@ -1,13 +1,14 @@
 
-
-
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Infrastructure.Db.Tokens;
+using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
+using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 using MediatR;

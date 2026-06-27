@@ -1,9 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Factories.Interfaces;
-using Microsoft.AspNetCore.Identity;
 
 namespace FasterNFaster.Api.UseCases.Factories.Implementations;
 
