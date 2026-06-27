@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 
-public class StartRaceHandler(ILobbySessionService lobbySessionService, ILobbyService lobbyService) : IRequestHandler<StartRaceCommand, Guid>
+public class StartRaceHandler(ILobbyServiceFacade lobbySessionService, ILobbyService lobbyService) : IRequestHandler<StartRaceCommand, Guid>
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {

@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
 public class RaceFinishedOrchestrationHandler(
     ILobbyStore lobbyStore,
-    ILobbySessionService lobbySessionService,
+    ILobbyServiceFacade lobbySessionService,
     IPublisher publisher) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
     public async Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)

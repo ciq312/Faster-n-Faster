@@ -5,7 +5,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
-public class LobbyStore : ILobbyStore
+public class InMemoryLobbyStore : ILobbyStore
 {
     private readonly ConcurrentDictionary<Guid, Lobby> lobbies = new();
 

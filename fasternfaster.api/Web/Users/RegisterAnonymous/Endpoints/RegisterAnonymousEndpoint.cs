@@ -26,18 +26,10 @@ public class RegisterAnonymousEndpoint(ITokenService tokenService) : Endpoint<Re
 
     public override async Task HandleAsync(RegisterAnonymousRequest req, CancellationToken ct)
     {
-        try
-        {
-            var GuestId = Guid.NewGuid();
+        var GuestId = Guid.NewGuid();
 
-            await tokenService.HandleGuestAuth(GuestId, req.Nick);
+        await tokenService.HandleGuestAuth(GuestId, req.Nick);
 
-            await Send.CreatedAtAsync<RegisterAnonymousEndpoint>(new { GuestId = GuestId }, cancellation: ct);
-        }
-        catch (DuplicateNameException e)
-        {
-            throw new ConflictException(e.Message);
-        }
-
+        await Send.CreatedAtAsync<RegisterAnonymousEndpoint>(new { GuestId = GuestId }, cancellation: ct);
     }
 }

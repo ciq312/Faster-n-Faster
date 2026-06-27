@@ -9,13 +9,13 @@ namespace FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 
 public class RequestPasswordResetHandler(
     IUserRepository userRepo,
-    ITokenRepository tokenRepo,
-    ITokenFactory tokenFactory,
+    IConfirmTokenRepository tokenRepo,
+    IConfirmTokenFactory tokenFactory,
     IEmailSender emailSender) : IRequestHandler<RequestPasswordResetCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
-    private readonly ITokenRepository tokenRepo = tokenRepo;
-    private readonly ITokenFactory tokenFactory = tokenFactory;
+    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
+    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
     private readonly IEmailSender emailSender = emailSender;
 
     private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);
@@ -24,7 +24,7 @@ public class RequestPasswordResetHandler(
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;
-        // Google-only accounts have no password to reset.
+    
         if (user.Password is null) return;
 
         Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.PasswordReset);

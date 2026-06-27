@@ -11,7 +11,7 @@ public class RaceService(
     IAggregateRootHelper aggregateRootHelper,
     IPassageProvider passageProvider,
     IAntiCheatPolicy antiCheatPolicy,
-    ILogger<RaceService> logger) : IRaceService, IRaceCoordinator
+    ILogger<RaceService> logger) : IRaceService, IRaceInternals
 {
     private readonly ConcurrentDictionary<Guid, (ReaderWriterLockSlim, Race)> races = new();
 

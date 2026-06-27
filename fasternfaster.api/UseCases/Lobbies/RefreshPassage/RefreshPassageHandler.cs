@@ -6,7 +6,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 public class RefreshPassageHandler(
     ILobbyService lobbyService,
-    ILobbySessionService lobbySessionService,
+    ILobbyServiceFacade lobbySessionService,
     ILobbyStateBroadcaster broadcaster) : IRequestHandler<RefreshPassageCommand>
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)

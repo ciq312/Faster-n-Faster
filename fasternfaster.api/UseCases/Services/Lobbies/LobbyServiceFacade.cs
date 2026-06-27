@@ -6,16 +6,16 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbySessionService(ILobbyInternals lobbyCoordinator,
-  IRaceCoordinator raceCoordinator,
+public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
+  IRaceInternals raceInternals,
   ILobbyService lobbyService,
   IRaceService raceService,
   IRaceTickRegistry raceTickRegistry
-  ) : ILobbySessionService, IRaceTransitionService
+  ) : ILobbyServiceFacade, IRaceTransitionService
 {
     private readonly IRaceTickRegistry raceTickRegistry = raceTickRegistry;
-    private readonly ILobbyInternals lobbyCoordinator = lobbyCoordinator;
-    private readonly IRaceCoordinator raceCoordinator = raceCoordinator;
+    private readonly ILobbyInternals lobbyInternals = lobbyInternals;
+    private readonly IRaceInternals raceInternals = raceInternals;
     private readonly ILobbyService lobbyService = lobbyService;
     private readonly IRaceService raceService = raceService;
 
@@ -24,17 +24,17 @@ public class LobbySessionService(ILobbyInternals lobbyCoordinator,
         Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(hostId);
         Guid lobbyId = lobby.Id;
 
-        await lobbyCoordinator.ValidateHost(lobbyId, hostId);
+        await lobbyInternals.ValidateHost(lobbyId, hostId);
 
-        await lobbyCoordinator.StartSession(lobbyId, hostId);
+        await lobbyInternals.StartSession(lobbyId, hostId);
 
         var participants = lobby.GetRaceParticipants();
 
-        await raceCoordinator.AddParticipants(lobbyId, participants);
+        await raceInternals.AddParticipants(lobbyId, participants);
 
         raceTickRegistry.RegisterLobby(lobbyId);
     }
-    public Task StartRaceInternal(Guid lobbyId) => raceCoordinator.StartRace(lobbyId);
+    public Task StartRaceInternal(Guid lobbyId) => raceInternals.StartRace(lobbyId);
 
     public async Task RemoveLobbyIfEmpty(Guid lobbyId)
     {
@@ -42,7 +42,7 @@ public class LobbySessionService(ILobbyInternals lobbyCoordinator,
 
         if (lobby.IsEmpty())
         {
-            await lobbyCoordinator.RemoveLobby(lobbyId);
+            await lobbyInternals.RemoveLobby(lobbyId);
 
             raceService.RemoveRegisteredRace(lobbyId);
 
@@ -53,10 +53,10 @@ public class LobbySessionService(ILobbyInternals lobbyCoordinator,
     {
         Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
 
-        await lobbyCoordinator.KickPlayer(hostId, userId);
+        await lobbyInternals.KickPlayer(hostId, userId);
 
         if (lobby.IsSessionActive)
-            await raceCoordinator.WithdrawParticipant(lobby.Id, userId);
+            await raceInternals.WithdrawParticipant(lobby.Id, userId);
     }
 
     public async Task RefreshPassage(Guid userId)
@@ -65,18 +65,18 @@ public class LobbySessionService(ILobbyInternals lobbyCoordinator,
 
         if (lobby.IsSessionActive) throw new InvalidOperationException("Can't refresh when session active");
 
-        await lobbyCoordinator.ValidateHost(lobby.Id, userId);
+        await lobbyInternals.ValidateHost(lobby.Id, userId);
 
-        await raceCoordinator.RefreshPassage(lobby.Id);
+        await raceInternals.RefreshPassage(lobby.Id);
     }
 
     public async Task RemovePlayerFromLobby(Guid userId)
     {
         Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
 
-        await lobbyCoordinator.RemoveFromLobby(userId);
+        await lobbyInternals.RemoveFromLobby(userId);
 
         if (lobby.IsSessionActive)
-            await raceCoordinator.WithdrawParticipant(lobby.Id, userId);
+            await raceInternals.WithdrawParticipant(lobby.Id, userId);
     }
 }

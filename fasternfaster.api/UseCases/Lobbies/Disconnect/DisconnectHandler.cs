@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(ILobbySessionService lobbySessionService) : IRequestHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbyServiceFacade lobbySessionService) : IRequestHandler<DisconnectCommand>
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.BanForCheat;
 
-public class BanForCheatHandler(IBanService banService, ILobbySessionService lobbySessionService) : IRequestHandler<BanForCheatCommand>
+public class BanForCheatHandler(IBanService banService, ILobbyServiceFacade lobbySessionService) : IRequestHandler<BanForCheatCommand>
 {
     public async Task Handle(BanForCheatCommand command, CancellationToken cancellationToken)
     {

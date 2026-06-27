@@ -12,8 +12,6 @@ public class RequestPasswordResetEndpoint(ISender sender) : Endpoint<RequestPass
         AllowAnonymous();
     }
 
-    // Always returns 200: unknown email, cooldown hit, and Google-only accounts
-    // all no-op silently so callers can't enumerate accounts.
     public override async Task HandleAsync(RequestPasswordResetRequest req, CancellationToken ct)
     {
         await sender.Send(new RequestPasswordResetCommand(req.Email), ct);
