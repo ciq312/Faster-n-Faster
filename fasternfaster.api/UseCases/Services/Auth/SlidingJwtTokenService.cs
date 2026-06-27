@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using FastEndpoints.Security;
-using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.AspNetCore.Mvc;

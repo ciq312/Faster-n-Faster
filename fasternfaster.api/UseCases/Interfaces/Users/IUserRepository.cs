@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 
-namespace FasterNFaster.Api.Infrastructure;
+namespace FasterNFaster.Api.UseCases.Interfaces.Users;
 
 public interface IUserRepository
 {

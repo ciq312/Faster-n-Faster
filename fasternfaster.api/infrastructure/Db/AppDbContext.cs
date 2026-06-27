@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure;

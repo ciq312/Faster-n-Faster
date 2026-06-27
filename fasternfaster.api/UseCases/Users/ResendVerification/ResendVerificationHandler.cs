@@ -1,7 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
-using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ResendVerification;
