@@ -19,16 +19,8 @@ public class LoginUserEndpoint(ISender sender, ITokenService tokenService, ISess
 
     public override async Task HandleAsync(LoginUserRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
-            await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
-            await Send.OkAsync(result, cancellation: ct);
-        }
-        catch (EmailNotVerifiedException e)
-        {
-            HttpContext.Response.StatusCode = 403;
-            await HttpContext.Response.WriteAsJsonAsync(new { code = "EMAIL_NOT_VERIFIED", email = e.Email }, cancellationToken: ct);
-        }
+        var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
+        await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
+        await Send.OkAsync(result, cancellation: ct);
     }
 }

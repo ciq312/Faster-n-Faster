@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.UseCases.Interfaces;
 
-public interface ILobbySessionService
+public interface ILobbyServiceFacade
 {
     public Task RefreshPassage(Guid userId);
 
@@ -9,7 +9,7 @@ public interface ILobbySessionService
     public Task RemovePlayerFromLobby(Guid userId);
 
     public Task StartSession(Guid hostId);
-    
+
     public Task RemoveLobbyIfEmpty(Guid lobbyId);
 
 }

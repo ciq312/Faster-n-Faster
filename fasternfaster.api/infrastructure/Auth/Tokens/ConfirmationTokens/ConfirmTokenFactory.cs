@@ -7,7 +7,7 @@ using Google.Apis.Util;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
 
-public class TokenFactory : ITokenFactory
+public class ConfirmTokenFactory : IConfirmTokenFactory
 {
     public Token GetToken(Guid userId, TokenType type)
     {

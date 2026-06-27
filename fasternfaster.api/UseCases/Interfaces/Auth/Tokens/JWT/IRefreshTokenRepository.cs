@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
-public interface ITokenStore
+public interface IRefreshTokenRepository
 {
     Task StoreRefreshToken(Guid userId, string refreshToken);
     public Task<bool> TryRefreshToken(string oldRefreshToken, string newRefreshToken);

@@ -32,7 +32,7 @@ public static class ApplicationServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<ILobbyStore, LobbyStore>();
+        services.AddSingleton<ILobbyStore, InMemoryLobbyStore>();
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
         services.AddScoped<IUserRepository, PostgresUserRepository>();
@@ -54,10 +54,10 @@ public static class ApplicationServicesExtensions
         services.AddScoped<ITokenService, SlidingJwtTokenService>();
         services.AddHttpContextAccessor();
         services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();
-        services.AddSingleton<ITokenStore, RedisTokenStore>();
+        services.AddSingleton<IRefreshTokenRepository, RedisRefreshTokenRepository>();
         services.AddSingleton<ICookiesWriter, CookieWriter>();
-        services.AddScoped<ITokenFactory, TokenFactory>();
-        services.AddScoped<ITokenRepository, TokenRepository>();
+        services.AddScoped<IConfirmTokenFactory, ConfirmTokenFactory>();
+        services.AddScoped<IConfirmTokenRepository, ConfirmTokenRepository>();
         services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
 
         services.AddScoped<ILeaderboardService, LeaderboardService>();
@@ -66,16 +66,16 @@ public static class ApplicationServicesExtensions
 
         services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
         services.AddSingleton<RaceService>();
-        services.AddSingleton<IRaceCoordinator>(sp => sp.GetRequiredService<RaceService>());
+        services.AddSingleton<IRaceInternals>(sp => sp.GetRequiredService<RaceService>());
         services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());
 
         services.AddSingleton<LobbyService>();
         services.AddSingleton<ILobbyInternals>(sp => sp.GetRequiredService<LobbyService>());
         services.AddSingleton<ILobbyService>(sp => sp.GetRequiredService<LobbyService>());
 
-        services.AddSingleton<LobbySessionService>();
-        services.AddSingleton<IRaceTransitionService>(sp => sp.GetRequiredService<LobbySessionService>());
-        services.AddSingleton<ILobbySessionService>(sp => sp.GetRequiredService<LobbySessionService>());
+        services.AddSingleton<LobbyServiceFacade>();
+        services.AddSingleton<IRaceTransitionService>(sp => sp.GetRequiredService<LobbyServiceFacade>());
+        services.AddSingleton<ILobbyServiceFacade>(sp => sp.GetRequiredService<LobbyServiceFacade>());
 
         services.AddHostedService<RaceTickService>();
 

@@ -4,7 +4,7 @@ using FasterNFaster.Api.Web.Services.Interfaces;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class InMemorySessionService(ITokenStore tokenStore) : ISessionService
+public class InMemorySessionService(IRefreshTokenRepository tokenStore) : ISessionService
 {
     private readonly ConcurrentDictionary<Guid, string> userSessions = new();
 

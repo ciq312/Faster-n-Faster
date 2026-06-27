@@ -8,7 +8,7 @@ namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
 /// repository responsible for verifaction tokens email and password reset
 /// </summary>
 /// <param name="dbContext"></param>
-public class TokenRepository(AppDbContext dbContext) : ITokenRepository
+public class ConfirmTokenRepository(AppDbContext dbContext) : IConfirmTokenRepository
 {
     private readonly AppDbContext dbContext = dbContext;
     public Task Add(Token token)

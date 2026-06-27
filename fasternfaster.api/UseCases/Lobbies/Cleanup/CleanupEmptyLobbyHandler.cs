@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 
-public class CleanupEmptyLobbyHandler(ILobbySessionService lobbySessionService)
+public class CleanupEmptyLobbyHandler(ILobbyServiceFacade lobbySessionService)
     : INotificationHandler<DomainEventNotification<PlayerRemovedEvent>>
 {
     public async Task Handle(DomainEventNotification<PlayerRemovedEvent> notification, CancellationToken cancellationToken)

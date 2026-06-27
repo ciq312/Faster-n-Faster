@@ -6,7 +6,7 @@ namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class SlidingJwtTokenService(
     IJwtTokenFactory jwtTokenFactory,
-    ITokenStore tokenStore,
+    IRefreshTokenRepository tokenStore,
     ICookiesWriter cookiesWriter,
     IUserRepository repo) : ITokenService
 {

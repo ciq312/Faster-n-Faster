@@ -8,10 +8,10 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.VerifyEmail;
 
-public class VerifyEmailHandler(IUserRepository repo, ITokenRepository tokenRepository) : IRequestHandler<VerifyEmailCommand>
+public class VerifyEmailHandler(IUserRepository repo, IConfirmTokenRepository tokenRepository) : IRequestHandler<VerifyEmailCommand>
 {
     private readonly IUserRepository repo = repo;
-    private readonly ITokenRepository tokenRepository = tokenRepository;
+    private readonly IConfirmTokenRepository tokenRepository = tokenRepository;
 
     public async Task Handle(VerifyEmailCommand command, CancellationToken cancellationToken)
     {

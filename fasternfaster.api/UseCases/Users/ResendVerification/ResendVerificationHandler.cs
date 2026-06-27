@@ -9,13 +9,13 @@ namespace FasterNFaster.Api.UseCases.Users.ResendVerification;
 
 public class ResendVerificationHandler(
     IUserRepository userRepo,
-    ITokenRepository tokenRepo,
-    ITokenFactory tokenFactory,
+    IConfirmTokenRepository tokenRepo,
+    IConfirmTokenFactory tokenFactory,
     IEmailSender emailSender) : IRequestHandler<ResendVerificationCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
-    private readonly ITokenRepository tokenRepo = tokenRepo;
-    private readonly ITokenFactory tokenFactory = tokenFactory;
+    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
+    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
     private readonly IEmailSender emailSender = emailSender;
 
     private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);

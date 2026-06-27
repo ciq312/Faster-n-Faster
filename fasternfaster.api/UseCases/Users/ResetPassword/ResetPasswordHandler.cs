@@ -11,13 +11,13 @@ namespace FasterNFaster.Api.UseCases.Users.ResetPassword;
 
 public class ResetPasswordHandler(
     IUserRepository userRepo,
-    ITokenRepository tokenRepo,
+    IConfirmTokenRepository tokenRepo,
     IPasswordHelper passwordHelper,
     ISessionService sessionService) : IRequestHandler<ResetPasswordCommand>
 {
     private readonly ISessionService sessionService = sessionService;
     private readonly IUserRepository userRepo = userRepo;
-    private readonly ITokenRepository tokenRepo = tokenRepo;
+    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
     private readonly IPasswordHelper passwordHelper = passwordHelper;
 
     public async Task Handle(ResetPasswordCommand command, CancellationToken cancellationToken)

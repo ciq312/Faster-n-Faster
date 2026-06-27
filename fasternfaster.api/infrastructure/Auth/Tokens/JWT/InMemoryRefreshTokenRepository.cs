@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class TokenStore(IOptions<JwtOptions> options) : ITokenStore
+public class InMemoryRefreshTokenRepository(IOptions<JwtOptions> options) : IRefreshTokenRepository
 {
     private readonly JwtOptions jwtOptions = options.Value;
     private readonly ConcurrentDictionary<string, DateTime> refreshTokenExpiries = new();

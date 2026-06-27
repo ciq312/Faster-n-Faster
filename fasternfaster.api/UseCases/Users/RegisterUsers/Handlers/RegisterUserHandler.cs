@@ -12,10 +12,10 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
 
-public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, IEmailSender emailSender, ITokenRepository tokenRepo, ITokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
+public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, IEmailSender emailSender, IConfirmTokenRepository tokenRepo, IConfirmTokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
 {
-    private readonly ITokenFactory tokenFactory = tokenFactory;
-    private readonly ITokenRepository tokenRepo = tokenRepo;
+    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
+    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
     private readonly IUserRepository repo = repo;
     private readonly IPasswordHelper passwordHelper = passwordHelper;
     private readonly IEmailSender emailSender = emailSender;

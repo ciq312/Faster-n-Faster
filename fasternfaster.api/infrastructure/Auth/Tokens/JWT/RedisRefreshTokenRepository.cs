@@ -5,12 +5,12 @@ using StackExchange.Redis;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class RedisTokenStore : ITokenStore
+public class RedisRefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly IDatabase db;
     private readonly TimeSpan ttl;
 
-    public RedisTokenStore(IConnectionMultiplexer redis, IOptions<JwtOptions> options)
+    public RedisRefreshTokenRepository(IConnectionMultiplexer redis, IOptions<JwtOptions> options)
     {
         db = redis.GetDatabase();
         ttl = options.Value.RefreshTokenLifetime;
