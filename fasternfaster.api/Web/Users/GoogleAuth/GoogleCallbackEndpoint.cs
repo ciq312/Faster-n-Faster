@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Services;

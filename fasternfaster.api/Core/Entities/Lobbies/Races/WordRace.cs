@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.Core.Exceptions;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 

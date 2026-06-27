@@ -1,6 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using MediatR;
 

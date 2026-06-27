@@ -1,4 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Tokens;

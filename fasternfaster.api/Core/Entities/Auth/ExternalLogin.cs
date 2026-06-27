@@ -1,5 +1,5 @@
-namespace FasterNFaster.Api.Core.Entities;
-
+namespace FasterNFaster.Api.Core.Entities.Auth;
+    
 public class ExternalLogin
 {
     public Guid Id { get; private set; }

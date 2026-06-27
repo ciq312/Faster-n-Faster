@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Exceptions;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
+namespace FasterNFaster.Api.UseCases.Exceptions;
 
 public class TokenNotFoundException : NotFoundException
 {

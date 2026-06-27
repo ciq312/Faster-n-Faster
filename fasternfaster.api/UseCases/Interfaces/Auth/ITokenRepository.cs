@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
+namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface ITokenRepository
 {

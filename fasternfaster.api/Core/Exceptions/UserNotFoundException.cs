@@ -1,7 +1,4 @@
-
-using FasterNFaster.Api.Core.Exceptions;
-
-namespace FasterNFaster.Api.UseCases.Exceptions;
+namespace FasterNFaster.Api.Core.Exceptions;
 
 public class UserNotFoundException : NotFoundException
 {
@@ -12,13 +9,12 @@ public class UserNotFoundException : NotFoundException
     {
         UserId = userId;
     }
+
     public UserNotFoundException(Guid userId, string source)
-    : base($"User with id {userId} was not found in {source}")
+        : base($"User with id {userId} was not found in {source}")
     {
         UserId = userId;
     }
-    public UserNotFoundException(string message) : base(message)
-    {
 
-    }
+    public UserNotFoundException(string message) : base(message) { }
 }

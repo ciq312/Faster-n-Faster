@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 
