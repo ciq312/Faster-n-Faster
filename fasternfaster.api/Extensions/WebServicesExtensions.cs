@@ -5,6 +5,9 @@ using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Options.JwtOptions;
 using FasterNFaster.Api.Web.Options.Smtp;
+using FasterNFaster.Api.UseCases.Users.ResendVerification;
+using FasterNFaster.Api.Infrastructure.Auth;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Extensions;
 
@@ -38,6 +41,11 @@ public static class WebServicesExtensions
         services.Configure<AppOptions>(config.GetSection("AppUrls"));
         services.Configure<SmtpOptions>(config.GetSection("Smtp"));
         services.Configure<AntiCheatOptions>(config.GetSection("AntiCheat"));
+        services.Configure<ResendVerificationOptions>(config.GetSection("ResendVerification"));
+
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<ResendVerificationOptions>>().Value);
+        services.Configure<ResetPasswordOptions>(config.GetSection("ResetPassword"));
+        services.Configure<VerifyEmailOptions>(config.GetSection("VerifyEmail"));
 
         return services;
     }

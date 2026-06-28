@@ -5,9 +5,10 @@ using FasterNFaster.Api.Web.Services.Interfaces;
 
 namespace FasterNFaster.Api.Web.Users.RefreshToken;
 
-public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutRequest
+public class RefreshTokenEndpoint(ITokenService tokenService, ICookiesWriter cookies) : EndpointWithoutRequest
 {
     private readonly ITokenService tokenService = tokenService;
+    private readonly ICookiesWriter cookies = cookies;
     public override void Configure()
     {
         Get("/api/auth/refresh");
@@ -23,13 +24,15 @@ public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutR
             return;
         }
 
-        if (await tokenService.TryRefreshToken(refreshToken))
+        var tokens = await tokenService.TryRefreshTokens(refreshToken);
+        if (tokens is null)
         {
-            await Send.OkAsync(cancellation: ct);
+            await Send.UnauthorizedAsync(ct);
+            return;
         }
 
-        else
-            await Send.UnauthorizedAsync(ct);
-
+        cookies.WriteAccessTokenCookie(tokens.AccessToken);
+        cookies.WriteRefreshTokenCookie(tokens.RefreshToken!);
+        await Send.OkAsync(cancellation: ct);
     }
 }

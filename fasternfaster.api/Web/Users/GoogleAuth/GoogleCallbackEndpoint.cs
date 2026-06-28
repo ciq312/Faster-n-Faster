@@ -14,6 +14,7 @@ namespace FasterNFaster.Api.Web.Users.GoogleAuth;
 public class GoogleCallbackEndpoint(
     IExternalLoginStore externalLoginService,
     ITokenService tokenService,
+    ICookiesWriter cookies,
     IUserRepository userRepo,
     ISessionService sessions,
     IOptions<AppOptions> appOptions) : EndpointWithoutRequest
@@ -21,6 +22,7 @@ public class GoogleCallbackEndpoint(
     private readonly IUserRepository userRepo = userRepo;
     private readonly IExternalLoginStore externalLoginService = externalLoginService;
     private readonly ITokenService tokenService = tokenService;
+    private readonly ICookiesWriter cookies = cookies;
     private readonly ISessionService sessions = sessions;
     private readonly AppOptions appOptions = appOptions.Value;
 
@@ -65,7 +67,9 @@ public class GoogleCallbackEndpoint(
 
         await HttpContext.SignOutAsync("External");
 
-        await tokenService.HandlePlayerAuth(user.Id, user.Nick);
+        var tokens = await tokenService.IssuePlayerTokens(user.Id, user.Nick);
+        cookies.WriteAccessTokenCookie(tokens.AccessToken);
+        cookies.WriteRefreshTokenCookie(tokens.RefreshToken!);
 
         var returnUrl = result.Properties?.Items["returnUrl"];
         var safeReturnUrl = ResolveSafeReturnUrl(returnUrl);
