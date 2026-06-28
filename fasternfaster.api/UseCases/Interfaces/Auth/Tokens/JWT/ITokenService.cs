@@ -1,10 +1,13 @@
+using FasterNFaster.Api.UseCases.Auth.Tokens;
+
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface ITokenService
 {
-    public Task HandlePlayerAuth(Guid userId, string userName);
+    Task<TokenPair> IssuePlayerTokens(Guid userId, string userName);
 
-    public Task HandleGuestAuth(Guid guestId, string guestName);
+    TokenPair IssueGuestTokens(Guid guestId, string guestName);
 
-    public Task<bool> TryRefreshToken(string refreshToken);
+    // Returns the rotated token pair, or null if the refresh token is invalid/expired.
+    Task<TokenPair?> TryRefreshTokens(string refreshToken);
 }

@@ -14,9 +14,10 @@ public class RegisterAnonymousRequest
     public string Nick { get; set; } = null!;
 }
 
-public class RegisterAnonymousEndpoint(ITokenService tokenService) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
+public class RegisterAnonymousEndpoint(ITokenService tokenService, ICookiesWriter cookies) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
 {
     private readonly ITokenService tokenService = tokenService;
+    private readonly ICookiesWriter cookies = cookies;
 
     public override void Configure()
     {
@@ -28,7 +29,10 @@ public class RegisterAnonymousEndpoint(ITokenService tokenService) : Endpoint<Re
     {
         var GuestId = Guid.NewGuid();
 
-        await tokenService.HandleGuestAuth(GuestId, req.Nick);
+        var tokens = tokenService.IssueGuestTokens(GuestId, req.Nick);
+
+        cookies.DeleteTokensCookies();
+        cookies.WriteGuestAccessTokenCookie(tokens.AccessToken);
 
         await Send.CreatedAtAsync<RegisterAnonymousEndpoint>(new { GuestId = GuestId }, cancellation: ct);
     }

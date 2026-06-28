@@ -11,14 +11,15 @@ public class ResendVerificationHandler(
     IUserRepository userRepo,
     IConfirmTokenRepository tokenRepo,
     IConfirmTokenFactory tokenFactory,
-    IEmailSender emailSender) : IRequestHandler<ResendVerificationCommand>
+    IEmailSender emailSender,
+    ResendVerificationOptions options) : IRequestHandler<ResendVerificationCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
     private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
     private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
     private readonly IEmailSender emailSender = emailSender;
+    private readonly ResendVerificationOptions options = options;
 
-    private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);
 
     public async Task Handle(ResendVerificationCommand command, CancellationToken cancellationToken)
     {
@@ -27,7 +28,8 @@ public class ResendVerificationHandler(
         if (user.IsEmailVerified) return;
 
         Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.EmailVerification);
-        if (latest is not null && DateTime.UtcNow - latest.CreatedAt < ResendCooldown) return;
+
+        if (latest is not null && IsWithinCooldown(latest)) return;
 
         await tokenRepo.RemoveAllForUser(user.Id, TokenType.EmailVerification);
 
@@ -37,4 +39,6 @@ public class ResendVerificationHandler(
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, token.Value);
     }
+
+    private bool IsWithinCooldown(Token token) => DateTime.UtcNow - token.CreatedAt < options.Cooldown;
 }
