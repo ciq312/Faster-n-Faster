@@ -1,83 +1,91 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Web.Options.JwtOptions;
-using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class RedisRefreshTokenRepository : IRefreshTokenRepository
+public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefreshTokenRepository
 {
-    private readonly IDatabase db;
-    private readonly TimeSpan ttl;
+    private readonly IConnectionMultiplexer redis = redis;
+    private readonly IDatabase db = redis.GetDatabase();
 
-    public RedisRefreshTokenRepository(IConnectionMultiplexer redis, IOptions<JwtOptions> options)
+    private static string TokenToUserKey(string token) => $"auth:refresh:{token}";
+    private static string UserToTokenKey(Guid userId, string token) => $"auth:user:{userId}:token:{token}";
+
+    public async Task Issue(Guid userId, string refreshToken, TimeSpan ttl)
     {
-        db = redis.GetDatabase();
-        ttl = options.Value.RefreshTokenLifetime;
+        var tran = db.CreateTransaction();
+        QueueStoreToken(tran, userId, refreshToken, ttl);
+        await tran.ExecuteAsync();
     }
 
-    private static string TokenKey(string token) => $"auth:refresh:{token}";
-    private static string UserKey(Guid userId) => $"auth:user:{userId}:refresh";
-
-    public async Task StoreRefreshToken(Guid userId, string refreshToken)
+    public async Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan? ttl)
     {
-        var existing = await db.StringGetAsync(UserKey(userId));
-        if (existing.HasValue)
-            await db.KeyDeleteAsync(TokenKey(existing!));
+        var oldTokenKey = TokenToUserKey(oldRefreshToken);
+        var userIdValue = await db.StringGetAsync(oldTokenKey);
+        if (!IsUserIdFound(userIdValue)) return null;
 
-        var batch = db.CreateBatch();
-        var setToken = batch.StringSetAsync(TokenKey(refreshToken), userId.ToString(), ttl);
-        var setUser = batch.StringSetAsync(UserKey(userId), refreshToken, ttl);
-        batch.Execute();
-        await Task.WhenAll(setToken, setUser);
+        var userId = Guid.Parse(userIdValue.ToString());
+
+        var newTtl = ttl ?? await db.KeyTimeToLiveAsync(oldTokenKey);
+        if (newTtl is null || newTtl <= TimeSpan.Zero) return null;
+
+        var tran = db.CreateTransaction();
+        QueueDeleteToken(tran, userId, oldRefreshToken);
+        QueueStoreToken(tran, userId, newRefreshToken, newTtl.Value);
+        if (!await tran.ExecuteAsync()) return null;
+
+        return userId;
     }
 
-    public async Task<bool> IsRefreshTokenValid(string refreshToken)
+    public async Task Invalidate(string refreshToken)
     {
-        var userIdValue = await db.StringGetAsync(TokenKey(refreshToken));
-        if (!userIdValue.HasValue) return false;
-        if (!Guid.TryParse((string?)userIdValue, out var userId)) return false;
+        var tokenKey = TokenToUserKey(refreshToken);
+        var userIdValue = await db.StringGetAsync(tokenKey);
 
-        var active = await db.StringGetAsync(UserKey(userId));
-        return active.HasValue && active == refreshToken;
+        if (!IsUserIdFound(userIdValue))
+        {
+            await db.KeyDeleteAsync(tokenKey);
+            return;
+        }
+
+        var userId = Guid.Parse(userIdValue.ToString());
+
+        var tran = db.CreateTransaction();
+        QueueDeleteToken(tran, userId, refreshToken);
+        await tran.ExecuteAsync();
     }
 
-    public async Task DeleteRefreshToken(string refreshToken)
+    public async Task InvalidateAll(Guid userId)
     {
-        var userIdValue = await db.StringGetAsync(TokenKey(refreshToken));
-        await db.KeyDeleteAsync(TokenKey(refreshToken));
+        foreach (var endpoint in redis.GetEndPoints())
+        {
+            var server = redis.GetServer(endpoint);
+            var userTokenKeys = server.Keys(pattern: $"auth:user:{userId}:token:*").ToArray();
+            if (userTokenKeys.Length == 0) continue;
 
-        if (!userIdValue.HasValue || !Guid.TryParse((string?)userIdValue, out var userId)) return;
-
-        // Only clear the user→token pointer if it still points to this token
-        var current = await db.StringGetAsync(UserKey(userId));
-        if (current.HasValue && current == refreshToken)
-            await db.KeyDeleteAsync(UserKey(userId));
+            var batch = db.CreateBatch();
+            foreach (var key in userTokenKeys)
+            {
+                var token = key.ToString().Split(':').Last();
+                _ = batch.KeyDeleteAsync(key);
+                _ = batch.KeyDeleteAsync(TokenToUserKey(token));
+            }
+            batch.Execute();
+        }
     }
 
-    public async Task<bool> TryRefreshToken(string oldRefreshToken, string newRefreshToken)
+    private static bool IsUserIdFound(RedisValue userIdValue) =>
+        userIdValue.HasValue && Guid.TryParse((string?)userIdValue, out _);
+
+    private static void QueueStoreToken(ITransaction tran, Guid userId, string token, TimeSpan ttl)
     {
-        if (!await IsRefreshTokenValid(oldRefreshToken)) return false;
-
-        var userIdValue = await db.StringGetAsync(TokenKey(oldRefreshToken));
-        if (!userIdValue.HasValue || !Guid.TryParse((string?)userIdValue, out var userId)) return false;
-
-        await DeleteRefreshToken(oldRefreshToken);
-        await StoreRefreshToken(userId, newRefreshToken);
-        return true;
+        _ = tran.StringSetAsync(TokenToUserKey(token), userId.ToString(), ttl);
+        _ = tran.StringSetAsync(UserToTokenKey(userId, token), "active", ttl);
     }
 
-    public async Task<Guid> GetUserIdByTokenAsync(string refreshToken)
+    private static void QueueDeleteToken(ITransaction tran, Guid userId, string token)
     {
-        var value = await db.StringGetAsync(TokenKey(refreshToken));
-        return value.HasValue && Guid.TryParse((string?)value, out var id) ? id : Guid.Empty;
-    }
-
-    public async Task DeleteAllTokensForUserAsync(Guid userId)
-    {
-        var token = await db.StringGetAsync(UserKey(userId));
-        await db.KeyDeleteAsync(UserKey(userId));
-        if (token.HasValue)
-            await db.KeyDeleteAsync(TokenKey(token!));
+        _ = tran.KeyDeleteAsync(TokenToUserKey(token));
+        _ = tran.KeyDeleteAsync(UserToTokenKey(userId, token));
     }
 }

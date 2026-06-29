@@ -17,6 +17,6 @@ public class InMemorySessionService(IRefreshTokenRepository tokenStore) : ISessi
     public async Task InvalidateAll(Guid userId)
     {
         userSessions.Remove(userId, out _);
-        await tokenStore.DeleteAllTokensForUserAsync(userId);
+        await tokenStore.InvalidateAll(userId);
     }
 }

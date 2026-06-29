@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.JwtOptions;
+namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class JwtOptions
 {
@@ -8,6 +8,7 @@ public class JwtOptions
     public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(5);
     public TimeSpan GuestAccessTokenLifetime { get; set; } = TimeSpan.FromDays(7);
     public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromHours(4);
+    public bool SlidingRefreshExpiration { get; set; } = true;
     public string GuestRole { get; set; } = "Guest";
     public string PlayerRole { get; set; } = "Player";
 }

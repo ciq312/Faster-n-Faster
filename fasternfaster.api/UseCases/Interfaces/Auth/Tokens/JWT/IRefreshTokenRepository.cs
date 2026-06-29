@@ -2,10 +2,11 @@ namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface IRefreshTokenRepository
 {
-    Task StoreRefreshToken(Guid userId, string refreshToken);
-    public Task<bool> TryRefreshToken(string oldRefreshToken, string newRefreshToken);
-    Task<bool> IsRefreshTokenValid(string refreshToken);
-    Task DeleteRefreshToken(string refreshToken);
-    public Task<Guid> GetUserIdByTokenAsync(string refreshToken);
-    Task DeleteAllTokensForUserAsync(Guid userId);
+    Task Issue(Guid userId, string refreshToken, TimeSpan ttl);
+
+    Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan? ttl);
+
+    Task Invalidate(string refreshToken);
+
+    Task InvalidateAll(Guid userId);
 }

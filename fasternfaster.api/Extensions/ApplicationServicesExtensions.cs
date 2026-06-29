@@ -51,7 +51,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 
-        services.AddScoped<ITokenService, SlidingJwtTokenService>();
+        services.AddScoped<ITokenService, JwtTokenService>();
         services.AddHttpContextAccessor();
         services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();
         services.AddSingleton<IRefreshTokenRepository, RedisRefreshTokenRepository>();
