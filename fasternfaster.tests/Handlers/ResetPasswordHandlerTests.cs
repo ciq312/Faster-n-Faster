@@ -1,11 +1,12 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
-using FasterNFaster.Api.Web.Options.JwtOptions;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -20,7 +21,7 @@ public class ResetPasswordHandlerTests
     {
         public required FakeUserRepository UserRepo { get; init; }
         public required FakeTokenRepo TokenRepo { get; init; }
-        public required TokenStore TokenStore { get; init; }
+        public required InMemoryRefreshTokenRepository TokenStore { get; init; }
         public required InMemorySessionService Sessions { get; init; }
         public required ResetPasswordHandler Handler { get; init; }
         public required User User { get; init; }
@@ -40,10 +41,7 @@ public class ResetPasswordHandlerTests
         var resetToken = setup.TokenFactory.GetToken(user.Id, TokenType.PasswordReset);
         await setup.TokenRepo.Add(resetToken);
 
-        var tokenStore = new TokenStore(Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        }));
+        var tokenStore = new InMemoryRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
 
         var handler = new ResetPasswordHandler(
@@ -66,7 +64,7 @@ public class ResetPasswordHandlerTests
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory();
         var token = tokenFactory.GetToken(ctx.User.Id, TokenType.PasswordReset);
         await ctx.TokenRepo.Add(token);
 

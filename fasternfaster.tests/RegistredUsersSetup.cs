@@ -14,7 +14,7 @@ public static class RegistredUsersSetup
         var userRepo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
         var tokenRepo = new FakeTokenRepo();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory();
 
         var handler = new RegisterUserHandler(userRepo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
@@ -23,7 +23,7 @@ public static class RegistredUsersSetup
         return new SetupResult(userRepo, emailSender, tokenRepo, tokenFactory);
 
     }
-    public record SetupResult(FakeUserRepository repo, FakeEmailSender EmailSender, FakeTokenRepo TokenRepo, TokenFactory TokenFactory);
+    public record SetupResult(FakeUserRepository repo, FakeEmailSender EmailSender, FakeTokenRepo TokenRepo, ConfirmTokenFactory TokenFactory);
 
 
 }

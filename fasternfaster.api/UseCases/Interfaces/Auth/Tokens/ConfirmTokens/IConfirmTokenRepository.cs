@@ -9,5 +9,4 @@ public interface IConfirmTokenRepository
     Task Add(Token token);
     Task Remove(Token token);
     Task RemoveAllForUser(Guid userId, TokenType type);
-    Task SaveChangesAsync();
 }

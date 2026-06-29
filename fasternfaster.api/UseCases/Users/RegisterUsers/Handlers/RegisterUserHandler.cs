@@ -35,7 +35,6 @@ public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordH
 
         var verificationToken = tokenFactory.GetToken(user.Id, TokenType.EmailVerification);
         await tokenRepo.Add(verificationToken);
-        await tokenRepo.SaveChangesAsync();
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, verificationToken.Value);
 

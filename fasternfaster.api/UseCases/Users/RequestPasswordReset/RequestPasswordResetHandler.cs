@@ -34,7 +34,6 @@ public class RequestPasswordResetHandler(
 
         Token token = tokenFactory.GetToken(user.Id, TokenType.PasswordReset);
         await tokenRepo.Add(token);
-        await tokenRepo.SaveChangesAsync();
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);
     }

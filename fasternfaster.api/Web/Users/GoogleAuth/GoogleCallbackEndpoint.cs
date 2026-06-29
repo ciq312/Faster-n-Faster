@@ -1,29 +1,22 @@
 using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Users.ExternalLogin.Commands;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Web.Users.GoogleAuth;
 
 public class GoogleCallbackEndpoint(
-    IExternalLoginStore externalLoginService,
-    ITokenService tokenService,
-    ICookiesWriter cookies,
-    IUserRepository userRepo,
-    ISessionService sessions,
+    ISender sender,
+    IAuthTokenWriter auth,
     IOptions<AppOptions> appOptions) : EndpointWithoutRequest
 {
-    private readonly IUserRepository userRepo = userRepo;
-    private readonly IExternalLoginStore externalLoginService = externalLoginService;
-    private readonly ITokenService tokenService = tokenService;
-    private readonly ICookiesWriter cookies = cookies;
-    private readonly ISessionService sessions = sessions;
+    private readonly ISender sender = sender;
+    private readonly IAuthTokenWriter auth = auth;
     private readonly AppOptions appOptions = appOptions.Value;
 
     public override void Configure()
@@ -34,7 +27,6 @@ public class GoogleCallbackEndpoint(
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        // Reads claims from the transient "External" cookie that Google's handler signed into.
         var result = await HttpContext.AuthenticateAsync("External");
         if (!result.Succeeded || result.Principal is null)
         {
@@ -52,24 +44,11 @@ public class GoogleCallbackEndpoint(
             return;
         }
 
-        var user = await userRepo.GetByEmailAsync(email);
-
-        if (user == null)
-        {
-            user = new User(name, null, null);
-            user.SetEmail(email);
-            user.SetEmailVerified();
-
-            await userRepo.AddAsync(user);
-
-            await externalLoginService.CreateAsyncLoginInfo(user.Id, provider: "google", subject, email);
-        }
+        var login = await sender.Send(new ExternalLoginCommand("google", subject, email, name, EmailVerified: true), ct);
 
         await HttpContext.SignOutAsync("External");
 
-        var tokens = await tokenService.IssuePlayerTokens(user.Id, user.Nick);
-        cookies.WriteAccessTokenCookie(tokens.AccessToken);
-        cookies.WriteRefreshTokenCookie(tokens.RefreshToken!);
+        auth.WriteAuth(login.Tokens);
 
         var returnUrl = result.Properties?.Items["returnUrl"];
         var safeReturnUrl = ResolveSafeReturnUrl(returnUrl);
@@ -77,8 +56,6 @@ public class GoogleCallbackEndpoint(
         await Send.RedirectAsync(safeReturnUrl, isPermanent: false, allowRemoteRedirects: true);
     }
 
-    // Only allow redirecting back to the configured frontend origin. Anything else
-    // (different host, different scheme, malformed) falls back to the frontend root.
     private string ResolveSafeReturnUrl(string? returnUrl)
     {
         var frontendBase = appOptions.FrontendUrl ?? string.Empty;

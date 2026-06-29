@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
@@ -57,7 +58,7 @@ public class RequestPasswordResetHandlerTests
         var userRepo = new FakeUserRepository();
         var tokenRepo = new FakeTokenRepo();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory();
 
         // Anonymous-ctor user has null Login and null Password — same shape as a Google-only account.
         var googleUser = new User("googleNick");
