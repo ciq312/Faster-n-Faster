@@ -55,10 +55,10 @@ public static class ApplicationServicesExtensions
         services.AddHttpContextAccessor();
         services.AddSingleton<IJwtTokenFactory, JwtTokenFactory>();
         services.AddSingleton<IRefreshTokenRepository, RedisRefreshTokenRepository>();
-        services.AddSingleton<ICookiesWriter, CookieWriter>();
+        services.AddSingleton<IAuthTokenWriter, CookieWriter>();
         services.AddScoped<IConfirmTokenFactory, ConfirmTokenFactory>();
-        services.AddScoped<IConfirmTokenRepository, ConfirmTokenRepository>();
-        services.AddScoped<IExternalLoginStore, ExternalLoginStore>();
+        services.AddSingleton<IConfirmTokenRepository, RedisConfirmTokenRepository>();
+        services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
 
         services.AddScoped<ILeaderboardService, LeaderboardService>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();

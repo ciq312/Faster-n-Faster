@@ -14,6 +14,12 @@ public class PostgresUserRepository(AppDbContext context) : IUserRepository
         await appDbContext.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(User user)
+    {
+        appDbContext.Users.Update(user);
+        await appDbContext.SaveChangesAsync();
+    }
+
     public async Task<User?> GetByIdAsync(Guid id)
     {
         return await appDbContext.Users.FindAsync(id);

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
+using FasterNFaster.Api.UseCases.Interfaces;
 
 namespace FasterNFaster.Tests.Fakes;
 

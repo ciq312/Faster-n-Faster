@@ -1,5 +1,8 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Helpers;
+using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Infrastructure.Lobbies;
+using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
 using FasterNFaster.Api.UseCases.Services;
@@ -19,10 +22,11 @@ public class CreateLobbyHandlerTests
     {
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
-        var lobbyStore = new LobbyStore();
+        var dispatcher = new FakeEventDispatcher();
+        var lobbyStore = new InMemoryLobbyStore();
 
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(publisher), publisher, new InMemoryPlayerLocationRegistry());
-        var raceService = new RaceService(new AggregateRootHelper(publisher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
 
@@ -41,10 +45,11 @@ public class CreateLobbyHandlerTests
     {
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
-        var lobbyStore = new LobbyStore();
+        var dispatcher = new FakeEventDispatcher();
+        var lobbyStore = new InMemoryLobbyStore();
 
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(publisher), publisher, new InMemoryPlayerLocationRegistry());
-        var raceService = new RaceService(new AggregateRootHelper(publisher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
         var lobbyId = Guid.NewGuid();

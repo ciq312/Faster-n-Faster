@@ -30,11 +30,12 @@ public class ResetPasswordHandler(
         User user = await userRepo.GetByIdAsync(token.UserId)
             ?? throw new UserNotFoundException(token.UserId);
 
+        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
+
         string hashedPassword = passwordHelper.HashPassword(user, command.NewPassword);
         user.SetPassword(hashedPassword);
 
         sessionService.ClearActiveSession(user.Id);
-        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
-        await tokenRepo.SaveChangesAsync();
+        await userRepo.UpdateAsync(user);
     }
 }

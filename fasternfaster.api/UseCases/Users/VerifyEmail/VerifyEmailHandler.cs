@@ -21,8 +21,8 @@ public class VerifyEmailHandler(IUserRepository repo, IConfirmTokenRepository to
 
         User user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
         user.SetEmailVerified();
+        await repo.UpdateAsync(user);
 
         await tokenRepository.Remove(token);
-        await tokenRepository.SaveChangesAsync();
     }
 }

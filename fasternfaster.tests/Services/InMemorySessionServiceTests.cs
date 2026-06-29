@@ -1,17 +1,14 @@
-using FasterNFaster.Api.Web.Options.JwtOptions;
-using FasterNFaster.Api.Web.Services.Implementations;
-using Microsoft.Extensions.Options;
+using FasterNFaster.Api.Infrastructure.Auth;
 
 namespace FasterNFaster.Tests.Services;
 
 public class InMemorySessionServiceTests
 {
-    private static (InMemorySessionService sessions, TokenStore tokenStore) Create()
+    private static readonly TimeSpan Ttl = TimeSpan.FromHours(1);
+
+    private static (InMemorySessionService sessions, InMemoryRefreshTokenRepository tokenStore) Create()
     {
-        var tokenStore = new TokenStore(Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        }));
+        var tokenStore = new InMemoryRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
         return (sessions, tokenStore);
     }
@@ -34,11 +31,11 @@ public class InMemorySessionServiceTests
         var (sessions, tokenStore) = Create();
         var userId = Guid.NewGuid();
         var token = "refresh-A";
-        await tokenStore.StoreRefreshToken(userId, token);
+        await tokenStore.Issue(userId, token, Ttl);
 
         await sessions.InvalidateAll(userId);
 
-        Assert.False(await tokenStore.IsRefreshTokenValid(token));
+        Assert.Null(await tokenStore.RotateRefreshToken(token, "new", Ttl));
     }
 
     [Fact]
@@ -62,12 +59,12 @@ public class InMemorySessionServiceTests
         var (sessions, tokenStore) = Create();
         var userA = Guid.NewGuid();
         var userB = Guid.NewGuid();
-        await tokenStore.StoreRefreshToken(userA, "refresh-A");
-        await tokenStore.StoreRefreshToken(userB, "refresh-B");
+        await tokenStore.Issue(userA, "refresh-A", Ttl);
+        await tokenStore.Issue(userB, "refresh-B", Ttl);
 
         await sessions.InvalidateAll(userA);
 
-        Assert.False(await tokenStore.IsRefreshTokenValid("refresh-A"));
-        Assert.True(await tokenStore.IsRefreshTokenValid("refresh-B"));
+        Assert.Null(await tokenStore.RotateRefreshToken("refresh-A", "a-new", Ttl));
+        Assert.Equal(userB, await tokenStore.RotateRefreshToken("refresh-B", "b-new", Ttl));
     }
 }

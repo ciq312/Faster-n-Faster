@@ -15,7 +15,7 @@ public class LobbyServiceTests
         await context.LobbyService.TransferHost(host.Id, other.Id);
 
         Assert.True(context.Lobby.HostId == other.Id);
-        Assert.Single(context.Publisher.Published);
-        Assert.True(context.Publisher.Published[0] is HostChangedEvent);
+        Assert.Single(context.Dispatcher.Dispatched);
+        Assert.True(context.Dispatcher.Dispatched[0] is HostChangedEvent);
     }
 }

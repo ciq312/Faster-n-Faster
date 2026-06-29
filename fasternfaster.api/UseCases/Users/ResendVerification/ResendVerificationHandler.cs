@@ -35,7 +35,6 @@ public class ResendVerificationHandler(
 
         Token token = tokenFactory.GetToken(user.Id, TokenType.EmailVerification);
         await tokenRepo.Add(token);
-        await tokenRepo.SaveChangesAsync();
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, token.Value);
     }
