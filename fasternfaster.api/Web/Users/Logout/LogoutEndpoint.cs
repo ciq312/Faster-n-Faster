@@ -15,8 +15,6 @@ public class LogoutEndpoint(
     public override void Configure()
     {
         Post("/api/auth/logout");
-        // Anonymous so the call still succeeds when the access token has already expired —
-        // we always want to clear cookies on the client even if there's nothing left to revoke.
         AllowAnonymous();
     }
 

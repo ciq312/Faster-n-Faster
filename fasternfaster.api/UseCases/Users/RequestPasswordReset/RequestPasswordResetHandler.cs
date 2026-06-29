@@ -11,24 +11,24 @@ public class RequestPasswordResetHandler(
     IUserRepository userRepo,
     IConfirmTokenRepository tokenRepo,
     IConfirmTokenFactory tokenFactory,
-    IEmailSender emailSender) : IRequestHandler<RequestPasswordResetCommand>
+    IEmailSender emailSender,
+    RequestPasswordResetOptions options) : IRequestHandler<RequestPasswordResetCommand>
 {
     private readonly IUserRepository userRepo = userRepo;
     private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
     private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
     private readonly IEmailSender emailSender = emailSender;
-
-    private static readonly TimeSpan ResendCooldown = TimeSpan.FromSeconds(15);
+    private readonly RequestPasswordResetOptions options = options;
 
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;
-    
+
         if (user.Password is null) return;
 
         Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.PasswordReset);
-        if (latest is not null && DateTime.UtcNow - latest.CreatedAt < ResendCooldown) return;
+        if (latest is not null && IsWithinCooldown(latest)) return;
 
         await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
 
@@ -38,4 +38,6 @@ public class RequestPasswordResetHandler(
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);
     }
+
+    private bool IsWithinCooldown(Token token) => DateTime.UtcNow - token.CreatedAt < options.Cooldown;
 }

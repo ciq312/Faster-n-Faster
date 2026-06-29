@@ -1,77 +1,54 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Web.Options.JwtOptions;
-using FasterNFaster.Api.Web.Services.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class InMemoryRefreshTokenRepository(IOptions<JwtOptions> options) : IRefreshTokenRepository
+public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 {
-    private readonly JwtOptions jwtOptions = options.Value;
-    private readonly ConcurrentDictionary<string, DateTime> refreshTokenExpiries = new();
-    private readonly ConcurrentDictionary<string, Guid> tokenToId = new();
-    private readonly ConcurrentDictionary<Guid, string> idToToken = new();
+    private readonly ConcurrentDictionary<string, Guid> tokenToUser = new();
+    private readonly ConcurrentDictionary<string, DateTime> expiries = new();
 
-    public Task StoreRefreshToken(Guid userId, string refreshToken)
+    public Task Issue(Guid userId, string refreshToken, TimeSpan ttl)
     {
-        if (idToToken.TryGetValue(userId, out var existing))
-        {
-            tokenToId.TryRemove(existing, out _);
-            refreshTokenExpiries.TryRemove(existing, out _);
-        }
-        tokenToId[refreshToken] = userId;
-        refreshTokenExpiries[refreshToken] = DateTime.UtcNow.Add(jwtOptions.RefreshTokenLifetime);
-        idToToken[userId] = refreshToken;
+        tokenToUser[refreshToken] = userId;
+        expiries[refreshToken] = DateTime.UtcNow.Add(ttl);
         return Task.CompletedTask;
     }
 
-    public async Task<bool> TryRefreshToken(string oldRefreshToken, string newRefreshToken)
+    public Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan? ttl)
     {
-        if (await IsRefreshTokenValid(oldRefreshToken))
-        {
-            var userId = tokenToId[oldRefreshToken];
-            await DeleteRefreshToken(oldRefreshToken);
-            await StoreRefreshToken(userId, newRefreshToken);
-            return true;
-        }
-        return false;
+        if (!IsValid(oldRefreshToken)) return Task.FromResult<Guid?>(null);
+
+        var userId = tokenToUser[oldRefreshToken];
+
+        var newTtl = ttl ?? (expiries[oldRefreshToken] - DateTime.UtcNow);
+        if (newTtl <= TimeSpan.Zero) return Task.FromResult<Guid?>(null);
+
+        Remove(oldRefreshToken);
+        tokenToUser[newRefreshToken] = userId;
+        expiries[newRefreshToken] = DateTime.UtcNow.Add(newTtl);
+        return Task.FromResult<Guid?>(userId);
     }
 
-    public Task<bool> IsRefreshTokenValid(string refreshToken)
+    public Task Invalidate(string refreshToken)
     {
-        if (!tokenToId.TryGetValue(refreshToken, out var userId))
-            return Task.FromResult(false);
-
-        var actualRefreshToken = idToToken.GetValueOrDefault(userId);
-        if (actualRefreshToken != refreshToken)
-            return Task.FromResult(false);
-
-        var expiryTime = refreshTokenExpiries.GetValueOrDefault(refreshToken);
-        if (expiryTime == default || expiryTime < DateTime.UtcNow) return Task.FromResult(false);
-        return Task.FromResult(true);
-    }
-
-    public Task DeleteRefreshToken(string refreshToken)
-    {
-        if (tokenToId.TryRemove(refreshToken, out var userId))
-        {
-            refreshTokenExpiries.TryRemove(refreshToken, out _);
-            idToToken.TryRemove(userId, out _);
-        }
+        Remove(refreshToken);
         return Task.CompletedTask;
     }
 
-    public Task<Guid> GetUserIdByTokenAsync(string refreshToken) =>
-        Task.FromResult(tokenToId.GetValueOrDefault(refreshToken));
-
-    public Task DeleteAllTokensForUserAsync(Guid userId)
+    public Task InvalidateAll(Guid userId)
     {
-        if (idToToken.TryRemove(userId, out var token))
-        {
-            tokenToId.TryRemove(token, out _);
-            refreshTokenExpiries.TryRemove(token, out _);
-        }
+        foreach (var token in tokenToUser.Where(kv => kv.Value == userId).Select(kv => kv.Key).ToArray())
+            Remove(token);
         return Task.CompletedTask;
+    }
+
+    private bool IsValid(string token) =>
+        tokenToUser.ContainsKey(token) && expiries.TryGetValue(token, out var exp) && exp > DateTime.UtcNow;
+
+    private void Remove(string token)
+    {
+        tokenToUser.TryRemove(token, out _);
+        expiries.TryRemove(token, out _);
     }
 }
