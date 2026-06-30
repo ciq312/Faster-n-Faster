@@ -9,7 +9,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users { get; set; }
     public DbSet<ExternalLogin> ExternalLogins { get; set; }
-    public DbSet<Token> Tokens { get; set; }
     public DbSet<PlayerStatistics> Statistics { get; set; }
     public DbSet<BannedPlayer> BannedPlayers { get; set; }
 
@@ -38,14 +37,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             b.HasIndex(x => new { x.Provider, x.ExternalSubject })
                 .IsUnique();
 
-            b.HasOne<User>()
-                .WithMany()
-                .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<Token>(b =>
-        {
             b.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserId)

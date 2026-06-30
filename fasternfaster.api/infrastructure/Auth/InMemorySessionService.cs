@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Web.Services.Interfaces;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 

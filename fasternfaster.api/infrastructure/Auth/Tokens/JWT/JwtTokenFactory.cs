@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using FastEndpoints.Security;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
