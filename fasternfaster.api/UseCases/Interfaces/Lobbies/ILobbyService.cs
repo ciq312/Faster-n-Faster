@@ -7,7 +7,7 @@ public interface ILobbyService
 {
     Task JoinLobby(User user, Guid lobbyId, string? code);
     Task TransferHost(Guid hostId, Guid userId);
-    Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId);
+    ValueTask<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId);
     Task ChangePlayerColor(Guid lobbyId, Guid userId, string color);
 
     Guid? GetLobbyIdOfPlayer(Guid userId);

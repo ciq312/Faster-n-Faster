@@ -33,7 +33,7 @@ public class LobbyService(
         await WithLobby(lobbyId, lobby => lobby.Join(user, code));
     }
 
-    public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
+    public ValueTask<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
     {
         if (locationRegistry.GetLobbyIdOfPlayer(creatorId) != null)
             throw new AlreadyInLobbyException();
@@ -43,7 +43,7 @@ public class LobbyService(
         lobby.GenerateUniqueInviteCode(c => lobbyStore.GetByInviteCode(c) != null);
 
         lobbyStore.Add(lobby);
-        return lobby;
+        return ValueTask.FromResult(lobby);
     }
 
     public async Task TransferHost(Guid hostId, Guid userId)
