@@ -104,6 +104,6 @@ public class RaceParticipant
     public float GetAccuracy()
     {
         if (Index < 0) throw new InvalidOperationException("Index can't be negative");
-        return 1 - (float)Mistakes / (Index + 1);
+        return (1 - (float)Mistakes / (Index + 1)) * 100;
     }
 }

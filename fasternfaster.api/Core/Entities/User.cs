@@ -8,14 +8,8 @@ public class User
 {
     public Guid Id { get; private set; }
     public string? Email { get; private set; }
-
-    [StringLength(30, MinimumLength = 1), Required]
     public string Nick { get; private set; }
-
-    [StringLength(100, MinimumLength = 4)]
     public string? Login { get; private set; }
-
-    [StringLength(100, MinimumLength = 4)]
     public string? Password { get; private set; }
     public bool IsAnonymous => Login == null;
     public bool IsEmailVerified { get; private set; } = false;
