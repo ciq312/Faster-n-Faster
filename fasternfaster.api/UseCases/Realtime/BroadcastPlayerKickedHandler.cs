@@ -8,15 +8,13 @@ namespace FasterNFaster.Api.UseCases.Realtime;
 
 public class BroadcastPlayerKickedHandler(
     IBroadcaster broadcaster,
-    ILobbyChannel lobbyChannel,
     ILobbyStateBroadcaster lobbyState) : INotificationHandler<DomainEventNotification<PlayerKickedEvent>>
 {
     public async Task Handle(DomainEventNotification<PlayerKickedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
 
-        await lobbyChannel.Leave(e.UserId, e.LobbyId);
-        await broadcaster.Broadcast(Audience.LobbyExcept(e.LobbyId, e.UserId), GameEvents.PlayerKicked, new PlayerKickedDTO(e.UserId, e.Nick));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.PlayerKicked, new PlayerKickedDTO(e.UserId, e.Nick));
         await broadcaster.Broadcast(Audience.Player(e.UserId), GameEvents.Kicked);
         await lobbyState.BroadcastLobbyState(e.LobbyId);
     }

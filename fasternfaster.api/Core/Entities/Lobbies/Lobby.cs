@@ -24,6 +24,7 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
         if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
 
         IsSessionActive = true;
+        RaiseDomainEvent(new SessionStartedEvent(Id));
     }
 
     public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.User.Id, x.Color, x.User.Nick)).ToList();
@@ -58,6 +59,7 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
         var player = new LobbyPlayer(user, this, joinOrder, color);
         Players.Add(player);
         LobbySettings.UpdateTimestamp();
+        RaiseDomainEvent(new PlayerJoinedEvent(user.Id, Id, user.Nick));
     }
 
     public void AssignHost(Guid hostId)
