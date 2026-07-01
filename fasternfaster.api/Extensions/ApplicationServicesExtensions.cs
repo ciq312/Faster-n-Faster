@@ -16,11 +16,13 @@ using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
+using FasterNFaster.Api.Web.Realtime;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using FasternFaster.Api.UseCases.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -65,6 +67,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<ILobbyStateBroadcaster, LobbyStateBroadcaster>();
 
         services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
+        services.AddSingleton<IBroadcaster, SignalRBroadcaster>();
+        services.AddSingleton<ILobbyChannel, SignalRLobbyChannel>();
         services.AddSingleton<RaceService>();
         services.AddSingleton<IRaceInternals>(sp => sp.GetRequiredService<RaceService>());
         services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());

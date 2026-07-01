@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.UseCases.Leaderboards;
 using FasterNFaster.Api.UseCases.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,14 +44,15 @@ public class LeaderboardServiceTests : IAsyncLifetime
         using var context = new AppDbContext(_options);
         var service = new LeaderboardService(context);
 
-        var result = await service.GetTopPlayersAsync("BestWPM", true, 2);
-        var list = result.ToList();
+        var result = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 2);
+        var list = result.Items;
+        Assert.Equal(5, result.TotalPlayers);
         Assert.Equal(2, list.Count);
         Assert.Equal(50, list[0].AvgWPM);
         Assert.Equal(40, list[1].AvgWPM);
 
-        var resultAcc = await service.GetTopPlayersAsync("AvgAccuracy", true, 3);
-        var listAcc = resultAcc.ToList();
+        var resultAcc = await service.GetTopPlayersAsync(LeaderboardSort.AvgAccuracy, true, 1, 3);
+        var listAcc = resultAcc.Items;
         Assert.Equal(3, listAcc.Count);
         Assert.Equal(94, listAcc[0].AvgAccuracy);
         Assert.Equal(93, listAcc[1].AvgAccuracy);
@@ -64,17 +66,33 @@ public class LeaderboardServiceTests : IAsyncLifetime
         using var context = new AppDbContext(_options);
         var service = new LeaderboardService(context);
 
-        var result = await service.GetTopPlayersAsync("AvgWPM", false, 2);
-        var list = result.ToList();
+        // Ascending now means literal sort direction: page 1 holds the lowest values.
+        var result = await service.GetTopPlayersAsync(LeaderboardSort.AvgWpm, false, 1, 2);
+        var list = result.Items;
         Assert.Equal(2, list.Count);
-        Assert.Equal(40, list[0].AvgWPM);
-        Assert.Equal(50, list[1].AvgWPM);
+        Assert.Equal(10, list[0].AvgWPM);
+        Assert.Equal(20, list[1].AvgWPM);
 
-        var resultAcc = await service.GetTopPlayersAsync("AvgAccuracy", false, 3);
-        var listAcc = resultAcc.ToList();
+        var resultAcc = await service.GetTopPlayersAsync(LeaderboardSort.AvgAccuracy, false, 1, 3);
+        var listAcc = resultAcc.Items;
         Assert.Equal(3, listAcc.Count);
-        Assert.Equal(92, listAcc[0].AvgAccuracy);
-        Assert.Equal(93, listAcc[1].AvgAccuracy);
-        Assert.Equal(94, listAcc[2].AvgAccuracy);
+        Assert.Equal(90, listAcc[0].AvgAccuracy);
+        Assert.Equal(91, listAcc[1].AvgAccuracy);
+        Assert.Equal(92, listAcc[2].AvgAccuracy);
+    }
+
+    [Fact]
+    public async Task GetTopPlayersAsync_SecondPage_SkipsFirstPage()
+    {
+        using var context = new AppDbContext(_options);
+        var service = new LeaderboardService(context);
+
+        var page2 = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 2, 2);
+        var list = page2.Items;
+        Assert.Equal(5, page2.TotalPlayers);
+        Assert.Equal(2, list.Count);
+        // Page 1 holds WPM 50 and 40; page 2 continues at 30, 20.
+        Assert.Equal(30, list[0].AvgWPM);
+        Assert.Equal(20, list[1].AvgWPM);
     }
 }

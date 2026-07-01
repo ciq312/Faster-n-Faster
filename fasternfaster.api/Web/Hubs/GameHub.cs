@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.BanForCheat;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
@@ -28,6 +29,7 @@ public partial class GameHub(
     IBanService banService,
     ISessionService sessionService,
     ILobbyStateBroadcaster broadcaster,
+    ILobbyChannel lobbyChannel,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick, string Role) GetCallerContext()
@@ -77,7 +79,7 @@ public partial class GameHub(
         logger.LogDebug("Previous sessionId: {PreviousSession}, callerId: {CallerId}", previousSessionId, callerConnectionId);
 
         sessionService.SetUserSession(userId, callerConnectionId);
-        await AddToGroupIfInLobby(userId, callerConnectionId);
+        await AddToGroupIfInLobby(userId);
     }
 
     private async Task HandleSessionRestart(Guid userId, string callerConnectionId, string previousSession)
@@ -86,13 +88,13 @@ public partial class GameHub(
         await Clients.Client(previousSession).SendAsync(Methods.AnotherSessionStarted);
     }
 
-    private async Task AddToGroupIfInLobby(Guid userId, string callerConnectionId)
+    private async Task AddToGroupIfInLobby(Guid userId)
     {
         var lobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
         if (lobbyId is null) return;
 
         logger.LogDebug("Adding user {UserId} to group {Group}", userId, LobbyGroup(lobbyId.Value));
-        await Groups.AddToGroupAsync(callerConnectionId, LobbyGroup(lobbyId.Value));
+        await lobbyChannel.Join(userId, lobbyId.Value);
     }
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
@@ -104,7 +106,7 @@ public partial class GameHub(
         await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
 
         var groupName = LobbyGroup(lobbyId);
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        await lobbyChannel.Join(userId, lobbyId);
 
         var lobby = lobbyStore.GetRequired(lobbyId);
         await broadcaster.BroadcastLobbyState(lobby);

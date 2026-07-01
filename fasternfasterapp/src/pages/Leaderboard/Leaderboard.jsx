@@ -4,19 +4,17 @@ import "./Leaderboard.css";
 
 const SORTABLE_COLUMNS = [
   { criteria: "Wins", label: "Wins" },
-  { criteria: "BestWPM", label: "Best WPM" },
-  { criteria: "AvgWPM", label: "Avg WPM" },
+  { criteria: "BestWpm", label: "Best WPM" },
+  { criteria: "AvgWpm", label: "Avg WPM" },
   { criteria: "AvgAccuracy", label: "Avg Accuracy" },
   { criteria: "WordsTyped", label: "Words Typed" },
   { criteria: "RacesTyped", label: "Races Typed" },
 ];
 
-const PLAYER_COUNTS = [5, 10, 50, 100];
-
-function getMedalClass(index) {
-  if (index === 0) return "leaderboard-table__row--gold";
-  if (index === 1) return "leaderboard-table__row--silver";
-  if (index === 2) return "leaderboard-table__row--bronze";
+function getMedalClass(rank) {
+  if (rank === 1) return "leaderboard-table__row--gold";
+  if (rank === 2) return "leaderboard-table__row--silver";
+  if (rank === 3) return "leaderboard-table__row--bronze";
   return "";
 }
 
@@ -33,9 +31,11 @@ function Leaderboard() {
     loading,
     criteria,
     isDescending,
-    playersCount,
-    setPlayersCount,
+    page,
+    totalPages,
+    totalPlayers,
     sortBy,
+    goToPage,
   } = useFetchLeaderboard();
 
   return (
@@ -44,16 +44,23 @@ function Leaderboard() {
       <div className="leaderboard-page__content">
         <header className="leaderboard-page__header">
           <h1 className="leaderboard-page__title">Leaderboard</h1>
-          <div className="leaderboard-count">
-            {PLAYER_COUNTS.map((count) => (
-              <button
-                key={count}
-                className={`leaderboard-count__btn${playersCount === count ? " leaderboard-count__btn--active" : ""}`}
-                onClick={() => setPlayersCount(count)}
-              >
-                {count}
-              </button>
-            ))}
+          <div className="leaderboard-pager">
+            <button
+              className="leaderboard-pager__btn"
+              onClick={() => goToPage(page - 1)}
+              disabled={loading || page <= 1}
+              aria-label="Previous page"
+            >
+              ◀
+            </button>
+            <button
+              className="leaderboard-pager__btn"
+              onClick={() => goToPage(page + 1)}
+              disabled={loading || page >= totalPages}
+              aria-label="Next page"
+            >
+              ▶
+            </button>
           </div>
         </header>
 
@@ -88,9 +95,9 @@ function Leaderboard() {
               </tr>
             </thead>
             <tbody>
-              {players.map((player, index) => (
-                <tr key={player.id} className={getMedalClass(index)}>
-                  <td>{index + 1}</td>
+              {players.map((player) => (
+                <tr key={player.id} className={getMedalClass(player.rank)}>
+                  <td>{player.rank}</td>
                   <td className="leaderboard-table__player">
                     {player.playerName}
                   </td>

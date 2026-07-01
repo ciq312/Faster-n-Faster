@@ -7,6 +7,7 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -64,7 +65,16 @@ public class ResetPasswordHandlerTests
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
-        var tokenFactory = new ConfirmTokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var token = tokenFactory.GetToken(ctx.User.Id, TokenType.PasswordReset);
         await ctx.TokenRepo.Add(token);
 
