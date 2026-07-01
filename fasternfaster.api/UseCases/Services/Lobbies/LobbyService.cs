@@ -92,6 +92,9 @@ public class LobbyService(
         });
     }
 
+    public Task EndSession(Guid lobbyId) =>
+        WithLobby(lobbyId, lobby => lobby.EndSession());
+
     public Task RemoveLobby(Guid lobbyId)
     {
         lobbyStore.Remove(lobbyId);

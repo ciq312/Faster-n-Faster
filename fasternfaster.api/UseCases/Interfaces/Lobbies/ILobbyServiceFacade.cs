@@ -10,6 +10,8 @@ public interface ILobbyServiceFacade
 
     public Task StartSession(Guid hostId);
 
+    public Task EndSession(Guid lobbyId);
+
     public Task RemoveLobbyIfEmpty(Guid lobbyId);
 
 }

@@ -7,4 +7,5 @@ public interface ILobbyInternals
     Task KickPlayer(Guid hostId, Guid userId);
     Task RemoveLobby(Guid lobbyId);
     Task StartSession(Guid lobbyId, Guid hostId);
+    Task EndSession(Guid lobbyId);
 }
