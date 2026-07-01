@@ -28,7 +28,7 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
 
     public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.User.Id, x.Color, x.User.Nick)).ToList();
 
-    public void OnSessionEnded()
+    public void EndSession()
     {
         if (!IsSessionActive) throw new InvalidOperationException("Session is already not active");
 
