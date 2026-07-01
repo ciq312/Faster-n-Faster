@@ -1,12 +1,15 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Realtime;
 
-public class SignalRBroadcaster(IHubContext<GameHub> hub, ISessionService sessionService) : IBroadcaster
+public class SignalRBroadcaster(
+    IHubContext<GameHub> hub,
+    ISessionService sessionService,
+    ILobbyStore lobbyStore) : IBroadcaster
 {
     public Task Broadcast<T>(IAudience audience, string eventName, T payload)
     {
@@ -22,23 +25,22 @@ public class SignalRBroadcaster(IHubContext<GameHub> hub, ISessionService sessio
 
     private IClientProxy? Resolve(IAudience audience) => audience switch
     {
-        LobbyAudience a => hub.Clients.Group(LobbyGroup(a.LobbyId)),
-        PlayerAudience a => ResolvePlayer(a.UserId),
-        LobbyExceptAudience a => ResolveLobbyExcept(a.LobbyId, a.UserId),
+        LobbyAudience a => Connections(MembersOf(a.LobbyId)),
+        LobbyExceptAudience a => Connections(MembersOf(a.LobbyId).Where(id => id != a.UserId)),
+        PlayerAudience a => ConnectionOf(a.UserId),
         _ => throw new ArgumentOutOfRangeException(nameof(audience))
     };
 
-    private IClientProxy? ResolvePlayer(Guid userId)
+
+    private IEnumerable<Guid> MembersOf(Guid lobbyId) =>
+        lobbyStore.Get(lobbyId)?.Players.Select(p => p.User.Id) ?? [];
+
+    private IClientProxy Connections(IEnumerable<Guid> userIds) =>
+        hub.Clients.Clients(userIds.Select(sessionService.GetActiveSession).OfType<string>().ToList());
+
+    private IClientProxy? ConnectionOf(Guid userId)
     {
         var connectionId = sessionService.GetActiveSession(userId);
         return connectionId is null ? null : hub.Clients.Client(connectionId);
-    }
-
-    private IClientProxy ResolveLobbyExcept(Guid lobbyId, Guid userId)
-    {
-        var connectionId = sessionService.GetActiveSession(userId);
-        return connectionId is null
-            ? hub.Clients.Group(LobbyGroup(lobbyId))
-            : hub.Clients.GroupExcept(LobbyGroup(lobbyId), connectionId);
     }
 }

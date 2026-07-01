@@ -15,7 +15,31 @@ public class LobbyServiceTests
         await context.LobbyService.TransferHost(host.Id, other.Id);
 
         Assert.True(context.Lobby.HostId == other.Id);
-        Assert.Single(context.Dispatcher.Dispatched);
-        Assert.True(context.Dispatcher.Dispatched[0] is HostChangedEvent);
+        Assert.Single(context.Dispatcher.Dispatched.OfType<HostChangedEvent>());
+    }
+
+    [Fact]
+    public async Task EndSession_ShouldDeactivateSession()
+    {
+        User host = new User("host");
+        User other = new User("other");
+        LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
+
+        await context.LobbyService.StartSession(context.LobbyId, host.Id);
+        Assert.True(context.Lobby.IsSessionActive);
+
+        await context.LobbyService.EndSession(context.LobbyId);
+
+        Assert.False(context.Lobby.IsSessionActive);
+    }
+
+    [Fact]
+    public async Task EndSession_WhenNotActive_ShouldThrow()
+    {
+        User host = new User("host");
+        LobbyTestContext context = await LobbyFactory.WithPlayers(host);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => context.LobbyService.EndSession(context.LobbyId));
     }
 }

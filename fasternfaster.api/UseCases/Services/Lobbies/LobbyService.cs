@@ -31,6 +31,7 @@ public class LobbyService(
             throw new AlreadyInLobbyException();
 
         await WithLobby(lobbyId, lobby => lobby.Join(user, code));
+        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
     public ValueTask<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
@@ -90,6 +91,7 @@ public class LobbyService(
             lobby.ValidateHost(hostId);
             lobby.StartSession();
         });
+        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
     public Task EndSession(Guid lobbyId) =>

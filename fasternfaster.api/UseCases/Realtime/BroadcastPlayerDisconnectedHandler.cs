@@ -8,14 +8,12 @@ namespace FasterNFaster.Api.UseCases.Realtime;
 
 public class BroadcastPlayerDisconnectedHandler(
     IBroadcaster broadcaster,
-    ILobbyChannel lobbyChannel,
     ILobbyStateBroadcaster lobbyState) : INotificationHandler<DomainEventNotification<PlayerDisconnectedEvent>>
 {
     public async Task Handle(DomainEventNotification<PlayerDisconnectedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
 
-        await lobbyChannel.Leave(e.UserId, e.LobbyId);
         await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.PlayerDisconnected, new PlayerDisconnectedDTO(e.UserId, e.Nick));
         await lobbyState.BroadcastLobbyState(e.LobbyId);
     }
