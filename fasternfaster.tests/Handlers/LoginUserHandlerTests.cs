@@ -1,31 +1,20 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
 public class LoginUserHandlerTests
 {
+    private static LoginUserHandler CreateHandler(FakeUserRepository repo) =>
+        new(repo, PasswordHelperFactory.Create(), new FakeTokenService());
+
     [Fact]
-    public async Task LoginNotFound_ShouldThrowKeyNotFound()
+    public async Task LoginNotFound_ShouldThrowInvalidCredentials()
     {
         var repo = new FakeUserRepository();
-
-        var tokenStore = new InMemoryRefreshTokenRepository();
-
-        var jwtOptions = Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        });
-
-        var tokenFactory = new JwtTokenFactory(jwtOptions);
-
-        var tokenService = new JwtTokenService(tokenFactory, tokenStore, repo, jwtOptions);
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create(), tokenService);
-
+        var handler = CreateHandler(repo);
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("noone", "pass123"), CancellationToken.None)
@@ -33,24 +22,11 @@ public class LoginUserHandlerTests
     }
 
     [Fact]
-    public async Task WrongPassword_ShouldThrowInvalidData()
+    public async Task WrongPassword_ShouldThrowInvalidCredentials()
     {
         var repo = new FakeUserRepository();
         repo.Seed(new User("Player1", "mylogin", "correctpass"));
-
-
-        var tokenStore = new InMemoryRefreshTokenRepository();
-
-        var jwtOptions = Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        });
-
-        var tokenFactory = new JwtTokenFactory(jwtOptions);
-
-        var tokenService = new JwtTokenService(tokenFactory, tokenStore, repo, jwtOptions);
-
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create(), tokenService);
+        var handler = CreateHandler(repo);
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("mylogin", "wrongpass"), CancellationToken.None)
@@ -65,19 +41,7 @@ public class LoginUserHandlerTests
         user.SetEmailVerified();
         repo.Seed(user);
 
-
-        var tokenStore = new InMemoryRefreshTokenRepository();
-
-        var jwtOptions = Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        });
-
-        var tokenFactory = new JwtTokenFactory(jwtOptions);
-
-        var tokenService = new JwtTokenService(tokenFactory, tokenStore, repo, jwtOptions);
-
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create(), tokenService);
+        var handler = CreateHandler(repo);
 
         var result = await handler.Handle(new LoginUserCommand("mylogin", "pass123"), CancellationToken.None);
 
