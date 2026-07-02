@@ -8,13 +8,13 @@ public class GetLeaderboardsEndpoint(ISender sender) : Endpoint<GetLeaderboardsR
 {
     public override void Configure()
     {
-        Post("/api/leaderboards");
+        Get("/api/leaderboards");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetLeaderboardsRequest req, CancellationToken ct)
     {
-        var response = await sender.Send(new GetLeaderboardCommand(req.Criteria, req.IsDescending, req.PlayersCount), ct);
+        var response = await sender.Send(new GetLeaderboardCommand(req.Sort, req.Descending, req.Page, req.PageSize), ct);
         await Send.OkAsync(response, cancellation: ct);
     }
 }

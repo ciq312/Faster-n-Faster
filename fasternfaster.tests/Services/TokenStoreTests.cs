@@ -1,70 +1,100 @@
-using FasterNFaster.Api.Web.Options.JwtOptions;
-using FasterNFaster.Api.Web.Services.Implementations;
-using Microsoft.Extensions.Options;
+using FasterNFaster.Api.Infrastructure.Auth;
 
 namespace FasterNFaster.Tests.Services;
 
-public class TokenStoreTests
+public class InMemoryRefreshTokenRepositoryTests
 {
-    private static TokenStore CreateStore()
-    {
-        var options = Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        });
-        return new TokenStore(options);
-    }
+    private static readonly TimeSpan Ttl = TimeSpan.FromHours(1);
+
+    private static InMemoryRefreshTokenRepository CreateStore() => new();
 
     [Fact]
-    public async Task StoreRefreshToken_ThenDeleteAllForUser_InvalidatesToken()
+    public async Task Issue_ThenRotate_ReturnsOwner()
     {
         var store = CreateStore();
         var userId = Guid.NewGuid();
-        var token = "refresh-A";
+        await store.Issue(userId, "old", Ttl);
 
-        await store.StoreRefreshToken(userId, token);
-        await store.DeleteAllTokensForUserAsync(userId);
+        var owner = await store.RotateRefreshToken("old", "new", Ttl);
 
-        Assert.False(await store.IsRefreshTokenValid(token));
+        Assert.Equal(userId, owner);
     }
 
     [Fact]
-    public async Task DeleteAllForUser_OtherUsersTokensUnaffected()
+    public async Task Rotate_ConsumesOldToken()
+    {
+        var store = CreateStore();
+        await store.Issue(Guid.NewGuid(), "old", Ttl);
+
+        await store.RotateRefreshToken("old", "new", Ttl);
+
+        Assert.Null(await store.RotateRefreshToken("old", "new2", Ttl));
+    }
+
+    [Fact]
+    public async Task Rotate_UnknownToken_ReturnsNull()
+    {
+        var store = CreateStore();
+
+        Assert.Null(await store.RotateRefreshToken("nope", "new", Ttl));
+    }
+
+    [Fact]
+    public async Task Invalidate_TokenCanNoLongerRotate()
+    {
+        var store = CreateStore();
+        await store.Issue(Guid.NewGuid(), "t", Ttl);
+
+        await store.Invalidate("t");
+
+        Assert.Null(await store.RotateRefreshToken("t", "new", Ttl));
+    }
+
+    [Fact]
+    public async Task InvalidateAll_TokenCanNoLongerRotate()
+    {
+        var store = CreateStore();
+        var userId = Guid.NewGuid();
+        await store.Issue(userId, "t", Ttl);
+
+        await store.InvalidateAll(userId);
+
+        Assert.Null(await store.RotateRefreshToken("t", "new", Ttl));
+    }
+
+    [Fact]
+    public async Task InvalidateAll_OtherUsersTokensUnaffected()
     {
         var store = CreateStore();
         var userA = Guid.NewGuid();
         var userB = Guid.NewGuid();
-        var tokenA = "refresh-A";
-        var tokenB = "refresh-B";
+        await store.Issue(userA, "a", Ttl);
+        await store.Issue(userB, "b", Ttl);
 
-        await store.StoreRefreshToken(userA, tokenA);
-        await store.StoreRefreshToken(userB, tokenB);
+        await store.InvalidateAll(userA);
 
-        await store.DeleteAllTokensForUserAsync(userA);
-
-        Assert.False(await store.IsRefreshTokenValid(tokenA));
-        Assert.True(await store.IsRefreshTokenValid(tokenB));
+        Assert.Null(await store.RotateRefreshToken("a", "a2", Ttl));
+        Assert.Equal(userB, await store.RotateRefreshToken("b", "b2", Ttl));
     }
 
     [Fact]
-    public async Task DeleteAllForUser_NoEntry_NoThrow()
+    public async Task InvalidateAll_NoEntry_NoThrow()
     {
         var store = CreateStore();
-        var unknownUser = Guid.NewGuid();
 
-        await store.DeleteAllTokensForUserAsync(unknownUser);
+        await store.InvalidateAll(Guid.NewGuid());
     }
 
     [Fact]
-    public async Task DeleteAllForUser_ClearsReverseLookup_SoUserIdByTokenReturnsEmpty()
+    public async Task Rotate_MultipleTokensPerUser_OnlyRotatedOneIsConsumed()
     {
         var store = CreateStore();
         var userId = Guid.NewGuid();
-        var token = "refresh-A";
+        await store.Issue(userId, "device-1", Ttl);
+        await store.Issue(userId, "device-2", Ttl);
 
-        await store.StoreRefreshToken(userId, token);
-        await store.DeleteAllTokensForUserAsync(userId);
+        await store.RotateRefreshToken("device-1", "device-1-new", Ttl);
 
-        Assert.Equal(Guid.Empty, await store.GetUserIdByTokenAsync(token));
+        Assert.Equal(userId, await store.RotateRefreshToken("device-2", "device-2-new", Ttl));
     }
 }

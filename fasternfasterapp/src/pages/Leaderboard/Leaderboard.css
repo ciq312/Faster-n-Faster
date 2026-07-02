@@ -40,14 +40,15 @@
   color: var(--text-1);
 }
 
-/* ── Player count selector ── */
+/* ── Pager ── */
 
-.leaderboard-count {
+.leaderboard-pager {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
 }
 
-.leaderboard-count__btn {
+.leaderboard-pager__btn {
   padding: 6px 12px;
   background: transparent;
   border: 1px solid var(--border-subtle);
@@ -59,15 +60,22 @@
   transition: border-color 0.2s, color 0.2s;
 }
 
-.leaderboard-count__btn:hover {
-  border-color: var(--border);
-  color: var(--text-2);
-}
-
-.leaderboard-count__btn--active {
+.leaderboard-pager__btn:hover:not(:disabled) {
   border-color: var(--amber-border);
   color: var(--amber);
   background: var(--amber-muted);
+}
+
+.leaderboard-pager__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.leaderboard-pager__status {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  white-space: nowrap;
 }
 
 /* ── Table ── */

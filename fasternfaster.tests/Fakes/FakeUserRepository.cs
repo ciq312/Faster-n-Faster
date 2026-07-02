@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Tests.Fakes;
 
@@ -16,6 +16,8 @@ public class FakeUserRepository : IUserRepository
         _users.Add(user);
         return Task.CompletedTask;
     }
+
+    public Task UpdateAsync(User user) => Task.CompletedTask;
 
     public Task<User?> GetByIdAsync(Guid id)
         => Task.FromResult(_users.FirstOrDefault(u => u.Id == id));

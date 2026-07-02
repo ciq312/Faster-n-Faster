@@ -22,31 +22,7 @@ namespace FasterNFaster.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.BannedPlayer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("BannedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("BannedPlayers");
-                });
-
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.ExternalLogin", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Auth.ExternalLogin", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -77,6 +53,30 @@ namespace FasterNFaster.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("ExternalLogins");
+                });
+
+            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.BannedPlayer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("BannedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("BannedPlayers");
                 });
 
             modelBuilder.Entity("FasterNFaster.Api.Core.Entities.PlayerStatistics", b =>
@@ -116,35 +116,6 @@ namespace FasterNFaster.Api.Migrations
                     b.ToTable("Statistics");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Token", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Tokens");
-                });
-
             modelBuilder.Entity("FasterNFaster.Api.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -158,24 +129,21 @@ namespace FasterNFaster.Api.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Login")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nick")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Password")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.ExternalLogin", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Auth.ExternalLogin", b =>
                 {
                     b.HasOne("FasterNFaster.Api.Core.Entities.User", null)
                         .WithMany()
@@ -193,15 +161,6 @@ namespace FasterNFaster.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Token", b =>
-                {
-                    b.HasOne("FasterNFaster.Api.Core.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("FasterNFaster.Api.Core.Entities.User", b =>

@@ -2,29 +2,22 @@ using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.Web.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Lobbies.LobbyState;
 
-public class LobbyStateBroadcaster(IHubContext<GameHub> hub, ILobbyStore lobbyStore, IRaceService raceService) : ILobbyStateBroadcaster
+public class LobbyStateBroadcaster(IBroadcaster broadcaster, ILobbyStore lobbyStore, IRaceService raceService) : ILobbyStateBroadcaster
 {
-    private readonly IHubContext<GameHub> hub = hub;
+    private readonly IBroadcaster broadcaster = broadcaster;
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IRaceService raceService = raceService;
 
-    public Task BroadcastLobbyState(Lobby lobby)
-    {
-        var state = GetLobbyState(lobby);
-        return hub.Clients.Group(LobbyGroup(lobby.Id)).SendAsync(Methods.LobbyState, state);
-    }
+    public Task BroadcastLobbyState(Lobby lobby) =>
+        broadcaster.Broadcast(Audience.Lobby(lobby.Id), Methods.LobbyState, GetLobbyState(lobby));
 
-    public Task BroadcastLobbyState(Guid lobbyId)
-    {
-        Lobby lobby = lobbyStore.GetRequired(lobbyId);
-        return BroadcastLobbyState(lobby);
-    }
+    public Task BroadcastLobbyState(Guid lobbyId) =>
+        BroadcastLobbyState(lobbyStore.GetRequired(lobbyId));
 
     public LobbyStateDTO GetLobbyState(Lobby lobby)
     {

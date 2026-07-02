@@ -7,6 +7,6 @@ public class TransferHostHandler(ILobbyService lobbyService) : IRequestHandler<T
 {
     public async Task Handle(TransferHostCommand command, CancellationToken cancellationToken)
     {
-        await lobbyService.TransferHost(command.HostId, command.UserId);
+        await lobbyService.TransferHost(command.HostId, command.TargetPlayerId);
     }
 }

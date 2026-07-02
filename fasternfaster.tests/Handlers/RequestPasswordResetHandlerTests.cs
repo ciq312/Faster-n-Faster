@@ -1,8 +1,11 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -21,7 +24,7 @@ public class RequestPasswordResetHandlerTests
         setup.TokenRepo.tokens.Clear();
 
         var handler = new RequestPasswordResetHandler(
-            setup.repo, setup.TokenRepo, setup.TokenFactory, setup.EmailSender);
+            setup.repo, setup.TokenRepo, setup.TokenFactory, setup.EmailSender, new RequestPasswordResetOptions());
         return (handler, setup);
     }
 
@@ -57,14 +60,23 @@ public class RequestPasswordResetHandlerTests
         var userRepo = new FakeUserRepository();
         var tokenRepo = new FakeTokenRepo();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
 
         // Anonymous-ctor user has null Login and null Password — same shape as a Google-only account.
         var googleUser = new User("googleNick");
         googleUser.SetEmail("google@user.com");
         userRepo.Seed(googleUser);
 
-        var handler = new RequestPasswordResetHandler(userRepo, tokenRepo, tokenFactory, emailSender);
+        var handler = new RequestPasswordResetHandler(userRepo, tokenRepo, tokenFactory, emailSender, new RequestPasswordResetOptions());
 
         await handler.Handle(new RequestPasswordResetCommand("google@user.com"), CancellationToken.None);
 

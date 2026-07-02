@@ -7,16 +7,15 @@ namespace FasterNFaster.Api.Web.Users.Logout;
 
 public class LogoutEndpoint(
     ISessionService sessions,
-    ICookiesWriter cookies) : EndpointWithoutRequest
+    IAuthTokenWriter auth
+    ) : EndpointWithoutRequest
 {
     private readonly ISessionService sessions = sessions;
-    private readonly ICookiesWriter cookies = cookies;
+    private readonly IAuthTokenWriter auth = auth;
 
     public override void Configure()
     {
         Post("/api/auth/logout");
-        // Anonymous so the call still succeeds when the access token has already expired —
-        // we always want to clear cookies on the client even if there's nothing left to revoke.
         AllowAnonymous();
     }
 
@@ -26,7 +25,7 @@ public class LogoutEndpoint(
         if (Guid.TryParse(userIdClaim, out var userId))
             await sessions.InvalidateAll(userId);
 
-        cookies.DeleteTokensCookies();
+        auth.ClearAuth();
         await Send.OkAsync(cancellation: ct);
     }
 }

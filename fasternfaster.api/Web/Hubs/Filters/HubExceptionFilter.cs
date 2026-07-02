@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Core.Exceptions;
-using Microsoft.AspNetCore.SignalR;
+    using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
 

@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure;
@@ -10,6 +11,12 @@ public class PostgresUserRepository(AppDbContext context) : IUserRepository
     public async Task AddAsync(User user)
     {
         appDbContext.Users.Add(user);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        appDbContext.Users.Update(user);
         await appDbContext.SaveChangesAsync();
     }
 

@@ -1,7 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using FasterNFaster.Api.Core.Interfaces;
-using MiniValidationPlus;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace FasterNFaster.Api.Core.Entities;
@@ -10,14 +7,8 @@ public class User
 {
     public Guid Id { get; private set; }
     public string? Email { get; private set; }
-
-    [StringLength(30, MinimumLength = 1), Required]
     public string Nick { get; private set; }
-
-    [StringLength(100, MinimumLength = 4)]
     public string? Login { get; private set; }
-
-    [StringLength(100, MinimumLength = 4)]
     public string? Password { get; private set; }
     public bool IsAnonymous => Login == null;
     public bool IsEmailVerified { get; private set; } = false;
@@ -43,8 +34,6 @@ public class User
         Login = login;
         Password = password;
         CreatedAt = DateTime.UtcNow;
-        if (!MiniValidatorPlus.TryValidate(this, out var errors))
-            throw new ValidationException(string.Join("; ", errors.Values.SelectMany(e => e)));
     }
 
     public void SetPassword(string newPassword)

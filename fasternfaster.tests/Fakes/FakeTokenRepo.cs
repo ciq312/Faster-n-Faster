@@ -1,9 +1,10 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 
 namespace FasterNFaster.Tests.Fakes;
 
-public class FakeTokenRepo : ITokenRepository
+public class FakeTokenRepo : IConfirmTokenRepository
 {
     public List<Token> tokens = new();
 
@@ -36,11 +37,6 @@ public class FakeTokenRepo : ITokenRepository
     public Task RemoveAllForUser(Guid userId, TokenType type)
     {
         tokens.RemoveAll(x => x.UserId == userId && x.Type == type);
-        return Task.CompletedTask;
-    }
-
-    public Task SaveChangesAsync()
-    {
         return Task.CompletedTask;
     }
 }

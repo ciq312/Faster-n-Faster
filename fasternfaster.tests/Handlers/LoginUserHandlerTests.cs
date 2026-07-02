@@ -7,11 +7,14 @@ namespace FasterNFaster.Tests.Handlers;
 
 public class LoginUserHandlerTests
 {
+    private static LoginUserHandler CreateHandler(FakeUserRepository repo) =>
+        new(repo, PasswordHelperFactory.Create(), new FakeTokenService());
+
     [Fact]
-    public async Task LoginNotFound_ShouldThrowKeyNotFound()
+    public async Task LoginNotFound_ShouldThrowInvalidCredentials()
     {
         var repo = new FakeUserRepository();
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
+        var handler = CreateHandler(repo);
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("noone", "pass123"), CancellationToken.None)
@@ -19,11 +22,11 @@ public class LoginUserHandlerTests
     }
 
     [Fact]
-    public async Task WrongPassword_ShouldThrowInvalidData()
+    public async Task WrongPassword_ShouldThrowInvalidCredentials()
     {
         var repo = new FakeUserRepository();
         repo.Seed(new User("Player1", "mylogin", "correctpass"));
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
+        var handler = CreateHandler(repo);
 
         await Assert.ThrowsAsync<InvalidCredentialsException>(
             () => handler.Handle(new LoginUserCommand("mylogin", "wrongpass"), CancellationToken.None)
@@ -37,7 +40,8 @@ public class LoginUserHandlerTests
         var user = new User("Player1", "mylogin", "pass123");
         user.SetEmailVerified();
         repo.Seed(user);
-        var handler = new LoginUserHandler(repo, PasswordHelperFactory.Create());
+
+        var handler = CreateHandler(repo);
 
         var result = await handler.Handle(new LoginUserCommand("mylogin", "pass123"), CancellationToken.None);
 
