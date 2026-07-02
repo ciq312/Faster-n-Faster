@@ -60,9 +60,27 @@ public class RaceParticipant
 
         Typed = newTyped;
         Index = newIndex;
-        WordsTyped = passage[..(newIndex + 1)].Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        WordsTyped = CountWords(passage.AsSpan(0, newIndex + 1));
         Mistakes = newMistakes;
         LastUpdateAt = _now();
+    }
+
+    private static int CountWords(ReadOnlySpan<char> text)
+    {
+        var count = 0;
+        var inWord = false;
+        foreach (var c in text)
+        {
+            if (c == ' ')
+                inWord = false;
+            else if (!inWord)
+            {
+                inWord = true;
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private bool DidUserRefresh(int newIndex, string typed) => newIndex == -1 && typed == "";
@@ -71,7 +89,7 @@ public class RaceParticipant
     {
         if (newIndex + 1 > newTyped.Length) throw new CheaterDetectedException("typed shorter than reported index");
         if (newIndex + 1 > passage.Length) throw new CheaterDetectedException("reported index exceeds passage length");
-        if (newTyped[..(newIndex + 1)] != passage[..(newIndex + 1)]) throw new CheaterDetectedException("typed prefix does not match passage");
+        if (!newTyped.AsSpan(0, newIndex + 1).SequenceEqual(passage.AsSpan(0, newIndex + 1))) throw new CheaterDetectedException("typed prefix does not match passage");
     }
 
     private void ValidateMistakes(int newMistakes)

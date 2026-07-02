@@ -36,6 +36,12 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
     }
     public Task StartRaceInternal(Guid lobbyId) => raceInternals.StartRace(lobbyId);
 
+    public Task UpdateProgress(Guid userId, int index, int mistakes, string typed)
+    {
+        Guid lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(userId);
+        return raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
+    }
+
     public Task EndSession(Guid lobbyId) => lobbyInternals.EndSession(lobbyId);
 
     public async Task RemoveLobbyIfEmpty(Guid lobbyId)
