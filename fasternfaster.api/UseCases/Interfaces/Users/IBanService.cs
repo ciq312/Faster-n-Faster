@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
-public interface IBanService
+public interface IBanRepository
 {
     Task<bool> IsBannedAsync(Guid userId);
     Task BanAsync(Guid userId, string? reason);

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure;
 
-public class BanService(AppDbContext db) : IBanService
+public class BanRepository(AppDbContext db) : IBanRepository
 {
     public Task<bool> IsBannedAsync(Guid userId) =>
         db.BannedPlayers.AsNoTracking().AnyAsync(b => b.UserId == userId);

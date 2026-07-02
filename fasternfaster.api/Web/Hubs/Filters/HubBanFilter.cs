@@ -10,7 +10,7 @@ public class HubBanFilter : IHubFilter
     {
         if (TryGetUserId(context.Context, out var userId))
         {
-            var banService = context.ServiceProvider.GetRequiredService<IBanService>();
+            var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
             if (await banService.IsBannedAsync(userId))
             {
                 await context.Hub.Clients.Caller.SendAsync(Methods.Banned, "You are banned");
