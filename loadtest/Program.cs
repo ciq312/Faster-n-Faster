@@ -32,6 +32,7 @@ Console.WriteLine($"Spawning {users} bots against {server} (target {wpm} WPM)");
 var bots = Enumerable.Range(0, users).Select(i => new LoadTestBot(i, server, insecure)).ToList();
 
 // Step 1: auth + connect (batched, fail-fast — if auth breaks, nothing else matters)
+const int authIntervalSeconds = 5;
 const int authBatchSize = 100;
 var t0 = DateTime.UtcNow;
 phases["auth_start"] = t0;
@@ -53,6 +54,8 @@ for (int i = 0; i < bots.Count; i += authBatchSize)
         Console.WriteLine(ex.ToString());
         return 1;
     }
+    Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1} done, waiting {authIntervalSeconds}s before next batch");
+    await Task.Delay(TimeSpan.FromSeconds(authIntervalSeconds));
 }
 phases["auth_end"] = DateTime.UtcNow;
 Console.WriteLine($"[1] Auth+connect total: {(DateTime.UtcNow - t0).TotalMilliseconds:F0}ms");
