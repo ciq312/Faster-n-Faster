@@ -1,15 +1,16 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
-public class SaveRaceResultHandler(IUserProfileService profileService)
+public class SaveRaceResultHandler(IRaceResultQueue queue)
     : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
-    public async Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
+    public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
     {
-        await profileService.ProcessRaceResultsAsync(notification.Event.Results);
+        queue.Enqueue(notification.Event.Results);
+        return Task.CompletedTask;
     }
 }
