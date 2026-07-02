@@ -8,6 +8,8 @@ using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
+ThreadPool.SetMinThreads(200, 200);
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("log.txt")
