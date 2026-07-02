@@ -19,8 +19,10 @@ public class SignalRRaceBroadcaster(
     public Task BroadcastRaceStarted(Guid lobbyId) =>
         broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.RaceStarted);
 
-    public Task BroadcastRaceState(IEnumerable<Guid> playerIds, IReadOnlyList<ParticipantSnapshot> snapshot) =>
-        Task.WhenAll(playerIds.Select(id => SendToPlayerWithTimeout(id, snapshot)));
+    public async Task BroadcastRaceState(IEnumerable<Guid> playerIds, IReadOnlyList<ParticipantSnapshot> snapshot) =>
+        await hub.Clients.Clients(
+            playerIds.Select(sessionService.GetActiveSession).Where(id => id is not null)!)
+            .SendAsync(Methods.RaceState, snapshot, CancellationToken.None);
 
     private async Task SendToPlayerWithTimeout(Guid userId, object payload)
     {
