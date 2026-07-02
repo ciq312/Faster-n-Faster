@@ -32,30 +32,42 @@ Console.WriteLine($"Spawning {users} bots against {server} (target {wpm} WPM)");
 var bots = Enumerable.Range(0, users).Select(i => new LoadTestBot(i, server, insecure)).ToList();
 
 // Step 1: auth + connect (batched, fail-fast — if auth breaks, nothing else matters)
-const int authIntervalSeconds = 5;
+
 const int authBatchSize = 100;
 var t0 = DateTime.UtcNow;
 phases["auth_start"] = t0;
+
+var semaphore = new SemaphoreSlim(10);
+
 for (int i = 0; i < bots.Count; i += authBatchSize)
 {
     var batch = bots.Skip(i).Take(authBatchSize).ToList();
     Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1}: bots {i}..{i + batch.Count - 1}");
+
     try
     {
         await Task.WhenAll(batch.Select(async b =>
         {
-            await b.AuthenticateAsync();
-            await b.ConnectHubAsync();
+            await semaphore.WaitAsync();
+            try
+            {
+                await Task.Delay(Random.Shared.Next(100, 1000));
+
+                await b.AuthenticateAsync();
+                await b.ConnectHubAsync();
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }));
     }
     catch (Exception ex)
     {
         Console.WriteLine($"[!] Auth batch {i / authBatchSize + 1} failed: {ex.GetType().Name}");
-        Console.WriteLine(ex.ToString());
+        Console.WriteLine(ex.Message);
         return 1;
     }
-    Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1} done, waiting {authIntervalSeconds}s before next batch");
-    await Task.Delay(TimeSpan.FromSeconds(authIntervalSeconds));
 }
 phases["auth_end"] = DateTime.UtcNow;
 Console.WriteLine($"[1] Auth+connect total: {(DateTime.UtcNow - t0).TotalMilliseconds:F0}ms");
