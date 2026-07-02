@@ -30,17 +30,16 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
 
         var participants = lobby.GetRaceParticipants();
 
-        raceInternals.AddParticipants(lobbyId, participants);
+        await raceInternals.AddParticipants(lobbyId, participants);
 
         raceTickRegistry.RegisterLobby(lobbyId);
     }
-    public void StartRaceInternal(Guid lobbyId) => raceInternals.StartRace(lobbyId);
+    public Task StartRaceInternal(Guid lobbyId) => raceInternals.StartRace(lobbyId);
 
     public Task UpdateProgress(Guid userId, int index, int mistakes, string typed)
     {
         Guid lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(userId);
-        raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
-        return Task.CompletedTask;
+        return raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
     }
 
     public Task EndSession(Guid lobbyId) => lobbyInternals.EndSession(lobbyId);
@@ -65,7 +64,7 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
         await lobbyInternals.KickPlayer(hostId, userId);
 
         if (lobby.IsSessionActive)
-            raceInternals.WithdrawParticipant(lobby.Id, userId);
+            await raceInternals.WithdrawParticipant(lobby.Id, userId);
     }
 
     public async Task RefreshPassage(Guid userId)
@@ -76,7 +75,7 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
 
         await lobbyInternals.ValidateHost(lobby.Id, userId);
 
-        raceInternals.RefreshPassage(lobby.Id);
+        await raceInternals.RefreshPassage(lobby.Id);
     }
 
     public async Task RemovePlayerFromLobby(Guid userId)
@@ -86,6 +85,6 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
         await lobbyInternals.RemoveFromLobby(userId);
 
         if (lobby.IsSessionActive)
-            raceInternals.WithdrawParticipant(lobby.Id, userId);
+            await raceInternals.WithdrawParticipant(lobby.Id, userId);
     }
 }

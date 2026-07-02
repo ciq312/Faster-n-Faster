@@ -9,6 +9,6 @@ public class UpdateProgressHandler(IRaceService raceService, ILobbyService lobby
     public async Task Handle(UpdateProgressCommand command, CancellationToken cancellationToken)
     {
         var lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(command.UserId);
-        // await raceService.ProcessUpdate(lobbyId, command.UserId, command.Index, command.Mistakes, command.Typed);
+        await raceService.ProcessUpdate(lobbyId, command.UserId, command.Index, command.Mistakes, command.Typed);
     }
 }
