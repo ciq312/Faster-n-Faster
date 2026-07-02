@@ -14,4 +14,6 @@ public interface ILobbyServiceFacade
 
     public Task RemoveLobbyIfEmpty(Guid lobbyId);
 
+    public Task UpdateProgress(Guid userId, int index, int mistakes, string typed);
+
 }

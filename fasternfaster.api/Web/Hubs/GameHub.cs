@@ -1,3 +1,4 @@
+using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
@@ -9,7 +10,6 @@ using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
-using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -24,6 +24,7 @@ public partial class GameHub(
     ILobbyService lobbyService,
     ISessionService sessionService,
     ILobbyStateBroadcaster broadcaster,
+    ILobbyServiceFacade facade,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick, string Role) GetCallerContext()
@@ -128,7 +129,8 @@ public partial class GameHub(
     public async Task UpdateRaceState(int index, int mistakes, string typed)
     {
         var userId = GetCallerContext().UserId;
-        await sender.Send(new UpdateProgressCommand(userId, index, mistakes, typed));
+        //skip CQRS to minimize the allocations
+        await facade.UpdateProgress(userId, index, mistakes, typed);
     }
 
     public async Task LeaveLobby()

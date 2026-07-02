@@ -7,6 +7,8 @@ public class AggregateRootHelper(IEventDispatcher dispatcher) : IAggregateRootHe
 {
     public async Task DispatchRootEventsAsync(AggregateRoot root)
     {
+        if (root.DomainEvents.Count == 0) return;
+
         var events = root.DomainEvents.ToList();
         root.ClearEvents();
         foreach (var domainEvent in events)
