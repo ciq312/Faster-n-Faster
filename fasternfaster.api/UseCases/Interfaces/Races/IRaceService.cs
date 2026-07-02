@@ -4,9 +4,9 @@ namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 
 public interface IRaceService
 {
-    List<ParticipantSnapshot> GetSnapshot(Guid lobbyId);
+    Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId);
 
-    void ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed);
+    Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed);
 
     void RegisterRace(Guid lobbyId, Race race);
 

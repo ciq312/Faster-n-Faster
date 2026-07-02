@@ -13,16 +13,16 @@ public class RaceService(
     IAntiCheatPolicy antiCheatPolicy,
     ILogger<RaceService> logger) : IRaceService, IRaceInternals
 {
-    private readonly ConcurrentDictionary<Guid, (ReaderWriterLockSlim, Race)> races = new();
+    private readonly ConcurrentDictionary<Guid, (SemaphoreSlim, Race)> races = new();
 
-    public List<ParticipantSnapshot> GetSnapshot(Guid lobbyId) =>
-        WithRaceRead(lobbyId, race => race.GetSnapshot());
+    public Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId) =>
+        WithRaceAsync(lobbyId, race => race.GetSnapshot());
 
-    public void ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed)
+    public async Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed)
     {
         Race? race = null;
 
-        WithRaceWrite(lobbyId, r =>
+        await WithRaceAsync(lobbyId, r =>
         {
             r.ProcessUpdate(playerId, index, mistakes, typed, antiCheatPolicy);
             WrapRaceEvents(r, lobbyId);
@@ -30,33 +30,33 @@ public class RaceService(
         });
 
         if (race != null)
-            aggregateRootHelper.DispatchRootEventsAsync(race);
+            await aggregateRootHelper.DispatchRootEventsAsync(race);
     }
 
-    public void StartRace(Guid lobbyId) =>
-        WithRaceWrite(lobbyId, race => race.Start());
+    public Task StartRace(Guid lobbyId) =>
+        WithRaceAsync(lobbyId, race => race.Start());
 
-    public void AddParticipants(Guid lobbyId, List<RaceParticipant> participants) =>
-        WithRaceWrite(lobbyId, race => race.AddParticipants(participants));
+    public Task AddParticipants(Guid lobbyId, List<RaceParticipant> participants) =>
+        WithRaceAsync(lobbyId, race => race.AddParticipants(participants));
 
     public async Task RefreshPassage(Guid lobbyId)
     {
-        var wordCount = WithRaceRead(lobbyId, race => race.GetPassageWordCount());
+        var wordCount = await WithRaceAsync(lobbyId, race => race.GetPassageWordCount());
         if (wordCount is null)
             throw new InvalidOperationException("Race type does not support passage refresh");
 
         var passage = await passageProvider.GetPassageAsync(wordCount.Value);
 
-        WithRaceWrite(lobbyId, race => race.ApplyPassage(passage));
+        await WithRaceAsync(lobbyId, race => race.ApplyPassage(passage));
     }
 
-    public void WithdrawParticipant(Guid lobbyId, Guid userId) =>
-        WithRaceWrite(lobbyId, r => r.WithdrawParticipant(userId));
+    public Task WithdrawParticipant(Guid lobbyId, Guid userId) =>
+        WithRaceAsync(lobbyId, r => r.WithdrawParticipant(userId));
 
     public void RegisterRace(Guid lobbyId, Race race)
     {
         logger.LogDebug("New race registered for lobby {LobbyId}", lobbyId);
-        races[lobbyId] = (new ReaderWriterLockSlim(), race);
+        races[lobbyId] = (new SemaphoreSlim(1, 1), race);
     }
 
     public void RemoveRegisteredRace(Guid lobbyId)
@@ -67,62 +67,65 @@ public class RaceService(
     }
 
     public IRaceSettings GetRaceSettings(Guid lobbyId) =>
-        WithRaceRead(lobbyId, race => race.GetRaceSettings());
+        WithRace(lobbyId, race => race.GetRaceSettings());
 
-    private (ReaderWriterLockSlim, Race) GetActiveRace(Guid lobbyId)
+    private (SemaphoreSlim, Race) GetActiveRace(Guid lobbyId)
     {
         var race = races.GetValueOrDefault(lobbyId);
         if (race == default) throw new InvalidOperationException("Race not set");
         return race;
     }
 
-    private bool TryGetActiveRace(Guid lobbyId, out (ReaderWriterLockSlim, Race) race)
+    private bool TryGetActiveRace(Guid lobbyId, out (SemaphoreSlim, Race) race)
     {
         race = races.GetValueOrDefault(lobbyId);
         return race != default;
     }
 
-    private void WithRaceWrite(Guid lobbyId, Action<Race> action)
+    private async Task WithRaceAsync(Guid lobbyId, Action<Race> action)
     {
-        var race = GetActiveRace(lobbyId);
-        race.Item1.EnterWriteLock();
+        if (!TryGetActiveRace(lobbyId, out var entry)) return;
+
+        var (gate, race) = entry;
+        await gate.WaitAsync();
         try
         {
-            action(race.Item2);
+            action(race);
         }
         finally
         {
-            race.Item1.ExitWriteLock();
+            gate.Release();
         }
     }
 
-    private void WithRaceRead(Guid lobbyId, Action<Race> action)
+    private async Task<T> WithRaceAsync<T>(Guid lobbyId, Func<Race, T> action)
     {
-        var race = GetActiveRace(lobbyId);
-        race.Item1.EnterReadLock();
+        var (gate, race) = GetActiveRace(lobbyId);
+        await gate.WaitAsync();
         try
         {
-            action(race.Item2);
+            return action(race);
         }
         finally
         {
-            race.Item1.ExitReadLock();
+            gate.Release();
         }
     }
 
-    private T WithRaceRead<T>(Guid lobbyId, Func<Race, T> action)
+    private T WithRace<T>(Guid lobbyId, Func<Race, T> action)
     {
-        var race = GetActiveRace(lobbyId);
-        race.Item1.EnterReadLock();
+        var (gate, race) = GetActiveRace(lobbyId);
+        gate.Wait();
         try
         {
-            return action(race.Item2);
+            return action(race);
         }
         finally
         {
-            race.Item1.ExitReadLock();
+            gate.Release();
         }
     }
+
     private void WrapRaceEvents(Race race, Guid lobbyId)
     {
         foreach (var domainEvent in race.DomainEvents)
