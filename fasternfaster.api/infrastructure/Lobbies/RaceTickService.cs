@@ -16,7 +16,7 @@ public class RaceTickService(
     RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
 {
-    private const int TickIntervalMs = 1000;
+    private const int TickIntervalMs = 200;
     private const float CountdownSeconds = 3.5f;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

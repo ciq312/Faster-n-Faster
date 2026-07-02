@@ -26,8 +26,7 @@ public static class InfrastructureExtensions
             options.AddFilter<HubExceptionFilter>();
             options.AddFilter<HubCheatFilter>();
             options.AddFilter<HubBanFilter>();
-        })
-        .AddStackExchangeRedis(redisConn);
+        });
 
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConn));
 
