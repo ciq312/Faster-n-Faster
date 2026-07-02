@@ -61,7 +61,7 @@ public class RaceTickService(
 
         if (elapsed >= CountdownSeconds)
         {
-            await raceTransitionService.StartRaceInternal(entry.LobbyId);
+            raceTransitionService.StartRaceInternal(entry.LobbyId);
             await broadcaster.BroadcastRaceStarted(entry.LobbyId);
             registry.TransitionToRacing(entry.LobbyId);
         }
@@ -69,7 +69,7 @@ public class RaceTickService(
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
     {
-        var snapshot = await raceService.GetSnapshot(entry.LobbyId);
+        var snapshot = raceService.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players
             .Where(p => p.IsConnected)
