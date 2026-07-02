@@ -13,6 +13,7 @@ public class RaceTickService(
     IRaceBroadcaster broadcaster,
     IRaceTransitionService raceTransitionService,
     IRaceService raceService,
+    RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
 {
     private const int TickIntervalMs = 200;
@@ -26,6 +27,9 @@ public class RaceTickService(
         {
             var lobbies = registry.GetRacingLobbies();
             await Task.WhenAll(lobbies.Select(TickLobby));
+
+            if (conflator.TrackedLobbies != lobbies.Count)
+                conflator.Prune(lobbies.Select(entry => entry.LobbyId).ToHashSet());
         }
     }
 
@@ -76,6 +80,6 @@ public class RaceTickService(
             .Where(s => connectedPlayerIds.Contains(s.PlayerId))
             .ToList();
 
-        await broadcaster.BroadcastRaceState(connectedPlayerIds, visibleSnapshot);
+        conflator.Publish(entry.LobbyId, connectedPlayerIds, visibleSnapshot);
     }
 }
