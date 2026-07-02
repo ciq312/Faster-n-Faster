@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
 
-public record ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
+public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 
 public abstract class Race : AggregateRoot // ISession in future when new mechanics implemeneted
 {
