@@ -6,9 +6,9 @@ public interface IRaceInternals
 {
     public Task RefreshPassage(Guid lobbyId);
 
-    public Task WithdrawParticipant(Guid lobbyId, Guid userId);
+    public void WithdrawParticipant(Guid lobbyId, Guid userId);
 
-    public Task AddParticipants(Guid lobbyId, List<RaceParticipant> participants);
+    public void AddParticipants(Guid lobbyId, List<RaceParticipant> participants);
 
-    public Task StartRace(Guid lobbyId);
+    public void StartRace(Guid lobbyId);
 }
