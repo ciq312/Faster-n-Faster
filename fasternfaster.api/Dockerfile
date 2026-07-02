@@ -1,12 +1,12 @@
 #build
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY FasterNFaster.Api.csproj .
 RUN dotnet restore FasterNFaster.Api.csproj
 COPY . .
-RUN dotnet publish FasterNFaster.Api.csproj -c Debug -o /app/publish --no-restore
+RUN dotnet publish FasterNFaster.Api.csproj -c Release -o /app/publish --no-restore
 # Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
