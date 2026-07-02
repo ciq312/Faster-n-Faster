@@ -1,12 +1,14 @@
 using System.Net.Http.Headers;
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Helpers.Implementations;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -18,7 +20,16 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
         repo.Seed(new User("Existing", "taken", "pass123"));
@@ -35,7 +46,16 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
@@ -50,7 +70,16 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
         var existing = new User("test1", "login1", "testpass");
@@ -66,7 +95,16 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
@@ -82,7 +120,16 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new TokenFactory();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 

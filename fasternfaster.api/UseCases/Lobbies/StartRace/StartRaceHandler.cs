@@ -4,10 +4,12 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 
-public class StartRaceHandler(ILobbySessionService lobbySessionService) : IRequestHandler<StartRaceCommand>
+public class StartRaceHandler(ILobbyServiceFacade lobbySessionService, ILobbyService lobbyService) : IRequestHandler<StartRaceCommand, Guid>
 {
-    public async Task Handle(StartRaceCommand command, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {
+        var lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(command.UserId);
         await lobbySessionService.StartSession(command.UserId);
+        return lobbyId;
     }
 }

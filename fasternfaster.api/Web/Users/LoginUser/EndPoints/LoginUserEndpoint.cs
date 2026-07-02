@@ -1,7 +1,4 @@
 using FastEndpoints;
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using FasterNFaster.Api.Web.Users.LoginUser.Endpoints;
@@ -9,7 +6,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.LoginUser;
 
-public class LoginUserEndpoint(ISender sender, ITokenService tokenService, ISessionService sessions) : Endpoint<LoginUserRequest, LoginUserResult>
+public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResponse>
 {
     public override void Configure()
     {
@@ -19,16 +16,10 @@ public class LoginUserEndpoint(ISender sender, ITokenService tokenService, ISess
 
     public override async Task HandleAsync(LoginUserRequest req, CancellationToken ct)
     {
-        try
-        {
-            var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
-            await tokenService.HandlePlayerAuth(result.UserId, result.Nick);
-            await Send.OkAsync(result, cancellation: ct);
-        }
-        catch (EmailNotVerifiedException e)
-        {
-            HttpContext.Response.StatusCode = 403;
-            await HttpContext.Response.WriteAsJsonAsync(new { code = "EMAIL_NOT_VERIFIED", email = e.Email }, cancellationToken: ct);
-        }
+        var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
+
+        auth.WriteAuth(result.Tokens);
+
+        await Send.OkAsync(new LoginUserResponse(result.UserId, result.Nick), cancellation: ct);
     }
 }

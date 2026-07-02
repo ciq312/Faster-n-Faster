@@ -1,9 +1,8 @@
 using System.Security.Claims;
-using FasterNFaster.Api.Web.Options.JwtOptions;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Web.Services;
 using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Services;
 
@@ -14,10 +13,7 @@ public class HttpContextAuthExtensionsTests
 {
     private static InMemorySessionService CreateSessions()
     {
-        var tokenStore = new TokenStore(Options.Create(new JwtOptions
-        {
-            RefreshTokenLifetime = TimeSpan.FromHours(1)
-        }));
+        var tokenStore = new InMemoryRefreshTokenRepository();
         return new InMemorySessionService(tokenStore);
     }
 

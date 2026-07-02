@@ -1,4 +1,3 @@
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using MediatR;
@@ -6,14 +5,14 @@ using MediatR;
 namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 public class RefreshPassageHandler(
-    ILobbyStore store,
-    ILobbySessionService lobbySessionService,
+    ILobbyService lobbyService,
+    ILobbyServiceFacade lobbySessionService,
     ILobbyStateBroadcaster broadcaster) : IRequestHandler<RefreshPassageCommand>
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)
     {
-        var lobby = store.Get(command.LobbyId) ?? throw new LobbyNotFoundException(command.LobbyId);
+        var lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(command.CallerId);
         await lobbySessionService.RefreshPassage(command.CallerId);
-        await broadcaster.BroadcastLobbyState(lobby);
+        await broadcaster.BroadcastLobbyState(lobbyId);
     }
 }

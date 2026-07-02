@@ -6,6 +6,10 @@ kanban-plugin: board
 
 ## To do
 
+- [ ] 1. ChangeColor calls lobbyService directly (line 184) — bypasses MediatR, inconsistent with every other method. Needs a ChangeColorCommand.
+- [ ] 2. lobbyStore.GetRequired() called in the hub (lines 118, 130, 239) — the hub is reaching into the store directly to get data for broadcasting. The handler should handle this, or the broadcaster should be smarter.
+- [ ] 3. BroadcastLobbyState in the hub after commands (lines 119, 133, 185, 240) — post-command broadcasting is a side effect that belongs in handlers, not the hub. The hub shouldn't need to know "after this command, go broadcast."
+- [ ] 4. OnDisconnectedAsync sends two separate commands (lines 233–234) — FastReconnectCommand then DisconnectCommand. This dual orchestration is application logic; a single PlayerDisconnectedCommand handler should coordinate both.
 
 
 ## In progress

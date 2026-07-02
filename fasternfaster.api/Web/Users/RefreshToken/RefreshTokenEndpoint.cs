@@ -1,13 +1,18 @@
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Web.Services;
+using FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
+using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
+using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Web.Users.RefreshToken;
 
-public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutRequest
+public class RefreshTokenEndpoint(ISender sender, IAuthTokenWriter auth, IOptions<AuthCookiesOptions> options) : EndpointWithoutRequest
 {
-    private readonly ITokenService tokenService = tokenService;
+    private readonly ISender sender = sender;
+    private readonly IAuthTokenWriter auth = auth;
+    private readonly AuthCookiesOptions options = options.Value;
+
     public override void Configure()
     {
         Get("/api/auth/refresh");
@@ -16,20 +21,16 @@ public class RefreshTokenEndpoint(ITokenService tokenService) : EndpointWithoutR
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var refreshToken = HttpContext.Request.Cookies[Config["AuthCookies:RefreshTokenCookieName"]!];
+        var refreshToken = HttpContext.Request.Cookies[options.RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken))
         {
             await Send.UnauthorizedAsync(ct);
             return;
         }
 
-        if (await tokenService.TryRefreshToken(refreshToken))
-        {
-            await Send.OkAsync(cancellation: ct);
-        }
+        var result = await sender.Send(new RefreshTokenCommand(refreshToken), ct);
 
-        else
-            await Send.UnauthorizedAsync(ct);
-
+        auth.WriteAuth(result.Tokens);
+        await Send.OkAsync(cancellation: ct);
     }
 }
