@@ -10,14 +10,13 @@ public class HubBanFilter : IHubFilter
     {
         if (TryGetUserId(context.Context, out var userId))
         {
-            //testing it opens to many connections to the db and causes the app to crash.
-            // var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
-            // if (await banService.IsBannedAsync(userId))
-            // {
-            //     await context.Hub.Clients.Caller.SendAsync(Methods.Banned, "You are banned");
-            //     context.Context.Abort();
-            //     return;
-            // }
+            var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
+            if (await banService.IsBannedAsync(userId))
+            {
+                await context.Hub.Clients.Caller.SendAsync(Methods.Banned, "You are banned");
+                context.Context.Abort();
+                return;
+            }
         }
 
         await next(context);
