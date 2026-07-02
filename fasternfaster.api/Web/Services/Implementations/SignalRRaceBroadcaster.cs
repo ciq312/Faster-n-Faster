@@ -14,8 +14,6 @@ public class SignalRRaceBroadcaster(
     ISessionService sessionService,
     ILogger<SignalRRaceBroadcaster> logger) : IRaceBroadcaster
 {
-    private const int PerClientSendTimeoutMs = 150;
-
     public Task BroadcastRaceStarted(Guid lobbyId) =>
         broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.RaceStarted);
 
@@ -24,19 +22,4 @@ public class SignalRRaceBroadcaster(
             playerIds.Select(sessionService.GetActiveSession).Where(id => id is not null)!)
             .SendAsync(Methods.RaceState, snapshot, CancellationToken.None);
 
-    private async Task SendToPlayerWithTimeout(Guid userId, object payload)
-    {
-        var connectionId = sessionService.GetActiveSession(userId);
-        if (connectionId is null) return;
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(PerClientSendTimeoutMs));
-        try
-        {
-            await hub.Clients.Client(connectionId).SendAsync(Methods.RaceState, payload, cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogWarning("Send to user {UserId} timed out", userId);
-        }
-    }
 }
