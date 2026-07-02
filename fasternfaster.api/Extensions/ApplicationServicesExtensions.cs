@@ -52,7 +52,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IPasswordHelper, PasswordHelper>();
         services.AddScoped<BanRepository>();
         services.AddScoped<IBanRepository>(sp => new CachedBanRepository(
-            sp.GetRequiredService<BanRepository>(), sp.GetRequiredService<ICache>()));
+            sp.GetRequiredService<FakeBanRepository>(), sp.GetRequiredService<ICache>()));
 
         services.AddSingleton<ISessionService, InMemorySessionService>();
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
