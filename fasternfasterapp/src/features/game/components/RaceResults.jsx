@@ -30,7 +30,7 @@ function RaceResults({ results, selfId, onDismiss }) {
                     <td>{r.finishPosition ?? "-"}</td>
                     <td>{r.nick ?? "unknown"}</td>
                     <td>{Math.round(r.wpm)}</td>
-                    <td>{(r.accuracy * 100).toFixed(1)}%</td>
+                    <td>{(r.accuracy).toFixed(1)}%</td>
                     <td>{r.mistakeCount}</td>
                   </tr>
                 ),

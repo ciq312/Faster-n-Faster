@@ -4,6 +4,9 @@ using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Auth;
+using FasterNFaster.Api.Infrastructure.Caching;
+using FasterNFaster.Api.Infrastructure.Db.Statistics;
+using FasterNFaster.Api.Infrastructure.Db.User;
 using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
@@ -37,13 +40,19 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<ILobbyStore, InMemoryLobbyStore>();
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
+        services.AddSingleton<ICache, RedisCache>();
+
         services.AddScoped<IUserRepository, PostgresUserRepository>();
-        services.AddScoped<IStatisticsRepository, PostgresStatisticsRepository>();
+        services.AddScoped<PostgresStatisticsRepository>();
+        services.AddScoped<IStatisticsRepository>(sp => new CachedStatisticsRepository(
+            sp.GetRequiredService<PostgresStatisticsRepository>(), sp.GetRequiredService<ICache>()));
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IUserFactory, UserFactory>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IPasswordHelper, PasswordHelper>();
-        services.AddScoped<IBanService, BanService>();
+        services.AddScoped<BanRepository>();
+        services.AddScoped<IBanRepository>(sp => new CachedBanRepository(
+            sp.GetRequiredService<BanRepository>(), sp.GetRequiredService<ICache>()));
 
         services.AddSingleton<ISessionService, InMemorySessionService>();
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
@@ -62,7 +71,9 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IConfirmTokenRepository, RedisConfirmTokenRepository>();
         services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
 
-        services.AddScoped<ILeaderboardService, LeaderboardService>();
+        services.AddScoped<LeaderboardRepository>();
+        services.AddScoped<ILeaderboardRepository>(sp => new CachedLeaderboardRepository(
+            sp.GetRequiredService<LeaderboardRepository>(), sp.GetRequiredService<ICache>()));
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<ILobbyStateBroadcaster, LobbyStateBroadcaster>();
 

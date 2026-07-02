@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using MiniValidationPlus;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace FasterNFaster.Api.Core.Entities;
@@ -35,8 +34,6 @@ public class User
         Login = login;
         Password = password;
         CreatedAt = DateTime.UtcNow;
-        if (!MiniValidatorPlus.TryValidate(this, out var errors))
-            throw new ValidationException(string.Join("; ", errors.Values.SelectMany(e => e)));
     }
 
     public void SetPassword(string newPassword)

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Leaderboards.Handlers;
 
-public class GetLeaderboardHandler(ILeaderboardService leaderboardService) : IRequestHandler<GetLeaderboardCommand, GetLeaderboardResults>
+public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : IRequestHandler<GetLeaderboardCommand, GetLeaderboardResults>
 {
     private const int MaxPageSize = 100;
 

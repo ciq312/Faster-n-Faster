@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Users;
 
-public class LeaderboardService(AppDbContext context) : ILeaderboardService
+public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepository
 {
     public async Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
     {

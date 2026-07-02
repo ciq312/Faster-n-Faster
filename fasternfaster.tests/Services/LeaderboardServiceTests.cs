@@ -42,7 +42,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     {
 
         using var context = new AppDbContext(_options);
-        var service = new LeaderboardService(context);
+        var service = new LeaderboardRepository(context);
 
         var result = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 2);
         var list = result.Items;
@@ -64,7 +64,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     {
 
         using var context = new AppDbContext(_options);
-        var service = new LeaderboardService(context);
+        var service = new LeaderboardRepository(context);
 
         // Ascending now means literal sort direction: page 1 holds the lowest values.
         var result = await service.GetTopPlayersAsync(LeaderboardSort.AvgWpm, false, 1, 2);
@@ -85,7 +85,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     public async Task GetTopPlayersAsync_SecondPage_SkipsFirstPage()
     {
         using var context = new AppDbContext(_options);
-        var service = new LeaderboardService(context);
+        var service = new LeaderboardRepository(context);
 
         var page2 = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 2, 2);
         var list = page2.Items;
