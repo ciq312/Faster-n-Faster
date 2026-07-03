@@ -13,4 +13,6 @@ public interface IRaceService
     void RemoveRegisteredRace(Guid lobbyId);
 
     Task<IRaceSettings> GetRaceSettings(Guid lobbyId);
+
+    Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId);
 }

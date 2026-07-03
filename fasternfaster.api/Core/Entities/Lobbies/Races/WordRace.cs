@@ -45,7 +45,12 @@ public class WordRace : Race
 
     public override int? GetPassageWordCount() => WordCount;
 
-    public override void ApplyPassage(string passage) => SetPassage(passage);
+    public override void ApplyPassage(string passage)
+    {
+        if (HasStarted)
+            throw new InvalidOperationException("Cannot change passage after race start.");
+        SetPassage(passage);
+    }
 
     public void SetPassage(string passage) => Passage = passage;
 

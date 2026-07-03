@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
@@ -8,7 +7,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 namespace FasterNFaster.Api.UseCases.Services.Races;
 
 public class RaceService(
-    IAggregateRootHelper aggregateRootHelper,
+    IEventDispatcher eventDispatcher,
     IPassageProvider passageProvider,
     IAntiCheatPolicy antiCheatPolicy,
     ILogger<RaceService> logger) : IRaceService, IRaceInternals
@@ -20,17 +19,17 @@ public class RaceService(
 
     public async Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed)
     {
-        Race? race = null;
+        List<IDomainEvent> events = [];
 
         await WithRaceAsync(lobbyId, r =>
         {
             r.ProcessUpdate(playerId, index, mistakes, typed, antiCheatPolicy);
             WrapRaceEvents(r, lobbyId);
-            race = r;
+            events = [.. r.DomainEvents];
+            r.ClearEvents();
         });
 
-        if (race != null)
-            await aggregateRootHelper.DispatchRootEventsAsync(race);
+        await DispatchEvents(events);
     }
 
     public Task StartRace(Guid lobbyId) =>
@@ -50,8 +49,20 @@ public class RaceService(
         await WithRaceAsync(lobbyId, race => race.ApplyPassage(passage));
     }
 
-    public Task WithdrawParticipant(Guid lobbyId, Guid userId) =>
-        WithRaceAsync(lobbyId, r => r.WithdrawParticipant(userId));
+    public async Task WithdrawParticipant(Guid lobbyId, Guid userId)
+    {
+        List<IDomainEvent> events = [];
+
+        await WithRaceAsync(lobbyId, r =>
+        {
+            r.WithdrawParticipant(userId);
+            WrapRaceEvents(r, lobbyId);
+            events = [.. r.DomainEvents];
+            r.ClearEvents();
+        });
+
+        await DispatchEvents(events);
+    }
 
     public void RegisterRace(Guid lobbyId, Race race)
     {
@@ -71,6 +82,22 @@ public class RaceService(
 
     public async Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
         await WithRaceAsync(lobbyId, race => race.GetRaceSettings());
+
+    public async Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId)
+    {
+        if (!TryGetActiveRace(lobbyId, out var entry)) return null;
+
+        var (gate, race) = entry;
+        await gate.WaitAsync();
+        try
+        {
+            return race.GetRaceSettings();
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
 
     private (SemaphoreSlim, Race) GetActiveRace(Guid lobbyId)
     {
@@ -123,5 +150,11 @@ public class RaceService(
             if (domainEvent is IRaceEvent raceEvent)
                 raceEvent.WrapRaceContext(lobbyId);
         }
+    }
+
+    private async Task DispatchEvents(List<IDomainEvent> events)
+    {
+        foreach (var domainEvent in events)
+            await eventDispatcher.Dispatch(domainEvent, CancellationToken.None);
     }
 }
