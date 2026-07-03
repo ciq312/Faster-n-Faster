@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
@@ -43,12 +42,12 @@ public static class LobbyFactory
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyStore();
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, locationRegistry);
+        var lobbyService = new LobbyService(lobbyStore, dispatcher, locationRegistry);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
+        var raceService = new RaceService(dispatcher, passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
@@ -71,7 +70,7 @@ public static class LobbyFactory
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyStore();
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, locationRegistry);
+        var lobbyService = new LobbyService(lobbyStore, dispatcher, locationRegistry);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 
@@ -79,7 +78,7 @@ public static class LobbyFactory
             userRepo.Seed(user);
 
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
+        var raceService = new RaceService(dispatcher, passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
