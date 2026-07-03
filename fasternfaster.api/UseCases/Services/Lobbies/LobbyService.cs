@@ -8,20 +8,17 @@ using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
-using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Core.Interfaces.Events;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
 public class LobbyService(
     ILobbyStore lobbyStore,
-    IAggregateRootHelper aggregateRootHelper,
     IEventDispatcher eventDispatcher,
     IPlayerLocationRegistry locationRegistry) : ILobbyService, ILobbyInternals
 {
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IEventDispatcher eventDispatcher = eventDispatcher;
-    private readonly IAggregateRootHelper aggregateRootHelper = aggregateRootHelper;
     private readonly IPlayerLocationRegistry locationRegistry = locationRegistry;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
 
@@ -30,8 +27,14 @@ public class LobbyService(
         if (locationRegistry.GetLobbyIdOfPlayer(user.Id) is Guid existingId && existingId != lobbyId)
             throw new AlreadyInLobbyException();
 
-        await WithLobby(lobbyId, lobby => lobby.Join(user, code));
-        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
+        List<IDomainEvent> events = [];
+        await WithLobby(lobbyId, lobby =>
+        {
+            lobby.Join(user, code);
+            events = [.. lobby.DomainEvents];
+            lobby.ClearEvents();
+        });
+        await DispatchEvents(events);
     }
 
     public ValueTask<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
@@ -51,8 +54,14 @@ public class LobbyService(
     {
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
-        await WithLobby(lobbyId, l => l.TransferHost(hostId, userId));
-        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
+        List<IDomainEvent> events = [];
+        await WithLobby(lobbyId, l =>
+        {
+            l.TransferHost(hostId, userId);
+            events = [.. l.DomainEvents];
+            l.ClearEvents();
+        });
+        await DispatchEvents(events);
     }
 
     public async Task KickPlayer(Guid hostId, Guid userId)
@@ -60,6 +69,7 @@ public class LobbyService(
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer kicked = null!;
+        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, l =>
         {
             if (l.IsSessionActive) throw new ConflictException("Can't kick when racing");
@@ -67,10 +77,12 @@ public class LobbyService(
             l.ValidateHost(hostId);
             kicked = l.RemovePlayer(userId);
             l.BanPlayer(kicked.User.Id);
+            events = [.. l.DomainEvents];
+            l.ClearEvents();
         });
 
         await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick), CancellationToken.None);
-        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
+        await DispatchEvents(events);
     }
 
     public async Task RemoveFromLobby(Guid userId)
@@ -78,20 +90,29 @@ public class LobbyService(
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer removed = null!;
-        await WithLobby(lobbyId, l => removed = l.RemovePlayer(userId));
+        List<IDomainEvent> events = [];
+        await WithLobby(lobbyId, l =>
+        {
+            removed = l.RemovePlayer(userId);
+            events = [.. l.DomainEvents];
+            l.ClearEvents();
+        });
 
         await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick), CancellationToken.None);
-        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
+        await DispatchEvents(events);
     }
 
     public async Task StartSession(Guid lobbyId, Guid hostId)
     {
+        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, lobby =>
         {
             lobby.ValidateHost(hostId);
             lobby.StartSession();
+            events = [.. lobby.DomainEvents];
+            lobby.ClearEvents();
         });
-        await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
+        await DispatchEvents(events);
     }
 
     public Task EndSession(Guid lobbyId) =>
@@ -146,5 +167,11 @@ public class LobbyService(
     public async Task ValidateHost(Guid lobbyId, Guid hostId)
     {
         await WithLobby(lobbyId, l => l.ValidateHost(hostId));
+    }
+
+    private async Task DispatchEvents(List<IDomainEvent> events)
+    {
+        foreach (var domainEvent in events)
+            await eventDispatcher.Dispatch(domainEvent, CancellationToken.None);
     }
 }

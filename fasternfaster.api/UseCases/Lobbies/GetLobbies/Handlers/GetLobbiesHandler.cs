@@ -18,7 +18,9 @@ public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService)
         var items = new List<LobbyListItem>();
         foreach (var l in lobbies.OrderByDescending(l => l.LobbySettings.CreatedAt))
         {
-            var raceSettings = await raceService.GetRaceSettings(l.Id);
+            var raceSettings = await raceService.GetRaceSettingsOrDefault(l.Id);
+            if (raceSettings is null) continue;
+
             items.Add(new LobbyListItem(
                 l.Id,
                 l.Name,

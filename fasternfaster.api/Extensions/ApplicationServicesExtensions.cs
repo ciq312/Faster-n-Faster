@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure;
@@ -58,7 +57,6 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
         services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
         services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
-        services.AddSingleton<IAggregateRootHelper, AggregateRootHelper>();
         services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 
