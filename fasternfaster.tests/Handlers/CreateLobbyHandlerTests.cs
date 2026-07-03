@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Helpers;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
@@ -25,8 +24,8 @@ public class CreateLobbyHandlerTests
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyStore();
 
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, new InMemoryPlayerLocationRegistry());
-        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, dispatcher, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
 
@@ -48,8 +47,8 @@ public class CreateLobbyHandlerTests
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyStore();
 
-        var lobbyService = new LobbyService(lobbyStore, new AggregateRootHelper(dispatcher), dispatcher, new InMemoryPlayerLocationRegistry());
-        var raceService = new RaceService(new AggregateRootHelper(dispatcher), passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, dispatcher, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
         var lobbyId = Guid.NewGuid();

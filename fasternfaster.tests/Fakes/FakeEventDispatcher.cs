@@ -6,7 +6,7 @@ public class FakeEventDispatcher : IEventDispatcher
 {
     public List<IDomainEvent> Dispatched { get; } = new();
 
-    public Task Dispatch<T>(T domainEvent, CancellationToken ct) where T : IDomainEvent
+    public Task Dispatch(IDomainEvent domainEvent, CancellationToken ct)
     {
         Dispatched.Add(domainEvent);
         return Task.CompletedTask;
