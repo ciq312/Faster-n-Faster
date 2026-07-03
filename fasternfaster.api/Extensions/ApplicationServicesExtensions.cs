@@ -50,9 +50,9 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IUserFactory, UserFactory>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IPasswordHelper, PasswordHelper>();
-        services.AddScoped<FakeBanRepository>();
+        services.AddScoped<BanRepository>();
         services.AddScoped<IBanRepository>(sp => new CachedBanRepository(
-            sp.GetRequiredService<FakeBanRepository>(), sp.GetRequiredService<ICache>()));
+            sp.GetRequiredService<BanRepository>(), sp.GetRequiredService<ICache>()));
 
         services.AddSingleton<ISessionService, InMemorySessionService>();
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
