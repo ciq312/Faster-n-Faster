@@ -69,7 +69,7 @@ public class LobbyService(
             l.BanPlayer(kicked.User.Id);
         });
 
-        await eventDispatcher.Dispatch((dynamic)new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick), CancellationToken.None);
+        await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick), CancellationToken.None);
         await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
@@ -80,7 +80,7 @@ public class LobbyService(
         LobbyPlayer removed = null!;
         await WithLobby(lobbyId, l => removed = l.RemovePlayer(userId));
 
-        await eventDispatcher.Dispatch((dynamic)new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick), CancellationToken.None);
+        await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick), CancellationToken.None);
         await aggregateRootHelper.DispatchRootEventsAsync(lobbyStore.GetRequired(lobbyId));
     }
 
@@ -97,10 +97,13 @@ public class LobbyService(
     public Task EndSession(Guid lobbyId) =>
         WithLobby(lobbyId, lobby => lobby.EndSession());
 
+    // The gate is deliberately not disposed: concurrent WithLobby callers may still
+    // Wait/Release on it. SemaphoreSlim owns no OS handle here, so GC collects it;
+    // disposing would fault or hang those callers.
     public Task RemoveLobby(Guid lobbyId)
     {
         lobbyStore.Remove(lobbyId);
-        if (gates.TryRemove(lobbyId, out var sem)) sem.Dispose();
+        gates.TryRemove(lobbyId, out _);
         return Task.CompletedTask;
     }
 

@@ -59,11 +59,14 @@ public class RaceService(
         races[lobbyId] = (new SemaphoreSlim(1, 1), race);
     }
 
+    // The semaphore is deliberately not disposed: in-flight callers (tick snapshots,
+    // sibling disconnect handlers) hold a copy of the tuple and may still Wait/Release
+    // on it. SemaphoreSlim owns no OS handle here, so GC collects it safely; disposing
+    // would fault or hang those callers.
     public void RemoveRegisteredRace(Guid lobbyId)
     {
         logger.LogDebug("Removing race for lobby {LobbyId}", lobbyId);
-        if (races.TryRemove(lobbyId, out var entry))
-            entry.Item1.Dispose();
+        races.TryRemove(lobbyId, out _);
     }
 
     public async Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
