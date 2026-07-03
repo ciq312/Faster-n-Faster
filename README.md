@@ -26,7 +26,7 @@ A real-time multiplayer typing simulator. Players compete in public or private l
 | Backend | ASP.NET Core (.NET 10, FastEndpoints, EF Core) |
 | Real-time | SignalR (WebSockets) |
 | Persistent DB | PostgreSQL 15 |
-| Ephemeral / pub-sub | Redis 7 |
+| Tokens / caching | Redis 7 |
 | Email | Resend |
 | Reverse proxy | Caddy (automatic TLS) |
 | Containerization | Docker + Docker Compose |
@@ -47,10 +47,13 @@ Caddy  (:80/:443, automatic Let's Encrypt TLS)
   │                                │
   │                         ┌──────┴──────┐
   │                         ▼             ▼
-  │                    PostgreSQL 15    Redis 7
-  │               (users, lobbies,  (live race state,
-  │                race results,     SignalR backplane)
-  │                leaderboard)
+  │                    PostgreSQL 15      Redis 7
+  │                 (users, statistics,  (refresh/confirm
+  │                  race results,        tokens, leaderboard
+  │                  bans)                + ban caches)
+  │
+  │          live lobby & race state is held in-memory
+  │          inside the API (single instance by design)
   │
   └── everything else  ──→  frontend:3000  (nginx, serves built React)
 ```
@@ -80,7 +83,7 @@ Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements
 
 - **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick. Each tick it flushes a queue of pending progress updates and broadcasts a single slim event per player to the rest of the lobby. This keeps bandwidth and CPU flat regardless of typing speed.
 - **Keystroke throttling** — the client throttles how often it sends keystrokes to the server, preventing the hub from being flooded under fast typists or network bursts
-- **Redis as backplane** — enables horizontal scaling of the SignalR hub without sticky sessions
+- **In-memory live state** — lobbies and race progress live in lock-protected in-memory stores inside the API, keeping the hot path free of network round-trips; Redis holds refresh/confirm tokens and read caches. The trade-off is a single API instance — scaling out would mean adding a Redis SignalR backplane and externalizing lobby state
 - **Host promotion** — if the host disconnects, the next player in the lobby list is automatically promoted
 - **Disconnected player mid-race** — cursor freezes, race continues, player excluded from results
 - **JWT auth** — RS256 asymmetric signing; short-lived access tokens + sliding refresh tokens in HttpOnly cookies
@@ -98,12 +101,13 @@ Faster-n-Faster/
 │       ├── features/       — auth, game, lobbies, leaderboard, connection
 │       ├── pages/          — routed page components
 │       └── shared/         — reusable components, utils
-├── profiling/              — performance profiling tools (see below)
 ├── loadtest/               — SignalR load test bot (.NET)
 ├── docker-compose.yml      — local dev stack
 ├── docker-compose.prod.yml — prod overlay (pulls images from GHCR)
 └── Caddyfile               — reverse proxy config
 ```
+
+Load-test orchestration and profiling live in a separate repo: [Faster-n-Faster-profiling](https://github.com/ciq312/Faster-n-Faster-profiling).
 
 ---
 
@@ -147,15 +151,15 @@ Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
 | `frontend` | `ghcr.io/ciq312/fasternfaster-frontend:latest` | nginx serving built React on :3000 |
 | `backend` | `ghcr.io/ciq312/fasternfaster-api:latest` | ASP.NET Core API on :8080 |
 | `postgresDB` | `postgres:15` | Persistent storage |
-| `redis` | `redis:7-alpine` | Ephemeral state + SignalR backplane (256 MB LRU) |
+| `redis` | `redis:7-alpine` | Tokens + read caches (256 MB LRU) |
 
 ---
 
 ## What's Being Refactored
 
-- **MediatR / CQRS** — the service layer is being migrated to a proper CQRS pattern using MediatR. Commands and queries are being extracted from services into dedicated handlers. MediatR is not yet wired into the DI container; this is in progress.
+- **MediatR / CQRS** — commands and queries have been extracted from services into dedicated MediatR handlers. The race progress hot path deliberately bypasses MediatR to avoid per-keystroke allocations; a few remaining service methods are still being migrated.
 - **Dependency cleanup** — some packages pulled in early are being evaluated and removed where they add weight without value.
-- **Automated profiling pipeline** — load testing, counter collection, and graph generation are currently a manual process (SSH to server, run `dotnet-counters`, copy CSV, run `profiler.py` locally). The goal is to automate this end-to-end: trigger a load test from CI, collect counters remotely, and produce graphs automatically.
+- **CI-triggered profiling** — load testing, counter collection, and graph generation are automated end-to-end by [`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling): one command runs the bot swarm on the server, collects `dotnet-counters` metrics from the backend container, and renders phase-annotated graphs locally. The next step is triggering these runs from CI.
 
 ---
 
@@ -163,7 +167,7 @@ Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
 
 ### Load testing (`loadtest/`)
 
-A .NET SignalR bot that simulates concurrent players joining lobbies and racing. Results at various loads (10–1000 concurrent users) are checked in as CSV alongside their phase timings.
+A .NET SignalR bot that simulates concurrent players joining lobbies and racing. Results at various loads (10–2000 concurrent users) are checked into the [tools repo](https://github.com/ciq312/Faster-n-Faster-profiling) as CSV alongside their phase timings.
 
 ```bash
 cd loadtest
@@ -172,28 +176,12 @@ dotnet run -- --server https://faster-n-faster.com --users 500 --wpm 120
 
 Flags: `--server <URL>` (default `http://localhost:8080`), `--users <N>` (default 5), `--wpm <N>` (default 120), `--insecure` (skip TLS verification).
 
-### Profiling (`profiling/`)
+### Profiling & orchestration ([Faster-n-Faster-profiling](https://github.com/ciq312/Faster-n-Faster-profiling))
 
-`profiler.py` reads `dotnet-counters` CSV exports and renders graphs for CPU, memory, thread pool, GC allocation, and JIT metrics. Supports single-run and overlay modes for comparing runs side by side.
-
-```bash
-# Single run
-python profiler.py counters_500.csv phases500users.json
-
-# Overlay — compare two scenarios
-python profiler.py "before=counters_100.csv,phases100users.json" "after=counters_200.csv,phases200users.json"
-```
-
-Collect counters from the running backend container:
+The full load-test → profile → graph pipeline is automated in a separate repo. One command drives the server over SSH, runs the bot swarm, collects `dotnet-counters` metrics from the backend container, and renders phase-annotated graphs (CPU, memory, thread pool, GC, JIT) locally:
 
 ```bash
-docker exec -d backend sh -c '/opt/tools/dotnet-counters collect -p 1 \
-  --format csv -o /tmp/counters.csv \
-  --counters System.Runtime,Microsoft.AspNetCore.Hosting & echo $! > /tmp/counters.pid'
-
-# Stop collection
-docker exec backend sh -c 'kill -INT $(cat /tmp/counters.pid)'
-
-# Copy CSV to host
-docker cp backend:/tmp/counters.csv ./profiling/my_run.csv
+python automation.py --users 500 --label 500UsersProd --wpm 120
 ```
+
+Raw counter data and generated graphs for every experiment (semaphore fixes, allocation reductions, tick-rate changes, 10–2000 users) are checked in there alongside `profiler.py`, which also supports overlay mode for comparing runs side by side.

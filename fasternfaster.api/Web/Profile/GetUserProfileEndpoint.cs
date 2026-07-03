@@ -8,7 +8,7 @@ public class GetUserProfileEndpoint(IUserProfileService profileService) : Endpoi
 {
     public override void Configure()
     {
-        Get("api/users/profiles/me");
+        Get("/api/users/profiles/me");
     }
 
     public override async Task HandleAsync(CancellationToken ct)

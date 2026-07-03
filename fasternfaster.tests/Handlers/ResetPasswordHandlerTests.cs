@@ -31,7 +31,7 @@ public class ResetPasswordHandlerTests
 
     private static async Task<TestContext> BuildWithValidResetToken()
     {
-        var setup = await RegistredUsersSetup.Setup(
+        var setup = await RegisteredUsersSetup.Setup(
             new RegisterUserCommand("test", KnownLogin, KnownEmail, OldPassword));
 
         var user = await setup.repo.GetUserByLoginAsync(KnownLogin)

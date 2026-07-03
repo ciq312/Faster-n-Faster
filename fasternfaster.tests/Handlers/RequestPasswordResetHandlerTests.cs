@@ -14,9 +14,9 @@ public class RequestPasswordResetHandlerTests
     private const string KnownEmail = "test@gmail.com";
     private const string KnownLogin = "testlogin";
 
-    private static async Task<(RequestPasswordResetHandler handler, RegistredUsersSetup.SetupResult setup)> Build()
+    private static async Task<(RequestPasswordResetHandler handler, RegisteredUsersSetup.SetupResult setup)> Build()
     {
-        var setup = await RegistredUsersSetup.Setup(
+        var setup = await RegisteredUsersSetup.Setup(
             new RegisterUserCommand("test", KnownLogin, KnownEmail, "testpass"));
         // Clear the verification-email-from-registration so we assert on reset calls only.
         setup.EmailSender.Sent.Clear();

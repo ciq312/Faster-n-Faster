@@ -9,9 +9,9 @@ public class ResendVerificationHandlerTests
     private const string KnownEmail = "test@gmail.com";
     private const string KnownLogin = "testlogin";
 
-    private static async Task<(ResendVerificationHandler handler, RegistredUsersSetup.SetupResult setup)> Build()
+    private static async Task<(ResendVerificationHandler handler, RegisteredUsersSetup.SetupResult setup)> Build()
     {
-        var setup = await RegistredUsersSetup.Setup(
+        var setup = await RegisteredUsersSetup.Setup(
             new RegisterUserCommand("test", KnownLogin, KnownEmail, "testpass"));
         // Drop the verification email + token created during registration for clean assertions.
         setup.EmailSender.Sent.Clear();
