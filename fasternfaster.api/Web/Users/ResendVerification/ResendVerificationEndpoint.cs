@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
 using MediatR;
 
@@ -10,6 +11,7 @@ public class ResendVerificationEndpoint(ISender sender) : Endpoint<ResendVerific
     {
         Post("/api/auth/resend-verification");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
     }
 
     public override async Task HandleAsync(ResendVerificationRequest req, CancellationToken ct)

@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
 using MediatR;
 
@@ -10,6 +11,7 @@ public class VerifyEmailEndpoint(ISender sender) : Endpoint<VerifyEmailRequest>
     {
         Post("/api/auth/verify-email");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthModerate));
     }
 
     public override async Task HandleAsync(VerifyEmailRequest req, CancellationToken ct)

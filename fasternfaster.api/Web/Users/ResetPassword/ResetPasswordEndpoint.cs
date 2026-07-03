@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using MediatR;
 
@@ -10,6 +11,7 @@ public class ResetPasswordEndpoint(ISender sender) : Endpoint<ResetPasswordReque
     {
         Post("/api/auth/reset-password");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
     }
 
     public override async Task HandleAsync(ResetPasswordRequest req, CancellationToken ct)

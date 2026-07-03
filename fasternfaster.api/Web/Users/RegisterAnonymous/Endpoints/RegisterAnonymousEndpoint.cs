@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;
@@ -19,6 +20,7 @@ public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : 
     {
         Post("/api/auth/guest");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthModerate));
     }
 
     public override async Task HandleAsync(RegisterAnonymousRequest req, CancellationToken ct)

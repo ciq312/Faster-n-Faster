@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
@@ -17,6 +18,7 @@ public class RefreshTokenEndpoint(ISender sender, IAuthTokenWriter auth, IOption
     {
         Post("/api/auth/refresh");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthModerate));
     }
 
     public override async Task HandleAsync(CancellationToken ct)

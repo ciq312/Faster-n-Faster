@@ -13,18 +13,18 @@ public class LobbyStateBroadcaster(IBroadcaster broadcaster, ILobbyStore lobbySt
     private readonly ILobbyStore lobbyStore = lobbyStore;
     private readonly IRaceService raceService = raceService;
 
-    public Task BroadcastLobbyState(Lobby lobby) =>
-        broadcaster.Broadcast(Audience.Lobby(lobby.Id), Methods.LobbyState, GetLobbyState(lobby));
+    public async Task BroadcastLobbyState(Lobby lobby) =>
+        await broadcaster.Broadcast(Audience.Lobby(lobby.Id), Methods.LobbyState, await GetLobbyState(lobby));
 
-    public Task BroadcastLobbyState(Guid lobbyId) =>
-        BroadcastLobbyState(lobbyStore.GetRequired(lobbyId));
+    public async Task BroadcastLobbyState(Guid lobbyId) =>
+        await BroadcastLobbyState(lobbyStore.GetRequired(lobbyId));
 
-    public LobbyStateDTO GetLobbyState(Lobby lobby)
+    public async Task<LobbyStateDTO> GetLobbyState(Lobby lobby)
     {
         var players = lobby.Players.Select(p => new LobbyPlayerDto(
             p.User.Id, p.IsHost, p.User.Nick, p.JoinOrder, p.IsConnected, p.Color));
 
-        var raceSettings = raceService.GetRaceSettings(lobby.Id);
+        var raceSettings = await raceService.GetRaceSettings(lobby.Id);
 
         return new LobbyStateDTO(
             lobby.Id, lobby.Name, raceSettings.RaceType, lobby.IsSessionActive, raceSettings, lobby.LobbySettings.IsPrivate,

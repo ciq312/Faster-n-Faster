@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 using MediatR;
@@ -11,6 +12,7 @@ public class RegisterUserEndpoint(ISender sender) : Endpoint<RegisterUserRequest
     {
         Post("/api/auth/register");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
     }
 
     public override async Task HandleAsync(RegisterUserRequest req, CancellationToken ct)
