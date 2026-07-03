@@ -15,7 +15,7 @@ public class RefreshTokenEndpoint(ISender sender, IAuthTokenWriter auth, IOption
 
     public override void Configure()
     {
-        Get("/api/auth/refresh");
+        Post("/api/auth/refresh");
         AllowAnonymous();
     }
 

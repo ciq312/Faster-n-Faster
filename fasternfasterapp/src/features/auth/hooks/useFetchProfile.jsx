@@ -15,7 +15,7 @@ export function useFetchProfile() {
   useEffect(() => {
     const getProfile = async () => {
       try {
-        const response = await apiCall(`/api/users/profiles/me`, {
+        const response = await apiCall(`/api/users/me/profile`, {
           method: "GET",
         });
         if (!response.ok) {

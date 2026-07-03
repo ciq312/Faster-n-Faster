@@ -31,7 +31,7 @@ function Lobbies() {
 
     try {
       const response = await fetch(
-        `/api/lobbies/by-code/${encodeURIComponent(code)}`,
+        `/api/lobbies?inviteCode=${encodeURIComponent(code)}`,
       );
 
       if (!response.ok) {
@@ -40,7 +40,12 @@ function Lobbies() {
       }
 
       const data = await response.json();
-      joinLobby(data.lobbyId, code);
+      const lobby = data.lobbies?.[0];
+      if (!lobby) {
+        showError("Invalid invite code");
+        return;
+      }
+      joinLobby(lobby.id, code);
     } catch {
       showError("Could not connect to server.");
     }
