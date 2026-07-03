@@ -9,7 +9,7 @@ using Org.BouncyCastle.Crypto.Operators;
 
 namespace FasterNFaster.Tests;
 
-public static class RegistredUsersSetup
+public static class RegisteredUsersSetup
 {
     public static async Task<SetupResult> Setup(params RegisterUserCommand[] commands)
     {

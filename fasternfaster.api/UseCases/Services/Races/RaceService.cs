@@ -66,8 +66,8 @@ public class RaceService(
             entry.Item1.Dispose();
     }
 
-    public IRaceSettings GetRaceSettings(Guid lobbyId) =>
-        WithRace(lobbyId, race => race.GetRaceSettings());
+    public async Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
+        await WithRaceAsync(lobbyId, race => race.GetRaceSettings());
 
     private (SemaphoreSlim, Race) GetActiveRace(Guid lobbyId)
     {
@@ -112,19 +112,6 @@ public class RaceService(
         }
     }
 
-    private T WithRace<T>(Guid lobbyId, Func<Race, T> action)
-    {
-        var (gate, race) = GetActiveRace(lobbyId);
-        gate.Wait();
-        try
-        {
-            return action(race);
-        }
-        finally
-        {
-            gate.Release();
-        }
-    }
 
     private void WrapRaceEvents(Race race, Guid lobbyId)
     {
