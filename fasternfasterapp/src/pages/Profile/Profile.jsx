@@ -12,7 +12,7 @@ function formatNumber(value, precision = 1) {
 
 function formatPercent(value, precision = 2) {
   if (typeof value !== "number") return "—";
-  return (value * 100).toFixed(precision);
+  return (value).toFixed(precision);
 }
 
 function Profile() {
