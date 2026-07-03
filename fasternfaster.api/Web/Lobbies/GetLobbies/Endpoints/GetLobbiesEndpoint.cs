@@ -5,7 +5,13 @@ using MediatR;
 
 namespace FasterNFaster.Api.Web.Endpoints;
 
-public class GetLobbiesEndpoint(ISender sender) : EndpointWithoutRequest<GetLobbiesResult>
+public class GetLobbiesRequest
+{
+    [QueryParam]
+    public string? InviteCode { get; set; }
+}
+
+public class GetLobbiesEndpoint(ISender sender) : Endpoint<GetLobbiesRequest, GetLobbiesResult>
 {
     public override void Configure()
     {
@@ -13,9 +19,9 @@ public class GetLobbiesEndpoint(ISender sender) : EndpointWithoutRequest<GetLobb
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetLobbiesRequest req, CancellationToken ct)
     {
-        var response = await sender.Send(new GetLobbiesQuery(), ct);
+        var response = await sender.Send(new GetLobbiesQuery(req.InviteCode), ct);
         await Send.OkAsync(response, ct);
     }
 }

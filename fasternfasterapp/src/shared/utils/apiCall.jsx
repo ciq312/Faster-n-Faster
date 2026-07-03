@@ -4,7 +4,7 @@ export async function apiCall(url, options) {
   let response = await fetch(`${API_BASE}${url}`, { credentials: "include", ...options });
   if (response.status === 401) {
     const refreshResponse = await fetch(`${API_BASE}/api/auth/refresh`, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
     });
     if (!refreshResponse.ok) return response;
