@@ -21,7 +21,6 @@ export function useRaceActions() {
   }, [isConnected]);
 
   const rawSendProgress = useCallback(async ({ index, mistakes, typed }) => {
-    console.log("sendind data to server");
     await invoke("UpdateRaceState", index, mistakes, typed);
   }, []);
 

@@ -26,7 +26,6 @@ export function AuthProvider({ children }) {
         return;
       }
       const data = await response.json();
-            console.log(data);
       setUserId(data.userId);
       setUserName(data.userName);
       setRole(data.role);

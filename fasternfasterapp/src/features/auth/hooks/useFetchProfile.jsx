@@ -19,7 +19,6 @@ export function useFetchProfile() {
           method: "GET",
         });
         if (!response.ok) {
-          console.log(response);
           setProfileData({ nick: userName });
           }
         else {
@@ -36,7 +35,6 @@ export function useFetchProfile() {
   }, []);
 
   useEffect(() => {
-    console.log(isGuest);
       if (isGuest) showMessage(`Register to see the results of your races`);
   }, []);
 

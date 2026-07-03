@@ -1,70 +1,63 @@
-# Getting Started with Create React App
+# Faster'n'Faster — Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React SPA for [Faster'n'Faster](https://faster-n-faster.com), a real-time multiplayer typing game. Talks to the ASP.NET Core backend over REST (auth, lobbies, leaderboards) and a single SignalR WebSocket connection (live races).
 
-## Available Scripts
+**Stack:** React 19, Vite, react-router 7, `@microsoft/signalr`. Plain JSX, CSS per component — no UI framework.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Structure
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+src/
+├── features/            — logic grouped by domain
+│   ├── auth/            — AuthContext (session state from /api/auth/me) + hooks for
+│   │                      login, signup, guest, Google OAuth, logout, password reset
+│   ├── connection/      — ConnectionProvider: owns the one SignalR connection,
+│   │                      exposes invoke/subscribe, handles reconnects and
+│   │                      server-pushed session events (kick, ban, second login)
+│   ├── game/            — the race itself: typing engine, race/lobby state hooks,
+│   │                      typing area, results, player cards
+│   ├── lobbies/         — lobby list, create/join
+│   └── leaderboard/     — leaderboard fetch (mockable via VITE_MOCK_LEADERBOARD)
+├── pages/               — one folder per route
+└── shared/              — apiCall fetch wrapper, banner notifications, navbar
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Routing: auth pages are public; game routes are nested under `ConnectionLayout`, so the SignalR connection exists only while the user is inside the game area.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Key design
 
-### `npm run build`
+- **Server-authoritative typing, optimistic rendering** — `useTyping` validates every keystroke locally against the passage (mistake tracking, max-overflow cap, no word skipping) for instant feedback, while the server independently verifies all progress. After a reconnect the hook resyncs its state from the server snapshot.
+- **Throttled progress updates** — keystroke progress is batched through `useThrottledCallback` before hitting the hub, so fast typists don't flood the connection; the final keystroke flushes immediately.
+- **One connection, many subscribers** — components subscribe to hub events through `ConnectionProvider`'s `subscribe()`, which returns an unsubscribe function for effect cleanup. No component owns the connection.
+- **Cookie auth end-to-end** — tokens live in HttpOnly cookies; `apiCall` sends credentials, and on a 401 it hits `/api/auth/refresh` once and retries. The SignalR negotiate request reuses the same cookies.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Development
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Requires Node 22 and the backend running on `:8080` (see the [root README](../README.md)).
 
-### `npm run eject`
+```bash
+npm install
+npm run dev        # serves on :3000, proxies /api and /gameHub to :8080
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+The Vite dev proxy keeps everything same-origin, so auth cookies work in dev without CORS setup.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+`.env` keys: `VITE_API_URL` (empty = same origin), `VITE_MOCK_LEADERBOARD` (serve mock leaderboard data).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Build & deploy
 
-## Learn More
+```bash
+npm run build      # outputs dist/
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The `Dockerfile` is a two-stage build: `node:22-alpine` builds `dist/`, `nginx:alpine` serves it with an SPA fallback (`try_files ... /index.html`). In production, Caddy routes `/api/*` and `/gameHub` to the backend container and everything else here.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Production builds strip `console.log/debug/info/warn` calls and `debugger` statements (see `esbuild.pure` in `vite.config.js`).

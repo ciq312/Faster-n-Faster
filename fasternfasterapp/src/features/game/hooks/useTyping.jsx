@@ -22,15 +22,11 @@ export function useTyping({
   useEffect(() => {
     if (!isConnected) {
       needResyncRef.current = true;
-      console.log("needResync");
     }
   }, [isConnected]);
   useEffect(() => {
     if (!needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
-    console.log(
-      `resync happened with values typed : ${selfTyped}  and index : ${selfCorrectIndex}  and mistakes : ${selfMistakes} `,
-    );
     setTyped(selfTyped);
     lastCorrectIndexRef.current = selfCorrectIndex;
     nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
