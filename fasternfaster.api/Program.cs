@@ -24,6 +24,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddWebServices(builder.Configuration);
+builder.Services.AddApiRateLimiting(builder.Configuration);
 
 var app = builder.Build();
 
@@ -34,13 +35,20 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseExceptionHandler();
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+
+// The API is only reachable through Caddy (its port isn't published in prod),
+// so the immediate hop is trusted to set X-Forwarded-For. Without clearing the
+// defaults the middleware ignores the header and every user shares Caddy's IP.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    KnownProxies = { }
-});
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())

@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using FasterNFaster.Api.Web.Users.LoginUser.Endpoints;
@@ -12,6 +13,7 @@ public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint
     {
         Post("/api/auth/login");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
     }
 
     public override async Task HandleAsync(LoginUserRequest req, CancellationToken ct)

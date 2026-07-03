@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
 using MediatR;
@@ -17,6 +18,7 @@ public class GetLobbiesEndpoint(ISender sender) : Endpoint<GetLobbiesRequest, Ge
     {
         Get("/api/lobbies");
         AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.Lookup));
     }
 
     public override async Task HandleAsync(GetLobbiesRequest req, CancellationToken ct)
