@@ -49,14 +49,17 @@ function ConnectionProvider({ url, children }) {
     connection.on("AnotherSessionStarted", anotherSessionHandler);
     connection.on("Banned", bannedHandler);
 
-    const latencyCheckId = setInterval(async () => {
-      if (connection.state !== signalR.HubConnectionState.Connected) return;
-      try {
-        const t0 = performance.now();
-        await connection.invoke("Ping", Date.now());
-        console.warn(`latency is: ${performance.now() - t0}`);
-      } catch {}
-    }, 3000);
+    const latencyCheckId = import.meta.env.DEV
+      ? setInterval(async () => {
+          if (connection.state !== signalR.HubConnectionState.Connected)
+            return;
+          try {
+            const t0 = performance.now();
+            await connection.invoke("Ping", Date.now());
+            console.debug(`latency: ${Math.round(performance.now() - t0)}ms`);
+          } catch {}
+        }, 3000)
+      : null;
 
     const start = async () => {
       try {

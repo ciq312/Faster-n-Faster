@@ -42,7 +42,7 @@ jobs:
         node-version: 22
         cache: npm
         cache-dependency-path: fasternfasterapp/package-lock.json
-    - run: npm ci --legacy-peer-deps
+    - run: npm ci
     - run: npm run build
 
   publish-api:

@@ -27,7 +27,6 @@ export function useLobbyActions() {
         );
       }),
       subscribe("Kicked", () => {
-        console.log("kicked");
         showMessage(`You were kicked from lobby`);
         lobbyCleanup();
         navigate(ROUTES.LOBBIES);
