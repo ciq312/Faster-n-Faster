@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;

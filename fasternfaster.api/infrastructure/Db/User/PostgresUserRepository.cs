@@ -1,8 +1,8 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using Microsoft.EntityFrameworkCore;
+using FasterNFaster.Api.Core.Entities;
 
-namespace FasterNFaster.Api.Infrastructure;
+namespace FasterNFaster.Api.Infrastructure.Db.Users;
 
 public class PostgresUserRepository(AppDbContext context) : IUserRepository
 {

@@ -1,7 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Extensions;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.RegisterUser;

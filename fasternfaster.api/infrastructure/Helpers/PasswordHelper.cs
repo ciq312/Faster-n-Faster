@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
-namespace FasterNFaster.Api.Infrastructure;
+namespace FasterNFaster.Api.Infrastructure.Helpers;
 
 public class PasswordHelper(IPasswordHasher<User> passwordHasher) : IPasswordHelper
 {

@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.Core.Interfaces;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
+namespace FasterNFaster.Api.Core.Entities.Races;
 
 public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 

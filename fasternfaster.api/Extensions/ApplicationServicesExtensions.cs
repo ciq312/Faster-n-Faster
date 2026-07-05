@@ -5,11 +5,8 @@ using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Caching;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
-using FasterNFaster.Api.Infrastructure.Db.User;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
-using FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
 using FasterNFaster.Api.UseCases.Factories.Interfaces;
@@ -26,9 +23,11 @@ using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using FasterNFaster.Api.Web.Realtime;
 using FasterNFaster.Api.Web.Services.Interfaces;
-using FasternFaster.Api.UseCases.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.Infrastructure.Db.Users;
+using FasterNFaster.Api.Infrastructure.Helpers;
+using FasterNFaster.Api.UseCases.Helpers;
 
 namespace FasterNFaster.Api.Extensions;
 

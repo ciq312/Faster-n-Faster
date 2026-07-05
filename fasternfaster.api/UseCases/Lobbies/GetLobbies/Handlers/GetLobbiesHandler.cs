@@ -1,11 +1,9 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Queries;
-using FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Results;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies.Handlers;
+namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
 public class GetLobbiesHandler(ILobbyStore lobbyStore, IRaceService raceService) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {

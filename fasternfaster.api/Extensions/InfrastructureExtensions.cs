@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.Web.Hubs.Filters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

@@ -1,10 +1,8 @@
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
-using FasterNFaster.Api.UseCases.Users.RefreshToken.DTO;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RefreshToken.Handlers;
+namespace FasterNFaster.Api.UseCases.Users.RefreshToken;
 
 public class RefreshTokenHandler(ITokenService tokenService) : IRequestHandler<RefreshTokenCommand, RefreshTokenResult>
 {

@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+using FasterNFaster.Api.Core.Exceptions.Races;
 using FasterNFaster.Api.Core.Interfaces;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
+namespace FasterNFaster.Api.Core.Entities.Races;
 
 public static class AntiCheatCheck
 {

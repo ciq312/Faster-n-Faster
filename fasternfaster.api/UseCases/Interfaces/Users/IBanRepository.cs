@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+namespace FasterNFaster.Api.UseCases.Interfaces.Users;
 
 public interface IBanRepository
 {

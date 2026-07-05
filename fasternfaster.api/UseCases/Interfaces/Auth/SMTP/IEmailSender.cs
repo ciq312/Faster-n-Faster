@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface IEmailSender
 {

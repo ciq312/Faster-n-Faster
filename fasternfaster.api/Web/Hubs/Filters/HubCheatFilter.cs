@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+using FasterNFaster.Api.Core.Exceptions.Races;
 using FasterNFaster.Api.UseCases.Lobbies.BanForCheat;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;

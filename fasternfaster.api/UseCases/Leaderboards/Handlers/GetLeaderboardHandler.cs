@@ -1,7 +1,7 @@
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Leaderboards.Handlers;
+namespace FasterNFaster.Api.UseCases.Leaderboards;
 
 public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : IRequestHandler<GetLeaderboardCommand, GetLeaderboardResults>
 {

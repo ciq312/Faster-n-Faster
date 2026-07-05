@@ -1,6 +1,5 @@
-using FasterNFaster.Api.UseCases.Users.RefreshToken.DTO;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
+namespace FasterNFaster.Api.UseCases.Users.RefreshToken;
 
 public record RefreshTokenCommand(string RefreshToken) : IRequest<RefreshTokenResult>;

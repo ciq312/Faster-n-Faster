@@ -1,4 +1,5 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 using Microsoft.AspNetCore.SignalR;
 using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 

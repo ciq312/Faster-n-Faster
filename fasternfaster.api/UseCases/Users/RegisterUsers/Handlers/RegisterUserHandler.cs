@@ -1,16 +1,12 @@
-
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.DTO;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
+namespace FasterNFaster.Api.UseCases.Users.RegisterUsers;
 
 public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, IEmailSender emailSender, IConfirmTokenRepository tokenRepo, IConfirmTokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
 {

@@ -1,3 +1,3 @@
-namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Results;
+namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 
 public record JoinLobbyResult(bool IsReconnect);

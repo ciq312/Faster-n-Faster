@@ -1,4 +1,4 @@
-namespace FasternFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 
 public interface IRaceTransitionService
 {

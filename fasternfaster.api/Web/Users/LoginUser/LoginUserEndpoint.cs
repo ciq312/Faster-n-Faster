@@ -2,12 +2,11 @@ using FastEndpoints;
 using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Services.Interfaces;
-using FasterNFaster.Api.Web.Users.LoginUser.Endpoints;
 using MediatR;
 
 namespace FasterNFaster.Api.Web.Users.LoginUser;
 
-public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResponse>
+public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResult>
 {
     public override void Configure()
     {
@@ -22,6 +21,6 @@ public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint
 
         auth.WriteAuth(result.Tokens);
 
-        await Send.OkAsync(new LoginUserResponse(result.UserId, result.Nick), cancellation: ct);
+        await Send.OkAsync(new LoginUserResult(result.UserId, result.Nick), cancellation: ct);
     }
 }

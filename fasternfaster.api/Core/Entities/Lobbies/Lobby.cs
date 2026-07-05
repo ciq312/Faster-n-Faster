@@ -1,10 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.Core.Events;
+using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
-using FasterNFaster.Api.Core.Lobbies.Colors;
-using FasterNFaster.Api.Core.Lobbies.Events;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 

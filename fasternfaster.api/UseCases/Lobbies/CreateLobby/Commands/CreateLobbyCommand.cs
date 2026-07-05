@@ -1,6 +1,5 @@
-using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Results;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
+namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 
 public record CreateLobbyCommand(string LobbyName, bool IsPrivate, Guid HostId) : IRequest<CreateLobbyResult>;
