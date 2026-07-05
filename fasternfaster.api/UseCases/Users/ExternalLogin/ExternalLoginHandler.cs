@@ -3,7 +3,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.ExternalLogin.Handlers;
+namespace FasterNFaster.Api.UseCases.Users.ExternalLogin;
 
 public class ExternalLoginHandler(
     IUserRepository userRepo,

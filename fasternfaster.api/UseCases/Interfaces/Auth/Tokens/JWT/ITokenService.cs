@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Auth.Tokens;
+using FasterNFaster.Api.UseCases.Auth;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 

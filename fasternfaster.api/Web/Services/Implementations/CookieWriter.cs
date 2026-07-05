@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Auth.Tokens;
+using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
