@@ -22,5 +22,3 @@ public class FastReconnectHandler(IPendingRemovalsRegistry pendingRemovalsRegist
         }
     }
 }
-
-public record FastReconnectCommand(Guid LobbyId, Guid PlayerId) : IRequest;

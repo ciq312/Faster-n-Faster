@@ -3,7 +3,7 @@ using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.RaceStarting;
 
 public class BroadcastRaceStartingHandler(IBroadcaster broadcaster)
     : INotificationHandler<DomainEventNotification<SessionStartedEvent>>
@@ -13,5 +13,3 @@ public class BroadcastRaceStartingHandler(IBroadcaster broadcaster)
     public Task Handle(DomainEventNotification<SessionStartedEvent> notification, CancellationToken cancellationToken) =>
         broadcaster.Broadcast(Audience.Lobby(notification.Event.LobbyId), GameEvents.RaceStarting, new RaceStartingDTO(CountdownSeconds));
 }
-
-public record RaceStartingDTO(int CountdownSeconds);

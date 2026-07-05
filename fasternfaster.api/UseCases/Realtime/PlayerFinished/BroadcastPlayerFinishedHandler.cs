@@ -3,7 +3,7 @@ using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.PlayerFinished;
 
 public class BroadcastPlayerFinishedHandler(IBroadcaster broadcaster)
     : INotificationHandler<DomainEventNotification<PlayerFinishedEvent>>
@@ -15,5 +15,3 @@ public class BroadcastPlayerFinishedHandler(IBroadcaster broadcaster)
             new PlayerFinishedDTO(e.Nick, e.PlayerId, e.FinishPosition, e.Wpm, e.Accuracy));
     }
 }
-
-public record PlayerFinishedDTO(string Nick, Guid PlayerId, int? FinishPosition, double Wpm, double Accuracy);

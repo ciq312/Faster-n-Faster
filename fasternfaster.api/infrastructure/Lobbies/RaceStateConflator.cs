@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
-public class RaceStateConflator(IRaceBroadcaster broadcaster, ILogger<RaceStateConflator> logger)
+public partial class RaceStateConflator(IRaceBroadcaster broadcaster, ILogger<RaceStateConflator> logger)
 {
     private readonly ConcurrentDictionary<Guid, LobbyBroadcast> broadcasts = new();
 
@@ -53,6 +53,4 @@ public class RaceStateConflator(IRaceBroadcaster broadcaster, ILogger<RaceStateC
         public RaceFrame? Latest;
         public int Running;
     }
-
-    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<ParticipantSnapshot> Snapshot);
 }
