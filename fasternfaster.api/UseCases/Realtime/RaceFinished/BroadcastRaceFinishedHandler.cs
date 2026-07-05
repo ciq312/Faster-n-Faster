@@ -1,10 +1,9 @@
-using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 
 public class BroadcastRaceFinishedHandler(
     IBroadcaster broadcaster,
@@ -16,5 +15,3 @@ public class BroadcastRaceFinishedHandler(
         await lobbyState.BroadcastLobbyState(e.Lobby);
     }
 }
-
-public record RaceEndedDTO(IEnumerable<RaceParticipantResult> Results);

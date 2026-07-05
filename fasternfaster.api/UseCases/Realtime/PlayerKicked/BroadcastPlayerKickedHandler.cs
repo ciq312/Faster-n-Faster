@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.PlayerKicked;
 
 public class BroadcastPlayerKickedHandler(
     IBroadcaster broadcaster,
@@ -19,5 +19,3 @@ public class BroadcastPlayerKickedHandler(
         await lobbyState.BroadcastLobbyState(e.LobbyId);
     }
 }
-
-public record PlayerKickedDTO(Guid UserId, string Nick);

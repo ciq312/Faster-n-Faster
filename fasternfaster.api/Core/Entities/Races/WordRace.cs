@@ -4,7 +4,7 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 
 namespace FasterNFaster.Api.Core.Entities.Races;
 
-public class WordRace : Race
+public partial class WordRace : Race
 {
     public int WordCount { get; private set; }
     public string? Passage { get; private set; }
@@ -66,10 +66,5 @@ public class WordRace : Race
     {
         if (Passage == null) throw new InvalidOperationException("Passage is null");
         return Passage.Split(' ').Length;
-    }
-
-    public record WordRaceSettings(string Passage, int WordCount) : IRaceSettings
-    {
-        public string RaceType => "WordRace";
     }
 }

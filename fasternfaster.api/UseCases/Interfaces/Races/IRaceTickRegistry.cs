@@ -1,9 +1,5 @@
 namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 
-public enum RacePhase { Countdown, Racing }
-
-public record RacingLobbyEntry(Guid LobbyId, RacePhase Phase, DateTime RegisteredAt);
-
 public interface IRaceTickRegistry
 {
     void RegisterLobby(Guid lobbyId);

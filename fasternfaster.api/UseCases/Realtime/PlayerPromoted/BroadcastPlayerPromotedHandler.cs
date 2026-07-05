@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.HostChanged;
 
 public class BroadcastPlayerPromotedHandler(
     IBroadcaster broadcaster,
@@ -18,5 +18,3 @@ public class BroadcastPlayerPromotedHandler(
         await lobbyState.BroadcastLobbyState(e.LobbyId);
     }
 }
-
-public record HostChangedDTO(Guid UserId, string NewHostNick);

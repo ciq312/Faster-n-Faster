@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
 
 public class BroadcastPlayerDisconnectedHandler(
     IBroadcaster broadcaster,
@@ -18,5 +18,3 @@ public class BroadcastPlayerDisconnectedHandler(
         await lobbyState.BroadcastLobbyState(e.LobbyId);
     }
 }
-
-public record PlayerDisconnectedDTO(Guid DisconnectedUserId, string DisconnectedUserNick);
