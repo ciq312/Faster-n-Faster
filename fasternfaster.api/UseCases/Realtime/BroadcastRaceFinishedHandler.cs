@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;

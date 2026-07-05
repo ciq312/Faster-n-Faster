@@ -1,9 +1,8 @@
-using FastEndpoints;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
 
-namespace FasterNFaster.Api.Infrastructure;
+namespace FasterNFaster.Api.Infrastructure.Db;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {

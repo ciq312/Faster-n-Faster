@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Extensions;
-using FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
+using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;

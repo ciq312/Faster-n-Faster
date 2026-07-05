@@ -1,10 +1,9 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Factories.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
+namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 
 public class JoinLobbyHandler(IUserFactory userFactory, ILobbyService lobbyService) : IRequestHandler<JoinLobbyCommand>
 {

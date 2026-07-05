@@ -1,8 +1,9 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
-namespace FasterNFaster.Api.Infrastructure;
+namespace FasterNFaster.Api.Infrastructure.Users;
 
 public class InMemoryPlayerLocationRegistry : IPlayerLocationRegistry
 {

@@ -1,6 +1,5 @@
-using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Results;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
+namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 
 public record RegisterAnonymousCommand(string Nick) : IRequest<RegisterAnonymousResult>;

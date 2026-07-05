@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Events;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Services;
+namespace FasterNFaster.Api.UseCases.Helpers;
 
 public class MediatREventDispatcher(IServiceScopeFactory scopeFactory) : IEventDispatcher
 {

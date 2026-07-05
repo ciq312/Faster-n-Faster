@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Races;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;

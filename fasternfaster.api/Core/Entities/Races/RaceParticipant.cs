@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+using FasterNFaster.Api.Core.Exceptions.Races;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
+namespace FasterNFaster.Api.Core.Entities.Races;
 
 public class RaceParticipant
 {

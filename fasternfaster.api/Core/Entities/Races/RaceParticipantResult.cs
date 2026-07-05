@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
+namespace FasterNFaster.Api.Core.Entities.Races;
 
 public class RaceParticipantResult
 {

@@ -1,11 +1,11 @@
-using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.Smtp;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace FasterNFaster.Api.Infrastructure.Smtp.EmailSender;
+namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class SmtpEmailSender(IOptions<SmtpOptions> smtp, IOptions<AppOptions> app) : IEmailSender
 {

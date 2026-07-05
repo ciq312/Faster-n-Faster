@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
 using Microsoft.EntityFrameworkCore;
 
-namespace FasterNFaster.Api.Infrastructure.Users;
+namespace FasterNFaster.Api.Infrastructure.Db.Statistics;
 
 public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepository
 {

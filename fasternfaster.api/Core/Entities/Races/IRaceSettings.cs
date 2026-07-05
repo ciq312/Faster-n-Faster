@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using static FasterNFaster.Api.Core.Entities.Lobbies.Races.WordRace;
+using static FasterNFaster.Api.Core.Entities.Races.WordRace;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races
+namespace FasterNFaster.Api.Core.Entities.Races
 {
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
     [JsonDerivedType(typeof(WordRaceSettings), "word")]

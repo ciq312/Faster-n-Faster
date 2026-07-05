@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.UseCases.Interfaces;
+using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.Web.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -11,8 +11,7 @@ namespace FasterNFaster.Api.Web.Services.Implementations;
 public class SignalRRaceBroadcaster(
     IHubContext<GameHub> hub,
     IBroadcaster broadcaster,
-    ISessionService sessionService,
-    ILogger<SignalRRaceBroadcaster> logger) : IRaceBroadcaster
+    ISessionService sessionService) : IRaceBroadcaster
 {
     public Task BroadcastRaceStarted(Guid lobbyId) =>
         broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.RaceStarted);

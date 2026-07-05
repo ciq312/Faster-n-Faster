@@ -1,8 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Users.ExternalLogin.Commands;
-using FasterNFaster.Api.UseCases.Users.ExternalLogin.DTO;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ExternalLogin.Handlers;

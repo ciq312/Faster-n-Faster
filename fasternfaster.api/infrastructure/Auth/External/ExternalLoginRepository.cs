@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Races;
 
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 
 public interface IRaceBroadcaster
 {

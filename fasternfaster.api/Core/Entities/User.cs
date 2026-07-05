@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
-
 namespace FasterNFaster.Api.Core.Entities;
 
 public class User

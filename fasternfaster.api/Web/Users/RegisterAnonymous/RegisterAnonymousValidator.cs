@@ -1,5 +1,5 @@
 using FastEndpoints;
-using FasterNFaster.Api.Web.Users.RegisterAnonymous.Endpoints;
+using FasterNFaster.Api.Web.Users.RegisterAnonymous;
 public class RegisterAnonymousValidator : Validator<RegisterAnonymousRequest>
 {
     public RegisterAnonymousValidator()

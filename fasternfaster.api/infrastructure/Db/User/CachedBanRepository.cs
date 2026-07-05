@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Infrastructure.Caching;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
-namespace FasterNFaster.Api.Infrastructure.Db.User;
+namespace FasterNFaster.Api.Infrastructure.Db.Users;
 
 public class CachedBanRepository(IBanRepository inner, ICache cache) : IBanRepository
 {

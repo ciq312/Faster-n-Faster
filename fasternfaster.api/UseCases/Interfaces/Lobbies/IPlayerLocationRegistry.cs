@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces;
+namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 public interface IPlayerLocationRegistry
 {

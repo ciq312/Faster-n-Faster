@@ -1,8 +1,8 @@
-using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Races;
+namespace FasterNFaster.Api.Core.Entities.Races;
 
 public class WordRace : Race
 {

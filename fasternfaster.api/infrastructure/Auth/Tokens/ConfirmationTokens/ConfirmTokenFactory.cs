@@ -2,12 +2,10 @@ using System.Buffers.Text;
 using System.ComponentModel;
 using System.Security.Cryptography;
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using Google.Apis.Util;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Tokens;
+namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class ConfirmTokenFactory(
     IOptions<VerifyEmailOptions> verifyOptions,
