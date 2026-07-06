@@ -85,25 +85,7 @@ Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements
 
 ### Race hot path
 
-Every keystroke batch is validated server-side, but broadcasting is decoupled from typing speed — progress lands in in-memory state, and a 200 ms tick loop conflates it into one slim broadcast per lobby:
-
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant H as GameHub
-    participant R as RaceService
-    participant T as RaceTickService (200 ms)
-    participant F as RaceStateConflator
-    participant L as Lobby clients
-
-    C->>H: UpdateProgress(index, mistakes, typed)
-    H->>R: validate keystroke, commit progress (direct call, in-memory)
-    loop every 200 ms per racing lobby
-        T->>R: GetSnapshot(lobbyId)
-        T->>F: Publish(frame)
-        F->>L: one broadcast per lobby (latest-frame conflation)
-    end
-```
+Every keystroke batch is validated server-side, but broadcasting is decoupled from typing speed — progress lands in in-memory state, and a 200 ms tick loop conflates it into one slim broadcast per lobby.
 
 The conflator keeps a single "latest frame" slot per lobby: if a broadcast is still in flight when the next tick lands, the old frame is replaced rather than queued, so a slow connection can never build a backlog of stale race state.
 
