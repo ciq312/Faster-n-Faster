@@ -1,10 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Factories.Implementations;
-using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Commands;
-using FasterNFaster.Api.UseCases.Lobbies.CreateLobby.Handlers;
-using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Commands;
-using FasterNFaster.Api.UseCases.Lobbies.JoinLobby.Handlers;
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
@@ -15,6 +11,9 @@ using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
+using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 
 namespace FasterNFaster.Tests;
 

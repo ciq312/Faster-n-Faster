@@ -62,26 +62,58 @@ Caddy  (:80/:443, automatic Let's Encrypt TLS)
 
 ```
 fasternfaster.api/
-├── Core/
-│   ├── Entities/       — pure domain models; enforce their own invariants
-│   └── Exceptions/     — domain exceptions (LobbyFullException, etc.)
-├── UseCases/
-│   ├── Interfaces/     — service + store contracts
-│   ├── Services/       — business logic (auth, lobby lifecycle, race ticks)
-│   └── Factories/      — object construction
-├── Web/
-│   ├── Hubs/           — SignalR hub (thin: validate → call service → broadcast)
-│   ├── Endpoints/      — FastEndpoints handlers, one per use-case
-│   └── Options/        — strongly-typed config (JWT, SMTP, cookies, etc.)
-└── infrastructure/
-    └── Db/             — EF Core DbContext, migrations
+├── Core/                — domain layer, zero external dependencies
+│   ├── Entities/        — aggregates that enforce their own invariants and raise domain events
+│   ├── Exceptions/      — domain exceptions (LobbyFullException, CheaterDetectedException, ...)
+│   └── Interfaces/      — domain contracts (IDomainEvent, IEventDispatcher, IAntiCheatPolicy)
+├── UseCases/            — application layer, feature-sliced CQRS
+│   ├── Users/           — RegisterUser, LoginUser, VerifyEmail, ... (Command + Handler pairs)
+│   ├── Lobbies/         — CreateLobby, JoinLobby, StartRace, KickPlayer, Disconnect, ...
+│   ├── Leaderboards/    — leaderboard query
+│   ├── Realtime/        — Broadcast* handlers that react to domain events
+│   ├── Interfaces/      — ports implemented by Infrastructure and Web
+│   └── Services/        — hot-path orchestration (lobby/race lifecycle)
+├── Infrastructure/      — adapters: EF Core/Postgres repositories, Redis cache + token stores,
+│                          SMTP, in-memory lobby store, race tick loop + conflator
+└── Web/
+    ├── Hubs/            — SignalR hub (thin: resolve context → call facade) + hub filters
+    ├── <feature>/       — FastEndpoints, one folder per use case (Users/, Lobbies/, ...)
+    └── Options/         — strongly-typed config (JWT, SMTP, cookies, rate limits, anti-cheat)
 ```
 
-Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements interfaces defined in `UseCases/Interfaces/` — nothing in the core references EF Core or PostgreSQL.
+Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements interfaces defined in `UseCases/Interfaces/` — nothing in the core references EF Core, Redis, or SignalR.
+
+### Race hot path
+
+Every keystroke batch is validated server-side, but broadcasting is decoupled from typing speed — progress lands in in-memory state, and a 200 ms tick loop conflates it into one slim broadcast per lobby:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant H as GameHub
+    participant R as RaceService
+    participant T as RaceTickService (200 ms)
+    participant F as RaceStateConflator
+    participant L as Lobby clients
+
+    C->>H: UpdateProgress(index, mistakes, typed)
+    H->>R: validate keystroke, commit progress (direct call, in-memory)
+    loop every 200 ms per racing lobby
+        T->>R: GetSnapshot(lobbyId)
+        T->>F: Publish(frame)
+        F->>L: one broadcast per lobby (latest-frame conflation)
+    end
+```
+
+The conflator keeps a single "latest frame" slot per lobby: if a broadcast is still in flight when the next tick lands, the old frame is replaced rather than queued, so a slow connection can never build a backlog of stale race state.
 
 ### Key design decisions
 
-- **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick. Each tick it flushes a queue of pending progress updates and broadcasts a single slim event per player to the rest of the lobby. This keeps bandwidth and CPU flat regardless of typing speed.
+- **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick and broadcasts one conflated frame per lobby (see [Race hot path](#race-hot-path)). This keeps bandwidth and CPU flat regardless of typing speed.
+- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Users/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to the race service to avoid per-keystroke mediator allocations.
+- **Domain events over direct coupling** — aggregates raise events (`PlayerJoinedEvent`, `RaceFinishedEvent`, ...) that are dispatched as MediatR notifications; broadcast handlers in `UseCases/Realtime/` subscribe and push the SignalR messages. The domain never references SignalR, and a new side effect is a new handler, not an edit to existing code.
+- **Decorator-pattern caching** — `CachedBanRepository`, `CachedLeaderboardRepository`, and `CachedStatisticsRepository` wrap the Postgres repositories with Redis cache-aside logic. Callers depend on the same interface either way; caching is composed in DI and can be removed without touching business code.
+- **Cross-cutting concerns as hub filters** — ban checks, cheat detection, and exception mapping live in dedicated SignalR hub filters (`HubBanFilter`, `HubCheatFilter`, `HubExceptionFilter`) instead of being repeated inside hub methods.
 - **Keystroke throttling** — the client throttles how often it sends keystrokes to the server, preventing the hub from being flooded under fast typists or network bursts
 - **In-memory live state** — lobbies and race progress live in lock-protected in-memory stores inside the API, keeping the hot path free of network round-trips; Redis holds refresh/confirm tokens and read caches. The trade-off is a single API instance — scaling out would mean adding a Redis SignalR backplane and externalizing lobby state
 - **Host promotion** — if the host disconnects, the next player in the lobby list is automatically promoted
@@ -155,11 +187,21 @@ Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
 
 ---
 
-## What's Being Refactored
+## Testing
 
-- **MediatR / CQRS** — commands and queries have been extracted from services into dedicated MediatR handlers. The race progress hot path deliberately bypasses MediatR to avoid per-keystroke allocations; a few remaining service methods are still being migrated.
-- **Dependency cleanup** — some packages pulled in early are being evaluated and removed where they add weight without value.
-- **CI-triggered profiling** — load testing, counter collection, and graph generation are automated end-to-end by [`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling): one command runs the bot swarm on the server, collects `dotnet-counters` metrics from the backend container, and renders phase-annotated graphs locally. The next step is triggering these runs from CI.
+xUnit, no mocking framework — every dependency has a hand-rolled fake in `fasternfaster.tests/Fakes/`, which keeps test setup explicit and readable. A few worth noting:
+
+- **`GatedRaceBroadcaster`** — lets a test hold a broadcast "in flight" and assert the conflator's latest-frame behavior deterministically, without sleeps.
+- **`InMemoryCache` + fake repositories** — the cached repository decorators are tested against the real cache-aside logic over controlled backing stores.
+
+Coverage spans use-case handlers, the caching decorators, the race tick/conflation/result pipeline, entity invariants, and request validators.
+
+---
+
+## Roadmap
+
+- **CI-triggered profiling** — the load-test → profile → graph pipeline is already one command ([`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling)); next step is triggering runs from CI so every deploy gets a performance baseline.
+- **Dependency cleanup** — packages pulled in early are being evaluated and removed where they add weight without value.
 
 ---
 
@@ -185,3 +227,7 @@ python automation.py --users 500 --label 500UsersProd --wpm 120
 ```
 
 Raw counter data and generated graphs for every experiment (semaphore fixes, allocation reductions, tick-rate changes, 10–2000 users) are checked in there alongside `profiler.py`, which also supports overlay mode for comparing runs side by side.
+
+### Improvements this tooling paid for
+
+- **Allocation pressure on the race tick.** Under load, the GC allocation-rate graph spiked during the racing phase. The culprit was `ParticipantSnapshot`: every 200 ms tick builds one snapshot per player per racing lobby, and as a `record` (class) each one was a heap allocation that died within the same tick — thousands of short-lived objects per second at high player counts. Changing it to a `record struct` stores snapshots inline in the frame list, cutting the allocation rate significantly. With the GC out of the hot path, broadcast latency under load dropped by over 200 ms RTT.

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Commands;
+using FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Handlers;
 using FasterNFaster.Tests.Fakes;
 

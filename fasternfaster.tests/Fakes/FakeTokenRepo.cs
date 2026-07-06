@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
 
 namespace FasterNFaster.Tests.Fakes;
 

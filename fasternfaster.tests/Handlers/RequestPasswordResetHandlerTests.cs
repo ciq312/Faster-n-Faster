@@ -1,8 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Options;

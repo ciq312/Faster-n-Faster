@@ -1,11 +1,11 @@
-using FasterNFaster.Api.Infrastructure.Db.User;
+using FasterNFaster.Api.Infrastructure.Db.Users;
 using FasterNFaster.Tests.Fakes;
 
 namespace FasterNFaster.Tests.Caching;
 
 public class CachedBanRepositoryTests
 {
-    private readonly Api.Infrastructure.Db.User.FakeBanRepository _inner = new();
+    private readonly Api.Infrastructure.Db.Users.FakeBanRepository _inner = new();
     private readonly InMemoryCache _cache = new();
     private readonly CachedBanRepository _sut;
 

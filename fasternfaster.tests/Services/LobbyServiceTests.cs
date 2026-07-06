@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Events;
 using FasterNFaster.Tests;
 
 public class LobbyServiceTests
