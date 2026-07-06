@@ -184,6 +184,7 @@ Coverage spans use-case handlers, the caching decorators, the race tick/conflati
 
 - **CI-triggered profiling** — the load-test → profile → graph pipeline is already one command ([`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling)); next step is triggering runs from CI so every deploy gets a performance baseline.
 - **Dependency cleanup** — packages pulled in early are being evaluated and removed where they add weight without value.
+- **Frontend switch to typescript** — currently the frontend is javascript and I'm considering switching to Typescript 
 
 ---
 
