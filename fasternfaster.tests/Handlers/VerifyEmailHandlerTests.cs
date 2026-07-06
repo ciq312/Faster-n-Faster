@@ -1,8 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
 using static FasterNFaster.Tests.RegisteredUsersSetup;
 

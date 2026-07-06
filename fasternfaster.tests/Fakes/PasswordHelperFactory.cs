@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Identity;
 
 namespace FasterNFaster.Tests.Fakes;

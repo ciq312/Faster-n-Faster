@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races.Events;
+using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 using FasterNFaster.Tests.Fakes;

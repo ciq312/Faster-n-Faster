@@ -1,8 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.Infrastructure.Db.Tokens;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Handlers;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Crypto.Operators;

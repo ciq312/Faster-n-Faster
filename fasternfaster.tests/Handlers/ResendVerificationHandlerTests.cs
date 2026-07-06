@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers.Commands;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
 
 namespace FasterNFaster.Tests.Handlers;

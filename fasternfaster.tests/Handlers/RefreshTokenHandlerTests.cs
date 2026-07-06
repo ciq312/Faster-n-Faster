@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.UseCases.Auth.Tokens;
-using FasterNFaster.Api.UseCases.Users.RefreshToken.Commands;
-using FasterNFaster.Api.UseCases.Users.RefreshToken.Handlers;
+using FasterNFaster.Api.UseCases.Auth;
+using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using FasterNFaster.Tests.Fakes;
 
 namespace FasterNFaster.Tests.Handlers;

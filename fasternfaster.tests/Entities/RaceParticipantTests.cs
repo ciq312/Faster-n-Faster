@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
-using FasterNFaster.Api.Core.Exceptions.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Core.Exceptions.Races;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;

@@ -1,7 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Events;
-using FasterNFaster.Api.Core.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using Microsoft.AspNetCore.Identity.Data;
 using MimeKit;

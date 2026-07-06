@@ -1,4 +1,5 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Tests.Fakes;
 

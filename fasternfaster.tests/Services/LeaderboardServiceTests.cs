@@ -1,6 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies.Races;
+using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Infrastructure;
+using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
 using FasterNFaster.Api.UseCases.Services;
