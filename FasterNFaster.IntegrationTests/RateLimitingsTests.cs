@@ -28,7 +28,7 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.2");
 
-        var response1 = await RegisterAsync(client);
+        var response1 = await AuthHelper.Register(client);
 
         Assert.Equal(System.Net.HttpStatusCode.Created, response1.StatusCode);
     }
@@ -42,12 +42,12 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         var tasks = new List<Task<HttpResponseMessage>>();
         for (int i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
         {
-            tasks.Add(RegisterAsync(client));
+            tasks.Add(AuthHelper.Register(client));
         }
         var okResponses = await Task.WhenAll(tasks);
         var nthRequest = rateLimitOptions.AuthStrict.PermitLimit;
 
-        var nthResponse = await RegisterAsync(client);
+        var nthResponse = await AuthHelper.Register(client);
 
         Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
         Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
@@ -63,28 +63,16 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         var tasks = new List<Task<HttpResponseMessage>>();
         for (int i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
         {
-            tasks.Add(RegisterAsync(client));
+            tasks.Add(AuthHelper.Register(client));
         }
         var okResponses = await Task.WhenAll(tasks);
 
         await Task.Delay(testRateLimitWindow);
         var nthRequest = rateLimitOptions.AuthStrict.PermitLimit;
 
-        var nthResponse = await RegisterAsync(client);
+        var nthResponse = await AuthHelper.Register(client);
 
         Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
         Assert.Equal(System.Net.HttpStatusCode.Created, nthResponse.StatusCode);
-    }
-
-    private static Task<HttpResponseMessage> RegisterAsync(HttpClient client)
-    {
-        var id = Guid.NewGuid().ToString("N")[..5];
-        return client.PostAsync("/api/auth/register", JsonContent.Create(new
-        {
-            Nick = $"Test{id}",
-            Login = $"login{id}",
-            Email = $"{id}@example.com",
-            Password = "TestPassword123!"
-        }));
     }
 }

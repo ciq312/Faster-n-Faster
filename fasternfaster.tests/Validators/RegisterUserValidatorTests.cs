@@ -10,7 +10,7 @@ public class RegisterUserValidatorTests
     [Fact]
     public void ValidRequest_ShouldPass()
     {
-        var request = new RegisterUserRequest { Nick = "Player1", Login = "mylogin", Email = "testEmail@gmail.com", Password = "pass123" };
+        var request = new RegisterUserRequest("Player1", "mylogin", "testEmail@gmail.com", "pass123");
         var result = validator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -25,7 +25,7 @@ public class RegisterUserValidatorTests
     [InlineData("Player1", "mylogin", "", "ab")]          // no email
     public void InvalidData_ShouldFail(string nick, string login, string email, string password)
     {
-        var request = new RegisterUserRequest { Nick = nick, Login = login, Email = email, Password = password };
+        var request = new RegisterUserRequest(nick, login, email, password);
         var result = validator.TestValidate(request);
         Assert.False(result.IsValid);
     }
@@ -36,13 +36,8 @@ public class RegisterUserValidatorTests
     [InlineData(5, 5, 31)]    // password over max
     public void OverMaxLength_ShouldFail(int nickLen, int loginLen, int passLen)
     {
-        var request = new RegisterUserRequest
-        {
-            Nick = new string('a', nickLen),
-            Login = new string('a', loginLen),
-            Email = "test@gmail.com",
-            Password = new string('a', passLen)
-        };
+        var request = new RegisterUserRequest(new string('a', nickLen), new string('a', loginLen), "test@gmail.com", new string('a', passLen));
+
         var result = validator.TestValidate(request);
         Assert.False(result.IsValid);
     }
@@ -53,13 +48,8 @@ public class RegisterUserValidatorTests
     [InlineData(10, 10, 30)]  // all at max
     public void BoundaryValues_ShouldPass(int nickLen, int loginLen, int passLen)
     {
-        var request = new RegisterUserRequest
-        {
-            Nick = new string('a', nickLen),
-            Login = new string('a', loginLen),
-            Email = "test@gmail.com",
-            Password = new string('a', passLen)
-        };
+        var request = new RegisterUserRequest(new string('a', nickLen), new string('a', loginLen), "test@gmail.com", new string('a', passLen));
+
         var result = validator.TestValidate(request);
         result.ShouldNotHaveAnyValidationErrors();
     }

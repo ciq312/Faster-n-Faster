@@ -25,11 +25,25 @@ public class TestApplicationFactory<TProgram>
         base.ConfigureWebHost(builder);
     }
 
-    public async Task ResetDb()
+    public Task ResetDb()
+    {
+        return ExecuteScopedAsync<AppDbContext>(context => context.Database.ExecuteSqlRawAsync(""" TRUNCATE TABLE "Users" CASCADE """));
+    }
+
+    public async Task<TResult> ExecuteScopedAsync<TService, TResult>(Func<TService, Task<TResult>> action)
+    where TService : notnull
     {
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        await dbContext.Database.ExecuteSqlRawAsync("""TRUNCATE TABLE "Users" CASCADE """);
+        var service = scope.ServiceProvider.GetRequiredService<TService>();
+        return await action(service);
     }
+
+    public async Task ExecuteScopedAsync<TService>(Func<TService, Task> action)
+    where TService : notnull
+    {
+        using var scope = Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<TService>();
+        await action(service);
+    }
+
 }
