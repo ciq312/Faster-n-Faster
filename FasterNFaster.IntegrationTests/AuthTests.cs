@@ -73,7 +73,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 
         CookieContainer cookies = new CookieContainer();
 
-        SetCookies(cookies, loginResponse, client);
+        AuthHelper.SetCookies(cookies, loginResponse, client);
 
         var accessToken = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "access_token");
         var refreshToken = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
@@ -85,15 +85,6 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
         Assert.NotEmpty(refreshToken.Value);
     }
 
-    private void SetCookies(CookieContainer cookies, HttpResponseMessage loginResponse, HttpClient client)
-    {
-        if (!loginResponse.Headers.TryGetValues("Set-Cookie", out var headerCookies)) throw new NotFoundException("cookies were not found");
-
-        foreach (var cookie in headerCookies)
-        {
-            cookies.SetCookies(client.BaseAddress!, cookie);
-        }
-    }
 
     [Fact]
     public async Task LoginUserWrongPassword_Should401()
@@ -122,7 +113,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 
         CookieContainer cookies = new CookieContainer();
 
-        SetCookies(cookies, loginResponse, client);
+        AuthHelper.SetCookies(cookies, loginResponse, client);
 
         var accessToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "access_token");
         var refreshToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
@@ -151,14 +142,14 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 
         CookieContainer cookies = new CookieContainer();
 
-        SetCookies(cookies, loginResponse, client);
+        AuthHelper.SetCookies(cookies, loginResponse, client);
 
         var accessToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "access_token");
         var refreshToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
 
         var refreshResponse = await client.PostAsJsonAsync(AuthHelper.RefreshUri, new { });
 
-        SetCookies(cookies, refreshResponse, client);
+        AuthHelper.SetCookies(cookies, refreshResponse, client);
 
         var accessToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "access_token");
         var refreshToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "refresh_token");

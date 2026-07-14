@@ -1,5 +1,7 @@
+using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.Web.Users.RegisterUser;
@@ -31,6 +33,18 @@ public static class AuthHelper
 
         return userId;
     }
+
+
+    public static void SetCookies(CookieContainer cookies, HttpResponseMessage loginResponse, HttpClient client)
+    {
+        if (!loginResponse.Headers.TryGetValues("Set-Cookie", out var headerCookies)) throw new NotFoundException("cookies were not found");
+
+        foreach (var cookie in headerCookies)
+        {
+            cookies.SetCookies(client.BaseAddress!, cookie);
+        }
+    }
+    
     public static string RegisterUri => "api/auth/register";
     public static string LoginUri => "api/auth/login";
     public static string VerifyEmailUri => "api/auth/verify-email";
