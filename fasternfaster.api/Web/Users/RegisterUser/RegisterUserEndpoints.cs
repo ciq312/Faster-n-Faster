@@ -12,7 +12,7 @@ public class RegisterUserEndpoint(ISender sender) : Endpoint<RegisterUserRequest
         Post("/api/auth/register");
         AllowAnonymous();
         Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
-    }
+    }   
 
     public override async Task HandleAsync(RegisterUserRequest req, CancellationToken ct)
     {

@@ -30,6 +30,23 @@ jobs:
     - name: Test
       run: dotnet test  ${{ env.Test_project_path }} --no-build --verbosity normal
 
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      Integration_project_path: FasterNFaster.IntegrationTests/FasterNFaster.IntegrationTests.csproj
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Integration_project_path }}
+    - name: Test
+      run: dotnet test ${{ env.Integration_project_path }} --verbosity normal
+
   frontend-build:
     runs-on: ubuntu-latest
     defaults:
@@ -46,7 +63,7 @@ jobs:
     - run: npm run build
 
   publish-api:
-    needs: backend-build
+    needs: [backend-build, integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
