@@ -1,12 +1,14 @@
 using System.Security.Cryptography;
 using DotNet.Testcontainers.Containers;
 using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql.PostgresTypes;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
@@ -51,7 +53,12 @@ public class TestApplicationFactory<TProgram>
         .UseSetting("ConnectionStrings:DefaultConnection", postgres.GetConnectionString())
         .UseSetting("ConnectionStrings:Redis", $"{redis.GetConnectionString()},allowAdmin=true")
         .UseContentRoot(Directory.GetCurrentDirectory())
-        .ConfigureAppConfiguration(cfg => cfg.AddJsonFile(appSettingsFile));
+        .ConfigureAppConfiguration(cfg => cfg.AddJsonFile(appSettingsFile))
+        .ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IEmailSender>();
+            services.AddScoped<IEmailSender, FakeEmailSender>();
+        });
 
         base.ConfigureWebHost(builder);
     }
