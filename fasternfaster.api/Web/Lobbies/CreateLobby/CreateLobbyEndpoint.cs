@@ -1,3 +1,4 @@
+using System.Diagnostics.Eventing.Reader;
 using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
@@ -5,11 +6,8 @@ using MediatR;
 
 namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
 
-public class CreateLobbyRequest
-{
-    public string LobbyName { get; set; } = null!;
-    public bool IsPrivate { get; set; }
-}
+public record CreateLobbyRequest(string LobbyName, bool IsPrivate);
+
 
 public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, CreateLobbyResult>
 {
