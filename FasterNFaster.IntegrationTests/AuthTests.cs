@@ -19,10 +19,8 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 {
     private readonly NoRateLimitApplicationFactory<Program> factory = factory;
 
-
-    public Task InitializeAsync() => factory.ResetDb();
+    public Task InitializeAsync() => factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;
-
 
     [Fact]
     public async Task FullRegisterFlow_ShouldPersistUser()

@@ -13,7 +13,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
 {
     private readonly NoRateLimitApplicationFactory<Program> factory = factory;
 
-    public Task InitializeAsync() => factory.ResetDb();
+    public Task InitializeAsync() => factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]

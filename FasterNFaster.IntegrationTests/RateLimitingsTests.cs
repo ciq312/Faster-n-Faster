@@ -10,8 +10,6 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
     private readonly TestApplicationFactory<Program> factory;
     private readonly RateLimitOptions rateLimitOptions;
 
-    public Task InitializeAsync() => factory.ResetDb();
-    public Task DisposeAsync() => Task.CompletedTask;
     public RateLimitingTests(TestApplicationFactory<Program> factory)
     {
         this.factory = factory;
@@ -21,6 +19,9 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         ?? throw new InvalidOperationException("RateLimiting section not found in configuration.");
 
     }
+
+    public Task InitializeAsync() => factory.ResetAsync();
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task OneAuthStrictRequest_ShouldBeOk()
