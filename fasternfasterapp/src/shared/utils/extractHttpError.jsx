@@ -6,6 +6,9 @@ export async function extractHttpError(response) {
       if (firstKey && body.errors[firstKey]?.length)
         return body.errors[firstKey][0];
     }
+    if (body["error"]) {
+      return body["error"];
+    }
     return body.message || `Error ${response.status}`;
   } catch {
     return "Something went wrong, try again";
