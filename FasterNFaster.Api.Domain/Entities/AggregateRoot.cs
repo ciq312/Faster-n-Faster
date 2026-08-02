@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Interfaces.Events;
 
 namespace FasterNFaster.Api.Core.Entities;
 
-public abstract class AggregateRoot
+public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
 {
     private readonly List<IDomainEvent> domainEvents = new();
 

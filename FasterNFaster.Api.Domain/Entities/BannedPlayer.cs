@@ -2,9 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FasterNFaster.Api.Core.Entities;
 
-public class BannedPlayer
+public class BannedPlayer : Entity<Guid>
 {
-    public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime BannedAt { get; private set; }
 

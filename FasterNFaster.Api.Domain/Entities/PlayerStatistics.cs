@@ -1,10 +1,14 @@
+using System.Data.Common;
 using FasterNFaster.Api.Core.Entities.Races;
 
 namespace FasterNFaster.Api.Core.Entities;
 
-public class PlayerStatistics(Guid id)
+public class PlayerStatistics : Entity<Guid>
 {
-    public Guid Id { get; set; } = id;
+    public PlayerStatistics(Guid id)
+    {
+        Id = id;
+    }
     public User User { get; private set; } = null!;
 
     public int Wins { get; private set; }
