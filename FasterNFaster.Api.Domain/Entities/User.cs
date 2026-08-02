@@ -1,8 +1,7 @@
 namespace FasterNFaster.Api.Core.Entities;
 
-public class User
+public class User : Entity<Guid>
 {
-    public Guid Id { get; private set; }
     public string? Email { get; private set; }
     public string Nick { get; private set; }
     public string? Login { get; private set; }

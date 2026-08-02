@@ -5,16 +5,21 @@ using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
-public class Lobby(string name, bool isPrivate) : AggregateRoot
+public class Lobby : AggregateRoot<Guid>
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
-    public string Name { get; private set; } = name;
+    public string Name { get; private set; }
     public Guid HostId { get; private set; }
-    public LobbySettings LobbySettings { get; private set; } = new LobbySettings(isPrivate);
+    public LobbySettings LobbySettings { get; private set; }
     public bool IsSessionActive { get; private set; } = false;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
     private List<Guid> bannedPlayerIds = new List<Guid>();
 
+    public Lobby(string name, bool isPrivate)
+    {
+        Id = Guid.NewGuid();
+        Name = name;
+        LobbySettings = new LobbySettings(isPrivate);
+    }
     public void StartSession()
     {
         if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
@@ -36,7 +41,7 @@ public class Lobby(string name, bool isPrivate) : AggregateRoot
     public void Join(User user, string? code)
     {
         if (IsPlayerIn(user.Id)) return;
-        if (!IsCodeCorrect(code, LobbySettings.InviteCode) && isPrivate) throw new InvalidInviteCodeException();
+        if (!IsCodeCorrect(code, LobbySettings.InviteCode) && LobbySettings.IsPrivate) throw new InvalidInviteCodeException();
         if (IsPlayerBanned(user.Id)) throw new PlayerBannedInLobbyException();
 
         AddPlayer(user);

@@ -5,7 +5,7 @@ namespace FasterNFaster.Api.Core.Entities.Races;
 
 public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 
-public abstract class Race : AggregateRoot // ISession in future when new mechanics implemented
+public abstract class Race : AggregateRoot<Guid> // ISession in future when new mechanics implemented
 {
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
@@ -15,6 +15,11 @@ public abstract class Race : AggregateRoot // ISession in future when new mechan
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => participants;
 
     protected int nextFinishPosition = 1;
+
+    public Race()
+    {
+        Id = Guid.NewGuid();
+    }
 
     public void AddParticipant(RaceParticipant participant)
     {
