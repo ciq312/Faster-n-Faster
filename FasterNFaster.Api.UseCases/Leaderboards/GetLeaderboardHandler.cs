@@ -3,11 +3,11 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Leaderboards;
 
-public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : IRequestHandler<GetLeaderboardCommand, GetLeaderboardResults>
+public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : IRequestHandler<GetLeaderboardQuery, GetLeaderboardResults>
 {
     private const int MaxPageSize = 100;
 
-    public async Task<GetLeaderboardResults> Handle(GetLeaderboardCommand command, CancellationToken cancellationToken)
+    public async Task<GetLeaderboardResults> Handle(GetLeaderboardQuery command, CancellationToken cancellationToken)
     {
         int page = Math.Max(1, command.Page);
         int pageSize = Math.Clamp(command.PageSize, 1, MaxPageSize);
