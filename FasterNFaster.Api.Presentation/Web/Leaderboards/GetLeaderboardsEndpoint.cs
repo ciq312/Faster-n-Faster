@@ -14,7 +14,7 @@ public class GetLeaderboardsEndpoint(ISender sender) : Endpoint<GetLeaderboardsR
 
     public override async Task HandleAsync(GetLeaderboardsRequest req, CancellationToken ct)
     {
-        var response = await sender.Send(new GetLeaderboardCommand(req.Sort, req.Descending, req.Page, req.PageSize), ct);
+        var response = await sender.Send(new GetLeaderboardQuery(req.Sort, req.Descending, req.Page, req.PageSize), ct);
         await Send.OkAsync(response, cancellation: ct);
     }
 }
