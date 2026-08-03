@@ -1,5 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
@@ -22,7 +23,7 @@ public partial class GameHub(
     ILobbyStore lobbyStore,
     ILobbyService lobbyService,
     ISessionService sessionService,
-    ILobbyStateBroadcaster broadcaster,
+    IBroadcaster broadcaster,
     ILobbyServiceFacade facade,
     ISender sender) : Hub
 {
@@ -163,7 +164,7 @@ public partial class GameHub(
 
             var lobby = lobbyStore.Get(lobbyId);
             if (lobby != null)
-                await broadcaster.BroadcastLobbyState(lobby);
+                await broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.LobbyState, await facade.GetLobbyStateDTO(lobbyId));
 
             sessionService.ClearActiveSession(userId);
 

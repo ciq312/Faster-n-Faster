@@ -33,7 +33,7 @@ public class SignalRBroadcaster(
 
 
     private IEnumerable<Guid> MembersOf(Guid lobbyId) =>
-        lobbyStore.Get(lobbyId)?.Players.Select(p => p.User.Id) ?? [];
+        lobbyStore.Get(lobbyId)?.Players.Select(p => p.Id) ?? [];
 
     private IClientProxy Connections(IEnumerable<Guid> userIds) =>
         hub.Clients.Clients(userIds.Select(sessionService.GetActiveSession).OfType<string>().ToList());

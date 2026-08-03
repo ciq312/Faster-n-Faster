@@ -28,7 +28,7 @@ public class LobbyService(
         List<IDomainEvent> events = [];
         await WithLobby(lobbyId, lobby =>
         {
-            lobby.Join(user, code);
+            lobby.Join(user.Id, user.Nick, code);
             events = [.. lobby.DomainEvents];
             lobby.ClearEvents();
         });
@@ -74,12 +74,12 @@ public class LobbyService(
 
             l.ValidateHost(hostId);
             kicked = l.RemovePlayer(userId);
-            l.BanPlayer(kicked.User.Id);
+            l.BanPlayer(kicked.Id);
             events = [.. l.DomainEvents];
             l.ClearEvents();
         });
 
-        await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.User.Nick), CancellationToken.None);
+        await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.Nick), CancellationToken.None);
         await DispatchEvents(events);
     }
 
@@ -96,7 +96,7 @@ public class LobbyService(
             l.ClearEvents();
         });
 
-        await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.User.Nick), CancellationToken.None);
+        await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.Nick), CancellationToken.None);
         await DispatchEvents(events);
     }
 
@@ -149,9 +149,9 @@ public class LobbyService(
         {
             var lobby = lobbyStore.GetRequired(lobbyId);
 
-            var before = lobby.Players.Select(p => p.User.Id).ToHashSet();
+            var before = lobby.Players.Select(p => p.Id).ToHashSet();
             action(lobby);
-            var after = lobby.Players.Select(p => p.User.Id).ToHashSet();
+            var after = lobby.Players.Select(p => p.Id).ToHashSet();
 
             foreach (var added in after.Except(before)) locationRegistry.Track(added, lobbyId);
             foreach (var removed in before.Except(after)) locationRegistry.Untrack(removed);

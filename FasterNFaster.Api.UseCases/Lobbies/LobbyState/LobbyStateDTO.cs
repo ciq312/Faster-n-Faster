@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Races;
 
-namespace FasterNFaster.Api.Web.Lobbies.LobbyState;
+namespace FasterNFaster.Api.UseCases.LobbyState;
 
 public record LobbyStateDTO(
     Guid LobbyId,
@@ -13,6 +13,5 @@ public record LobbyStateDTO(
     string? InviteCode,
     int MaxPlayers,
     IEnumerable<ColorStatus> Colors,
-    IReadOnlyList<LobbyPlayerDto> Players);
+    IReadOnlyList<LobbyPlayerDTO> Players);
 
-public record LobbyPlayerDto(Guid Id, bool IsHost, string Nick, int JoinOrder, bool IsConnected, string Color);

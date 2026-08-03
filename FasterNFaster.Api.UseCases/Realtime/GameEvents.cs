@@ -10,4 +10,6 @@ public static class GameEvents
     public const string PlayerFinished = "PlayerFinished";
     public const string HostChanged = "HostChanged";
     public const string RaceEnded = "RaceEnded";
+    public const string LobbyState = "LobbyState";
+    
 }

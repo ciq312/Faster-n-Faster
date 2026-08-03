@@ -18,7 +18,7 @@ public class DisconnectHandlerTests
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
         Assert.Single(context.Lobby.Players);
-        Assert.True(context.Lobby.Players.ToList()[0].User.Id == host.Id);
+        Assert.True(context.Lobby.Players.ToList()[0].Id == host.Id);
     }
     [Fact]
     public async Task HostDisconnectFromLobby_ShouldPromoteNextAndRemoveHost()
@@ -30,11 +30,7 @@ public class DisconnectHandlerTests
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
         Assert.Single(context.Lobby.Players);
-        Assert.True(context.Lobby.Players.ToList()[0].User.Id == context.Lobby.HostId);
-    }
-    private void PrintCollection<T>(ICollection<T> values)
-    {
-        foreach (var value in values) Console.WriteLine(value);
+        Assert.True(context.Lobby.Players.ToList()[0].Id == context.Lobby.HostId);
     }
 
 }

@@ -1,3 +1,5 @@
+using FasterNFaster.Api.UseCases.LobbyState;
+
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 public interface ILobbyServiceFacade
@@ -15,5 +17,7 @@ public interface ILobbyServiceFacade
     public Task RemoveLobbyIfEmpty(Guid lobbyId);
 
     public Task UpdateProgress(Guid userId, int index, int mistakes, string typed);
+
+    public Task<LobbyStateDTO> GetLobbyStateDTO(Guid lobbyId);
 
 }
