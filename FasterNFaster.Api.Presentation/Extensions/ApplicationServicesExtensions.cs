@@ -20,7 +20,6 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Api.Web.Lobbies.LobbyState;
 using FasterNFaster.Api.Web.Realtime;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -74,7 +73,6 @@ public static class ApplicationServicesExtensions
         services.AddScoped<ILeaderboardRepository>(sp => new CachedLeaderboardRepository(
             sp.GetRequiredService<LeaderboardRepository>(), sp.GetRequiredService<ICache>()));
         services.AddScoped<IEmailSender, SmtpEmailSender>();
-        services.AddScoped<ILobbyStateBroadcaster, LobbyStateBroadcaster>();
 
         services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
         services.AddSingleton<IBroadcaster, SignalRBroadcaster>();

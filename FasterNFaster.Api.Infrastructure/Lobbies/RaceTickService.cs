@@ -71,14 +71,9 @@ public class RaceTickService(
         var snapshot = await raceService.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players
-            .Where(p => p.IsConnected)
-            .Select(p => p.User.Id)
+            .Select(p => p.Id)
             .ToList();
 
-        var visibleSnapshot = snapshot
-            .Where(s => connectedPlayerIds.Contains(s.PlayerId))
-            .ToList();
-
-        conflator.Publish(entry.LobbyId, connectedPlayerIds, visibleSnapshot);
+        conflator.Publish(entry.LobbyId, connectedPlayerIds, snapshot);
     }
 }

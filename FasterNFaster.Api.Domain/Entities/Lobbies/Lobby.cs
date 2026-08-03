@@ -29,7 +29,7 @@ public class Lobby : AggregateRoot<Guid>
         RaiseDomainEvent(new SessionStartedEvent(Id));
     }
 
-    public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.User.Id, x.Color, x.User.Nick)).ToList();
+    public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.Id, x.Color, x.Nick)).ToList();
 
     public void EndSession()
     {
@@ -38,17 +38,17 @@ public class Lobby : AggregateRoot<Guid>
         IsSessionActive = false;
     }
 
-    public void Join(User user, string? code)
+    public void Join(Guid userId, string nick, string? code)
     {
-        if (IsPlayerIn(user.Id)) return;
+        if (IsPlayerIn(userId)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && LobbySettings.IsPrivate) throw new InvalidInviteCodeException();
-        if (IsPlayerBanned(user.Id)) throw new PlayerBannedInLobbyException();
+        if (IsPlayerBanned(userId)) throw new PlayerBannedInLobbyException();
 
-        AddPlayer(user);
+        AddPlayer(userId, nick);
     }
     private bool IsCodeCorrect(string? codeToCheck, string? actualCode) => string.Equals(codeToCheck, actualCode, StringComparison.OrdinalIgnoreCase);
 
-    private void AddPlayer(User user)
+    private void AddPlayer(Guid userId, string nick)
     {
         if (IsSessionActive)
             throw new LobbyIsNotAcceptingPlayersException();
@@ -58,10 +58,10 @@ public class Lobby : AggregateRoot<Guid>
 
         var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
         var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
-        var player = new LobbyPlayer(user, this, joinOrder, color);
+        var player = new LobbyPlayer(userId, nick, joinOrder, color);
         Players.Add(player);
         LobbySettings.UpdateTimestamp();
-        RaiseDomainEvent(new PlayerJoinedEvent(user.Id, Id, user.Nick));
+        RaiseDomainEvent(new PlayerJoinedEvent(userId, Id, nick));
     }
 
     public void AssignHost(Guid hostId)
@@ -84,13 +84,13 @@ public class Lobby : AggregateRoot<Guid>
             throw new InvalidOperationException("Cannot transfer host to yourself.");
 
         var target =
-            Players.FirstOrDefault(p => p.User.Id == newHostId && p.IsConnected)
+            Players.FirstOrDefault(p => p.Id == newHostId)
             ?? throw new InvalidOperationException(
                 "Target player is not in this lobby or is disconnected."
             );
 
         AssignHost(newHostId);
-        RaiseDomainEvent(new HostChangedEvent(Id, target.User.Id, target.User.Nick));
+        RaiseDomainEvent(new HostChangedEvent(Id, target.Id, target.Nick));
     }
 
     public void ChangePlayerColor(Guid playerId, string newColor)
@@ -101,7 +101,7 @@ public class Lobby : AggregateRoot<Guid>
         if (Players.Any(p => p.Color == newColor))
             throw new ColorIsAlreadyTakenException();
 
-        var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+        var player = Players.FirstOrDefault(p => p.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
 
         player.ChangeColor(newColor);
@@ -110,12 +110,12 @@ public class Lobby : AggregateRoot<Guid>
 
     public LobbyPlayer RemovePlayer(Guid playerId)
     {
-        var player = Players.FirstOrDefault(p => p.User.Id == playerId)
+        var player = Players.FirstOrDefault(p => p.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
 
         Players.Remove(player);
         PromoteNextIfHost(playerId);
-        RaiseDomainEvent(new PlayerRemovedEvent(player.User.Id, Id, player.User.Nick));
+        RaiseDomainEvent(new PlayerRemovedEvent(player.Id, Id, player.Nick));
         LobbySettings.UpdateTimestamp();
         return player;
     }
@@ -125,14 +125,13 @@ public class Lobby : AggregateRoot<Guid>
         if (HostId != leavingPlayerId) return;
 
         var newHost = Players
-           .Where(p => p.IsConnected)
            .OrderBy(p => p.JoinOrder)
            .FirstOrDefault();
 
         if (newHost == null) return;
 
-        AssignHost(newHost.User.Id);
-        RaiseDomainEvent(new HostChangedEvent(Id, newHost.User.Id, newHost.User.Nick));
+        AssignHost(newHost.Id);
+        RaiseDomainEvent(new HostChangedEvent(Id, newHost.Id, newHost.Nick));
     }
 
     public void BanPlayer(Guid userId) => bannedPlayerIds.Add(userId);
@@ -143,7 +142,7 @@ public class Lobby : AggregateRoot<Guid>
         LobbySettings.SetInviteCode(code);
     }
 
-    public bool IsPlayerIn(Guid userId) => Players.Any(p => p.User.Id == userId);
+    public bool IsPlayerIn(Guid userId) => Players.Any(p => p.Id == userId);
 
     public bool IsEmpty() => Players.Count == 0;
 
@@ -151,5 +150,7 @@ public class Lobby : AggregateRoot<Guid>
         => PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)));
 
     public bool IsPlayerBanned(Guid id) => bannedPlayerIds.Contains(id);
+
+    public bool IsPlayerHost(Guid id) => id == HostId;
 
 }
