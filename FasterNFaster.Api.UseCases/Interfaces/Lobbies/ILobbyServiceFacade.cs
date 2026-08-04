@@ -18,6 +18,7 @@ public interface ILobbyServiceFacade
 
     public Task UpdateProgress(Guid userId, int index, int mistakes, string typed);
 
+    public Task<bool> DoesLobbyExist(Guid lobbyId);
     public Task<LobbyStateDTO> GetLobbyStateDTO(Guid lobbyId);
 
 }

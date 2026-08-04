@@ -9,7 +9,7 @@ public interface ILobbyService
     Task TransferHost(Guid hostId, Guid userId);
     Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId);
     Task ChangePlayerColor(Guid lobbyId, Guid userId, string color);
-
+    Task<bool> DoesLobbyExist(Guid lobbyId);
     Guid? GetLobbyIdOfPlayer(Guid userId);
     Guid GetLobbyIdOfPlayerRequired(Guid userId);
     Lobby GetLobbyOfPlayerRequired(Guid userId);

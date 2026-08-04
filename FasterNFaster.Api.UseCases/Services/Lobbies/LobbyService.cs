@@ -91,11 +91,11 @@ public class LobbyService(
     // The gate is deliberately not disposed: concurrent WithLobby callers may still
     // Wait/Release on it. SemaphoreSlim owns no OS handle here, so GC collects it;
     // disposing would fault or hang those callers.
-    public Task RemoveLobby(Guid lobbyId)
+    public async Task RemoveLobby(Guid lobbyId)
     {
         repo.Remove(lobbyId);
         gates.TryRemove(lobbyId, out _);
-        return Task.CompletedTask;
+        await repo.SaveChanges();
     }
 
     public Task ChangePlayerColor(Guid lobbyId, Guid userId, string color) =>
@@ -139,5 +139,10 @@ public class LobbyService(
     public async Task ValidateHost(Guid lobbyId, Guid hostId)
     {
         await WithLobby(lobbyId, l => l.ValidateHost(hostId));
+    }
+
+    public Task<bool> DoesLobbyExist(Guid lobbyId)
+    {
+        return Task.FromResult(repo.Get(lobbyId) != null);
     }
 }
