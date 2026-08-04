@@ -2,5 +2,5 @@ namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 
 public interface IPassageProvider
 {
-    Task<string> GetPassageAsync(int wordCount = 50);
+    ValueTask<string> GetPassageAsync(int wordCount = 50);
 }
