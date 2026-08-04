@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.Web.Realtime;
 public class SignalRBroadcaster(
     IHubContext<GameHub> hub,
     ISessionService sessionService,
-    ILobbyStore lobbyStore) : IBroadcaster
+    ILobbyRepository lobbyStore) : IBroadcaster
 {
     public Task Broadcast<T>(IAudience audience, string eventName, T payload)
     {

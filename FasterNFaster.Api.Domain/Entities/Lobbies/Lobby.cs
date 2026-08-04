@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
@@ -108,7 +109,25 @@ public class Lobby : AggregateRoot<Guid>
         LobbySettings.UpdateTimestamp();
     }
 
-    public LobbyPlayer RemovePlayer(Guid playerId)
+    public LobbyPlayer Kick(Guid initiatorId, Guid targetPlayerId)
+    {
+        ValidateHost(initiatorId);
+        if (IsSessionActive) throw new InvalidOperationException("Can't kick when racing");
+
+        var kickedPlayer = RemovePlayerInternal(targetPlayerId);
+        BanPlayer(kickedPlayer.Id);
+        RaiseDomainEvent(new PlayerKickedEvent(kickedPlayer.Id, Id, kickedPlayer.Nick));
+        return kickedPlayer;
+    }
+
+    public LobbyPlayer Disconnect(Guid playerId)
+    {
+        var player = RemovePlayerInternal(playerId);
+        RaiseDomainEvent(new PlayerDisconnectedEvent(playerId, Id, player.Nick));
+        return player;
+    }
+    
+    private LobbyPlayer RemovePlayerInternal(Guid playerId)
     {
         var player = Players.FirstOrDefault(p => p.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
@@ -119,6 +138,9 @@ public class Lobby : AggregateRoot<Guid>
         LobbySettings.UpdateTimestamp();
         return player;
     }
+
+
+
 
     private void PromoteNextIfHost(Guid leavingPlayerId)
     {

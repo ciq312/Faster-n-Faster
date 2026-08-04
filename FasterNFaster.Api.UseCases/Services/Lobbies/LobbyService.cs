@@ -11,12 +11,10 @@ using FasterNFaster.Api.Core.Interfaces.Events;
 namespace FasterNFaster.Api.UseCases.Services;
 
 public class LobbyService(
-    ILobbyStore lobbyStore,
-    IEventDispatcher eventDispatcher,
+    ILobbyRepository repo,
     IPlayerLocationRegistry locationRegistry) : ILobbyService, ILobbyInternals
 {
-    private readonly ILobbyStore lobbyStore = lobbyStore;
-    private readonly IEventDispatcher eventDispatcher = eventDispatcher;
+    private readonly ILobbyRepository repo = repo;
     private readonly IPlayerLocationRegistry locationRegistry = locationRegistry;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
 
@@ -25,62 +23,45 @@ public class LobbyService(
         if (locationRegistry.GetLobbyIdOfPlayer(user.Id) is Guid existingId && existingId != lobbyId)
             throw new AlreadyInLobbyException();
 
-        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, lobby =>
         {
             lobby.Join(user.Id, user.Nick, code);
-            events = [.. lobby.DomainEvents];
-            lobby.ClearEvents();
         });
-        await DispatchEvents(events);
     }
 
-    public ValueTask<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
+    public async Task<Lobby> CreateLobby(string LobbyName, bool isPrivate, Guid creatorId)
     {
         if (locationRegistry.GetLobbyIdOfPlayer(creatorId) != null)
             throw new AlreadyInLobbyException();
 
         Lobby lobby = new(LobbyName, isPrivate);
         lobby.AssignHost(creatorId);
-        lobby.GenerateUniqueInviteCode(c => lobbyStore.GetByInviteCode(c) != null);
+        lobby.GenerateUniqueInviteCode(c => repo.GetByInviteCode(c) != null);
 
-        lobbyStore.Add(lobby);
-        return ValueTask.FromResult(lobby);
+        repo.Add(lobby);
+        await repo.SaveChanges();
+        return await ValueTask.FromResult(lobby);
     }
 
     public async Task TransferHost(Guid hostId, Guid userId)
     {
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
-        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, l =>
         {
             l.TransferHost(hostId, userId);
-            events = [.. l.DomainEvents];
-            l.ClearEvents();
         });
-        await DispatchEvents(events);
     }
 
     public async Task KickPlayer(Guid hostId, Guid userId)
     {
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
-        LobbyPlayer kicked = null!;
-        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, l =>
         {
-            if (l.IsSessionActive) throw new ConflictException("Can't kick when racing");
-
-            l.ValidateHost(hostId);
-            kicked = l.RemovePlayer(userId);
-            l.BanPlayer(kicked.Id);
-            events = [.. l.DomainEvents];
-            l.ClearEvents();
+            l.Kick(hostId, userId);
         });
 
-        await eventDispatcher.Dispatch(new PlayerKickedEvent(userId, lobbyId, kicked.Nick), CancellationToken.None);
-        await DispatchEvents(events);
     }
 
     public async Task RemoveFromLobby(Guid userId)
@@ -88,16 +69,10 @@ public class LobbyService(
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
         LobbyPlayer removed = null!;
-        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, l =>
         {
-            removed = l.RemovePlayer(userId);
-            events = [.. l.DomainEvents];
-            l.ClearEvents();
+            removed = l.Disconnect(userId);
         });
-
-        await eventDispatcher.Dispatch(new PlayerDisconnectedEvent(userId, lobbyId, removed.Nick), CancellationToken.None);
-        await DispatchEvents(events);
     }
 
     public async Task StartSession(Guid lobbyId, Guid hostId)
@@ -107,10 +82,7 @@ public class LobbyService(
         {
             lobby.ValidateHost(hostId);
             lobby.StartSession();
-            events = [.. lobby.DomainEvents];
-            lobby.ClearEvents();
         });
-        await DispatchEvents(events);
     }
 
     public Task EndSession(Guid lobbyId) =>
@@ -121,7 +93,7 @@ public class LobbyService(
     // disposing would fault or hang those callers.
     public Task RemoveLobby(Guid lobbyId)
     {
-        lobbyStore.Remove(lobbyId);
+        repo.Remove(lobbyId);
         gates.TryRemove(lobbyId, out _);
         return Task.CompletedTask;
     }
@@ -133,12 +105,12 @@ public class LobbyService(
 
     public Guid GetLobbyIdOfPlayerRequired(Guid userId) => locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
-    public Lobby GetLobbyRequired(Guid lobbyId) => lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+    public Lobby GetLobbyRequired(Guid lobbyId) => repo.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
 
     public Lobby GetLobbyOfPlayerRequired(Guid userId)
     {
         Guid lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
-        return lobbyStore.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+        return repo.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
     }
 
     private async Task WithLobby(Guid lobbyId, Action<Lobby> action)
@@ -147,10 +119,12 @@ public class LobbyService(
         await sem.WaitAsync();
         try
         {
-            var lobby = lobbyStore.GetRequired(lobbyId);
+            var lobby = repo.GetRequired(lobbyId);
 
             var before = lobby.Players.Select(p => p.Id).ToHashSet();
             action(lobby);
+            repo.Update(lobby);
+            await repo.SaveChanges();
             var after = lobby.Players.Select(p => p.Id).ToHashSet();
 
             foreach (var added in after.Except(before)) locationRegistry.Track(added, lobbyId);
@@ -165,11 +139,5 @@ public class LobbyService(
     public async Task ValidateHost(Guid lobbyId, Guid hostId)
     {
         await WithLobby(lobbyId, l => l.ValidateHost(hostId));
-    }
-
-    private async Task DispatchEvents(List<IDomainEvent> events)
-    {
-        foreach (var domainEvent in events)
-            await eventDispatcher.Dispatch(domainEvent, CancellationToken.None);
     }
 }

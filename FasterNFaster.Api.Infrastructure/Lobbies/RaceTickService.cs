@@ -8,7 +8,7 @@ namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class RaceTickService(
     IRaceTickRegistry registry,
-    ILobbyStore lobbyStore,
+    ILobbyRepository lobbyStore,
     IRaceBroadcaster broadcaster,
     IRaceTransitionService raceTransitionService,
     IRaceService raceService,

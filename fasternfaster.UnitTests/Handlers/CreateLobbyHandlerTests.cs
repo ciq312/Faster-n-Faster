@@ -22,9 +22,9 @@ public class CreateLobbyHandlerTests
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyStore();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
 
-        var lobbyService = new LobbyService(lobbyStore, dispatcher, new InMemoryPlayerLocationRegistry());
+        var lobbyService = new LobbyService(lobbyStore, new InMemoryPlayerLocationRegistry());
         var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
@@ -45,9 +45,9 @@ public class CreateLobbyHandlerTests
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyStore();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
 
-        var lobbyService = new LobbyService(lobbyStore, dispatcher, new InMemoryPlayerLocationRegistry());
+        var lobbyService = new LobbyService(lobbyStore, new InMemoryPlayerLocationRegistry());
         var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
