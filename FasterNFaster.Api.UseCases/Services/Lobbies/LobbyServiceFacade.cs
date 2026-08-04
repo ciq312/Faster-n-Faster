@@ -101,4 +101,9 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
                  lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
                  lobby.GetColors(), [.. players]);
     }
+
+    public Task<bool> DoesLobbyExist(Guid lobbyId)
+    {
+        return lobbyService.DoesLobbyExist(lobbyId);
+    }
 }
