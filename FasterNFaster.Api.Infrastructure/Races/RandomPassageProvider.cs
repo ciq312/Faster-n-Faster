@@ -21,12 +21,12 @@ public class RandomPassageProvider : IPassageProvider
         "never", "last", "long", "same", "another", "much", "while", "before"
     ];
 
-    public Task<string> GetPassageAsync(int wordCount)
+    public ValueTask<string> GetPassageAsync(int wordCount)
     {
         var selected = new string[wordCount];
         for (int i = 0; i < wordCount; i++)
             selected[i] = WordPool[Random.Shared.Next(WordPool.Length)];
 
-        return Task.FromResult(string.Join(" ", selected));
+        return new ValueTask<string>(string.Join(" ", selected));
     }
 }
