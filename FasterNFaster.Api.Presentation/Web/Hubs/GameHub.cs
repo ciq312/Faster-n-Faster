@@ -20,7 +20,7 @@ namespace FasterNFaster.Api.Web.Hubs;
 [Authorize]
 public partial class GameHub(
     ILogger<GameHub> logger,
-    ILobbyStore lobbyStore,
+    ILobbyRepository lobbyStore,
     ILobbyService lobbyService,
     ISessionService sessionService,
     IBroadcaster broadcaster,

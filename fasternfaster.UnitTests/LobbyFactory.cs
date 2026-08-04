@@ -18,7 +18,7 @@ using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 namespace FasterNFaster.Tests;
 
 public record LobbyTestContext(
-    InMemoryLobbyStore Store,
+    InMemoryLobbyRepository Store,
     LobbyService LobbyService,
     LobbyServiceFacade LobbySessionService,
     RaceTickRegistry Registry,
@@ -39,9 +39,9 @@ public static class LobbyFactory
     {
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyStore();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, dispatcher, locationRegistry);
+        var lobbyService = new LobbyService(lobbyStore, locationRegistry);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
@@ -67,9 +67,9 @@ public static class LobbyFactory
 
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyStore();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, dispatcher, locationRegistry);
+        var lobbyService = new LobbyService(lobbyStore, locationRegistry);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 

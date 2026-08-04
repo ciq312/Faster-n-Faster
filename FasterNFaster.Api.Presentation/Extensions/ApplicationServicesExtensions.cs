@@ -36,7 +36,7 @@ public static class ApplicationServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<ILobbyStore, InMemoryLobbyStore>();
+        services.AddSingleton<ILobbyRepository, InMemoryLobbyRepository>();
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
         services.AddSingleton<ICache, RedisCache>();

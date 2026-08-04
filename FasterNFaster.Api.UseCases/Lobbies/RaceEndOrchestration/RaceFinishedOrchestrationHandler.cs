@@ -7,7 +7,7 @@ using MediatR;
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
 public class RaceFinishedOrchestrationHandler(
-    ILobbyStore lobbyStore,
+    ILobbyRepository lobbyStore,
     ILobbyServiceFacade lobbySessionService,
     IPublisher publisher) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
