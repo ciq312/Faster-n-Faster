@@ -78,7 +78,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: ./fasternfaster.api
+          context: ./FasterNFaster.Api.Presentation
           push: true
           tags: |
             ghcr.io/ciq312/fasternfaster-api:latest
