@@ -1,0 +1,23 @@
+using FastEndpoints;
+using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.UseCases.Users.RegisterUsers;
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+
+namespace FasterNFaster.Api.Web.Users.RegisterUser;
+
+public class RegisterUserEndpoint(ISender sender) : Endpoint<RegisterUserRequest, RegisterUserResult>
+{
+    public override void Configure()
+    {
+        Post("/api/auth/register");
+        AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
+    }
+
+    public override async Task HandleAsync(RegisterUserRequest req, CancellationToken ct)
+    {
+        var result = await sender.Send(new RegisterUserCommand(req.Nick, req.Login, req.Email, req.Password), ct);
+        await Send.CreatedAtAsync<RegisterUserEndpoint>(new { UserID = result.UserId }, result, cancellation: ct);
+    }
+}
