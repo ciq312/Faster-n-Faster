@@ -12,7 +12,7 @@ jobs:
 
     env:
       Solution_name: FasterNFaster.Api.sln
-      Test_project_path: FasterNFaster.UnitTests.csproj
+      Test_project_path: FasterNFaster.UnitTests\FasterNFaster.UnitTests.csproj
       Api_project_name: FasterNFaster.Api.Presentation.csproj
 
     steps:
@@ -25,6 +25,8 @@ jobs:
         run: dotnet restore  ${{ env.Solution_name }}
       - name: Build
         run: dotnet build  ${{ env.Solution_name }} --no-restore
+      - name: List files
+        run: ls -R
       - name: Test
         run: dotnet test  ${{ env.Test_project_path }} --no-build --verbosity normal
 
