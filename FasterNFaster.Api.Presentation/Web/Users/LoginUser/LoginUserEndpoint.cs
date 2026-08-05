@@ -1,0 +1,27 @@
+using FastEndpoints;
+using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.UseCases.Users.LoginUsers;
+using FasterNFaster.Api.Web.Services.Interfaces;
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+
+namespace FasterNFaster.Api.Web.Users.LoginUser;
+
+public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResult>
+{
+    public override void Configure()
+    {
+        Post("/api/auth/login");
+        AllowAnonymous();
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.AuthStrict));
+    }
+
+    public override async Task HandleAsync(LoginUserRequest req, CancellationToken ct)
+    {
+        var result = await sender.Send(new LoginUserCommand(req.Login, req.Password), ct);
+
+        auth.WriteAuth(result.Tokens);
+
+        await Send.OkAsync(new LoginUserResult(result.UserId, result.Nick), cancellation: ct);
+    }
+}

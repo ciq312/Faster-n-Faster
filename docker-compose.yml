@@ -35,14 +35,14 @@ services:
     container_name: backend
     pull_policy: never
     build:
-      context: ./fasternfaster.api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: /FasterNFaster.Api.Presentation/Dockerfile
     environment:
         ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
         ConnectionStrings__Redis: redis:6379
         JwtOptions__JWT_PRIVATE_TOKEN: ${JWTOPTIONS__JWT_PRIVATE_TOKEN}
         Google__ClientId: ${GOOGLE__CLIENTID}
-        Google__ClientSecret: ${GOOGLE__CLIENTSECRET}
+        Google__ClientSecret: ${GOOGLE__CLIENTSECRET} 
     ports:
       - "8080:8080"
     depends_on:
