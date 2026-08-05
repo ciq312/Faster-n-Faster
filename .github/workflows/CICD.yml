@@ -12,7 +12,7 @@ jobs:
 
     env:
       Solution_name: FasterNFaster.Api.sln
-      Test_project_path: fasternfaster.UnitTests\FasterNFaster.UnitTests.csproj
+      Test_project_path: FasterNFaster.UnitTests.csproj
       Api_project_path: FasterNFaster.Api.Presentation\FasterNFaster.Api.Presentation.csproj
       Api_project_name: FasterNFaster.Api.Presentation.csproj
 
