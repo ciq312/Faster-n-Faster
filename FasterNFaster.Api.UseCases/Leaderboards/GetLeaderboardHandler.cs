@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Leaderboards;
 
-public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : IRequestHandler<GetLeaderboardQuery, GetLeaderboardResults>
+public class GetLeaderboardHandler(ILeaderboardRepository leaderboardRepo) : IRequestHandler<GetLeaderboardQuery, GetLeaderboardResults>
 {
     private const int MaxPageSize = 100;
 
@@ -12,12 +12,12 @@ public class GetLeaderboardHandler(ILeaderboardRepository leaderboardService) : 
         int page = Math.Max(1, command.Page);
         int pageSize = Math.Clamp(command.PageSize, 1, MaxPageSize);
 
-        LeaderboardPage result = await leaderboardService.GetTopPlayersAsync(command.Sort, command.Descending, page, pageSize);
+        LeaderboardPage result = await leaderboardRepo.GetTopPlayersAsync(command.Sort, command.Descending, page, pageSize);
 
         int firstRank = (page - 1) * pageSize + 1;
         var items = result.Items
             .Select((stat, i) => new LeaderboardResultDTO(
-                firstRank + i, stat.Id, stat.User.Nick, stat.BestWPM, stat.BestAccuracy, stat.AvgWPM, stat.AvgAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped))
+                firstRank + i, stat.Id, stat.PlayerName, stat.BestWPM, stat.BestAccuracy, stat.AvgWPM, stat.AvgAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped))
             .ToList();
 
         int totalPages = (int)Math.Ceiling(result.TotalPlayers / (double)pageSize);
