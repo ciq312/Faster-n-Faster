@@ -10,13 +10,23 @@ public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepositor
 {
     public async Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
     {
-        IQueryable<PlayerStatistics> query = context.Statistics.Include(s => s.User);
+        IQueryable<PlayerStatistics> query = context.Statistics.AsNoTracking();
 
         int total = await query.CountAsync();
 
         var items = await ApplyOrder(query, sort, descending)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(s => new LeaderboardPlayerReadModel(
+                s.Id,
+                s.User.Nick,
+                s.BestWPM,
+                s.BestAccuracy,
+                s.AvgWPM,
+                s.AvgAccuracy,
+                s.Wins,
+                s.WordsTyped,
+                s.RacesTyped))
             .ToListAsync();
 
         return new LeaderboardPage(items, total);
