@@ -10,10 +10,6 @@ public class ExternalLoginHandler(
     IExternalLoginRepository externalLogins,
     ITokenService tokenService) : IRequestHandler<ExternalLoginCommand, ExternalLoginResult>
 {
-    private readonly IUserRepository userRepo = userRepo;
-    private readonly IExternalLoginRepository externalLogins = externalLogins;
-    private readonly ITokenService tokenService = tokenService;
-
     public async Task<ExternalLoginResult> Handle(ExternalLoginCommand command, CancellationToken cancellationToken)
     {
         var user = await GetLinkedUserAsync(command)

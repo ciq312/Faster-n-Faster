@@ -7,12 +7,8 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.LoginUsers;
 
-public class LoginUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, ITokenService tokenService) : IRequestHandler<LoginUserCommand, LoginUserResult>
+public class LoginUserHandler(IUserRepository userRepo, IPasswordHelper passwordHelper, ITokenService tokenService) : IRequestHandler<LoginUserCommand, LoginUserResult>
 {
-    private readonly IUserRepository userRepo = repo;
-    private readonly IPasswordHelper passwordHelper = passwordHelper;
-    private readonly ITokenService tokenService = tokenService;
-
     public async Task<LoginUserResult> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
         User user = await userRepo.GetUserByLoginAsync(command.Login)

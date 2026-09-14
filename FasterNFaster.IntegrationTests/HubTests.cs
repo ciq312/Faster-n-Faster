@@ -11,24 +11,29 @@ namespace FasterNFaster.IntegrationTests;
 
 public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
 {
-    private readonly NoRateLimitApplicationFactory<Program> factory = factory;
-
     public Task InitializeAsync() => factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;
+
+    private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(5);
 
     [Fact]
     public async Task BannedUserConnect_ShouldAbort()
     {
         var (client, cookies, loginResult) = await RegisterAndLoginAsync();
-        var hub = BuildHubConnection(client, cookies);
+        await using var hub = BuildHubConnection(client, cookies);
+
+        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.Closed += _ =>
+        {
+            connectionClosed.TrySetResult();
+            return Task.CompletedTask;
+        };
 
         await factory.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
 
         await hub.StartAsync();
 
-        //for filter to abort connection
-        await Task.Delay(TimeSpan.FromSeconds(1));
-
+        await connectionClosed.Task.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
     }
 
@@ -45,26 +50,21 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
     [Fact]
     public async Task AnotherSession_ShouldSendEvent()
     {
-        bool isAnotherSessionStarted = false;
-
         var user = NewUser();
         var (client, cookies, _) = await RegisterAndLoginAsync(user);
-        var hub = BuildHubConnection(client, cookies);
+        await using var hub = BuildHubConnection(client, cookies);
 
-        hub.On("AnotherSessionStarted", () => isAnotherSessionStarted = true);
+        var anotherSessionStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.On("AnotherSessionStarted", () => anotherSessionStarted.TrySetResult());
 
         await hub.StartAsync();
+        await hub.InvokeAsync<long>("Ping", 0);
 
-        var (_, anotherCookies, _) = await LoginAsync(factory.CreateClient(), user);
-        var anotherHub = BuildHubConnection(factory.CreateClient(), anotherCookies);
-
-        await Task.Delay(TimeSpan.FromSeconds(1));
-
+        var (anotherClient, anotherCookies, _) = await LoginAsync(factory.CreateClient(), user);
+        await using var anotherHub = BuildHubConnection(anotherClient, anotherCookies);
         await anotherHub.StartAsync();
 
-        await Task.Delay(TimeSpan.FromSeconds(1));
-
-        Assert.True(isAnotherSessionStarted);
+        await anotherSessionStarted.Task.WaitAsync(EventTimeout);
     }
 
     private static RegisterUserRequest NewUser() => new("test", "test", "test@gmail.com", "testpass");

@@ -55,9 +55,9 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
     }
 
     [Fact]
-    public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeFine()
+    public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeOk()
     {
-        TimeSpan testRateLimitWindow = TimeSpan.FromSeconds(3);
+        TimeSpan testRateLimitWindow = TimeSpan.FromSeconds(1);
         var client = factory.WithWebHostBuilder(b => b.UseSetting("RateLimiting:AuthStrict:Window", testRateLimitWindow.ToString())).CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.3");
 
@@ -68,7 +68,7 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         }
         var okResponses = await Task.WhenAll(tasks);
 
-        await Task.Delay(testRateLimitWindow);
+        await Task.Delay(testRateLimitWindow + TimeSpan.FromSeconds(1));
         var nthRequest = rateLimitOptions.AuthStrict.PermitLimit;
 
         var nthResponse = await AuthHelper.Register(client);

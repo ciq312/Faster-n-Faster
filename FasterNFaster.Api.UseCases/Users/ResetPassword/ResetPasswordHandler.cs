@@ -15,11 +15,6 @@ public class ResetPasswordHandler(
     IPasswordHelper passwordHelper,
     ISessionService sessionService) : IRequestHandler<ResetPasswordCommand>
 {
-    private readonly ISessionService sessionService = sessionService;
-    private readonly IUserRepository userRepo = userRepo;
-    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
-    private readonly IPasswordHelper passwordHelper = passwordHelper;
-
     public async Task Handle(ResetPasswordCommand command, CancellationToken cancellationToken)
     {
         Token? token = await tokenRepo.GetByValueAsync(command.Token);
