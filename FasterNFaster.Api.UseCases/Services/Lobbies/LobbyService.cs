@@ -6,7 +6,6 @@ using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
-using FasterNFaster.Api.Core.Interfaces.Events;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
@@ -40,7 +39,7 @@ public class LobbyService(
 
         repo.Add(lobby);
         await repo.SaveChanges();
-        return await ValueTask.FromResult(lobby);
+        return lobby;
     }
 
     public async Task TransferHost(Guid hostId, Guid userId)
@@ -68,16 +67,11 @@ public class LobbyService(
     {
         var lobbyId = locationRegistry.GetLobbyIdOfPlayerRequired(userId);
 
-        LobbyPlayer removed = null!;
-        await WithLobby(lobbyId, l =>
-        {
-            removed = l.Disconnect(userId);
-        });
+        await WithLobby(lobbyId, l => l.Disconnect(userId));
     }
 
     public async Task StartSession(Guid lobbyId, Guid hostId)
     {
-        List<IDomainEvent> events = [];
         await WithLobby(lobbyId, lobby =>
         {
             lobby.ValidateHost(hostId);

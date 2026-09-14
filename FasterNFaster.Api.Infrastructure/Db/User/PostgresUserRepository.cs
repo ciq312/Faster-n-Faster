@@ -30,12 +30,6 @@ public class PostgresUserRepository(AppDbContext context) : IUserRepository
         return await appDbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
     }
 
-    public async Task<bool> DoUserExistByNickAsync(string nick)
-    {
-        return await appDbContext.Users.AnyAsync(x => x.Nick == nick);
-    }
-
-
     public async Task<User?> GetUserByLoginAsync(string login)
     {
         return await appDbContext.Users.FirstOrDefaultAsync(x => x.Login == login);
