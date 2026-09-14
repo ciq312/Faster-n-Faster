@@ -6,12 +6,7 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Tests: RefreshTokensWhenAccessToExpired_ShouldGiveNew doesn't expire anything or assert new tokens differ; remove unused variables
-- [ ] Tests: dispose HubConnections (`await using`) so they don't leak into the next test
-- [ ] Tests: TestApplicationFactory.DisposeAsync — dispose host first (base.DisposeAsync), then DisposeAsync containers instead of StopAsync
 - [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
-- [ ] Tests: RateLimiting window test — dispose WithWebHostBuilder factory, add margin to Task.Delay(window)
-- [ ] Tests: remove duplicate appsettings.json in IntegrationTests and unused usings
 - [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
 - [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
 - [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
@@ -46,6 +41,11 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Tests: remove duplicate appsettings.json in IntegrationTests and unused usings
+- [ ] Tests: TestApplicationFactory.DisposeAsync — dispose host first (base.DisposeAsync), then DisposeAsync containers instead of StopAsync
+- [ ] Tests: RateLimiting window test — dispose WithWebHostBuilder factory, add margin to Task.Delay(window)
+- [ ] Tests: dispose HubConnections (`await using`) so they don't leak into the next test
+- [ ] Tests: RefreshTokensWhenAccessToExpired_ShouldGiveNew doesn't expire anything or assert new tokens differ; remove unused variables
 - [ ] Tests: RefreshWithStaleToken_Should401 passes for the wrong reason (Cookie.ToString() gives `refresh_token=refresh_token=...`) — use `.Value`, assert first refresh is 200
 - [ ] Tests: replace Task.Delay waits in HubTests with TaskCompletionSource + WaitAsync timeout (AnotherSessionStarted, hub.Closed); drop unsynchronized bool
 - [ ] Cleanup: remove redundant `private readonly x = x;` fields next to primary constructors

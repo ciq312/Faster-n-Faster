@@ -7,6 +7,7 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
 using FasterNFaster.IntegrationTests;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 public static class AuthHelper
 {
@@ -17,7 +18,7 @@ public static class AuthHelper
     }
 
     public static async Task<Guid> FullRegisterFlowAsync(
-           TestApplicationFactory<Program> factory, HttpClient client, RegisterUserRequest request)
+           WebApplicationFactory<Program> app, HttpClient client, RegisterUserRequest request)
     {
         var response = await client.PostAsJsonAsync(RegisterUri, request);
         response.EnsureSuccessStatusCode();
@@ -25,7 +26,7 @@ public static class AuthHelper
         var result = await response.Content.ReadFromJsonAsync<RegisterUserResult>();
         var userId = result!.UserId;
 
-        var confirmToken = await factory.ExecuteScopedAsync<IConfirmTokenRepository, Token?>(repo =>
+        var confirmToken = await app.ExecuteScopedAsync<IConfirmTokenRepository, Token?>(repo =>
             repo.GetLatestForUserAsync(userId, TokenType.EmailVerification));
 
         var verifyResponse = await client.PostAsJsonAsync(VerifyEmailUri, new VerifyEmailRequest(confirmToken!.Value));

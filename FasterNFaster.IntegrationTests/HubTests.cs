@@ -5,14 +5,22 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
 {
-    public Task InitializeAsync() => factory.ResetAsync();
-    public Task DisposeAsync() => Task.CompletedTask;
+    private WebApplicationFactory<Program> app = null!;
+
+    public async Task InitializeAsync()
+    {
+        await fixture.ResetAsync();
+        app = fixture.CreateApp();
+    }
+
+    public async Task DisposeAsync() => await app.DisposeAsync();
 
     private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(5);
 
@@ -29,7 +37,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
             return Task.CompletedTask;
         };
 
-        await factory.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
+        await app.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
 
         await hub.StartAsync();
 
@@ -40,7 +48,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
     [Fact]
     public async Task UnauthenticatedUserConnection_ShouldReject()
     {
-        var hub = BuildHubConnection(factory.CreateClient(), cookies: null);
+        await using var hub = BuildHubConnection(app.CreateClient(), cookies: null);
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => hub.StartAsync());
 
@@ -60,7 +68,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
         await hub.StartAsync();
         await hub.InvokeAsync<long>("Ping", 0);
 
-        var (anotherClient, anotherCookies, _) = await LoginAsync(factory.CreateClient(), user);
+        var (anotherClient, anotherCookies, _) = await LoginAsync(app.CreateClient(), user);
         await using var anotherHub = BuildHubConnection(anotherClient, anotherCookies);
         await anotherHub.StartAsync();
 
@@ -72,9 +80,9 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
     private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
     {
         user ??= NewUser();
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
-        await AuthHelper.FullRegisterFlowAsync(factory, client, user);
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
 
         return await LoginAsync(client, user);
     }
@@ -100,7 +108,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> factory) : IClassFi
                 if (cookies is not null)
                     options.Headers["Cookie"] = cookies.GetCookieHeader(client.BaseAddress!);
 
-                options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
+                options.HttpMessageHandlerFactory = _ => app.Server.CreateHandler();
                 options.Transports = HttpTransportType.LongPolling;
             })
             .Build();
