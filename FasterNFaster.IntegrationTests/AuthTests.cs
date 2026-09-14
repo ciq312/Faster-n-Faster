@@ -17,8 +17,6 @@ using Org.BouncyCastle.Asn1;
 
 public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
 {
-    private readonly NoRateLimitApplicationFactory<Program> factory = factory;
-
     public Task InitializeAsync() => factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;
 
@@ -117,14 +115,15 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
         var refreshToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
 
         var request1 = new HttpRequestMessage(HttpMethod.Post, AuthHelper.RefreshUri);
-        request1.Headers.Add("Cookie", $"refresh_token={refreshToken1}");
+        request1.Headers.Add("Cookie", $"refresh_token={refreshToken1!.Value}");
         var refreshResponse = await client.SendAsync(request1);
 
         var request2 = new HttpRequestMessage(HttpMethod.Post, AuthHelper.RefreshUri);
-        request2.Headers.Add("Cookie", $"refresh_token={refreshToken1}");
+        request2.Headers.Add("Cookie", $"refresh_token={refreshToken1!.Value}");
         var refreshReponseWithStaleToken = await client.SendAsync(request2);
 
         Assert.Equal(HttpStatusCode.Unauthorized, refreshReponseWithStaleToken.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
     }
 
     [Fact]
@@ -149,10 +148,14 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 
         AuthHelper.SetCookies(cookies, refreshResponse, client);
 
-        var accessToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "access_token");
-        var refreshToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "refresh_token");
+        var accessToken2 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "access_token");
+        var refreshToken2 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
 
         Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+        Assert.NotEqual(refreshToken1!.Value, refreshToken2!.Value);
+
+        var meResponse = await client.GetAsync("api/auth/me");
+        Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
     }
 
     [Fact]

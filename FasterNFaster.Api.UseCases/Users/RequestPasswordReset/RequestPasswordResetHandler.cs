@@ -13,12 +13,6 @@ public class RequestPasswordResetHandler(
     IEmailSender emailSender,
     RequestPasswordResetOptions options) : IRequestHandler<RequestPasswordResetCommand>
 {
-    private readonly IUserRepository userRepo = userRepo;
-    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
-    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
-    private readonly IEmailSender emailSender = emailSender;
-    private readonly RequestPasswordResetOptions options = options;
-
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);

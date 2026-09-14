@@ -11,8 +11,6 @@ namespace FasterNFaster.Api.Web.Users.RefreshToken;
 
 public class RefreshTokenEndpoint(ISender sender, IAuthTokenWriter auth, IOptions<AuthCookiesOptions> options) : EndpointWithoutRequest
 {
-    private readonly ISender sender = sender;
-    private readonly IAuthTokenWriter auth = auth;
     private readonly AuthCookiesOptions options = options.Value;
 
     public override void Configure()

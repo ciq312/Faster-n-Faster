@@ -4,10 +4,8 @@ using FasterNFaster.Api.Core.Entities;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Users;
 
-public class PostgresUserRepository(AppDbContext context) : IUserRepository
+public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
 {
-    private readonly AppDbContext appDbContext = context;
-
     public async Task AddAsync(User user)
     {
         appDbContext.Users.Add(user);

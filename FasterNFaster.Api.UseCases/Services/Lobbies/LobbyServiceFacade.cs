@@ -13,12 +13,6 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
   IRaceTickRegistry raceTickRegistry
   ) : ILobbyServiceFacade, IRaceTransitionService
 {
-    private readonly IRaceTickRegistry raceTickRegistry = raceTickRegistry;
-    private readonly ILobbyInternals lobbyInternals = lobbyInternals;
-    private readonly IRaceInternals raceInternals = raceInternals;
-    private readonly ILobbyService lobbyService = lobbyService;
-    private readonly IRaceService raceService = raceService;
-
     public async Task StartSession(Guid hostId)
     {
         Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(hostId);

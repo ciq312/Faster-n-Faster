@@ -7,8 +7,6 @@ namespace FasterNFaster.Api.UseCases.Factories.Implementations;
 
 public class UserFactory(IUserRepository repo) : IUserFactory
 {
-    private readonly IUserRepository repo = repo;
-
     public async Task<User> GetUser(Guid id, string nick, string role)
     {
         switch (role)

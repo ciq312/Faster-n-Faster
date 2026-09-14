@@ -10,7 +10,6 @@ namespace FasterNFaster.Api.Infrastructure.Lobbies;
 public class InMemoryLobbyRepository(IEventDispatcher mediator) : ILobbyRepository
 {
     private readonly ConcurrentDictionary<Guid, Lobby> lobbies = new();
-    private readonly IEventDispatcher mediator = mediator;
     private readonly List<Lobby> added = new List<Lobby>();
     private readonly List<Lobby> updated = new List<Lobby>();
     private readonly List<Lobby> removed = new List<Lobby>();

@@ -13,8 +13,6 @@ public class LobbyService(
     ILobbyRepository repo,
     IPlayerLocationRegistry locationRegistry) : ILobbyService, ILobbyInternals
 {
-    private readonly ILobbyRepository repo = repo;
-    private readonly IPlayerLocationRegistry locationRegistry = locationRegistry;
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
 
     public async Task JoinLobby(User user, Guid lobbyId, string? code)
