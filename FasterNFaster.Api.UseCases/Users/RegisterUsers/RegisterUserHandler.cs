@@ -10,12 +10,6 @@ namespace FasterNFaster.Api.UseCases.Users.RegisterUsers;
 
 public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, IEmailSender emailSender, IConfirmTokenRepository tokenRepo, IConfirmTokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
 {
-    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
-    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
-    private readonly IUserRepository repo = repo;
-    private readonly IPasswordHelper passwordHelper = passwordHelper;
-    private readonly IEmailSender emailSender = emailSender;
-
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
     {
         if (await repo.GetUserByLoginAsync(command.Login) != null) throw new DuplicateLoginException(command.Login);

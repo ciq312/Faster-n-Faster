@@ -8,8 +8,6 @@ namespace FasterNFaster.Api.Web.Hubs.Filters;
 
 public class HubCheatFilter(ILogger<HubCheatFilter> logger) : IHubFilter
 {
-    private readonly ILogger<HubCheatFilter> logger = logger;
-
     public async ValueTask<object?> InvokeMethodAsync(
         HubInvocationContext invocationContext,
         Func<HubInvocationContext, ValueTask<object?>> next)
