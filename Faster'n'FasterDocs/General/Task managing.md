@@ -31,12 +31,14 @@ kanban-plugin: board
 ## In progress
 
 - [ ] Refactor
+- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## Bugs
 
 - [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
+- [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
 
 
 ## Done
