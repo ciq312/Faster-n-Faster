@@ -142,7 +142,6 @@ public class RaceService(
         }
     }
 
-
     private void WrapRaceEvents(Race race, Guid lobbyId)
     {
         foreach (var domainEvent in race.DomainEvents)

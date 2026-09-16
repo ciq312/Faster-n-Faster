@@ -31,7 +31,6 @@ function Lobby() {
     leaveLobby
   } = useLobbyActions();
   const {
-    tier,
     dismissResults,
     isRacing,
     isRaceStarting,
@@ -117,16 +116,6 @@ function Lobby() {
 
           <div className="lobby-game">
             <div className="countdown-overlay">{countdown}</div>
-
-            {tier && raceParticipants.find((p) => isSelf(p.playerId)) && (
-              <div
-                key={tier.label}
-                className="tier"
-                style={{ "--shake": `${Math.min(tier.min / 12, 10)}px` }}
-              >
-                {tier.label}
-              </div>
-            )}
 
             {raceResults ? (
               <RaceResults

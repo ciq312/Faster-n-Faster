@@ -8,7 +8,6 @@ namespace FasterNFaster.Api.Web.Services.Implementations;
 
 public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<AuthCookiesOptions> options) : IAuthTokenWriter
 {
-    private readonly IHttpContextAccessor httpContextAccessor = httpContextAccessor;
     private readonly AuthCookiesOptions options = options.Value;
 
     private HttpResponse Response =>

@@ -5,7 +5,6 @@ namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefreshTokenRepository
 {
-    private readonly IConnectionMultiplexer redis = redis;
     private readonly IDatabase db = redis.GetDatabase();
 
     private static string TokenToUserKey(string token) => $"auth:refresh:{token}";

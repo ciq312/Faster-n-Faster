@@ -6,23 +6,52 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] 1. ChangeColor calls lobbyService directly (line 184) — bypasses MediatR, inconsistent with every other method. Needs a ChangeColorCommand.
-- [ ] 2. lobbyStore.GetRequired() called in the hub (lines 118, 130, 239) — the hub is reaching into the store directly to get data for broadcasting. The handler should handle this, or the broadcaster should be smarter.
-- [ ] 3. BroadcastLobbyState in the hub after commands (lines 119, 133, 185, 240) — post-command broadcasting is a side effect that belongs in handlers, not the hub. The hub shouldn't need to know "after this command, go broadcast."
-- [ ] 4. OnDisconnectedAsync sends two separate commands (lines 233–234) — FastReconnectCommand then DisconnectCommand. This dual orchestration is application logic; a single PlayerDisconnectedCommand handler should coordinate both.
+- [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
+- [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
+- [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
+- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
+- [ ] Collapse lobby/race services: remove ILobbyInternals, IRaceInternals, IRaceTransitionService, ILobbyServiceFacade → ILobbyService + IRaceService + one orchestrator
+- [ ] Decide handlers vs services as use-case owners; remove pass-through handlers and the duplicate UpdateProgress path
+- [ ] Race knows its LobbyId (or Lobby owns Race): remove IRaceEvent.WrapRaceContext, second race lock, register/deregister syncing
+- [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
+- [ ] Broadcast LobbyState once per lobby change instead of from every handler
+- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
+- [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
+- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
+- [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
+- [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
+- [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
+- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
+- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
+- [ ] PendingRemovalRegistry: make interface synchronous
+- [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
+- [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
 
 
 ## In progress
 
 - [ ] Refactor
+- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## Bugs
 
+- [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
+- [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
+- [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
 
 
 ## Done
 
+- [ ] Tests: remove duplicate appsettings.json in IntegrationTests and unused usings
+- [ ] Tests: TestApplicationFactory.DisposeAsync — dispose host first (base.DisposeAsync), then DisposeAsync containers instead of StopAsync
+- [ ] Tests: RateLimiting window test — dispose WithWebHostBuilder factory, add margin to Task.Delay(window)
+- [ ] Tests: dispose HubConnections (`await using`) so they don't leak into the next test
+- [ ] Tests: RefreshTokensWhenAccessToExpired_ShouldGiveNew doesn't expire anything or assert new tokens differ; remove unused variables
+- [ ] Tests: RefreshWithStaleToken_Should401 passes for the wrong reason (Cookie.ToString() gives `refresh_token=refresh_token=...`) — use `.Value`, assert first refresh is 200
+- [ ] Tests: replace Task.Delay waits in HubTests with TaskCompletionSource + WaitAsync timeout (AnotherSessionStarted, hub.Closed); drop unsynchronized bool
+- [ ] Cleanup: remove redundant `private readonly x = x;` fields next to primary constructors
+- [ ] Cleanup: remove dead code (DisconnectResult, JoinLobbyResult, StartRaceResult, Infrastructure FakeBanRepository, unused locals in LobbyService, ValidGameModes, `await ValueTask.FromResult`, commented tier logic in useRace)
 - [x] Centralize SignalR method names + lobby group key as constants
 - [x] Fix public API typos: AddPaticipants, RemoveRegistredRace, GetRaceStatics, playerdId
 - [x] Fix namespace≠folder mismatches and FasterNFaster/FasternFaster spelling
