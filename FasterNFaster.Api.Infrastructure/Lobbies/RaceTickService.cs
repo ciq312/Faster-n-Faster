@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Services.Races;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,6 @@ public class RaceTickService(
     ILogger<RaceTickService> logger) : BackgroundService
 {
     private const int TickIntervalMs = 200;
-    private const float CountdownSeconds = 3.5f;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -56,9 +56,9 @@ public class RaceTickService(
 
     private async Task HandleCountdown(RacingLobbyEntry entry)
     {
-        var elapsed = (DateTime.UtcNow - entry.RegisteredAt).TotalSeconds;
+        var elapsed = DateTime.UtcNow - entry.RegisteredAt;
 
-        if (elapsed >= CountdownSeconds)
+        if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {
             await raceTransitionService.StartRaceInternal(entry.LobbyId);
             await broadcaster.BroadcastRaceStarted(entry.LobbyId);
