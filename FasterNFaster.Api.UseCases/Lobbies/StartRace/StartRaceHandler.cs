@@ -7,7 +7,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 
 public class StartRaceHandler(
     ILobbyAccess lobbies,
-    IRaceInternals raceInternals,
+    IRaceAccess races,
     IRaceTickRegistry raceTickRegistry) : IRequestHandler<StartRaceCommand, Guid>
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
@@ -21,7 +21,7 @@ public class StartRaceHandler(
             l.StartSession();
         });
 
-        await raceInternals.AddParticipants(lobbyId, lobby.GetRaceParticipants());
+        await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants()));
 
         raceTickRegistry.RegisterLobby(lobbyId);
 

@@ -11,8 +11,7 @@ public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyRepository lobbyStore,
     IRaceBroadcaster broadcaster,
-    IRaceInternals raceInternals,
-    IRaceService raceService,
+    IRaceAccess races,
     RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
 {
@@ -60,7 +59,7 @@ public class RaceTickService(
 
         if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {
-            await raceInternals.StartRace(entry.LobbyId);
+            await races.Mutate(entry.LobbyId, r => r.Start());
             await broadcaster.BroadcastRaceStarted(entry.LobbyId);
             registry.TransitionToRacing(entry.LobbyId);
         }
@@ -68,7 +67,7 @@ public class RaceTickService(
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
     {
-        var snapshot = await raceService.GetSnapshot(entry.LobbyId);
+        var snapshot = await races.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players
             .Select(p => p.Id)

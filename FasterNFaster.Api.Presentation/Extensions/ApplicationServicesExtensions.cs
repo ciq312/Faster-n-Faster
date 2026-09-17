@@ -76,9 +76,7 @@ public static class ApplicationServicesExtensions
 
         services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
         services.AddSingleton<IBroadcaster, SignalRBroadcaster>();
-        services.AddSingleton<RaceService>();
-        services.AddSingleton<IRaceInternals>(sp => sp.GetRequiredService<RaceService>());
-        services.AddSingleton<IRaceService>(sp => sp.GetRequiredService<RaceService>());
+        services.AddSingleton<IRaceAccess, RaceAccess>();
         services.AddSingleton<RaceStateConflator>();
         services.AddSingleton<IRaceResultQueue, RaceResultQueue>();
         services.AddHostedService<RaceResultProcessor>();

@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(ILobbyAccess lobbies, IRaceInternals raceInternals) : IRequestHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IRequestHandler<DisconnectCommand>
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
@@ -14,6 +14,6 @@ public class DisconnectHandler(ILobbyAccess lobbies, IRaceInternals raceInternal
         await lobbies.Mutate(lobby.Id, l => l.Disconnect(command.PlayerId));
 
         if (lobby.IsSessionActive)
-            await raceInternals.WithdrawParticipant(lobby.Id, command.PlayerId);
+            await races.Mutate(lobby.Id, r => r.WithdrawParticipant(command.PlayerId));
     }
 }

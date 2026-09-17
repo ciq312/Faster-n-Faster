@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 public class RefreshPassageHandler(
     ILobbyAccess lobbies,
-    IRaceInternals raceInternals,
+    IRaceAccess races,
     ILobbyQuery lobbyQuery,
     IBroadcaster broadcaster) : IRequestHandler<RefreshPassageCommand>
 {
@@ -21,7 +21,7 @@ public class RefreshPassageHandler(
 
         lobby.ValidateHost(command.CallerId);
 
-        await raceInternals.RefreshPassage(lobby.Id);
+        await races.RefreshPassage(lobby.Id);
 
         await broadcaster.Broadcast(Audience.Lobby(lobby.Id), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(lobby.Id));
     }

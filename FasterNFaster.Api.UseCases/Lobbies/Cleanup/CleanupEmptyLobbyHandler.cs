@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 
 public class CleanupEmptyLobbyHandler(
     ILobbyAccess lobbies,
-    IRaceService raceService,
+    IRaceAccess races,
     IRaceTickRegistry raceTickRegistry)
     : INotificationHandler<DomainEventNotification<PlayerRemovedEvent>>
 {
@@ -22,7 +22,7 @@ public class CleanupEmptyLobbyHandler(
 
         await lobbies.Remove(lobbyId);
 
-        raceService.RemoveRegisteredRace(lobbyId);
+        races.Remove(lobbyId);
 
         raceTickRegistry.DeregisterLobby(lobbyId);
     }

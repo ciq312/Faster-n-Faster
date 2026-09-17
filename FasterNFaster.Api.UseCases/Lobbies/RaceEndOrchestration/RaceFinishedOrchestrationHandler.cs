@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
 public class RaceFinishedOrchestrationHandler(
     ILobbyAccess lobbies,
-    IRaceInternals raceInternals,
+    IRaceAccess races,
     IPublisher publisher) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
     public async Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
@@ -19,7 +19,7 @@ public class RaceFinishedOrchestrationHandler(
         await lobbies.Mutate(e.LobbyId, l => l.EndSession());
 
         // Prepares the passage for the next race; the host-initiated path is RefreshPassageCommand.
-        await raceInternals.RefreshPassage(e.LobbyId);
+        await races.RefreshPassage(e.LobbyId);
 
         Lobby lobby = lobbies.GetRequired(e.LobbyId);
 
