@@ -3,12 +3,19 @@ using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.RegisterUsers;
 
-public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordHelper, IEmailSender emailSender, IConfirmTokenRepository tokenRepo, IConfirmTokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
+public class RegisterUserHandler(
+    IUserRepository repo,
+    IUnitOfWork unitOfWork,
+    IPasswordHelper passwordHelper,
+    IEmailSender emailSender,
+    IConfirmTokenRepository tokenRepo,
+    IConfirmTokenFactory tokenFactory) : IRequestHandler<RegisterUserCommand, RegisterUserResult>
 {
     public async Task<RegisterUserResult> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
     {
@@ -21,7 +28,8 @@ public class RegisterUserHandler(IUserRepository repo, IPasswordHelper passwordH
         string hashedPassword = passwordHelper.HashPassword(user, command.Password);
         user.SetPassword(hashedPassword);
 
-        await repo.AddAsync(user);
+        repo.Add(user);
+        await unitOfWork.SaveChangesAsync();
 
         var verificationToken = tokenFactory.GetToken(user.Id, TokenType.EmailVerification);
         await tokenRepo.Add(verificationToken);

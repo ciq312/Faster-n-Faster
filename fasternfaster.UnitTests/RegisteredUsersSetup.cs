@@ -25,7 +25,7 @@ public static class RegisteredUsersSetup
             })
         );
 
-        var handler = new RegisterUserHandler(userRepo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(userRepo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         foreach (var command in commands) await handler.Handle(command, CancellationToken.None);
 

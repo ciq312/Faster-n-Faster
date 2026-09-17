@@ -11,13 +11,20 @@ public class FakeUserRepository : IUserRepository
 
     public void Seed(User user) => _users.Add(user);
 
-    public Task AddAsync(User user)
+    public void Add(User user)
     {
         _users.Add(user);
-        return Task.CompletedTask;
     }
 
-    public Task UpdateAsync(User user) => Task.CompletedTask;
+    public void Update(User user)
+    {
+        var existingUser = _users.FirstOrDefault(u => u.Id == user.Id);
+        if (existingUser != null)
+        {
+            _users.Remove(existingUser);
+            _users.Add(user);
+        }
+    }
 
     public Task<User?> GetByIdAsync(Guid id)
         => Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
