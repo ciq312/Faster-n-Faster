@@ -26,7 +26,7 @@ public partial class GameHub(
     ISessionService sessionService,
     IBroadcaster broadcaster,
     ILobbyQuery lobbyQuery,
-    IRaceService raceService,
+    IRaceAccess races,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick, string Role) GetCallerContext()
@@ -133,7 +133,7 @@ public partial class GameHub(
         var userId = GetCallerContext().UserId;
         //skip CQRS to minimize the allocations
         var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(userId);
-        await raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
+        await races.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
     }
 
     public async Task LeaveLobby()

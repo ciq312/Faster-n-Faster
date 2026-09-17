@@ -5,7 +5,7 @@ using FasterNFaster.Api.UseCases.LobbyState;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbyQuery(ILobbyAccess lobbies, IRaceService raceService) : ILobbyQuery
+public class LobbyQuery(ILobbyAccess lobbies, IRaceAccess races) : ILobbyQuery
 {
     public async Task<LobbyStateDTO> GetLobbyState(Guid lobbyId)
     {
@@ -13,7 +13,7 @@ public class LobbyQuery(ILobbyAccess lobbies, IRaceService raceService) : ILobby
 
         var players = lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color));
 
-        var raceSettings = await raceService.GetRaceSettings(lobbyId);
+        var raceSettings = await races.GetRaceSettings(lobbyId);
 
         return new LobbyStateDTO(
                  lobby.Id, lobby.Name, raceSettings.RaceType, lobby.IsSessionActive, raceSettings, lobby.LobbySettings.IsPrivate,

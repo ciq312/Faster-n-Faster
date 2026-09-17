@@ -16,12 +16,12 @@ public class RaceFinishedOrchestrationHandlerTests
         User other = new User("other");
         LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
 
-        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceService, context.Registry);
+        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry);
         await startRaceHandler.Handle(new StartRaceCommand(host.Id), CancellationToken.None);
 
         var handler = new RaceFinishedOrchestrationHandler(
             context.LobbyAccess,
-            context.RaceService,
+            context.RaceAccess,
             context.Publisher);
 
         var @event = new RaceFinishedEvent(new List<RaceParticipantResult>());
