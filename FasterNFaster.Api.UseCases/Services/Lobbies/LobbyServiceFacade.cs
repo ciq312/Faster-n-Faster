@@ -1,61 +1,45 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.LobbyState;
 
 namespace FasterNFaster.Api.UseCases.Services;
 
-public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
+public class LobbyServiceFacade(ILobbyAccess lobbies,
   IRaceInternals raceInternals,
-  ILobbyService lobbyService,
   IRaceService raceService,
   IRaceTickRegistry raceTickRegistry
   ) : ILobbyServiceFacade, IRaceTransitionService
 {
-    public async Task StartSession(Guid hostId)
-    {
-        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(hostId);
-        Guid lobbyId = lobby.Id;
-
-        await lobbyInternals.ValidateHost(lobbyId, hostId);
-
-        await lobbyInternals.StartSession(lobbyId, hostId);
-
-        var participants = lobby.GetRaceParticipants();
-
-        await raceInternals.AddParticipants(lobbyId, participants);
-
-        raceTickRegistry.RegisterLobby(lobbyId);
-    }
     public Task StartRaceInternal(Guid lobbyId) => raceInternals.StartRace(lobbyId);
 
     public Task UpdateProgress(Guid userId, int index, int mistakes, string typed)
     {
-        Guid lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(userId);
+        Guid lobbyId = lobbies.GetLobbyIdOfPlayerRequired(userId);
         return raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
     }
 
-    public Task EndSession(Guid lobbyId) => lobbyInternals.EndSession(lobbyId);
+    public Task EndSession(Guid lobbyId) => lobbies.Mutate(lobbyId, l => l.EndSession());
 
     public async Task RemoveLobbyIfEmpty(Guid lobbyId)
     {
-        Lobby lobby = lobbyService.GetLobbyRequired(lobbyId);
+        Lobby lobby = lobbies.GetRequired(lobbyId);
 
         if (lobby.IsEmpty())
         {
-            await lobbyInternals.RemoveLobby(lobbyId);
+            await lobbies.Remove(lobbyId);
 
             raceService.RemoveRegisteredRace(lobbyId);
 
             raceTickRegistry.DeregisterLobby(lobbyId);
         }
     }
+
     public async Task KickPlayer(Guid hostId, Guid userId)
     {
-        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
+        Lobby lobby = lobbies.GetOfPlayerRequired(userId);
 
-        await lobbyInternals.KickPlayer(hostId, userId);
+        await lobbies.Mutate(lobby.Id, l => l.Kick(hostId, userId));
 
         if (lobby.IsSessionActive)
             await raceInternals.WithdrawParticipant(lobby.Id, userId);
@@ -63,20 +47,20 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
 
     public async Task RefreshPassage(Guid userId)
     {
-        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
+        Lobby lobby = lobbies.GetOfPlayerRequired(userId);
 
         if (lobby.IsSessionActive) throw new InvalidOperationException("Can't refresh when session active");
 
-        await lobbyInternals.ValidateHost(lobby.Id, userId);
+        lobby.ValidateHost(userId);
 
         await raceInternals.RefreshPassage(lobby.Id);
     }
 
     public async Task RemovePlayerFromLobby(Guid userId)
     {
-        Lobby lobby = lobbyService.GetLobbyOfPlayerRequired(userId);
+        Lobby lobby = lobbies.GetOfPlayerRequired(userId);
 
-        await lobbyInternals.RemoveFromLobby(userId);
+        await lobbies.Mutate(lobby.Id, l => l.Disconnect(userId));
 
         if (lobby.IsSessionActive)
             await raceInternals.WithdrawParticipant(lobby.Id, userId);
@@ -84,7 +68,7 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
 
     public async Task<LobbyStateDTO> GetLobbyStateDTO(Guid lobbyId)
     {
-        Lobby lobby = lobbyService.GetLobbyRequired(lobbyId);
+        Lobby lobby = lobbies.GetRequired(lobbyId);
 
         var players = lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color));
 
@@ -96,8 +80,5 @@ public class LobbyServiceFacade(ILobbyInternals lobbyInternals,
                  lobby.GetColors(), [.. players]);
     }
 
-    public Task<bool> DoesLobbyExist(Guid lobbyId)
-    {
-        return lobbyService.DoesLobbyExist(lobbyId);
-    }
+    public bool DoesLobbyExist(Guid lobbyId) => lobbies.Exists(lobbyId);
 }

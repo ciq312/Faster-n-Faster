@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Unit of work: add IUnitOfWork (AppDbContext implements, scoped); repositories only Add/Update (no SaveChanges); handlers commit once — fixes non-atomic ExternalLoginHandler (user + external login saved separately). Update RegisterUser/VerifyEmail/ResetPassword/LinkToExistingAccount, BanRepository, move IStatisticsRepository.SaveAsync + cache invalidation after commit; DB commit before Redis writes
 - [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
 - [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
 - [ ] Collapse lobby/race services: remove ILobbyInternals, IRaceInternals, IRaceTransitionService, ILobbyServiceFacade → ILobbyService + IRaceService + one orchestrator
@@ -42,6 +41,7 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Unit of work: add IUnitOfWork (AppDbContext implements, scoped); repositories only Add/Update (no SaveChanges); handlers commit once — fixes non-atomic ExternalLoginHandler (user + external login saved separately). Update RegisterUser/VerifyEmail/ResetPassword/LinkToExistingAccount, BanRepository, move IStatisticsRepository.SaveAsync + cache invalidation after commit; DB commit before Redis writes
 - [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
 - [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
 - [ ] Tests: remove duplicate appsettings.json in IntegrationTests and unused usings

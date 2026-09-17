@@ -39,7 +39,7 @@ public partial class WordRace : Race
             racer.MarkFinished(nextFinishPosition++, GetNumberWordsInPassage());
             RaiseDomainEvent(new PlayerFinishedEvent(racer.Nick, racer.Id, racer.FinishPosition, racer.GetWPM(), racer.GetAccuracy()));
             if (IsRaceFinished())
-                OnRaceFinished();
+                RaceFinished();
         }
     }
 

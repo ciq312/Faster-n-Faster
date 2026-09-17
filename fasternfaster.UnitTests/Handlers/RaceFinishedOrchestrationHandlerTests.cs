@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
+using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 using FasterNFaster.Tests;
@@ -14,7 +15,9 @@ public class RaceFinishedOrchestrationHandlerTests
         User host = new User("host");
         User other = new User("other");
         LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
-        await context.LobbySessionService.StartSession(host.Id);
+
+        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceService, context.Registry);
+        await startRaceHandler.Handle(new StartRaceCommand(host.Id), CancellationToken.None);
 
         var handler = new RaceFinishedOrchestrationHandler(
             context.Store,
