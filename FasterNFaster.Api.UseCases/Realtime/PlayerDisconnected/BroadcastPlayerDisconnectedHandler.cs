@@ -13,7 +13,7 @@ public class BroadcastPlayerDisconnectedHandler(
     public async Task Handle(DomainEventNotification<PlayerDisconnectedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
-        if (!await facade.DoesLobbyExist(e.LobbyId))
+        if (!facade.DoesLobbyExist(e.LobbyId))
         {
             return;
         }

@@ -19,8 +19,9 @@ namespace FasterNFaster.Tests;
 
 public record LobbyTestContext(
     InMemoryLobbyRepository Store,
-    LobbyService LobbyService,
+    LobbyAccess LobbyAccess,
     LobbyServiceFacade LobbySessionService,
+    RaceService RaceService,
     RaceTickRegistry Registry,
     FakeUserRepository UserRepo,
     Guid LobbyId,
@@ -41,19 +42,19 @@ public static class LobbyFactory
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository(dispatcher);
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, locationRegistry);
+        var lobbies = new LobbyAccess(lobbyStore, locationRegistry);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
         var raceService = new RaceService(dispatcher, passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
 
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, raceService);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
 
-        var lobbySessionService = new LobbyServiceFacade(lobbyService, raceService, lobbyService, raceService, registry);
+        var lobbySessionService = new LobbyServiceFacade(lobbies, raceService, raceService, registry);
 
-        return new LobbyTestContext(lobbyStore, lobbyService, lobbySessionService, registry, userRepo, result.LobbyId, dispatcher, publisher);
+        return new LobbyTestContext(lobbyStore, lobbies, lobbySessionService, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
     }
 
     /// <summary>
@@ -69,7 +70,7 @@ public static class LobbyFactory
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository(dispatcher);
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbyService = new LobbyService(lobbyStore, locationRegistry);
+        var lobbies = new LobbyAccess(lobbyStore, locationRegistry);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 
@@ -78,17 +79,17 @@ public static class LobbyFactory
 
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
         var raceService = new RaceService(dispatcher, passageProvider, antiCheatPolicy, NullLogger<RaceService>.Instance);
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, raceService);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
-        var joinHandler = new JoinLobbyHandler(userFactory, lobbyService);
+        var joinHandler = new JoinLobbyHandler(userFactory, lobbies);
         for (int i = 0; i < users.Length; i++)
         {
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"), CancellationToken.None);
         }
 
-        var lobbySessionService = new LobbyServiceFacade(lobbyService, raceService, lobbyService, raceService, registry);
-        return new LobbyTestContext(lobbyStore, lobbyService, lobbySessionService, registry, userRepo, result.LobbyId, dispatcher, publisher);
+        var lobbySessionService = new LobbyServiceFacade(lobbies, raceService, raceService, registry);
+        return new LobbyTestContext(lobbyStore, lobbies, lobbySessionService, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
     }
 
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()

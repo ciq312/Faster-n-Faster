@@ -21,7 +21,7 @@ namespace FasterNFaster.Api.Web.Hubs;
 public partial class GameHub(
     ILogger<GameHub> logger,
     ILobbyRepository lobbyStore,
-    ILobbyService lobbyService,
+    ILobbyAccess lobbies,
     ISessionService sessionService,
     IBroadcaster broadcaster,
     ILobbyServiceFacade facade,
@@ -147,7 +147,7 @@ public partial class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
-        var maybeLobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
+        var maybeLobbyId = lobbies.GetLobbyIdOfPlayer(userId);
 
         if (maybeLobbyId is null)
         {
