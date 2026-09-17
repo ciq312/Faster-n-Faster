@@ -45,7 +45,7 @@ public class ResetPasswordHandlerTests
         var sessions = new InMemorySessionService(tokenStore);
 
         var handler = new ResetPasswordHandler(
-            setup.repo, setup.TokenRepo, PasswordHelperFactory.Create(), sessions);
+            setup.repo, new FakeUnitOfWork(), setup.TokenRepo, PasswordHelperFactory.Create(), sessions);
 
         return new TestContext
         {

@@ -32,7 +32,7 @@ public class RegisterUserHandlerTests
 
         repo.Seed(new User("Existing", "taken", "pass123"));
 
-        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await Assert.ThrowsAsync<DuplicateLoginException>(
             () => handler.Handle(new RegisterUserCommand("NewNick", "taken", "testemail@gmail.com", "pass123"), CancellationToken.None)
@@ -56,7 +56,7 @@ public class RegisterUserHandlerTests
         );
         var tokenRepo = new FakeTokenRepo();
 
-        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         var result = await handler.Handle(new RegisterUserCommand("Player1", "mylogin", "testemail@gmail.com", "pass123"), CancellationToken.None);
 
@@ -84,7 +84,7 @@ public class RegisterUserHandlerTests
         existing.SetEmail("test@gmail.com");
         repo.Seed(existing);
 
-        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await Assert.ThrowsAsync<DuplicateEmailException>(() => handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None));
     }
@@ -104,7 +104,7 @@ public class RegisterUserHandlerTests
             })
         );
         var tokenRepo = new FakeTokenRepo();
-        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 
@@ -129,7 +129,7 @@ public class RegisterUserHandlerTests
             })
         );
         var tokenRepo = new FakeTokenRepo();
-        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 

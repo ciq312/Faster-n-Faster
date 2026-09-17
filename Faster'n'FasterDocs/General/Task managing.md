@@ -6,11 +6,12 @@ kanban-plugin: board
 
 ## To do
 
+- [ ] Unit of work: add IUnitOfWork (AppDbContext implements, scoped); repositories only Add/Update (no SaveChanges); handlers commit once — fixes non-atomic ExternalLoginHandler (user + external login saved separately). Update RegisterUser/VerifyEmail/ResetPassword/LinkToExistingAccount, BanRepository, move IStatisticsRepository.SaveAsync + cache invalidation after commit; DB commit before Redis writes
 - [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
 - [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
 - [ ] Collapse lobby/race services: remove ILobbyInternals, IRaceInternals, IRaceTransitionService, ILobbyServiceFacade → ILobbyService + IRaceService + one orchestrator
-- [ ] Decide handlers vs services as use-case owners; remove pass-through handlers and the duplicate UpdateProgress path
-- [ ] Race knows its LobbyId (or Lobby owns Race): remove IRaceEvent.WrapRaceContext, second race lock, register/deregister syncing
+- [ ] Handlers own use cases (decided): move single-use facade logic (StartSession, KickPlayer, RefreshPassage) into handlers; keep only truly shared services (WithLobby, lobby state query); add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and remove race-withdrawal logic from LobbyServiceFacade (KickPlayer branch is dead — Lobby.Kick already rejects during race)
+- [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
 - [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
 - [ ] Broadcast LobbyState once per lobby change instead of from every handler
 - [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods

@@ -6,11 +6,13 @@ using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using MediatR;
+using FasterNFaster.Api.UseCases.Interfaces.Db;
 
 namespace FasterNFaster.Api.UseCases.Users.ResetPassword;
 
 public class ResetPasswordHandler(
     IUserRepository userRepo,
+    IUnitOfWork unitOfWork,
     IConfirmTokenRepository tokenRepo,
     IPasswordHelper passwordHelper,
     ISessionService sessionService) : IRequestHandler<ResetPasswordCommand>
@@ -25,12 +27,13 @@ public class ResetPasswordHandler(
         User user = await userRepo.GetByIdAsync(token.UserId)
             ?? throw new UserNotFoundException(token.UserId);
 
-        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
-
         string hashedPassword = passwordHelper.HashPassword(user, command.NewPassword);
         user.SetPassword(hashedPassword);
 
+        userRepo.Update(user);
+        await unitOfWork.SaveChangesAsync();
+
+        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
         sessionService.ClearActiveSession(user.Id);
-        await userRepo.UpdateAsync(user);
     }
 }

@@ -12,7 +12,7 @@ public class ExternalLoginHandlerTests
     private readonly FakeExternalLoginRepository externalLogins = new();
     private readonly FakeTokenService tokenService = new();
 
-    private ExternalLoginHandler CreateHandler() => new(users, externalLogins, tokenService);
+    private ExternalLoginHandler CreateHandler() => new(users, externalLogins, tokenService, new FakeUnitOfWork());
 
     private static User SeedableUser(string email)
     {
@@ -29,7 +29,7 @@ public class ExternalLoginHandlerTests
     {
         var user = SeedableUser("user@mail.com");
         users.Seed(user);
-        await externalLogins.AddAsync(user.Id, Provider, "sub-1", "user@mail.com");
+        externalLogins.Add(user.Id, Provider, "sub-1", "user@mail.com");
 
         await CreateHandler().Handle(Command("sub-1", "user@mail.com"), CancellationToken.None);
 
@@ -79,7 +79,7 @@ public class ExternalLoginHandlerTests
     [Fact]
     public async Task ExternalLoginPointsToMissingUser_Throws()
     {
-        await externalLogins.AddAsync(Guid.NewGuid(), Provider, "sub-5", "ghost@mail.com");
+        externalLogins.Add(Guid.NewGuid(), Provider, "sub-5", "ghost@mail.com");
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => CreateHandler().Handle(Command("sub-5", "ghost@mail.com"), CancellationToken.None));
