@@ -11,7 +11,7 @@ public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyRepository lobbyStore,
     IRaceBroadcaster broadcaster,
-    IRaceTransitionService raceTransitionService,
+    IRaceInternals raceInternals,
     IRaceService raceService,
     RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
@@ -60,7 +60,7 @@ public class RaceTickService(
 
         if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {
-            await raceTransitionService.StartRaceInternal(entry.LobbyId);
+            await raceInternals.StartRace(entry.LobbyId);
             await broadcaster.BroadcastRaceStarted(entry.LobbyId);
             registry.TransitionToRacing(entry.LobbyId);
         }

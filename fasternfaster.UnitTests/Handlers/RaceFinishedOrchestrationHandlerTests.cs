@@ -20,8 +20,8 @@ public class RaceFinishedOrchestrationHandlerTests
         await startRaceHandler.Handle(new StartRaceCommand(host.Id), CancellationToken.None);
 
         var handler = new RaceFinishedOrchestrationHandler(
-            context.Store,
-            context.LobbySessionService,
+            context.LobbyAccess,
+            context.RaceService,
             context.Publisher);
 
         var @event = new RaceFinishedEvent(new List<RaceParticipantResult>());

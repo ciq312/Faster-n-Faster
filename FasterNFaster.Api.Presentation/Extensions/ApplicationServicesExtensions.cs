@@ -86,9 +86,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<LobbyAccess>();
         services.AddSingleton<ILobbyAccess>(sp => sp.GetRequiredService<LobbyAccess>());
 
-        services.AddSingleton<LobbyServiceFacade>();
-        services.AddSingleton<IRaceTransitionService>(sp => sp.GetRequiredService<LobbyServiceFacade>());
-        services.AddSingleton<ILobbyServiceFacade>(sp => sp.GetRequiredService<LobbyServiceFacade>());
+        services.AddSingleton<ILobbyQuery, LobbyQuery>();
 
         services.AddHostedService<RaceTickService>();
 

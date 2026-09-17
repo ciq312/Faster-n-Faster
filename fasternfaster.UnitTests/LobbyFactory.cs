@@ -20,7 +20,7 @@ namespace FasterNFaster.Tests;
 public record LobbyTestContext(
     InMemoryLobbyRepository Store,
     LobbyAccess LobbyAccess,
-    LobbyServiceFacade LobbySessionService,
+    LobbyQuery LobbyQuery,
     RaceService RaceService,
     RaceTickRegistry Registry,
     FakeUserRepository UserRepo,
@@ -52,9 +52,9 @@ public static class LobbyFactory
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, raceService);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
 
-        var lobbySessionService = new LobbyServiceFacade(lobbies, raceService, raceService, registry);
+        var lobbyQuery = new LobbyQuery(lobbies, raceService);
 
-        return new LobbyTestContext(lobbyStore, lobbies, lobbySessionService, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
+        return new LobbyTestContext(lobbyStore, lobbies, lobbyQuery, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
     }
 
     /// <summary>
@@ -88,8 +88,8 @@ public static class LobbyFactory
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"), CancellationToken.None);
         }
 
-        var lobbySessionService = new LobbyServiceFacade(lobbies, raceService, raceService, registry);
-        return new LobbyTestContext(lobbyStore, lobbies, lobbySessionService, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
+        var lobbyQuery = new LobbyQuery(lobbies, raceService);
+        return new LobbyTestContext(lobbyStore, lobbies, lobbyQuery, raceService, registry, userRepo, result.LobbyId, dispatcher, publisher);
     }
 
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()

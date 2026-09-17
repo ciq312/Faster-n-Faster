@@ -10,13 +10,13 @@ public class RefreshHandler(
     IPendingRemovalsRegistry pendingRemovalsRegistry,
     ILobbyAccess lobbies,
     IBroadcaster broadcaster,
-    ILobbyServiceFacade facade) : IRequestHandler<RefreshCommand>
+    ILobbyQuery lobbyQuery) : IRequestHandler<RefreshCommand>
 {
     public async Task Handle(RefreshCommand command, CancellationToken cancellationToken)
     {
         await pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
         var lobby = lobbies.GetOfPlayerRequired(command.UserId);
         Guid lobbyId = lobby.Id;
-        await broadcaster.Broadcast(Audience.Lobby(lobbyId), GameEvents.LobbyState, await facade.GetLobbyStateDTO(lobbyId));
+        await broadcaster.Broadcast(Audience.Lobby(lobbyId), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(lobbyId));
     }
 }

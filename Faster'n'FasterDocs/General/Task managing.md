@@ -6,10 +6,9 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
-- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
-- [ ] Collapse lobby/race services: remove ILobbyInternals, IRaceInternals, IRaceTransitionService, ILobbyServiceFacade → ILobbyService + IRaceService + one orchestrator
-- [ ] Handlers own use cases (decided): move single-use facade logic (StartSession, KickPlayer, RefreshPassage) into handlers; keep only truly shared services (WithLobby, lobby state query); add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and remove race-withdrawal logic from LobbyServiceFacade (KickPlayer branch is dead — Lobby.Kick already rejects during race)
+- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
+- [ ] Collapse race services: remove IRaceInternals → IRaceService (lobby side done — ILobbyAccess + ILobbyQuery, facade deleted)
+- [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)
 - [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
 - [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
 - [ ] Broadcast LobbyState once per lobby change instead of from every handler
@@ -35,12 +34,16 @@ kanban-plugin: board
 ## Bugs
 
 - [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
+- [ ] Git tracks the unit test project as `fasternfaster.UnitTests/` but the folder on disk is `FasterNFaster.UnitTests/` — works on Windows, breaks on a case-sensitive CI runner (the .sln references the lowercase path too)
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
 - [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
 
 
 ## Done
 
+- [x] Collapse the lobby facade: ILobbyService + ILobbyInternals → ILobbyAccess (Mutate/Create/Remove + reads); ILobbyServiceFacade, LobbyServiceFacade and IRaceTransitionService deleted; GetLobbyStateDTO → ILobbyQuery.GetLobbyState. 25 members across 3 interfaces → 9 across 2. The Internals/Service split was never real — DI handed out the same singleton for both, and the facade injected it twice
+- [x] Handlers own use cases: StartSession, KickPlayer, RefreshPassage, RemoveLobbyIfEmpty and RemovePlayerFromLobby inlined into their handlers; BanForCheat composes via DisconnectCommand instead of a shared service; dead withdraw-after-kick branch removed (Lobby.Kick already rejects during a race)
+- [x] Cleanup: remove double host validation — StartRace now validates and starts inside one Mutate (was two gate acquisitions and two SaveChanges per race start); RefreshPassage no longer takes the gate for a read-only host check
 - [ ] Unit of work: add IUnitOfWork (AppDbContext implements, scoped); repositories only Add/Update (no SaveChanges); handlers commit once — fixes non-atomic ExternalLoginHandler (user + external login saved separately). Update RegisterUser/VerifyEmail/ResetPassword/LinkToExistingAccount, BanRepository, move IStatisticsRepository.SaveAsync + cache invalidation after commit; DB commit before Redis writes
 - [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
 - [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
