@@ -36,7 +36,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user, new User("test1"));
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerKickedHandler(broadcaster, context.LobbySessionService);
+        var handler = new BroadcastPlayerKickedHandler(broadcaster, context.LobbyQuery);
 
         await handler.Handle(
             new DomainEventNotification<PlayerKickedEvent>(new PlayerKickedEvent(userId, lobbyId, "nick")),
@@ -67,7 +67,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.LobbySessionService);
+        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.LobbyAccess, context.LobbyQuery);
 
         await handler.Handle(
             new DomainEventNotification<PlayerDisconnectedEvent>(new PlayerDisconnectedEvent(userId, lobbyId, "nick")),
@@ -93,7 +93,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerPromotedHandler(broadcaster, context.LobbySessionService);
+        var handler = new BroadcastPlayerPromotedHandler(broadcaster, context.LobbyQuery);
 
         await handler.Handle(
             new DomainEventNotification<HostChangedEvent>(new HostChangedEvent(lobbyId, newHostId, "newhost")),
@@ -144,7 +144,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var results = new List<RaceParticipantResult>();
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastRaceFinishedHandler(broadcaster, context.LobbySessionService);
+        var handler = new BroadcastRaceFinishedHandler(broadcaster, context.LobbyQuery);
 
         await handler.Handle(new RaceSessionEndedEvent(context.Lobby, results), CancellationToken.None);
 
@@ -165,7 +165,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerJoinedHandler(broadcaster, context.LobbySessionService);
+        var handler = new BroadcastPlayerJoinedHandler(broadcaster, context.LobbyQuery);
 
         await handler.Handle(
             new DomainEventNotification<PlayerJoinedEvent>(new PlayerJoinedEvent(userId, lobbyId, "nick")),

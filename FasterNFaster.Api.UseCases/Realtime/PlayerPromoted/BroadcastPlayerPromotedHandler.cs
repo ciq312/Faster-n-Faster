@@ -8,13 +8,13 @@ namespace FasterNFaster.Api.UseCases.Realtime.HostChanged;
 
 public class BroadcastPlayerPromotedHandler(
     IBroadcaster broadcaster,
-    ILobbyServiceFacade facade) : INotificationHandler<DomainEventNotification<HostChangedEvent>>
+    ILobbyQuery lobbyQuery) : INotificationHandler<DomainEventNotification<HostChangedEvent>>
 {
     public async Task Handle(DomainEventNotification<HostChangedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
 
         await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.HostChanged, new HostChangedDTO(e.NewHostId, e.NewHostNick));
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.LobbyState, await facade.GetLobbyStateDTO(e.LobbyId));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(e.LobbyId));
     }
 }

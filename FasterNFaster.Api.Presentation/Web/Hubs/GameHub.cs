@@ -10,6 +10,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -24,7 +25,8 @@ public partial class GameHub(
     ILobbyAccess lobbies,
     ISessionService sessionService,
     IBroadcaster broadcaster,
-    ILobbyServiceFacade facade,
+    ILobbyQuery lobbyQuery,
+    IRaceService raceService,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick, string Role) GetCallerContext()
@@ -130,7 +132,8 @@ public partial class GameHub(
     {
         var userId = GetCallerContext().UserId;
         //skip CQRS to minimize the allocations
-        await facade.UpdateProgress(userId, index, mistakes, typed);
+        var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(userId);
+        await raceService.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
     }
 
     public async Task LeaveLobby()
@@ -164,7 +167,7 @@ public partial class GameHub(
 
             var lobby = lobbyStore.Get(lobbyId);
             if (lobby != null)
-                await broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.LobbyState, await facade.GetLobbyStateDTO(lobbyId));
+                await broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.LobbyState, await lobbyQuery.GetLobbyState(lobbyId));
 
             sessionService.ClearActiveSession(userId);
 

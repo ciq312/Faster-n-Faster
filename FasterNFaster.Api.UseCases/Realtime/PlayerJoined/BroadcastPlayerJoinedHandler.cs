@@ -8,13 +8,13 @@ namespace FasterNFaster.Api.UseCases.Realtime.PlayerJoined;
 
 public class BroadcastPlayerJoinedHandler(
     IBroadcaster broadcaster,
-    ILobbyServiceFacade facade) : INotificationHandler<DomainEventNotification<PlayerJoinedEvent>>
+    ILobbyQuery lobbyQuery) : INotificationHandler<DomainEventNotification<PlayerJoinedEvent>>
 {
     public async Task Handle(DomainEventNotification<PlayerJoinedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
 
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.LobbyState, await facade.GetLobbyStateDTO(e.LobbyId));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(e.LobbyId));
         await broadcaster.Broadcast(Audience.LobbyExcept(e.LobbyId, e.UserId), GameEvents.PlayerJoined, new PlayerJoinedDTO(e.UserId, e.Nick));
     }
 }
