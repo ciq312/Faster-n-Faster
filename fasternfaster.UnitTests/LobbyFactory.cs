@@ -40,9 +40,9 @@ public static class LobbyFactory
     {
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
+        var lobbyStore = new InMemoryLobbyRepository();
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbies = new LobbyAccess(lobbyStore, locationRegistry);
+        var lobbies = new LobbyAccess(lobbyStore, locationRegistry, dispatcher);
         var registry = new RaceTickRegistry();
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
@@ -68,9 +68,9 @@ public static class LobbyFactory
 
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
+        var lobbyStore = new InMemoryLobbyRepository();
         var locationRegistry = new InMemoryPlayerLocationRegistry();
-        var lobbies = new LobbyAccess(lobbyStore, locationRegistry);
+        var lobbies = new LobbyAccess(lobbyStore, locationRegistry, dispatcher);
         var registry = new RaceTickRegistry();
         var passageProvider = new RandomPassageProvider();
 
