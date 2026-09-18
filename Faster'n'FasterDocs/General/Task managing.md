@@ -6,9 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
-- [ ] Collapse race services: remove IRaceInternals → IRaceService (lobby side done — ILobbyAccess + ILobbyQuery, facade deleted)
-- [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)
 - [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
 - [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
 - [ ] Broadcast LobbyState once per lobby change instead of from every handler
@@ -41,6 +38,9 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
+- [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)
+- [ ] Collapse race services: remove IRaceInternals → IRaceService (lobby side done — ILobbyAccess + ILobbyQuery, facade deleted)
 - [x] Collapse the lobby facade: ILobbyService + ILobbyInternals → ILobbyAccess (Mutate/Create/Remove + reads); ILobbyServiceFacade, LobbyServiceFacade and IRaceTransitionService deleted; GetLobbyStateDTO → ILobbyQuery.GetLobbyState. 25 members across 3 interfaces → 9 across 2. The Internals/Service split was never real — DI handed out the same singleton for both, and the facade injected it twice
 - [x] Handlers own use cases: StartSession, KickPlayer, RefreshPassage, RemoveLobbyIfEmpty and RemovePlayerFromLobby inlined into their handlers; BanForCheat composes via DisconnectCommand instead of a shared service; dead withdraw-after-kick branch removed (Lobby.Kick already rejects during a race)
 - [x] Cleanup: remove double host validation — StartRace now validates and starts inside one Mutate (was two gate acquisitions and two SaveChanges per race start); RefreshPassage no longer takes the gate for a read-only host check

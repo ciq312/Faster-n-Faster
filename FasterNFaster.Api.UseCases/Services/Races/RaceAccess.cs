@@ -6,37 +6,39 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.UseCases.Services.Races;
 
-public class RaceAccess(
-    IEventDispatcher eventDispatcher,
-    IPassageProvider passageProvider,
-    IAntiCheatPolicy antiCheatPolicy,
-    ILogger<RaceAccess> logger) : IRaceAccess
+public class RaceAccess : IRaceAccess
 {
-    private readonly ConcurrentDictionary<Guid, (SemaphoreSlim Gate, Race Race)> races = new();
+    private readonly ConcurrentDictionary<Guid, Race> races = new();
+    private readonly AggregateGate<Race> gate;
+    private readonly IPassageProvider passageProvider;
+    private readonly IAntiCheatPolicy antiCheatPolicy;
+    private readonly ILogger<RaceAccess> logger;
 
-    public async Task Mutate(Guid lobbyId, Action<Race> mutate)
+    public RaceAccess(
+        IEventDispatcher eventDispatcher,
+        IPassageProvider passageProvider,
+        IAntiCheatPolicy antiCheatPolicy,
+        ILogger<RaceAccess> logger)
     {
-        List<IDomainEvent> events = [];
+        gate = new AggregateGate<Race>(eventDispatcher, GetRequired);
+        this.passageProvider = passageProvider;
+        this.antiCheatPolicy = antiCheatPolicy;
+        this.logger = logger;
+    }
 
-        await WithGate(GetRequired(lobbyId), race =>
+    public Task Mutate(Guid lobbyId, Action<Race> mutate) =>
+        gate.Mutate(lobbyId, race =>
         {
             mutate(race);
             WrapRaceEvents(race, lobbyId);
-            events = [.. race.DomainEvents];
-            race.ClearEvents();
-            return true;
         });
-
-        foreach (var domainEvent in events)
-            await eventDispatcher.Dispatch(domainEvent, CancellationToken.None);
-    }
 
     public Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed) =>
         Mutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed, antiCheatPolicy));
 
     public async Task RefreshPassage(Guid lobbyId)
     {
-        var wordCount = await Read(lobbyId, race => race.GetPassageWordCount());
+        var wordCount = await gate.Read(lobbyId, race => race.GetPassageWordCount());
         if (wordCount is null)
             throw new InvalidOperationException("Race type does not support passage refresh");
 
@@ -46,56 +48,32 @@ public class RaceAccess(
     }
 
     public Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId) =>
-        Read(lobbyId, race => race.GetSnapshot());
+        gate.Read(lobbyId, race => race.GetSnapshot());
 
     public Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
-        Read(lobbyId, race => race.GetRaceSettings());
+        gate.Read(lobbyId, race => race.GetRaceSettings());
 
-    public async Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId)
-    {
-        if (!races.TryGetValue(lobbyId, out var entry)) return null;
-
-        return await WithGate(entry, race => race.GetRaceSettings());
-    }
+    public Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId) =>
+        gate.TryRead(lobbyId, TryGet, race => race.GetRaceSettings());
 
     public void Register(Guid lobbyId, Race race)
     {
         logger.LogDebug("New race registered for lobby {LobbyId}", lobbyId);
-        races[lobbyId] = (new SemaphoreSlim(1, 1), race);
+        races[lobbyId] = race;
     }
 
-    // The semaphore is deliberately not disposed: in-flight callers (tick snapshots,
-    // sibling disconnect handlers) hold a copy of the tuple and may still Wait/Release
-    // on it. SemaphoreSlim owns no OS handle here, so GC collects it safely; disposing
-    // would fault or hang those callers.
     public void Remove(Guid lobbyId)
     {
         logger.LogDebug("Removing race for lobby {LobbyId}", lobbyId);
         races.TryRemove(lobbyId, out _);
+        gate.Release(lobbyId);
     }
 
-    private Task<T> Read<T>(Guid lobbyId, Func<Race, T> read) => WithGate(GetRequired(lobbyId), read);
+    private Race? TryGet(Guid lobbyId) => races.GetValueOrDefault(lobbyId);
 
-    private static async Task<T> WithGate<T>((SemaphoreSlim Gate, Race Race) entry, Func<Race, T> action)
-    {
-        await entry.Gate.WaitAsync();
-        try
-        {
-            return action(entry.Race);
-        }
-        finally
-        {
-            entry.Gate.Release();
-        }
-    }
-
-    private (SemaphoreSlim Gate, Race Race) GetRequired(Guid lobbyId)
-    {
-        if (!races.TryGetValue(lobbyId, out var entry))
-            throw new InvalidOperationException($"No race registered for lobby {lobbyId}");
-
-        return entry;
-    }
+    private Race GetRequired(Guid lobbyId) =>
+        races.GetValueOrDefault(lobbyId)
+        ?? throw new InvalidOperationException($"No race registered for lobby {lobbyId}");
 
     private static void WrapRaceEvents(Race race, Guid lobbyId)
     {
