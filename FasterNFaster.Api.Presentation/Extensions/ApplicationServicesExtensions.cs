@@ -75,7 +75,6 @@ public static class ApplicationServicesExtensions
             sp.GetRequiredService<LeaderboardRepository>(), sp.GetRequiredService<ICache>()));
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
-        services.AddSingleton<IRaceBroadcaster, SignalRRaceBroadcaster>();
         services.AddSingleton<IBroadcaster, SignalRBroadcaster>();
         services.AddSingleton<IRaceAccess, RaceAccess>();
         services.AddSingleton<RaceStateConflator>();

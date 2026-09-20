@@ -13,7 +13,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
+using FasterNFaster.Api.UseCases.Realtime;
 
 namespace FasterNFaster.Api.Web.Hubs;
 
@@ -67,7 +67,7 @@ public partial class GameHub(
     private async Task HandleSessionRestart(Guid userId, string callerConnectionId, string previousSession)
     {
         sessionService.ClearActiveSession(userId);
-        await Clients.Client(previousSession).SendAsync(Methods.AnotherSessionStarted);
+        await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);
     }
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
