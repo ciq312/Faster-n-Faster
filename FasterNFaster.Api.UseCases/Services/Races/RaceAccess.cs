@@ -26,12 +26,7 @@ public class RaceAccess : IRaceAccess
         this.logger = logger;
     }
 
-    public Task Mutate(Guid lobbyId, Action<Race> mutate) =>
-        gate.Mutate(lobbyId, race =>
-        {
-            mutate(race);
-            WrapRaceEvents(race, lobbyId);
-        });
+    public Task Mutate(Guid lobbyId, Action<Race> mutate) => gate.Mutate(lobbyId, mutate);
 
     public Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed) =>
         Mutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed, antiCheatPolicy));
@@ -56,10 +51,10 @@ public class RaceAccess : IRaceAccess
     public Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId) =>
         gate.TryRead(lobbyId, TryGet, race => race.GetRaceSettings());
 
-    public void Register(Guid lobbyId, Race race)
+    public void Register(Race race)
     {
-        logger.LogDebug("New race registered for lobby {LobbyId}", lobbyId);
-        races[lobbyId] = race;
+        logger.LogDebug("New race registered for lobby {LobbyId}", race.LobbyId);
+        races[race.LobbyId] = race;
     }
 
     public void Remove(Guid lobbyId)
@@ -74,13 +69,4 @@ public class RaceAccess : IRaceAccess
     private Race GetRequired(Guid lobbyId) =>
         races.GetValueOrDefault(lobbyId)
         ?? throw new InvalidOperationException($"No race registered for lobby {lobbyId}");
-
-    private static void WrapRaceEvents(Race race, Guid lobbyId)
-    {
-        foreach (var domainEvent in race.DomainEvents)
-        {
-            if (domainEvent is IRaceEvent raceEvent)
-                raceEvent.WrapRaceContext(lobbyId);
-        }
-    }
 }

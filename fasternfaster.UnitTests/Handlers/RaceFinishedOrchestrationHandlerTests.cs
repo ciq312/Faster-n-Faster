@@ -24,8 +24,7 @@ public class RaceFinishedOrchestrationHandlerTests
             context.RaceAccess,
             context.Publisher);
 
-        var @event = new RaceFinishedEvent(new List<RaceParticipantResult>());
-        @event.WrapRaceContext(context.LobbyId);
+        var @event = new RaceFinishedEvent(context.Lobby.Id, new List<RaceParticipantResult>());
 
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(@event), CancellationToken.None);
 

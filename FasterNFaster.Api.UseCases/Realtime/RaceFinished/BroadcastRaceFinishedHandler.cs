@@ -11,7 +11,7 @@ public class BroadcastRaceFinishedHandler(
 {
     public async Task Handle(RaceSessionEndedEvent e, CancellationToken cancellationToken)
     {
-        await broadcaster.Broadcast(Audience.Lobby(e.Lobby.Id), GameEvents.RaceEnded, new RaceEndedDTO(e.Results));
-        await broadcaster.Broadcast(Audience.Lobby(e.Lobby.Id), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(e.Lobby.Id));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.RaceEnded, new RaceEndedDTO(e.Results));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(e.LobbyId));
     }
 }

@@ -13,12 +13,12 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyAccess l
     {
         var passage = await passageProvider.GetPassageAsync(DefaultPassageLength);
 
-        var race = new WordRace(DefaultPassageLength);
-        race.SetPassage(passage);
-
         var lobby = await lobbies.Create(command.LobbyName, command.IsPrivate, command.HostId);
 
-        races.Register(lobby.Id, race);
+        var race = new WordRace(lobby.Id, DefaultPassageLength);
+        race.SetPassage(passage);
+
+        races.Register(race);
 
         return new CreateLobbyResult(lobby.Id, lobby.LobbySettings.InviteCode);
     }

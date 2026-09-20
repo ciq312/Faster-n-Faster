@@ -12,6 +12,6 @@ public interface IRaceAccess
     Task<IRaceSettings> GetRaceSettings(Guid lobbyId);
     Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId);
 
-    void Register(Guid lobbyId, Race race);
+    void Register(Race race);
     void Remove(Guid lobbyId);
 }

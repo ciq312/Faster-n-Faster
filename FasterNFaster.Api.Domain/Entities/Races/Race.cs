@@ -7,6 +7,7 @@ public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed,
 
 public abstract class Race : AggregateRoot<Guid>
 {
+    public Guid LobbyId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public bool HasStarted { get; private set; }
@@ -16,9 +17,10 @@ public abstract class Race : AggregateRoot<Guid>
 
     protected int nextFinishPosition = 1;
 
-    public Race()
+    public Race(Guid lobbyId)
     {
         Id = Guid.NewGuid();
+        LobbyId = lobbyId;
     }
 
     public void AddParticipant(RaceParticipant participant)
@@ -75,7 +77,7 @@ public abstract class Race : AggregateRoot<Guid>
 
     protected void RaceFinished()
     {
-        RaiseDomainEvent(new RaceFinishedEvent(GetRaceResults().ToList()));
+        RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
         EndTime = DateTime.UtcNow;
         Reset();
     }
