@@ -1,17 +1,13 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Realtime;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 public class RefreshPassageHandler(
     ILobbyAccess lobbies,
-    IRaceAccess races,
-    ILobbyQuery lobbyQuery,
-    IBroadcaster broadcaster) : IRequestHandler<RefreshPassageCommand>
+    IRaceAccess races) : IRequestHandler<RefreshPassageCommand>
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)
     {
@@ -22,7 +18,5 @@ public class RefreshPassageHandler(
         lobby.ValidateHost(command.CallerId);
 
         await races.RefreshPassage(lobby.Id);
-
-        await broadcaster.Broadcast(Audience.Lobby(lobby.Id), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(lobby.Id));
     }
 }

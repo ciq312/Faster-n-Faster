@@ -17,6 +17,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.UseCases.Services.Users;
@@ -86,11 +87,15 @@ public static class ApplicationServicesExtensions
 
         services.AddSingleton<ILobbyQuery, LobbyQuery>();
 
+        services.AddSingleton<ILobbyStateTracker, LobbyStateTracker>();
+        services.AddSingleton<ILobbyStateScope, LobbyStateScope>();
+
         services.AddHostedService<RaceTickService>();
 
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(UseCasesAssemblyClass).Assembly);
+            cfg.AddOpenBehavior(typeof(LobbyStateFlushBehavior<,>));
             cfg.LicenseKey = config["MediatR:LicenseKey"];
         });
 

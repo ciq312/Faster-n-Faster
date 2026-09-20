@@ -24,8 +24,9 @@ public class CreateLobbyHandlerTests
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository();
 
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceAccess>.Instance);
+        var tracker = new LobbyStateTracker();
+        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
+        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
 
@@ -47,8 +48,9 @@ public class CreateLobbyHandlerTests
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository();
 
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceAccess>.Instance);
+        var tracker = new LobbyStateTracker();
+        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
+        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var lobbyId = Guid.NewGuid();

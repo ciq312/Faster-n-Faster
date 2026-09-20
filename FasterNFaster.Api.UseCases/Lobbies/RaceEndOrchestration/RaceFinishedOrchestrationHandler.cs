@@ -9,16 +9,18 @@ namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 public class RaceFinishedOrchestrationHandler(
     ILobbyAccess lobbies,
     IRaceAccess races,
+    ILobbyStateScope lobbyStateScope,
     IPublisher publisher) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
-    public async Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
-    {
-        var e = notification.Event;
+    public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken) =>
+        lobbyStateScope.Run(async () =>
+        {
+            var e = notification.Event;
 
-        await lobbies.Mutate(e.LobbyId, l => l.EndSession());
+            await lobbies.Mutate(e.LobbyId, l => l.EndSession());
 
-        await races.RefreshPassage(e.LobbyId);
+            await races.RefreshPassage(e.LobbyId);
 
-        await publisher.Publish(new RaceSessionEndedEvent(e.LobbyId, e.Results), cancellationToken);
-    }
+            await publisher.Publish(new RaceSessionEndedEvent(e.LobbyId, e.Results), cancellationToken);
+        });
 }
