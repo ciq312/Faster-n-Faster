@@ -9,18 +9,23 @@ namespace FasterNFaster.Api.UseCases.Services;
 public class LobbyAccess(
     ILobbyRepository repo,
     IPlayerLocationRegistry locationRegistry,
-    IEventDispatcher dispatcher) : ILobbyAccess
+    IEventDispatcher dispatcher,
+    ILobbyStateTracker tracker) : ILobbyAccess
 {
     private readonly AggregateGate<Lobby> gate = new(dispatcher, repo.GetRequired);
 
-    public Task Mutate(Guid lobbyId, Action<Lobby> mutate) =>
-        gate.Mutate(lobbyId, lobby =>
+    public async Task Mutate(Guid lobbyId, Action<Lobby> mutate)
+    {
+        await gate.Mutate(lobbyId, lobby =>
         {
             var before = lobby.Players.Select(p => p.Id).ToHashSet();
             mutate(lobby);
             repo.Update(lobby);
             SyncLocations(lobbyId, before, lobby);
         });
+
+        tracker.MarkChanged(lobbyId);
+    }
 
     public async Task<Lobby> Create(string lobbyName, bool isPrivate, Guid creatorId)
     {

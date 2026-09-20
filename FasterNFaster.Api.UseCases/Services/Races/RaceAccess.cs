@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.UseCases.Services.Races;
@@ -12,17 +13,20 @@ public class RaceAccess : IRaceAccess
     private readonly AggregateGate<Race> gate;
     private readonly IPassageProvider passageProvider;
     private readonly IAntiCheatPolicy antiCheatPolicy;
+    private readonly ILobbyStateTracker tracker;
     private readonly ILogger<RaceAccess> logger;
 
     public RaceAccess(
         IEventDispatcher eventDispatcher,
         IPassageProvider passageProvider,
         IAntiCheatPolicy antiCheatPolicy,
+        ILobbyStateTracker tracker,
         ILogger<RaceAccess> logger)
     {
         gate = new AggregateGate<Race>(eventDispatcher, GetRequired);
         this.passageProvider = passageProvider;
         this.antiCheatPolicy = antiCheatPolicy;
+        this.tracker = tracker;
         this.logger = logger;
     }
 
@@ -40,6 +44,8 @@ public class RaceAccess : IRaceAccess
         var passage = await passageProvider.GetPassageAsync(wordCount.Value);
 
         await Mutate(lobbyId, race => race.ApplyPassage(passage));
+
+        tracker.MarkChanged(lobbyId);
     }
 
     public Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId) =>

@@ -1,6 +1,5 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
@@ -21,11 +20,8 @@ namespace FasterNFaster.Api.Web.Hubs;
 [Authorize]
 public partial class GameHub(
     ILogger<GameHub> logger,
-    ILobbyRepository lobbyStore,
     ILobbyAccess lobbies,
     ISessionService sessionService,
-    IBroadcaster broadcaster,
-    ILobbyQuery lobbyQuery,
     IRaceAccess races,
     ISender sender) : Hub
 {
@@ -164,10 +160,6 @@ public partial class GameHub(
         {
             await sender.Send(new FastReconnectCommand(lobbyId, userId));
             await sender.Send(new DisconnectCommand(userId));
-
-            var lobby = lobbyStore.Get(lobbyId);
-            if (lobby != null)
-                await broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.LobbyState, await lobbyQuery.GetLobbyState(lobbyId));
 
             sessionService.ClearActiveSession(userId);
 

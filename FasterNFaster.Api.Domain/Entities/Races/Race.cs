@@ -7,7 +7,7 @@ public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed,
 
 public abstract class Race : AggregateRoot<Guid>
 {
-    public Guid LobbyId { get; private set; }
+    public Guid LobbyId { get; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public bool HasStarted { get; private set; }

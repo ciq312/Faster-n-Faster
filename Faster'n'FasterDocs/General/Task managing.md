@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Broadcast LobbyState once per lobby change instead of from every handler
 - [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
 - [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
@@ -18,12 +17,12 @@ kanban-plugin: board
 - [ ] PendingRemovalRegistry: make interface synchronous
 - [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
 - [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
+- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## In progress
 
-- [ ] Refactor
-- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
+- [ ] Broadcast LobbyState once per lobby change instead of from every handler
 
 
 ## Bugs
