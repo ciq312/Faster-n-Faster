@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
 - [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
@@ -22,6 +21,7 @@ kanban-plugin: board
 
 ## In progress
 
+- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 
 
 ## Bugs

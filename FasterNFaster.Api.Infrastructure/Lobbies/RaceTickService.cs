@@ -1,6 +1,8 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Services.Races;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,7 +12,7 @@ namespace FasterNFaster.Api.Infrastructure.Lobbies;
 public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyRepository lobbyStore,
-    IRaceBroadcaster broadcaster,
+    IBroadcaster broadcaster,
     IRaceAccess races,
     RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
@@ -60,7 +62,7 @@ public class RaceTickService(
         if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {
             await races.Mutate(entry.LobbyId, r => r.Start());
-            await broadcaster.BroadcastRaceStarted(entry.LobbyId);
+            await broadcaster.Broadcast(Audience.Lobby(entry.LobbyId), GameEvents.RaceStarted);
             registry.TransitionToRacing(entry.LobbyId);
         }
     }

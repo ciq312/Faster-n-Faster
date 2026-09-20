@@ -28,6 +28,7 @@ public class SignalRBroadcaster(
         LobbyAudience a => Connections(MembersOf(a.LobbyId)),
         LobbyExceptAudience a => Connections(MembersOf(a.LobbyId).Where(id => id != a.UserId)),
         PlayerAudience a => ConnectionOf(a.UserId),
+        PlayersAudience a => Connections(a.PlayerIds),
         _ => throw new ArgumentOutOfRangeException(nameof(audience))
     };
 
