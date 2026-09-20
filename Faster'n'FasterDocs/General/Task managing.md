@@ -22,12 +22,10 @@ kanban-plugin: board
 
 ## In progress
 
-- [ ] Broadcast LobbyState once per lobby change instead of from every handler
 
 
 ## Bugs
 
-- [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
 - [ ] Git tracks the unit test project as `fasternfaster.UnitTests/` but the folder on disk is `FasterNFaster.UnitTests/` — works on Windows, breaks on a case-sensitive CI runner (the .sln references the lowercase path too)
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
 - [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
@@ -35,7 +33,9 @@ kanban-plugin: board
 
 ## Done
 
-- [ ] Race end: RaceSessionEndedEvent carries LobbyId instead of the Lobby aggregate; dropped the now-dead GetRequired in RaceFinishedOrchestrationHandler. The second hop stays — it's the sequencing barrier that guarantees EndSession/RefreshPassage land before the UI broadcast reads lobby state (MediatR gives no ordering between sibling handlers of the same notification)
+- [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
+- [ ] Broadcast LobbyState once per lobby change: ILobbyStateTracker collects dirty lobby ids in an AsyncLocal scope, ILobbyStateScope.Run flushes one broadcast per distinct lobby; LobbyAccess.Mutate and RaceAccess.RefreshPassage mark (not RaceAccess.Mutate — ProcessUpdate runs per keystroke). All 9 broadcast sites gone: 7 handlers lost ILobbyQuery, GameHub lost ILobbyRepository/IBroadcaster/ILobbyQuery with its OnDisconnectedAsync broadcast. Scope is opened in exactly two places — LobbyStateFlushBehavior on commands marked ILobbyStateRequest, and RaceFinishedOrchestrationHandler, because GameHub.UpdateRaceState skips MediatR on purpose and that's the path where typing ends a race. Fixes a host disconnect sending 3 identical frames (HostChanged handler + PlayerDisconnected handler + GameHub) and StartRace sending none although it flips IsSessionActive. Both access services stay singleton: LobbyAccess owns the per-lobby semaphores, and MediatREventDispatcher creates a DI scope per event, so a scoped tracker would be a different instance inside every notification handler — AsyncLocal rides ExecutionContext and survives both
+- [ ] Race end: RaceSessionEndedEvent carries LobbyId instead of the Lobby aggregate; dropped the now-dead GetRequired in RaceFinishedOrchestrationHandler. The second hop was kept here as a sequencing barrier, then deleted with the LobbyState card above: BroadcastRaceFinishedHandler no longer reads lobby state (RaceEnded's payload comes off the domain event) and the LobbyState read now sits at the end of the same block that does the writes, so MediatR's lack of sibling ordering stopped mattering. RaceFinishedEvent now fans out to SaveRaceResultHandler, RaceFinishedOrchestrationHandler and BroadcastRaceFinishedHandler in any order
 - [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
 - [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
 - [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)

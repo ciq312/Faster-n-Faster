@@ -27,3 +27,4 @@ public class InMemoryLobbyRepository : ILobbyRepository
 
     public IReadOnlyCollection<Lobby> GetAll() => lobbies.Values.ToList();
 }
+

@@ -2,12 +2,12 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.HostChanged;
 using FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
@@ -143,7 +143,9 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastRaceFinishedHandler(broadcaster);
 
-        await handler.Handle(new RaceSessionEndedEvent(context.Lobby.Id, results), CancellationToken.None);
+        var e = new RaceFinishedEvent(context.Lobby.Id, results);
+
+        await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
         Assert.Equal(GameEvents.RaceEnded, sent.EventName);

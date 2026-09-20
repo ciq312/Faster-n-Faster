@@ -3,7 +3,6 @@ using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
-using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
@@ -13,17 +12,14 @@ using FasterNFaster.Tests.Fakes;
 public class RaceFinishedOrchestrationHandlerTests
 {
     [Fact]
-    public async Task Handle_EndsSessionAndPublishes()
+    public async Task Handle_EndsSessionAndKeepsLobby()
     {
         var (handler, context, _) = await Build();
 
-        var @event = new RaceFinishedEvent(context.Lobby.Id, new List<RaceParticipantResult>());
-
-        await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(@event), CancellationToken.None);
+        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
 
         Assert.False(context.Lobby.IsSessionActive);
         Assert.NotNull(context.Store.Get(context.LobbyId));
-        Assert.True(context.Publisher.Published.First() is RaceSessionEndedEvent);
     }
 
     [Fact]
@@ -31,9 +27,7 @@ public class RaceFinishedOrchestrationHandlerTests
     {
         var (handler, context, broadcaster) = await Build();
 
-        var @event = new RaceFinishedEvent(context.Lobby.Id, new List<RaceParticipantResult>());
-
-        await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(@event), CancellationToken.None);
+        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
         Assert.Equal(GameEvents.LobbyState, sent.EventName);
@@ -45,17 +39,18 @@ public class RaceFinishedOrchestrationHandlerTests
         var (handler, context, broadcaster) = await Build();
         var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
 
-        var @event = new RaceFinishedEvent(context.Lobby.Id, new List<RaceParticipantResult>());
-
         await scope.Run(async () =>
         {
-            await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(@event), CancellationToken.None);
+            await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
 
             Assert.Empty(broadcaster.Broadcasts);
         });
 
         Assert.Single(broadcaster.Broadcasts);
     }
+
+    private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
+        new(new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>()));
 
     private static async Task<(RaceFinishedOrchestrationHandler Handler, LobbyTestContext Context, FakeBroadcaster Broadcaster)> Build()
     {
@@ -69,11 +64,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(
-            context.LobbyAccess,
-            context.RaceAccess,
-            scope,
-            context.Publisher);
+        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.RaceAccess, scope);
 
         return (handler, context, broadcaster);
     }
