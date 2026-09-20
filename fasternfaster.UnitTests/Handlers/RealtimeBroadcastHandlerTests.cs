@@ -119,8 +119,7 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastPlayerFinishedHandler(broadcaster);
 
-        var e = new PlayerFinishedEvent("nick", userId, 1, 80.0, 95.0);
-        e.WrapRaceContext(lobbyId);
+        var e = new PlayerFinishedEvent(lobbyId, "nick", userId, 1, 80.0, 95.0);
 
         await handler.Handle(new DomainEventNotification<PlayerFinishedEvent>(e), CancellationToken.None);
 
@@ -146,7 +145,7 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastRaceFinishedHandler(broadcaster, context.LobbyQuery);
 
-        await handler.Handle(new RaceSessionEndedEvent(context.Lobby, results), CancellationToken.None);
+        await handler.Handle(new RaceSessionEndedEvent(context.Lobby.Id, results), CancellationToken.None);
 
         var sent = broadcaster.Broadcasts[0];
         Assert.Equal(2, broadcaster.Broadcasts.Count);

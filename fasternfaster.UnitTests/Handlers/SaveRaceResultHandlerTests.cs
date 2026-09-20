@@ -17,7 +17,7 @@ public class SaveRaceResultHandlerTests
         {
             new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, 1)
         };
-        var e = new RaceFinishedEvent(results);
+        var e = new RaceFinishedEvent(Guid.NewGuid(), results);
 
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
 

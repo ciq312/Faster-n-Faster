@@ -6,8 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
-- [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
 - [ ] Broadcast LobbyState once per lobby change instead of from every handler
 - [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
@@ -38,6 +36,8 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Race end: RaceSessionEndedEvent carries LobbyId instead of the Lobby aggregate; dropped the now-dead GetRequired in RaceFinishedOrchestrationHandler. The second hop stays — it's the sequencing barrier that guarantees EndSession/RefreshPassage land before the UI broadcast reads lobby state (MediatR gives no ordering between sibling handlers of the same notification)
+- [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
 - [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
 - [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)
 - [ ] Collapse race services: remove IRaceInternals → IRaceService (lobby side done — ILobbyAccess + ILobbyQuery, facade deleted)
