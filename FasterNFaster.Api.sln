@@ -11,9 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Api.Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Api.UseCases", "FasterNFaster.Api.UseCases\FasterNFaster.Api.UseCases.csproj", "{AA853E3D-1519-488F-8EFA-3A2521C7514E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fasternfaster.UnitTests", "fasternfaster.UnitTests", "{1690B8AB-8408-2AC3-75F3-CCBA74AFE6B6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.UnitTests", "fasternfaster.UnitTests\FasterNFaster.UnitTests.csproj", "{0645613B-2286-4796-888C-525B7071A9CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.UnitTests", "FasterNFaster.UnitTests\FasterNFaster.UnitTests.csproj", "{0645613B-2286-4796-888C-525B7071A9CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.IntegrationTests", "FasterNFaster.IntegrationTests\FasterNFaster.IntegrationTests.csproj", "{3DF45C92-F926-4A2E-94DD-D5718237436F}"
 EndProject
@@ -102,9 +100,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{0645613B-2286-4796-888C-525B7071A9CC} = {1690B8AB-8408-2AC3-75F3-CCBA74AFE6B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1443C459-2461-45E2-8ADB-6B09475E3A06}

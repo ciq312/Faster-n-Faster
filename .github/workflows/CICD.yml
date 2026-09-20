@@ -12,11 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      Solution_name: fasternfaster.api/FasterNFaster.Api.sln
-      Test_project_path: fasternfaster.tests/FasterNFaster.Tests.csproj
-      Api_project_path: fasternfaster.api/FasterNFaster.Api.csproj
-      Api_project_name: FasterNFaster.Api.csproj
-      
+      Solution_name: FasterNFaster.Api.sln
+      Test_project_path: FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj
+
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -78,7 +77,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - uses: docker/build-push-action@v6
       with:
-        context: ./fasternfaster.api
+        context: .
+        file: FasterNFaster.Api.Presentation/Dockerfile
         push: true
         tags: |
           ghcr.io/ciq312/fasternfaster-api:latest
