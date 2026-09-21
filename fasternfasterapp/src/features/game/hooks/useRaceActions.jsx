@@ -31,18 +31,6 @@ export function useRaceActions() {
     await invoke("StartRace");
   }, []);
 
-  const changeGameMode = useCallback(async (mode) => {
-    await invoke("ChangeGameMode", mode);
-  }, []);
-
-  const changeWordCount = useCallback(async (count) => {
-    await invoke("ChangeWordCount", count);
-  }, []);
-
-  const changeTimerDuration = useCallback(async (duration) => {
-    await invoke("ChangeTimerDuration", duration);
-  }, []);
-
   const refreshPassage = useCallback(async () => {
     await invoke("RefreshPassage");
   }, []);
@@ -52,8 +40,5 @@ export function useRaceActions() {
     sendProgress,
     flushProgress,
     refreshPassage,
-    changeGameMode,
-    changeTimerDuration,
-    changeWordCount,
   };
 }
