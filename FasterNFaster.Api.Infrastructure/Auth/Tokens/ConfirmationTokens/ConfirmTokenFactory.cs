@@ -1,34 +1,17 @@
 using System.Buffers.Text;
-using System.ComponentModel;
 using System.Security.Cryptography;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Services.Users;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class ConfirmTokenFactory(
-    IOptions<VerifyEmailOptions> verifyOptions,
-    IOptions<ResetPasswordOptions> resetOptions
-    ) : IConfirmTokenFactory
+public class ConfirmTokenFactory(IOptions<ConfirmTokenOptions> options) : IConfirmTokenFactory
 {
-    private readonly VerifyEmailOptions verifyEmailOptions = verifyOptions.Value;
-    private readonly ResetPasswordOptions resetPasswordOptions = resetOptions.Value;
-
     public Token GetToken(Guid userId, TokenType type)
     {
-        TimeSpan expirationTime;
-        switch (type)
-        {
-            case TokenType.EmailVerification:
-                expirationTime = verifyEmailOptions.ExpirationTime;
-                break;
-            case TokenType.PasswordReset:
-                expirationTime = resetPasswordOptions.ExpirationTime;
-                break;
-            default:
-                throw new InvalidEnumArgumentException();
-        }
+        TimeSpan expirationTime = options.Value.For(type).ExpirationTime;
         return new Token()
         {
             UserId = userId,

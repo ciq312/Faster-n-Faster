@@ -10,13 +10,16 @@ public class RefreshTokenHandlerTests
     [Fact]
     public async Task ValidRefreshToken_ReturnsRotatedTokens()
     {
-        var tokenService = new FakeTokenService { RefreshOutcome = new TokenPair("new-access", "new-refresh") };
+        var tokenService = new FakeTokenService
+        {
+            RefreshOutcome = new TokenPair(FakeTokenService.Token("new-access"), FakeTokenService.Token("new-refresh"))
+        };
         var handler = new RefreshTokenHandler(tokenService);
 
         var result = await handler.Handle(new RefreshTokenCommand("old-refresh"), CancellationToken.None);
 
-        Assert.Equal("new-access", result.Tokens.AccessToken);
-        Assert.Equal("new-refresh", result.Tokens.RefreshToken);
+        Assert.Equal("new-access", result.Tokens.AccessToken.Value);
+        Assert.Equal("new-refresh", result.Tokens.RefreshToken?.Value);
     }
 
     [Fact]

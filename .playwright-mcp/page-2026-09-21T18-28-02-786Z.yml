@@ -1,0 +1,32 @@
+- generic [ref=e38]:
+  - navigation [ref=e39]:
+    - link "faster'n'faster" [ref=e40] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e41]:
+      - link "lobbies" [ref=e42] [cursor=pointer]:
+        - /url: /lobbies
+      - link "leaderboard" [ref=e43] [cursor=pointer]:
+        - /url: /leaderboard
+      - link "profile" [ref=e44] [cursor=pointer]:
+        - /url: /profile/me
+  - generic [ref=e45]:
+    - banner [ref=e46]:
+      - generic [ref=e47]:
+        - heading "claude-test" [level=2] [ref=e48]
+        - generic [ref=e49]: 1/10 players
+        - generic [ref=e50]: "code: QQIT94"
+        - generic [ref=e51]: word race · 50 words
+      - button "leave lobby" [ref=e52] [cursor=pointer]
+    - generic [ref=e53]:
+      - generic [ref=e56]:
+        - generic [ref=e57]: Alice
+        - generic [ref=e58]:
+          - generic [ref=e59]: host
+          - generic [ref=e60]: you
+          - generic [ref=e61] [cursor=pointer]
+      - generic [ref=e62]:
+        - textbox [disabled]
+        - generic [ref=e63]: than long two could any you good all give other our her much one out people any because over one no still its would each these your it not great how now then often need often but out us another you with my the each but know still the when
+        - button ">" [ref=e65] [cursor=pointer]
+    - contentinfo [ref=e67]:
+      - button "start race" [ref=e68] [cursor=pointer]

@@ -13,7 +13,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
@@ -25,7 +25,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbySessionService);
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 

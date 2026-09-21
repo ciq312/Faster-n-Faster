@@ -130,7 +130,7 @@ function TypingArea({
             if (p.playerId === selfId) {
               return (
                 <span
-                  key={p.id}
+                  key={p.playerId}
                   className="typing-area__caret current"
                   style={{
                     transform: `translate(${selfPos.left}px, ${selfPos.top}px)`,
@@ -149,7 +149,7 @@ function TypingArea({
             const pos = caretPos(p.index + 1);
             return (
               <span
-                key={p.id}
+                key={p.playerId}
                 className="typing-area__caret"
                 style={{
                   transform: `translate(${pos.left}px, ${pos.top}px)`,

@@ -5,8 +5,6 @@ namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Handlers;
 
 public class RegisterAnonymousHandler(ITokenService tokenService) : IRequestHandler<RegisterAnonymousCommand, RegisterAnonymousResult>
 {
-    private readonly ITokenService tokenService = tokenService;
-
     public Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command, CancellationToken cancellationToken)
     {
         var guestId = Guid.NewGuid();

@@ -14,8 +14,6 @@ public class GoogleCallbackEndpoint(
     IAuthTokenWriter auth,
     IOptions<AppOptions> appOptions) : EndpointWithoutRequest
 {
-    private readonly ISender sender = sender;
-    private readonly IAuthTokenWriter auth = auth;
     private readonly AppOptions appOptions = appOptions.Value;
 
     public override void Configure()
