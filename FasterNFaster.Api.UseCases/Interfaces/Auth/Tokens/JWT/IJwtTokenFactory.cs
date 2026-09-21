@@ -1,10 +1,13 @@
+
+using FasterNFaster.Api.UseCases.Auth;
+
 namespace FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 public interface IJwtTokenFactory
 {
-    string CreateAccessToken(string userId, string userName);
+    IssuedToken CreateAccessToken(string userId, string userName);
 
-    string CreateRefreshToken();
+    IssuedToken CreateRefreshToken();
 
-    string CreateGuestAccessToken(string guestId, string guestName);
+    IssuedToken CreateGuestAccessToken(string guestId, string guestName);
 }

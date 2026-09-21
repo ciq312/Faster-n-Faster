@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.UseCases.Interfaces.Db;
 using FasterNFaster.Api.Web.Hubs.Filters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,7 @@ public static class InfrastructureExtensions
         });
 
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConn));
-
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
         return services;
     }
 }

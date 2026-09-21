@@ -11,5 +11,4 @@ public interface ILobbyRepository
     void Update(Lobby lobby);
     Lobby? GetByInviteCode(string code);
     IReadOnlyCollection<Lobby> GetAll();
-    Task SaveChanges();
 }
