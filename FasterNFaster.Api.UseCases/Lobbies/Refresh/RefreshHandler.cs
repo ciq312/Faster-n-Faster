@@ -9,12 +9,13 @@ public class RefreshHandler(
     ILobbyAccess lobbies,
     ILobbyStateTracker tracker) : IRequestHandler<RefreshCommand>
 {
-    public async Task Handle(RefreshCommand command, CancellationToken cancellationToken)
+    public Task Handle(RefreshCommand command, CancellationToken cancellationToken)
     {
-        await pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
+        pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
 
         var lobby = lobbies.GetOfPlayerRequired(command.UserId);
 
         tracker.MarkChanged(lobby.Id);
+        return Task.CompletedTask;
     }
 }
