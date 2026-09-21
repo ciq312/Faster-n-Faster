@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
 - [ ] PendingRemovalRegistry: make interface synchronous
 - [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
 - [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
@@ -15,20 +14,21 @@ kanban-plugin: board
 
 ## In progress
 
-- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
-  - Project LeaderboardPage into a DTO (LeaderboardEntry) instead of PlayerStatistics entities — otherwise CacheSerializer is still needed
-  - Drop the lb:version bump (lived in CachedStatisticsRepository.SaveAsync); leaderboard freshness relies on the 60s TTL alone
+- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
 
 
 ## Bugs
 
-- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
 - [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
 
 
 ## Done
 
+- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
+- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
+	  - Project LeaderboardPage into a DTO (LeaderboardEntry) instead of PlayerStatistics entities — otherwise CacheSerializer is still needed
+	  - Drop the lb:version bump (lived in CachedStatisticsRepository.SaveAsync); leaderboard freshness relies on the 60s TTL alone
 - [ ] Options: VerifyEmail/ResetPassword/ResendVerification/RequestPasswordReset options → one ConfirmTokenOptions (per-TokenType ExpirationTime + Cooldown, `ConfirmTokens` section). ConfirmTokenIssuer reads the cooldown itself, so handlers dropped their options and the raw `.Value` singleton registrations are gone
 - [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
