@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
 - [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
@@ -21,7 +20,6 @@ kanban-plugin: board
 
 ## In progress
 
-- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 
 
 ## Bugs
@@ -32,6 +30,8 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
+- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 - [ ] CI never ran the unit tests: backend-build pointed at `fasternfaster.api/FasterNFaster.Api.sln` and `fasternfaster.tests/FasterNFaster.Tests.csproj`, neither of which exists, so restore failed and publish-api/deploy stayed blocked behind it. Repointed at `FasterNFaster.Api.sln` + `FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj`, dropped the unused Api_project_path/Api_project_name vars, and fixed publish-api's docker context (was `./fasternfaster.api`) to `.` with `file: FasterNFaster.Api.Presentation/Dockerfile`, which is what the Dockerfile's COPY paths assume
 - [ ] Git tracked the unit test project as `fasternfaster.UnitTests/` while the folder on disk is `FasterNFaster.UnitTests/` — invisible on Windows because core.ignorecase is true. Renamed the 52 index entries to match disk via `git rm -r --cached` + `git add` (a directory `git mv` failed on a Windows lock, and the index-only route touches no files); .sln now points at the PascalCase path and the stray solution folder wrapping the project is gone. Leave core.ignorecase alone — flipping it on NTFS makes git invent renames
 - [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
