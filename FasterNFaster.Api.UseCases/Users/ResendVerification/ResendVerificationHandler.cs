@@ -8,29 +8,19 @@ namespace FasterNFaster.Api.UseCases.Users.ResendVerification;
 
 public class ResendVerificationHandler(
     IUserRepository userRepo,
-    IConfirmTokenRepository tokenRepo,
-    IConfirmTokenFactory tokenFactory,
+    IConfirmTokenIssuer tokenIssuer,
     IEmailSender emailSender,
     ResendVerificationOptions options) : IRequestHandler<ResendVerificationCommand>
 {
-
     public async Task Handle(ResendVerificationCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;
         if (user.IsEmailVerified) return;
 
-        Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.EmailVerification);
-
-        if (latest is not null && IsWithinCooldown(latest)) return;
-
-        await tokenRepo.RemoveAllForUser(user.Id, TokenType.EmailVerification);
-
-        Token token = tokenFactory.GetToken(user.Id, TokenType.EmailVerification);
-        await tokenRepo.Add(token);
+        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.EmailVerification, options.Cooldown);
+        if (token is null) return;
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, token.Value);
     }
-
-    private bool IsWithinCooldown(Token token) => DateTime.UtcNow - token.CreatedAt < options.Cooldown;
 }

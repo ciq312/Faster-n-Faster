@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
 - [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
 - [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
@@ -29,6 +28,7 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
 - [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
