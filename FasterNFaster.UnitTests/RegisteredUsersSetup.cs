@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Crypto.Operators;
 
 namespace FasterNFaster.Tests;
@@ -13,9 +14,18 @@ public static class RegisteredUsersSetup
         var userRepo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
         var tokenRepo = new FakeTokenRepo();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
 
-        var handler = new RegisterUserHandler(userRepo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(userRepo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         foreach (var command in commands) await handler.Handle(command, CancellationToken.None);
 

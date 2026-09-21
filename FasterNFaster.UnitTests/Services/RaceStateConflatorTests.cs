@@ -13,7 +13,7 @@ public class RaceStateConflatorTests
     [Fact]
     public async Task DropsStaleFrames_SendsLatestWhilePreviousInFlight()
     {
-        var broadcaster = new GatedBroadcaster();
+        var broadcaster = new GatedRaceBroadcaster();
         var conflator = new RaceStateConflator(broadcaster, NullLogger<RaceStateConflator>.Instance);
         var lobbyId = Guid.NewGuid();
 
@@ -39,7 +39,7 @@ public class RaceStateConflatorTests
     [Fact]
     public async Task PublishAfterDrain_StartsNewSend()
     {
-        var broadcaster = new GatedBroadcaster();
+        var broadcaster = new GatedRaceBroadcaster();
         var conflator = new RaceStateConflator(broadcaster, NullLogger<RaceStateConflator>.Instance);
         var lobbyId = Guid.NewGuid();
 
@@ -62,7 +62,7 @@ public class RaceStateConflatorTests
     [Fact]
     public void Prune_RemovesLobbiesNotInActiveSet()
     {
-        var broadcaster = new FakeBroadcaster();
+        var broadcaster = new GatedRaceBroadcaster();
         var conflator = new RaceStateConflator(broadcaster, NullLogger<RaceStateConflator>.Instance);
         var kept = Guid.NewGuid();
         var removed = Guid.NewGuid();

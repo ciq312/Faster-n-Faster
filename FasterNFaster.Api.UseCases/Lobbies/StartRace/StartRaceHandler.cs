@@ -1,30 +1,14 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 
-public class StartRaceHandler(
-    ILobbyAccess lobbies,
-    IRaceAccess races,
-    IRaceTickRegistry raceTickRegistry) : IRequestHandler<StartRaceCommand, Guid>
+public class StartRaceHandler(ILobbyServiceFacade lobbySessionService, ILobbyService lobbyService) : IRequestHandler<StartRaceCommand, Guid>
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.UserId);
-        Guid lobbyId = lobby.Id;
-
-        await lobbies.Mutate(lobbyId, l =>
-        {
-            l.ValidateHost(command.UserId);
-            l.StartSession();
-        });
-
-        await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants()));
-
-        raceTickRegistry.RegisterLobby(lobbyId);
-
+        var lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(command.UserId);
+        await lobbySessionService.StartSession(command.UserId);
         return lobbyId;
     }
 }

@@ -1,8 +1,8 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Realtime;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
 
@@ -15,7 +15,7 @@ public class HubBanFilter : IHubFilter
             var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
             if (await banService.IsBannedAsync(userId))
             {
-                await context.Hub.Clients.Caller.SendAsync(GameEvents.Banned, "You are banned");
+                await context.Hub.Clients.Caller.SendAsync(Methods.Banned, "You are banned");
                 context.Context.Abort();
                 return;
             }

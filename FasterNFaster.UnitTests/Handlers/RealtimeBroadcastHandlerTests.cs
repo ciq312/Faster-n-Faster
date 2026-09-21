@@ -2,12 +2,12 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.HostChanged;
 using FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
@@ -29,20 +29,20 @@ namespace FasterNFaster.Tests.Handlers;
 public class RealtimeBroadcastHandlerTests
 {
     [Fact]
-    public async Task PlayerKicked_NotifiesLobbyAndPlayer()
+    public async Task PlayerKicked_NotifiesLobbyAndPlayer_RefreshesState()
     {
         var user = new User("test");
         var userId = user.Id;
         var context = await LobbyFactory.WithPlayers(user, new User("test1"));
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerKickedHandler(broadcaster);
+        var handler = new BroadcastPlayerKickedHandler(broadcaster, context.LobbySessionService);
 
         await handler.Handle(
             new DomainEventNotification<PlayerKickedEvent>(new PlayerKickedEvent(userId, lobbyId, "nick")),
             CancellationToken.None);
 
-        Assert.Equal(2, broadcaster.Broadcasts.Count);
+        Assert.Equal(3, broadcaster.Broadcasts.Count);
 
         var notice = broadcaster.Broadcasts[0];
         Assert.Equal(GameEvents.PlayerKicked, notice.EventName);
@@ -60,20 +60,21 @@ public class RealtimeBroadcastHandlerTests
     }
 
     [Fact]
-    public async Task PlayerDisconnected_BroadcastsToLobby()
+    public async Task PlayerDisconnected_BroadcastsToLobby_RefreshesState()
     {
         var user = new User("test");
         var userId = user.Id;
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.LobbyAccess);
+        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.LobbySessionService);
 
         await handler.Handle(
             new DomainEventNotification<PlayerDisconnectedEvent>(new PlayerDisconnectedEvent(userId, lobbyId, "nick")),
             CancellationToken.None);
 
-        var sent = Assert.Single(broadcaster.Broadcasts);
+        var sent = broadcaster.Broadcasts[0];
+        Assert.Equal(2, broadcaster.Broadcasts.Count);
         Assert.Equal(GameEvents.PlayerDisconnected, sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
@@ -83,7 +84,7 @@ public class RealtimeBroadcastHandlerTests
     }
 
     [Fact]
-    public async Task HostChanged_BroadcastsToLobby()
+    public async Task HostChanged_BroadcastsToLobby_RefreshesState()
     {
         var user = new User("test");
         var userId = user.Id;
@@ -92,13 +93,14 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerPromotedHandler(broadcaster);
+        var handler = new BroadcastPlayerPromotedHandler(broadcaster, context.LobbySessionService);
 
         await handler.Handle(
             new DomainEventNotification<HostChangedEvent>(new HostChangedEvent(lobbyId, newHostId, "newhost")),
             CancellationToken.None);
 
-        var sent = Assert.Single(broadcaster.Broadcasts);
+        var sent = broadcaster.Broadcasts[0];
+        Assert.Equal(2, broadcaster.Broadcasts.Count);
         Assert.Equal(GameEvents.HostChanged, sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
@@ -117,7 +119,8 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastPlayerFinishedHandler(broadcaster);
 
-        var e = new PlayerFinishedEvent(lobbyId, "nick", userId, 1, 80.0, 95.0);
+        var e = new PlayerFinishedEvent("nick", userId, 1, 80.0, 95.0);
+        e.WrapRaceContext(lobbyId);
 
         await handler.Handle(new DomainEventNotification<PlayerFinishedEvent>(e), CancellationToken.None);
 
@@ -134,47 +137,42 @@ public class RealtimeBroadcastHandlerTests
     }
 
     [Fact]
-    public async Task RaceFinished_BroadcastsResults()
+    public async Task RaceFinished_BroadcastsResults_RefreshesStateWithLobby()
     {
 
         var user = new User("test");
         var context = await LobbyFactory.WithPlayers(user);
-        var playerId = Guid.NewGuid();
-        var results = new List<RaceParticipantResult>
-        {
-            new(Guid.NewGuid(), playerId, "nick", 80f, 95f, 3, 50, 1)
-        };
+        var results = new List<RaceParticipantResult>();
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastRaceFinishedHandler(broadcaster);
+        var handler = new BroadcastRaceFinishedHandler(broadcaster, context.LobbySessionService);
 
-        var e = new RaceFinishedEvent(context.Lobby.Id, results);
+        await handler.Handle(new RaceSessionEndedEvent(context.Lobby, results), CancellationToken.None);
 
-        await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
-
-        var sent = Assert.Single(broadcaster.Broadcasts);
+        var sent = broadcaster.Broadcasts[0];
+        Assert.Equal(2, broadcaster.Broadcasts.Count);
         Assert.Equal(GameEvents.RaceEnded, sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(context.Lobby.Id, audience.LobbyId);
         var payload = Assert.IsType<RaceEndedDTO>(sent.Payload);
-        var result = Assert.Single(payload.Results);
-        Assert.Equal(new RaceResultDTO(playerId, "nick", 1, 80f, 95f, 3), result);
+        Assert.Same(results, payload.Results);
     }
 
     [Fact]
-    public async Task PlayerJoined_NotifiesOthers()
+    public async Task PlayerJoined_RefreshesState_NotifiesOthers()
     {
         var user = new User("test");
         var userId = user.Id;
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerJoinedHandler(broadcaster);
+        var handler = new BroadcastPlayerJoinedHandler(broadcaster, context.LobbySessionService);
 
         await handler.Handle(
             new DomainEventNotification<PlayerJoinedEvent>(new PlayerJoinedEvent(userId, lobbyId, "nick")),
             CancellationToken.None);
 
-        var sent = Assert.Single(broadcaster.Broadcasts);
+        var sent = broadcaster.Broadcasts[1];
+        Assert.Equal(2, broadcaster.Broadcasts.Count);
         Assert.Equal(GameEvents.PlayerJoined, sent.EventName);
         var audience = Assert.IsType<LobbyExceptAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);

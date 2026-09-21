@@ -8,6 +8,7 @@ namespace FasterNFaster.Api.Web.Services.Implementations;
 
 public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<AuthCookiesOptions> options) : IAuthTokenWriter
 {
+    private readonly IHttpContextAccessor httpContextAccessor = httpContextAccessor;
     private readonly AuthCookiesOptions options = options.Value;
 
     private HttpResponse Response =>
@@ -20,41 +21,59 @@ public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<Aut
         WriteRefreshTokenCookie(tokens.RefreshToken!);
     }
 
-    public void WriteGuestAuth(IssuedToken accessToken)
+    public void WriteGuestAuth(string accessToken)
     {
         ClearAuth();
-        WriteAccessTokenCookie(accessToken);
+        WriteGuestAccessTokenCookie(accessToken);
     }
 
     public void ClearAuth()
     {
-        Response.Cookies.Delete(options.AccessTokenCookieName, BaseCookieOptions());
-
-        var refreshCookieOptions = BaseCookieOptions();
-        refreshCookieOptions.Path = options.RefreshTokenPath;
-        Response.Cookies.Delete(options.RefreshTokenCookieName, refreshCookieOptions);
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = options.HttpOnly,
+            Secure = options.Secure,
+            SameSite = options.CookieSameSite,
+            Path = "/"
+        };
+        Response.Cookies.Delete(options.AccessTokenCookieName, cookieOptions);
+        Response.Cookies.Delete(options.RefreshTokenCookieName, new CookieOptions { Path = options.RefreshTokenPath });
     }
 
-    private void WriteRefreshTokenCookie(IssuedToken refreshToken)
+    private void WriteRefreshTokenCookie(string token)
     {
-        var cookieOptions = BaseCookieOptions();
-        cookieOptions.Path = options.RefreshTokenPath;
-        cookieOptions.Expires = refreshToken.ExpiresAt;
-        Response.Cookies.Append(options.RefreshTokenCookieName, refreshToken.Value, cookieOptions);
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = options.HttpOnly,
+            Secure = options.Secure,
+            SameSite = options.CookieSameSite,
+            Path = options.RefreshTokenPath,
+            Expires = DateTime.UtcNow.Add(options.RefreshTokenExpiry)
+        };
+        Response.Cookies.Append(options.RefreshTokenCookieName, token, cookieOptions);
     }
 
-    private void WriteAccessTokenCookie(IssuedToken accessToken)
+    private void WriteAccessTokenCookie(string token)
     {
-        var cookieOptions = BaseCookieOptions();
-        cookieOptions.Expires = accessToken.ExpiresAt;
-        Response.Cookies.Append(options.AccessTokenCookieName, accessToken.Value, cookieOptions);
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = options.HttpOnly,
+            Secure = options.Secure,
+            SameSite = options.CookieSameSite,
+            Expires = DateTime.UtcNow.Add(options.AccessTokenExpiry)
+        };
+        Response.Cookies.Append(options.AccessTokenCookieName, token, cookieOptions);
     }
 
-    private CookieOptions BaseCookieOptions() => new()
+    private void WriteGuestAccessTokenCookie(string token)
     {
-        HttpOnly = options.HttpOnly,
-        Secure = options.Secure,
-        SameSite = options.CookieSameSite,
-        Path = "/"
-    };
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = options.HttpOnly,
+            Secure = options.Secure,
+            SameSite = options.CookieSameSite,
+            Expires = DateTime.UtcNow.Add(options.GuestAccessTokenExpiry)
+        };
+        Response.Cookies.Append(options.AccessTokenCookieName, token, cookieOptions);
+    }
 }

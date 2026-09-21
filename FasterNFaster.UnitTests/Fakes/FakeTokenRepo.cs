@@ -9,7 +9,6 @@ public class FakeTokenRepo : IConfirmTokenRepository
 
     public Task Add(Token token)
     {
-        tokens.RemoveAll(x => x.UserId == token.UserId && x.Type == token.Type);
         tokens.Add(token);
         return Task.CompletedTask;
     }
@@ -31,6 +30,12 @@ public class FakeTokenRepo : IConfirmTokenRepository
     public Task Remove(Token token)
     {
         tokens.Remove(token);
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAllForUser(Guid userId, TokenType type)
+    {
+        tokens.RemoveAll(x => x.UserId == userId && x.Type == type);
         return Task.CompletedTask;
     }
 }

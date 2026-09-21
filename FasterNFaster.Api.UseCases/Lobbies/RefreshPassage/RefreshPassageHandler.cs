@@ -1,22 +1,19 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Realtime;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 public class RefreshPassageHandler(
-    ILobbyAccess lobbies,
-    IRaceAccess races) : IRequestHandler<RefreshPassageCommand>
+    ILobbyService lobbyService,
+    ILobbyServiceFacade facade,
+    IBroadcaster broadcaster) : IRequestHandler<RefreshPassageCommand>
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.CallerId);
-
-        if (lobby.IsSessionActive) throw new InvalidOperationException("Can't refresh when session active");
-
-        lobby.ValidateHost(command.CallerId);
-
-        await races.RefreshPassage(lobby.Id);
+        var lobbyId = lobbyService.GetLobbyIdOfPlayerRequired(command.CallerId);
+        await facade.RefreshPassage(command.CallerId);
+        await broadcaster.Broadcast(Audience.Lobby(lobbyId), GameEvents.LobbyState, await facade.GetLobbyStateDTO(lobbyId));
     }
 }

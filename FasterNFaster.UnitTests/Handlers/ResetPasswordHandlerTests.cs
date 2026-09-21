@@ -6,6 +6,7 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -35,6 +36,7 @@ public class ResetPasswordHandlerTests
         var user = await setup.repo.GetUserByLoginAsync(KnownLogin)
             ?? throw new InvalidOperationException("seeded user not found");
 
+        // Discard the verification token created during registration.
         setup.TokenRepo.tokens.Clear();
         var resetToken = setup.TokenFactory.GetToken(user.Id, TokenType.PasswordReset);
         await setup.TokenRepo.Add(resetToken);
@@ -43,7 +45,7 @@ public class ResetPasswordHandlerTests
         var sessions = new InMemorySessionService(tokenStore);
 
         var handler = new ResetPasswordHandler(
-            setup.repo, new FakeUnitOfWork(), setup.TokenRepo, PasswordHelperFactory.Create(), sessions);
+            setup.repo, setup.TokenRepo, PasswordHelperFactory.Create(), sessions);
 
         return new TestContext
         {
@@ -62,9 +64,22 @@ public class ResetPasswordHandlerTests
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
+        var token = tokenFactory.GetToken(ctx.User.Id, TokenType.PasswordReset);
+        await ctx.TokenRepo.Add(token);
 
         await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None);
 
+        // FakeHasher returns the raw password as its "hash", so asserting on Password works directly.
         Assert.Equal(NewPassword, ctx.User.Password);
         Assert.Empty(ctx.TokenRepo.tokens);
         Assert.Null(ctx.Sessions.GetActiveSession(ctx.User.Id));
@@ -94,6 +109,7 @@ public class ResetPasswordHandlerTests
             ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None));
 
         Assert.Equal(originalPassword, ctx.User.Password);
+        // Token is deliberately not auto-purged on failed verify — operator / scheduled cleanup owns that.
         Assert.Single(ctx.TokenRepo.tokens);
     }
 
@@ -101,6 +117,7 @@ public class ResetPasswordHandlerTests
     public async Task WrongTypeToken_ThrowsAndLeavesPasswordUnchanged()
     {
         var ctx = await BuildWithValidResetToken();
+        // Replace the PasswordReset token with an EmailVerification token carrying the same value.
         ctx.TokenRepo.tokens.Clear();
         var wrongType = new Token
         {

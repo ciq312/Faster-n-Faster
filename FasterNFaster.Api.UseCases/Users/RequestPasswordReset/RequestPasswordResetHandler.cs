@@ -8,19 +8,34 @@ namespace FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 
 public class RequestPasswordResetHandler(
     IUserRepository userRepo,
-    IConfirmTokenIssuer tokenIssuer,
-    IEmailSender emailSender) : IRequestHandler<RequestPasswordResetCommand>
+    IConfirmTokenRepository tokenRepo,
+    IConfirmTokenFactory tokenFactory,
+    IEmailSender emailSender,
+    RequestPasswordResetOptions options) : IRequestHandler<RequestPasswordResetCommand>
 {
+    private readonly IUserRepository userRepo = userRepo;
+    private readonly IConfirmTokenRepository tokenRepo = tokenRepo;
+    private readonly IConfirmTokenFactory tokenFactory = tokenFactory;
+    private readonly IEmailSender emailSender = emailSender;
+    private readonly RequestPasswordResetOptions options = options;
+
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
-        if (user is null) return;   
-        
+        if (user is null) return;
+
         if (user.Password is null) return;
 
-        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset);
-        if (token is null) return;
+        Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.PasswordReset);
+        if (latest is not null && IsWithinCooldown(latest)) return;
+
+        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
+
+        Token token = tokenFactory.GetToken(user.Id, TokenType.PasswordReset);
+        await tokenRepo.Add(token);
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);
     }
+
+    private bool IsWithinCooldown(Token token) => DateTime.UtcNow - token.CreatedAt < options.Cooldown;
 }

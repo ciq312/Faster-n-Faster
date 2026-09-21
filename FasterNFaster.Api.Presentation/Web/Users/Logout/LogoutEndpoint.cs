@@ -10,6 +10,9 @@ public class LogoutEndpoint(
     IAuthTokenWriter auth
     ) : EndpointWithoutRequest
 {
+    private readonly ISessionService sessions = sessions;
+    private readonly IAuthTokenWriter auth = auth;
+
     public override void Configure()
     {
         Post("/api/auth/logout");

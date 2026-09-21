@@ -9,7 +9,7 @@ public class Token
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public bool IsValid()
+    public bool TryVerify()
     {
         return DateTime.UtcNow < ExpiresAt;
     }
