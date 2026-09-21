@@ -25,7 +25,7 @@ public partial class GameHub(
     IRaceAccess races,
     ISender sender) : Hub
 {
-    private (Guid UserId, string Nick, string Role) GetCallerContext()
+    private (Guid UserId, string Nick) GetCallerContext()
     {
         var userIdClaim = Context.User?.FindFirst("sub")?.Value
             ?? throw new HubException("Not authenticated.");
@@ -35,10 +35,7 @@ public partial class GameHub(
 
         var userId = Guid.Parse(userIdClaim);
 
-        var role = Context.User?.FindFirst("role")?.Value
-            ?? throw new HubException("Not authenticated.");
-
-        return (userId, nick, role);
+        return (userId, nick);
     }
 
     public override async Task OnConnectedAsync()
@@ -72,9 +69,9 @@ public partial class GameHub(
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
-        var (userId, nick, role) = GetCallerContext();
+        var (userId, nick) = GetCallerContext();
 
-        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
+        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, inviteCode!));
 
         logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }
@@ -134,7 +131,7 @@ public partial class GameHub(
 
     public async Task LeaveLobby()
     {
-        var (playerId, _, _) = GetCallerContext();
+        var (playerId, _) = GetCallerContext();
 
         await sender.Send(new DisconnectCommand(playerId));
 
@@ -146,15 +143,12 @@ public partial class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
-        var maybeLobbyId = lobbies.GetLobbyIdOfPlayer(userId);
 
-        if (maybeLobbyId is null)
+        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId)
         {
             await base.OnDisconnectedAsync(exception);
             return;
         }
-
-        var lobbyId = maybeLobbyId.Value;
 
         try
         {

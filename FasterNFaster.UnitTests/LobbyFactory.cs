@@ -1,7 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.UseCases.Factories.Implementations;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Services;
@@ -66,7 +64,6 @@ public static class LobbyFactory
     public static async Task<LobbyTestContext> WithPlayers(params User[] users)
     {
         var userRepo = new FakeUserRepository();
-        var userFactory = new UserFactory(userRepo);
 
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
@@ -85,10 +82,10 @@ public static class LobbyFactory
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
-        var joinHandler = new JoinLobbyHandler(userFactory, lobbies);
+        var joinHandler = new JoinLobbyHandler(lobbies);
         for (int i = 0; i < users.Length; i++)
         {
-            await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, "test", "Guest"), CancellationToken.None);
+            await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, users[i].Nick), CancellationToken.None);
         }
 
         var lobbyQuery = new LobbyQuery(lobbies, races);

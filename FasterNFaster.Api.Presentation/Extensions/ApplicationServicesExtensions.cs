@@ -8,8 +8,6 @@ using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.Infrastructure.Users;
-using FasterNFaster.Api.UseCases.Factories.Implementations;
-using FasterNFaster.Api.UseCases.Factories.Interfaces;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
@@ -47,7 +45,6 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IStatisticsRepository>(sp => new CachedStatisticsRepository(
             sp.GetRequiredService<PostgresStatisticsRepository>(), sp.GetRequiredService<ICache>()));
         services.AddScoped<IUserProfileService, UserProfileService>();
-        services.AddScoped<IUserFactory, UserFactory>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IPasswordHelper, PasswordHelper>();
         services.AddScoped<BanRepository>();
