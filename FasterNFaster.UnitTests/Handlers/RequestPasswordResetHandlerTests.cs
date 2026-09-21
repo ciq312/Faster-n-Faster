@@ -1,11 +1,9 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -22,7 +20,7 @@ public class RequestPasswordResetHandlerTests
         setup.TokenRepo.tokens.Clear();
 
         var handler = new RequestPasswordResetHandler(
-            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory), setup.EmailSender, new RequestPasswordResetOptions());
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), setup.EmailSender);
         return (handler, setup);
     }
 
@@ -58,22 +56,13 @@ public class RequestPasswordResetHandlerTests
         var userRepo = new FakeUserRepository();
         var tokenRepo = new FakeTokenRepo();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new ConfirmTokenFactory(
-            Options.Create(new VerifyEmailOptions
-            {
-                ExpirationTime = TimeSpan.FromDays(1)
-            }),
-            Options.Create(new ResetPasswordOptions
-            {
-                ExpirationTime = TimeSpan.FromDays(1)
-            })
-        );
+        var tokenFactory = ConfirmTokenFactoryHelper.Create();
 
         var googleUser = new User("googleNick");
         googleUser.SetEmail("google@user.com");
         userRepo.Seed(googleUser);
 
-        var handler = new RequestPasswordResetHandler(userRepo, new ConfirmTokenIssuer(tokenRepo, tokenFactory), emailSender, new RequestPasswordResetOptions());
+        var handler = new RequestPasswordResetHandler(userRepo, new ConfirmTokenIssuer(tokenRepo, tokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), emailSender);
 
         await handler.Handle(new RequestPasswordResetCommand("google@user.com"), CancellationToken.None);
 

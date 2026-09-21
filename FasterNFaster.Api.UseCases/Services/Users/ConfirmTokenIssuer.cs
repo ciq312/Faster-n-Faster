@@ -1,14 +1,17 @@
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.UseCases.Services.Users;
 
 public class ConfirmTokenIssuer(
     IConfirmTokenRepository tokenRepo,
-    IConfirmTokenFactory tokenFactory) : IConfirmTokenIssuer
+    IConfirmTokenFactory tokenFactory,
+    IOptions<ConfirmTokenOptions> options) : IConfirmTokenIssuer
 {
-    public async Task<Token?> TryIssue(Guid userId, TokenType type, TimeSpan cooldown)
+    public async Task<Token?> TryIssue(Guid userId, TokenType type)
     {
+        TimeSpan cooldown = options.Value.For(type).Cooldown;
         Token? latest = await tokenRepo.GetLatestForUserAsync(userId, type);
         if (latest is not null && DateTime.UtcNow - latest.CreatedAt < cooldown) return null;
 

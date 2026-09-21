@@ -9,8 +9,7 @@ namespace FasterNFaster.Api.UseCases.Users.ResendVerification;
 public class ResendVerificationHandler(
     IUserRepository userRepo,
     IConfirmTokenIssuer tokenIssuer,
-    IEmailSender emailSender,
-    ResendVerificationOptions options) : IRequestHandler<ResendVerificationCommand>
+    IEmailSender emailSender) : IRequestHandler<ResendVerificationCommand>
 {
     public async Task Handle(ResendVerificationCommand command, CancellationToken cancellationToken)
     {
@@ -18,7 +17,7 @@ public class ResendVerificationHandler(
         if (user is null) return;
         if (user.IsEmailVerified) return;
 
-        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.EmailVerification, options.Cooldown);
+        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.EmailVerification);
         if (token is null) return;
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, token.Value);
