@@ -6,7 +6,7 @@ using FasterNFaster.Api.UseCases.Realtime;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
-public partial class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConflator> logger)
+public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConflator> logger)
 {
     private readonly ConcurrentDictionary<Guid, LobbyBroadcast> broadcasts = new();
 
@@ -14,7 +14,6 @@ public partial class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceSt
 
     public void Publish(Guid lobbyId, IReadOnlyList<Guid> playerIds, IReadOnlyList<ParticipantSnapshot> snapshot)
     {
-
         var state = broadcasts.GetOrAdd(lobbyId, _ => new LobbyBroadcast());
         Interlocked.Exchange(ref state.Latest, new RaceFrame(playerIds, snapshot));
 
@@ -50,4 +49,12 @@ public partial class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceSt
         }
         while (Volatile.Read(ref state.Latest) != null && Interlocked.CompareExchange(ref state.Running, 1, 0) == 0);
     }
+
+    private sealed class LobbyBroadcast
+    {
+        public RaceFrame? Latest;
+        public int Running;
+    }
+
+    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<ParticipantSnapshot> Snapshot);
 }
