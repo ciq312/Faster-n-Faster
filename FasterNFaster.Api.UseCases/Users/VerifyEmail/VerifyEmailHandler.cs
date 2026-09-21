@@ -18,7 +18,7 @@ public class VerifyEmailHandler(
     {
         Token token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException(command.Token);
 
-        if (!token.TryVerify()) throw new TokenNotFoundException(command.Token);
+        if (!token.IsValid()) throw new TokenNotFoundException(command.Token);
 
         User user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
         user.SetEmailVerified();

@@ -20,7 +20,7 @@ public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<Aut
         WriteRefreshTokenCookie(tokens.RefreshToken!);
     }
 
-    public void WriteGuestAuth(string accessToken)
+    public void WriteGuestAuth(IssuedToken accessToken)
     {
         ClearAuth();
         WriteGuestAccessTokenCookie(accessToken);
@@ -39,7 +39,7 @@ public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<Aut
         Response.Cookies.Delete(options.RefreshTokenCookieName, new CookieOptions { Path = options.RefreshTokenPath });
     }
 
-    private void WriteRefreshTokenCookie(string token)
+    private void WriteRefreshTokenCookie(IssuedToken refreshToken)
     {
         var cookieOptions = new CookieOptions
         {
@@ -47,32 +47,32 @@ public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<Aut
             Secure = options.Secure,
             SameSite = options.CookieSameSite,
             Path = options.RefreshTokenPath,
-            Expires = DateTime.UtcNow.Add(options.RefreshTokenExpiry)
+            Expires = refreshToken.ExpiresAt
         };
-        Response.Cookies.Append(options.RefreshTokenCookieName, token, cookieOptions);
+        Response.Cookies.Append(options.RefreshTokenCookieName, refreshToken.Value, cookieOptions);
     }
 
-    private void WriteAccessTokenCookie(string token)
+    private void WriteAccessTokenCookie(IssuedToken accessToken)
     {
         var cookieOptions = new CookieOptions
         {
             HttpOnly = options.HttpOnly,
             Secure = options.Secure,
             SameSite = options.CookieSameSite,
-            Expires = DateTime.UtcNow.Add(options.AccessTokenExpiry)
+            Expires = accessToken.ExpiresAt
         };
-        Response.Cookies.Append(options.AccessTokenCookieName, token, cookieOptions);
+        Response.Cookies.Append(options.AccessTokenCookieName, accessToken.Value, cookieOptions);
     }
 
-    private void WriteGuestAccessTokenCookie(string token)
+    private void WriteGuestAccessTokenCookie(IssuedToken guestAccessToken)
     {
         var cookieOptions = new CookieOptions
         {
             HttpOnly = options.HttpOnly,
             Secure = options.Secure,
             SameSite = options.CookieSameSite,
-            Expires = DateTime.UtcNow.Add(options.GuestAccessTokenExpiry)
+            Expires = guestAccessToken.ExpiresAt
         };
-        Response.Cookies.Append(options.AccessTokenCookieName, token, cookieOptions);
+        Response.Cookies.Append(options.AccessTokenCookieName, guestAccessToken.Value, cookieOptions);
     }
 }

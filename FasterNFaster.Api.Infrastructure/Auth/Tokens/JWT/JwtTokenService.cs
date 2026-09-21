@@ -1,25 +1,20 @@
 using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class JwtTokenService(
     IJwtTokenFactory jwtTokenFactory,
     IRefreshTokenRepository tokenStore,
-    IUserRepository repo,
-    IOptions<JwtOptions> jwtOptions) : ITokenService
+    IUserRepository repo) : ITokenService
 {
-    private readonly TimeSpan refreshTokenLifetime = jwtOptions.Value.RefreshTokenLifetime;
-    private readonly bool slidingExpiration = jwtOptions.Value.SlidingRefreshExpiration;
-
     public async Task<TokenPair> IssuePlayerTokens(Guid userId, string userName)
     {
         var accessToken = jwtTokenFactory.CreateAccessToken(userId.ToString(), userName);
         var refreshToken = jwtTokenFactory.CreateRefreshToken();
 
-        await tokenStore.Issue(userId, refreshToken, refreshTokenLifetime);
+        await tokenStore.Issue(userId, refreshToken.Value, refreshToken.ExpiresAt - refreshToken.CreatedAt);
 
         return new TokenPair(accessToken, refreshToken);
     }
@@ -34,9 +29,7 @@ public class JwtTokenService(
     {
         var newRefreshToken = jwtTokenFactory.CreateRefreshToken();
 
-        var ttl = slidingExpiration ? refreshTokenLifetime : (TimeSpan?)null;
-
-        var userId = await tokenStore.RotateRefreshToken(oldRefreshToken, newRefreshToken, ttl);
+        var userId = await tokenStore.RotateRefreshToken(oldRefreshToken, newRefreshToken.Value, newRefreshToken.ExpiresAt - newRefreshToken.CreatedAt);
         if (userId is null) return null;
 
         var user = await repo.GetByIdAsync(userId.Value);
