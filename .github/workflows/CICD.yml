@@ -13,7 +13,7 @@ jobs:
     env:
       Solution_name: FasterNFaster.Api.sln
       Test_project_path: FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj
-
+      Api_project_name: FasterNFaster.Api.Presentation.csproj
 
     steps:
       - uses: actions/checkout@v4
@@ -70,20 +70,20 @@ jobs:
       contents: read
       packages: write
     steps:
-    - uses: actions/checkout@v4
-    - uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v6
-      with:
-        context: .
-        file: FasterNFaster.Api.Presentation/Dockerfile
-        push: true
-        tags: |
-          ghcr.io/ciq312/fasternfaster-api:latest
-          ghcr.io/ciq312/fasternfaster-api:${{ github.sha }}
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./FasterNFaster.Api.Presentation/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/ciq312/fasternfaster-api:latest
+            ghcr.io/ciq312/fasternfaster-api:${{ github.sha }}
 
   publish-frontend:
     needs: frontend-build

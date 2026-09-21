@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
-public class GetLobbiesHandler(ILobbyRepository lobbyStore, IRaceAccess races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyRepository lobbyStore, IRaceService raceService) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {
     public async Task<GetLobbiesResult> Handle(GetLobbiesQuery query, CancellationToken cancellationToken)
     {
@@ -16,7 +16,7 @@ public class GetLobbiesHandler(ILobbyRepository lobbyStore, IRaceAccess races) :
         var items = new List<LobbyListItem>();
         foreach (var l in lobbies.OrderByDescending(l => l.LobbySettings.CreatedAt))
         {
-            var raceSettings = await races.GetRaceSettingsOrDefault(l.Id);
+            var raceSettings = await raceService.GetRaceSettingsOrDefault(l.Id);
             if (raceSettings is null) continue;
 
             items.Add(new LobbyListItem(

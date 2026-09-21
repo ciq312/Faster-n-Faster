@@ -1,13 +1,15 @@
 using System.Security.Cryptography;
 using DotNet.Testcontainers.Containers;
+using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Npgsql;
+using Npgsql.PostgresTypes;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -21,8 +23,6 @@ public class TestApplicationFactory<TProgram>
     private readonly PostgreSqlContainer postgres;
     private readonly RedisContainer redis;
     private readonly IConfiguration config;
-
-    public IConfiguration Configuration => config;
 
     public TestApplicationFactory()
     {
@@ -68,48 +68,46 @@ public class TestApplicationFactory<TProgram>
         return Task.WhenAll(postgres.StartAsync(), redis.StartAsync());
     }
 
-    public new async Task DisposeAsync()
+    public new Task DisposeAsync()
     {
-        await base.DisposeAsync();
-        await Task.WhenAll(postgres.StopAsync(), redis.StopAsync());
-        await postgres.DisposeAsync();
-        await redis.DisposeAsync();
+        return Task.WhenAll(postgres.StopAsync(), redis.StopAsync());
     }
-
-    public WebApplicationFactory<TProgram> CreateApp(Action<IWebHostBuilder>? configure = null) =>
-        WithWebHostBuilder(builder => configure?.Invoke(builder));
 
     public async Task ResetAsync()
     {
-        await TruncatePostgresAsync();
-        await FlushRedisAsync();
-    }
-
-    private async Task TruncatePostgresAsync()
-    {
-        await using var connection = new NpgsqlConnection(postgres.GetConnectionString());
-        await connection.OpenAsync();
-
-        var tables = new List<string>();
-        await using (var select = new NpgsqlCommand(
-            "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '__EFMigrationsHistory'", connection))
-        await using (var reader = await select.ExecuteReaderAsync())
+        await ExecuteScopedAsync<AppDbContext>(async db =>
         {
-            while (await reader.ReadAsync())
-                tables.Add($"\"{reader.GetString(0)}\"");
-        }
+            var tables = db.Model.GetEntityTypes()
+                .Select(entity => entity.GetTableName())
+                .Where(name => name is not null)
+                .Distinct()
+                .Select(name => $"\"{name}\"");
 
-        if (tables.Count == 0) return;
+            await db.Database.ExecuteSqlRawAsync(
+                $"TRUNCATE {string.Join(", ", tables)} RESTART IDENTITY CASCADE");
+        });
 
-        await using var truncate = new NpgsqlCommand($"TRUNCATE {string.Join(", ", tables)} RESTART IDENTITY CASCADE", connection);
-        await truncate.ExecuteNonQueryAsync();
+        await ExecuteScopedAsync<IConnectionMultiplexer>(async multiplexer =>
+        {
+            foreach (var endpoint in multiplexer.GetEndPoints())
+                await multiplexer.GetServer(endpoint).FlushDatabaseAsync();
+        });
     }
 
-    private async Task FlushRedisAsync()
+    public async Task<TResult> ExecuteScopedAsync<TService, TResult>(Func<TService, Task<TResult>> action)
+    where TService : notnull
     {
-        using var multiplexer = await ConnectionMultiplexer.ConnectAsync($"{redis.GetConnectionString()},allowAdmin=true");
-        foreach (var endpoint in multiplexer.GetEndPoints())
-            await multiplexer.GetServer(endpoint).FlushDatabaseAsync();
+        using var scope = Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<TService>();
+        return await action(service);
+    }
+
+    public async Task ExecuteScopedAsync<TService>(Func<TService, Task> action)
+    where TService : notnull
+    {
+        using var scope = Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<TService>();
+        await action(service);
     }
 
 }

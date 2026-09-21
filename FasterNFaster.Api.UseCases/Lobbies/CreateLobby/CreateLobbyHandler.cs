@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 
-public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyAccess lobbies, IRaceAccess races) : IRequestHandler<CreateLobbyCommand, CreateLobbyResult>
+public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyService lobbyService, IRaceService raceService) : IRequestHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     private const int DefaultPassageLength = 50;
 
@@ -13,12 +13,12 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyAccess l
     {
         var passage = await passageProvider.GetPassageAsync(DefaultPassageLength);
 
-        var lobby = await lobbies.Create(command.LobbyName, command.IsPrivate, command.HostId);
-
-        var race = new WordRace(lobby.Id, DefaultPassageLength);
+        var race = new WordRace(DefaultPassageLength);
         race.SetPassage(passage);
 
-        races.Register(race);
+        var lobby = await lobbyService.CreateLobby(command.LobbyName, command.IsPrivate, command.HostId);
+
+        raceService.RegisterRace(lobby.Id, race);
 
         return new CreateLobbyResult(lobby.Id, lobby.LobbySettings.InviteCode);
     }

@@ -1,18 +1,15 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Db;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Db;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IUnitOfWork
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
     public DbSet<ExternalLogin> ExternalLogins { get; set; }
     public DbSet<PlayerStatistics> Statistics { get; set; }
     public DbSet<BannedPlayer> BannedPlayers { get; set; }
-
-    public Task SaveChangesAsync() => base.SaveChangesAsync();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

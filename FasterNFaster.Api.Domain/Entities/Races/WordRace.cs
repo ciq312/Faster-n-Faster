@@ -9,7 +9,7 @@ public partial class WordRace : Race
     public int WordCount { get; private set; }
     public string? Passage { get; private set; }
 
-    public WordRace(Guid lobbyId, int wordCount) : base(lobbyId)
+    public WordRace(int wordCount)
     {
         if (wordCount <= 0)
             throw new ArgumentException("Word count must be greater than 0.");
@@ -37,9 +37,9 @@ public partial class WordRace : Race
         if (IsRacerFinished(racer))
         {
             racer.MarkFinished(nextFinishPosition++, GetNumberWordsInPassage());
-            RaiseDomainEvent(new PlayerFinishedEvent(LobbyId, racer.Nick, racer.Id, racer.FinishPosition, racer.GetWPM(), racer.GetAccuracy()));
+            RaiseDomainEvent(new PlayerFinishedEvent(racer.Nick, racer.Id, racer.FinishPosition, racer.GetWPM(), racer.GetAccuracy()));
             if (IsRaceFinished())
-                RaceFinished();
+                OnRaceFinished();
         }
     }
 

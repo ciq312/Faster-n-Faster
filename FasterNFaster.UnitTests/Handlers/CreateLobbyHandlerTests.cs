@@ -22,13 +22,12 @@ public class CreateLobbyHandlerTests
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
 
-        var tracker = new LobbyStateTracker();
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
 
         var hostId = Guid.NewGuid();
 
@@ -46,13 +45,12 @@ public class CreateLobbyHandlerTests
         var passageProvider = new RandomPassageProvider();
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository();
+        var lobbyStore = new InMemoryLobbyRepository(dispatcher);
 
-        var tracker = new LobbyStateTracker();
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
+        var lobbyService = new LobbyService(lobbyStore, new InMemoryPlayerLocationRegistry());
+        var raceService = new RaceService(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), NullLogger<RaceService>.Instance);
 
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbyService, raceService);
         var lobbyId = Guid.NewGuid();
 
         await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, lobbyId), CancellationToken.None);

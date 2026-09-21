@@ -10,8 +10,9 @@ public class ExternalLoginRepository(AppDbContext appDbContext) : IExternalLogin
     public Task<ExternalLogin?> GetByProviderAndSubjectAsync(string provider, string subject) =>
         appDbContext.ExternalLogins.FirstOrDefaultAsync(x => x.Provider == provider && x.ExternalSubject == subject);
 
-    public void Add(Guid userId, string provider, string subject, string? email)
+    public async Task AddAsync(Guid userId, string provider, string subject, string? email)
     {
         appDbContext.ExternalLogins.Add(new ExternalLogin(userId, subject, email, provider));
+        await appDbContext.SaveChangesAsync();
     }
 }

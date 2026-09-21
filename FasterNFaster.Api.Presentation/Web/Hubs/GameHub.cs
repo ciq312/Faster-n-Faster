@@ -1,5 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
@@ -9,23 +10,24 @@ using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using FasterNFaster.Api.UseCases.Realtime;
+using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Hubs;
 
 [Authorize]
 public partial class GameHub(
     ILogger<GameHub> logger,
-    ILobbyAccess lobbies,
+    ILobbyRepository lobbyStore,
+    ILobbyService lobbyService,
     ISessionService sessionService,
-    IRaceAccess races,
+    IBroadcaster broadcaster,
+    ILobbyServiceFacade facade,
     ISender sender) : Hub
 {
-    private (Guid UserId, string Nick) GetCallerContext()
+    private (Guid UserId, string Nick, string Role) GetCallerContext()
     {
         var userIdClaim = Context.User?.FindFirst("sub")?.Value
             ?? throw new HubException("Not authenticated.");
@@ -35,7 +37,10 @@ public partial class GameHub(
 
         var userId = Guid.Parse(userIdClaim);
 
-        return (userId, nick);
+        var role = Context.User?.FindFirst("role")?.Value
+            ?? throw new HubException("Not authenticated.");
+
+        return (userId, nick, role);
     }
 
     public override async Task OnConnectedAsync()
@@ -64,14 +69,14 @@ public partial class GameHub(
     private async Task HandleSessionRestart(Guid userId, string callerConnectionId, string previousSession)
     {
         sessionService.ClearActiveSession(userId);
-        await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);
+        await Clients.Client(previousSession).SendAsync(Methods.AnotherSessionStarted);
     }
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
-        var (userId, nick) = GetCallerContext();
+        var (userId, nick, role) = GetCallerContext();
 
-        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, inviteCode!));
+        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, role, inviteCode!));
 
         logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }
@@ -125,13 +130,12 @@ public partial class GameHub(
     {
         var userId = GetCallerContext().UserId;
         //skip CQRS to minimize the allocations
-        var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(userId);
-        await races.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
+        await facade.UpdateProgress(userId, index, mistakes, typed);
     }
 
     public async Task LeaveLobby()
     {
-        var (playerId, _) = GetCallerContext();
+        var (playerId, _, _) = GetCallerContext();
 
         await sender.Send(new DisconnectCommand(playerId));
 
@@ -143,17 +147,24 @@ public partial class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
+        var maybeLobbyId = lobbyService.GetLobbyIdOfPlayer(userId);
 
-        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId)
+        if (maybeLobbyId is null)
         {
             await base.OnDisconnectedAsync(exception);
             return;
         }
 
+        var lobbyId = maybeLobbyId.Value;
+
         try
         {
             await sender.Send(new FastReconnectCommand(lobbyId, userId));
             await sender.Send(new DisconnectCommand(userId));
+
+            var lobby = lobbyStore.Get(lobbyId);
+            if (lobby != null)
+                await broadcaster.Broadcast(Audience.Lobby(lobbyId), Methods.LobbyState, await facade.GetLobbyStateDTO(lobbyId));
 
             sessionService.ClearActiveSession(userId);
 

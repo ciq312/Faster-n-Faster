@@ -6,6 +6,8 @@ namespace FasterNFaster.Api.Infrastructure.Helpers;
 
 public class PasswordHelper(IPasswordHasher<User> passwordHasher) : IPasswordHelper
 {
+    private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
+
     public string HashPassword(User user, string password)
     {
         return passwordHasher.HashPassword(user, password);

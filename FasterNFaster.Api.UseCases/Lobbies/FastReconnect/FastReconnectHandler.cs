@@ -11,14 +11,14 @@ public class FastReconnectHandler(IPendingRemovalsRegistry pendingRemovalsRegist
     {
         var cts = new CancellationTokenSource();
 
-        pendingRemovalsRegistry.StorePendingRemoval(command.PlayerId, cts);
+        await pendingRemovalsRegistry.StorePendingRemoval(command.PlayerId, cts);
         try
         {
             await Task.Delay(ReconnectGracePeriodSeconds * 1000, cts.Token);
         }
         finally
         {
-            pendingRemovalsRegistry.RemovePendingRemoval(command.PlayerId);
+            await pendingRemovalsRegistry.RemovePendingRemoval(command.PlayerId);
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
-using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 
 namespace FasterNFaster.Api.Extensions;
 
@@ -13,9 +12,6 @@ public static class AuthExtensions
 {
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration config)
     {
-        var accessTokenCookieName = config.GetSection("AuthCookies").Get<AuthCookiesOptions>()?.AccessTokenCookieName
-            ?? new AuthCookiesOptions().AccessTokenCookieName;
-
         var rsa = RSA.Create();
         rsa.ImportRSAPrivateKey(Convert.FromBase64String(config["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
 
@@ -62,7 +58,7 @@ public static class AuthExtensions
             {
                 OnMessageReceived = context =>
                 {
-                    context.Token = context.Request.Cookies[accessTokenCookieName];
+                    context.Token = context.Request.Cookies["access_token"];
                     return Task.CompletedTask;
                 }
             };

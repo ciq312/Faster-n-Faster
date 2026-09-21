@@ -10,8 +10,9 @@ public class FakeExternalLoginRepository : IExternalLoginRepository
     public Task<ExternalLogin?> GetByProviderAndSubjectAsync(string provider, string subject) =>
         Task.FromResult(Logins.FirstOrDefault(x => x.Provider == provider && x.ExternalSubject == subject));
 
-    public void Add(Guid userId, string provider, string subject, string? email)
+    public Task AddAsync(Guid userId, string provider, string subject, string? email)
     {
         Logins.Add(new ExternalLogin(userId, subject, email, provider));
+        return Task.CompletedTask;
     }
 }

@@ -14,6 +14,9 @@ public class RegisterAnonymousRequest
 
 public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
 {
+    private readonly ISender sender = sender;
+    private readonly IAuthTokenWriter auth = auth;
+
     public override void Configure()
     {
         Post("/api/auth/guest");

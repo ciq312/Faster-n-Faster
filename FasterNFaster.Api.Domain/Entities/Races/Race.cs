@@ -5,9 +5,8 @@ namespace FasterNFaster.Api.Core.Entities.Races;
 
 public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 
-public abstract class Race : AggregateRoot<Guid>
+public abstract class Race : AggregateRoot<Guid> // ISession in future when new mechanics implemented
 {
-    public Guid LobbyId { get; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public bool HasStarted { get; private set; }
@@ -17,10 +16,9 @@ public abstract class Race : AggregateRoot<Guid>
 
     protected int nextFinishPosition = 1;
 
-    public Race(Guid lobbyId)
+    public Race()
     {
         Id = Guid.NewGuid();
-        LobbyId = lobbyId;
     }
 
     public void AddParticipant(RaceParticipant participant)
@@ -64,7 +62,7 @@ public abstract class Race : AggregateRoot<Guid>
         if (participant is null || participant.IsFinished) return;
         participant.MarkWithdrawn();
         if (IsRaceFinished())
-            RaceFinished();
+            OnRaceFinished();
     }
 
     public abstract IRaceSettings GetRaceSettings();
@@ -75,9 +73,9 @@ public abstract class Race : AggregateRoot<Guid>
     // Applies a freshly fetched passage. No-op for race types without passages.
     public virtual void ApplyPassage(string passage) { }
 
-    protected void RaceFinished()
+    protected void OnRaceFinished()
     {
-        RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
+        RaiseDomainEvent(new RaceFinishedEvent(GetRaceResults().ToList()));
         EndTime = DateTime.UtcNow;
         Reset();
     }

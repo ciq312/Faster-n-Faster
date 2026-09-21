@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
@@ -9,9 +8,12 @@ namespace FasterNFaster.Api.UseCases.Users.ExternalLogin;
 public class ExternalLoginHandler(
     IUserRepository userRepo,
     IExternalLoginRepository externalLogins,
-    ITokenService tokenService,
-    IUnitOfWork unitOfWork) : IRequestHandler<ExternalLoginCommand, ExternalLoginResult>
+    ITokenService tokenService) : IRequestHandler<ExternalLoginCommand, ExternalLoginResult>
 {
+    private readonly IUserRepository userRepo = userRepo;
+    private readonly IExternalLoginRepository externalLogins = externalLogins;
+    private readonly ITokenService tokenService = tokenService;
+
     public async Task<ExternalLoginResult> Handle(ExternalLoginCommand command, CancellationToken cancellationToken)
     {
         var user = await GetLinkedUserAsync(command)
@@ -39,10 +41,7 @@ public class ExternalLoginHandler(
         var user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return null;
 
-        externalLogins.Add(user.Id, command.Provider, command.Subject, command.Email);
-
-        await unitOfWork.SaveChangesAsync();
-
+        await externalLogins.AddAsync(user.Id, command.Provider, command.Subject, command.Email);
         return user;
     }
 
@@ -52,10 +51,8 @@ public class ExternalLoginHandler(
         user.SetEmail(command.Email);
         user.SetEmailVerified();
 
-        userRepo.Add(user);
-        externalLogins.Add(user.Id, command.Provider, command.Subject, command.Email);
-
-        await unitOfWork.SaveChangesAsync();
+        await userRepo.AddAsync(user);
+        await externalLogins.AddAsync(user.Id, command.Provider, command.Subject, command.Email);
 
         return user;
     }

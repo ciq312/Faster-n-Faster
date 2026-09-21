@@ -15,15 +15,18 @@ public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
         return Task.CompletedTask;
     }
 
-    public Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan ttl)
+    public Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan? ttl)
     {
         if (!IsValid(oldRefreshToken)) return Task.FromResult<Guid?>(null);
 
         var userId = tokenToUser[oldRefreshToken];
 
+        var newTtl = ttl ?? (expiries[oldRefreshToken] - DateTime.UtcNow);
+        if (newTtl <= TimeSpan.Zero) return Task.FromResult<Guid?>(null);
+
         Remove(oldRefreshToken);
         tokenToUser[newRefreshToken] = userId;
-        expiries[newRefreshToken] = DateTime.UtcNow.Add(ttl);
+        expiries[newRefreshToken] = DateTime.UtcNow.Add(newTtl);
         return Task.FromResult<Guid?>(userId);
     }
 

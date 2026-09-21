@@ -2,37 +2,31 @@ using System.Net.Http.Json;
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.Web.Options.RateLimiting;
 using FasterNFaster.IntegrationTests;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>, IAsyncLifetime
 {
-    private readonly TestApplicationFactory<Program> fixture;
+    private readonly TestApplicationFactory<Program> factory;
     private readonly RateLimitOptions rateLimitOptions;
-    private WebApplicationFactory<Program> app = null!;
 
-    public RateLimitingTests(TestApplicationFactory<Program> fixture)
+    public RateLimitingTests(TestApplicationFactory<Program> factory)
     {
-        this.fixture = fixture;
-        rateLimitOptions = fixture.Configuration
+        this.factory = factory;
+        rateLimitOptions = factory.Services.GetRequiredService<IConfiguration>()
         .GetSection("RateLimiting")
         .Get<RateLimitOptions>()
         ?? throw new InvalidOperationException("RateLimiting section not found in configuration.");
 
     }
 
-    public async Task InitializeAsync()
-    {
-        await fixture.ResetAsync();
-        app = fixture.CreateApp();
-    }
-
-    public async Task DisposeAsync() => await app.DisposeAsync();
+    public Task InitializeAsync() => factory.ResetAsync();
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task OneAuthStrictRequest_ShouldBeOk()
     {
-        var client = app.CreateClient();
+        var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.2");
 
         var response1 = await AuthHelper.Register(client);
@@ -43,7 +37,7 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
     [Fact]
     public async Task ExceedAuthStrictLimit_ShouldReturn429()
     {
-        var client = app.CreateClient();
+        var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.1");
 
         var tasks = new List<Task<HttpResponseMessage>>();
@@ -61,11 +55,10 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
     }
 
     [Fact]
-    public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeOk()
+    public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeFine()
     {
-        TimeSpan testRateLimitWindow = TimeSpan.FromSeconds(1);
-        await using var shortWindowApp = fixture.CreateApp(b => b.UseSetting("RateLimiting:AuthStrict:Window", testRateLimitWindow.ToString()));
-        var client = shortWindowApp.CreateClient();
+        TimeSpan testRateLimitWindow = TimeSpan.FromSeconds(3);
+        var client = factory.WithWebHostBuilder(b => b.UseSetting("RateLimiting:AuthStrict:Window", testRateLimitWindow.ToString())).CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.3");
 
         var tasks = new List<Task<HttpResponseMessage>>();
@@ -75,7 +68,7 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         }
         var okResponses = await Task.WhenAll(tasks);
 
-        await Task.Delay(testRateLimitWindow + TimeSpan.FromSeconds(1));
+        await Task.Delay(testRateLimitWindow);
         var nthRequest = rateLimitOptions.AuthStrict.PermitLimit;
 
         var nthResponse = await AuthHelper.Register(client);

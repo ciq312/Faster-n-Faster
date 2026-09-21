@@ -4,16 +4,20 @@ using FasterNFaster.Api.Core.Entities;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Users;
 
-public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
+public class PostgresUserRepository(AppDbContext context) : IUserRepository
 {
-    public void Add(User user)
+    private readonly AppDbContext appDbContext = context;
+
+    public async Task AddAsync(User user)
     {
         appDbContext.Users.Add(user);
+        await appDbContext.SaveChangesAsync();
     }
 
-    public void Update(User user)
+    public async Task UpdateAsync(User user)
     {
         appDbContext.Users.Update(user);
+        await appDbContext.SaveChangesAsync();
     }
 
     public async Task<User?> GetByIdAsync(Guid id)
@@ -25,6 +29,12 @@ public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
     {
         return await appDbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
     }
+
+    public async Task<bool> DoUserExistByNickAsync(string nick)
+    {
+        return await appDbContext.Users.AnyAsync(x => x.Nick == nick);
+    }
+
 
     public async Task<User?> GetUserByLoginAsync(string login)
     {

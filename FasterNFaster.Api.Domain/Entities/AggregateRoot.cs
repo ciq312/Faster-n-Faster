@@ -10,10 +10,5 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
 
     protected void RaiseDomainEvent(IDomainEvent domainEvent) => domainEvents.Add(domainEvent);
 
-    public IReadOnlyList<IDomainEvent> DrainEvents()
-    {
-        var drained = domainEvents.ToList();
-        domainEvents.Clear();
-        return drained;
-    }
+    public void ClearEvents() => domainEvents.Clear();
 }

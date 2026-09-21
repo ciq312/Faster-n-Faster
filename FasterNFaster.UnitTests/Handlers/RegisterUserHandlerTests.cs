@@ -1,10 +1,12 @@
 using System.Net.Http.Headers;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -16,12 +18,21 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
         repo.Seed(new User("Existing", "taken", "pass123"));
 
-        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await Assert.ThrowsAsync<DuplicateLoginException>(
             () => handler.Handle(new RegisterUserCommand("NewNick", "taken", "testemail@gmail.com", "pass123"), CancellationToken.None)
@@ -33,10 +44,19 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
-        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         var result = await handler.Handle(new RegisterUserCommand("Player1", "mylogin", "testemail@gmail.com", "pass123"), CancellationToken.None);
 
@@ -48,14 +68,23 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
 
         var existing = new User("test1", "login1", "testpass");
         existing.SetEmail("test@gmail.com");
         repo.Seed(existing);
 
-        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await Assert.ThrowsAsync<DuplicateEmailException>(() => handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None));
     }
@@ -64,9 +93,18 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
-        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 
@@ -80,9 +118,18 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = new ConfirmTokenFactory(
+            Options.Create(new VerifyEmailOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            }),
+            Options.Create(new ResetPasswordOptions
+            {
+                ExpirationTime = TimeSpan.FromDays(1)
+            })
+        );
         var tokenRepo = new FakeTokenRepo();
-        var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
+        var handler = new RegisterUserHandler(repo, PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         await handler.Handle(new RegisterUserCommand("test2", "login2", "test@gmail.com", "testpass"), CancellationToken.None);
 

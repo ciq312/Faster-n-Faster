@@ -1,9 +1,6 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.UseCases.Services.Races;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -12,12 +9,14 @@ namespace FasterNFaster.Api.Infrastructure.Lobbies;
 public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyRepository lobbyStore,
-    IBroadcaster broadcaster,
-    IRaceAccess races,
+    IRaceBroadcaster broadcaster,
+    IRaceTransitionService raceTransitionService,
+    IRaceService raceService,
     RaceStateConflator conflator,
     ILogger<RaceTickService> logger) : BackgroundService
 {
     private const int TickIntervalMs = 200;
+    private const float CountdownSeconds = 3.5f;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -57,19 +56,19 @@ public class RaceTickService(
 
     private async Task HandleCountdown(RacingLobbyEntry entry)
     {
-        var elapsed = DateTime.UtcNow - entry.RegisteredAt;
+        var elapsed = (DateTime.UtcNow - entry.RegisteredAt).TotalSeconds;
 
-        if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
+        if (elapsed >= CountdownSeconds)
         {
-            await races.Mutate(entry.LobbyId, r => r.Start());
-            await broadcaster.Broadcast(Audience.Lobby(entry.LobbyId), GameEvents.RaceStarted);
+            await raceTransitionService.StartRaceInternal(entry.LobbyId);
+            await broadcaster.BroadcastRaceStarted(entry.LobbyId);
             registry.TransitionToRacing(entry.LobbyId);
         }
     }
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
     {
-        var snapshot = await races.GetSnapshot(entry.LobbyId);
+        var snapshot = await raceService.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players
             .Select(p => p.Id)

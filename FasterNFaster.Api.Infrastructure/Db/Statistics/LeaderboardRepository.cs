@@ -17,8 +17,16 @@ public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepositor
         var items = await ApplyOrder(query, sort, descending)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(s => new LeaderboardEntry(
-                s.Id, s.User.Nick, s.BestWPM, s.BestAccuracy, s.AvgWPM, s.AvgAccuracy, s.Wins, s.WordsTyped, s.RacesTyped))
+            .Select(s => new LeaderboardPlayerReadModel(
+                s.Id,
+                s.User.Nick,
+                s.BestWPM,
+                s.BestAccuracy,
+                s.AvgWPM,
+                s.AvgAccuracy,
+                s.Wins,
+                s.WordsTyped,
+                s.RacesTyped))
             .ToListAsync();
 
         return new LeaderboardPage(items, total);

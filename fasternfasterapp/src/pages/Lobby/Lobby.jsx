@@ -31,6 +31,7 @@ function Lobby() {
     leaveLobby
   } = useLobbyActions();
   const {
+    tier,
     dismissResults,
     isRacing,
     isRaceStarting,
@@ -44,6 +45,9 @@ function Lobby() {
     sendProgress,
     flushProgress,
     refreshPassage,
+    changeGameMode,
+    changeTimerDuration,
+    changeWordCount,
   } = useRaceActions();
   const maxPerSide = 10;
   const half = Math.min(players.length, maxPerSide);
@@ -73,7 +77,9 @@ function Lobby() {
             )}
             {raceSettings && (
               <span className="lobby-topbar__mode">
-                word race · {raceSettings.wordCount} words
+                {raceSettings.$type === "word"
+                  ? `word race · ${raceSettings.wordCount} words`
+                  : `timer · ${raceSettings.timerDuration}s`}
               </span>
             )}
           </div>
@@ -111,6 +117,16 @@ function Lobby() {
 
           <div className="lobby-game">
             <div className="countdown-overlay">{countdown}</div>
+
+            {tier && raceParticipants.find((p) => isSelf(p.playerId)) && (
+              <div
+                key={tier.label}
+                className="tier"
+                style={{ "--shake": `${Math.min(tier.min / 12, 10)}px` }}
+              >
+                {tier.label}
+              </div>
+            )}
 
             {raceResults ? (
               <RaceResults
