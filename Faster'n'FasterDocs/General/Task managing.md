@@ -6,25 +6,26 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] PendingRemovalRegistry: make interface synchronous
-- [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
 - [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
 - [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## In progress
 
-- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
+- [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
 
 
 ## Bugs
 
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
 - [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
+- [ ] FastReconnect pending removal: `finally` removes by userId only, so a stale handler (refresh → disconnect again before its continuation runs) deletes the newer CTS and the next refresh can't cancel it → player removed anyway; use compare-remove `TryRemove(KeyValuePair.Create(userId, cts))`. Also StorePendingRemoval overwrites an existing CTS without cancelling it (older delay becomes uncancellable), and the handler never disposes its CTS (`using var cts`)
 
 
 ## Done
 
+- [ ] PendingRemovalRegistry: make interface synchronous
+- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
 - [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
 	  - Project LeaderboardPage into a DTO (LeaderboardEntry) instead of PlayerStatistics entities — otherwise CacheSerializer is still needed
