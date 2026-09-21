@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
 - [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
@@ -30,6 +29,7 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
 - [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
 - [ ] CI never ran the unit tests: backend-build pointed at `fasternfaster.api/FasterNFaster.Api.sln` and `fasternfaster.tests/FasterNFaster.Tests.csproj`, neither of which exists, so restore failed and publish-api/deploy stayed blocked behind it. Repointed at `FasterNFaster.Api.sln` + `FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj`, dropped the unused Api_project_path/Api_project_name vars, and fixed publish-api's docker context (was `./fasternfaster.api`) to `.` with `file: FasterNFaster.Api.Presentation/Dockerfile`, which is what the Dockerfile's COPY paths assume
