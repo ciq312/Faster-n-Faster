@@ -41,15 +41,11 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<ICache, RedisCache>();
 
         services.AddScoped<IUserRepository, PostgresUserRepository>();
-        services.AddScoped<PostgresStatisticsRepository>();
-        services.AddScoped<IStatisticsRepository>(sp => new CachedStatisticsRepository(
-            sp.GetRequiredService<PostgresStatisticsRepository>(), sp.GetRequiredService<ICache>()));
+        services.AddScoped<IStatisticsRepository, PostgresStatisticsRepository>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IPasswordHelper, PasswordHelper>();
-        services.AddScoped<BanRepository>();
-        services.AddScoped<IBanRepository>(sp => new CachedBanRepository(
-            sp.GetRequiredService<BanRepository>(), sp.GetRequiredService<ICache>()));
+        services.AddScoped<IBanRepository, BanRepository>();
 
         services.AddSingleton<ISessionService, InMemorySessionService>();
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();

@@ -14,7 +14,8 @@ public class RequestPasswordResetHandler(
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
-        if (user is null) return;
+        if (user is null) return;   
+        
         if (user.Password is null) return;
 
         Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset);

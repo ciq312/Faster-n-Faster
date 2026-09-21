@@ -13,23 +13,12 @@ public class CachedLeaderboardRepositoryTests
     public CachedLeaderboardRepositoryTests() => _sut = new CachedLeaderboardRepository(_inner, _cache);
 
     [Fact]
-    public async Task GetTopPlayersAsync_SecondCall_SameVersion_ServedFromCache()
+    public async Task GetTopPlayersAsync_SecondCall_ServedFromCache()
     {
         await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
         await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
 
         Assert.Equal(1, _inner.Calls);
-    }
-
-    [Fact]
-    public async Task GetTopPlayersAsync_AfterVersionBump_Refetches()
-    {
-        await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
-
-        await _cache.BumpVersionAsync(CachedLeaderboardRepository.VersionKey);
-        await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
-
-        Assert.Equal(2, _inner.Calls);
     }
 
     [Fact]

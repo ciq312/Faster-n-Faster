@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
 - [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
 - [ ] PendingRemovalRegistry: make interface synchronous
 - [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
@@ -16,6 +15,9 @@ kanban-plugin: board
 
 ## In progress
 
+- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
+  - Project LeaderboardPage into a DTO (LeaderboardEntry) instead of PlayerStatistics entities — otherwise CacheSerializer is still needed
+  - Drop the lb:version bump (lived in CachedStatisticsRepository.SaveAsync); leaderboard freshness relies on the 60s TTL alone
 
 
 ## Bugs
