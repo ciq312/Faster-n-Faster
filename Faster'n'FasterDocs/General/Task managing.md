@@ -6,13 +6,12 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
 - [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## In progress
 
-- [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
+- [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
 
 
 ## Bugs
