@@ -8,8 +8,7 @@ namespace FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 
 public class RequestPasswordResetHandler(
     IUserRepository userRepo,
-    IConfirmTokenRepository tokenRepo,
-    IConfirmTokenFactory tokenFactory,
+    IConfirmTokenIssuer tokenIssuer,
     IEmailSender emailSender,
     RequestPasswordResetOptions options) : IRequestHandler<RequestPasswordResetCommand>
 {
@@ -17,19 +16,11 @@ public class RequestPasswordResetHandler(
     {
         User? user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;
-
         if (user.Password is null) return;
 
-        Token? latest = await tokenRepo.GetLatestForUserAsync(user.Id, TokenType.PasswordReset);
-        if (latest is not null && IsWithinCooldown(latest)) return;
-
-        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
-
-        Token token = tokenFactory.GetToken(user.Id, TokenType.PasswordReset);
-        await tokenRepo.Add(token);
+        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset, options.Cooldown);
+        if (token is null) return;
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);
     }
-
-    private bool IsWithinCooldown(Token token) => DateTime.UtcNow - token.CreatedAt < options.Cooldown;
 }

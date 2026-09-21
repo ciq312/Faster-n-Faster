@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
 
@@ -13,12 +14,12 @@ public class ResendVerificationHandlerTests
     {
         var setup = await RegisteredUsersSetup.Setup(
             new RegisterUserCommand("test", KnownLogin, KnownEmail, "testpass"));
-        // Drop the verification email + token created during registration for clean assertions.
+
         setup.EmailSender.Sent.Clear();
         setup.TokenRepo.tokens.Clear();
 
         var handler = new ResendVerificationHandler(
-            setup.repo, setup.TokenRepo, setup.TokenFactory, setup.EmailSender, new ResendVerificationOptions());
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory), setup.EmailSender, new ResendVerificationOptions());
         return (handler, setup);
     }
 

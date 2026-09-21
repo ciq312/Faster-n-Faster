@@ -33,7 +33,7 @@ public class ResetPasswordHandler(
         userRepo.Update(user);
         await unitOfWork.SaveChangesAsync();
 
-        await tokenRepo.RemoveAllForUser(user.Id, TokenType.PasswordReset);
+        await tokenRepo.Remove(token);
         sessionService.ClearActiveSession(user.Id);
     }
 }

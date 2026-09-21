@@ -65,6 +65,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IAuthTokenWriter, CookieWriter>();
         services.AddScoped<IConfirmTokenFactory, ConfirmTokenFactory>();
         services.AddSingleton<IConfirmTokenRepository, RedisConfirmTokenRepository>();
+        services.AddScoped<IConfirmTokenIssuer, ConfirmTokenIssuer>();
         services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
 
         services.AddScoped<LeaderboardRepository>();
