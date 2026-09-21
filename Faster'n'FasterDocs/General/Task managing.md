@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
@@ -24,6 +23,7 @@ kanban-plugin: board
 
 ## Bugs
 
+- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
 - [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
 
