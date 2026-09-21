@@ -2,6 +2,7 @@ using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
+using FasterNFaster.Tests.Fakes;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -19,7 +20,7 @@ public class ResendVerificationHandlerTests
         setup.TokenRepo.tokens.Clear();
 
         var handler = new ResendVerificationHandler(
-            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory), setup.EmailSender, new ResendVerificationOptions());
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), setup.EmailSender);
         return (handler, setup);
     }
 

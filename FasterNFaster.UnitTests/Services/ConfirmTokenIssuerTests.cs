@@ -1,30 +1,25 @@
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Services;
 
 public class ConfirmTokenIssuerTests
 {
-    private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Cooldown = ConfirmTokenFactoryHelper.DefaultOptions.Value.PasswordReset.Cooldown;
     private readonly Guid userId = Guid.NewGuid();
     private readonly FakeTokenRepo tokenRepo = new();
     private readonly ConfirmTokenIssuer issuer;
 
     public ConfirmTokenIssuerTests()
     {
-        var tokenFactory = new ConfirmTokenFactory(
-            Options.Create(new VerifyEmailOptions { ExpirationTime = TimeSpan.FromDays(1) }),
-            Options.Create(new ResetPasswordOptions { ExpirationTime = TimeSpan.FromDays(1) }));
-        issuer = new ConfirmTokenIssuer(tokenRepo, tokenFactory);
+        issuer = new ConfirmTokenIssuer(tokenRepo, ConfirmTokenFactoryHelper.Create(), ConfirmTokenFactoryHelper.DefaultOptions);
     }
 
     [Fact]
     public async Task NoPriorToken_IssuesAndStoresToken()
     {
-        Token? token = await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        Token? token = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.NotNull(token);
         Assert.Equal(userId, token.UserId);
@@ -35,9 +30,9 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task WithinCooldown_ReturnsNullAndKeepsPriorToken()
     {
-        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
-        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.Null(second);
         Assert.Same(first, Assert.Single(tokenRepo.tokens));
@@ -46,10 +41,10 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task AfterCooldown_ReplacesPriorToken()
     {
-        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset);
         first!.CreatedAt = DateTime.UtcNow - Cooldown - TimeSpan.FromSeconds(1);
 
-        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.NotNull(second);
         Assert.NotEqual(first.Value, second.Value);
@@ -59,9 +54,9 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task CooldownIsPerTokenType()
     {
-        await issuer.TryIssue(userId, TokenType.PasswordReset, Cooldown);
+        await issuer.TryIssue(userId, TokenType.PasswordReset);
 
-        Token? verification = await issuer.TryIssue(userId, TokenType.EmailVerification, Cooldown);
+        Token? verification = await issuer.TryIssue(userId, TokenType.EmailVerification);
 
         Assert.NotNull(verification);
         Assert.Equal(2, tokenRepo.tokens.Count);

@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
 - [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
 - [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
 - [ ] PendingRemovalRegistry: make interface synchronous
@@ -28,6 +27,7 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] Options: VerifyEmail/ResetPassword/ResendVerification/RequestPasswordReset options → one ConfirmTokenOptions (per-TokenType ExpirationTime + Cooldown, `ConfirmTokens` section). ConfirmTokenIssuer reads the cooldown itself, so handlers dropped their options and the raw `.Value` singleton registrations are gone
 - [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
 - [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
 - [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby

@@ -9,8 +9,7 @@ namespace FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 public class RequestPasswordResetHandler(
     IUserRepository userRepo,
     IConfirmTokenIssuer tokenIssuer,
-    IEmailSender emailSender,
-    RequestPasswordResetOptions options) : IRequestHandler<RequestPasswordResetCommand>
+    IEmailSender emailSender) : IRequestHandler<RequestPasswordResetCommand>
 {
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
@@ -18,7 +17,7 @@ public class RequestPasswordResetHandler(
         if (user is null) return;
         if (user.Password is null) return;
 
-        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset, options.Cooldown);
+        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset);
         if (token is null) return;
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);
