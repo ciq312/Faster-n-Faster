@@ -11,24 +11,25 @@ public class FakeUserRepository : IUserRepository
 
     public void Seed(User user) => _users.Add(user);
 
-    public Task AddAsync(User user)
+    public void Add(User user)
     {
         _users.Add(user);
-        return Task.CompletedTask;
     }
 
-    public Task UpdateAsync(User user) => Task.CompletedTask;
+    public void Update(User user)
+    {
+        var existingUser = _users.FirstOrDefault(u => u.Id == user.Id);
+        if (existingUser != null)
+        {
+            _users.Remove(existingUser);
+            _users.Add(user);
+        }
+    }
 
     public Task<User?> GetByIdAsync(Guid id)
         => Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
 
     public Task<User?> GetByEmailAsync(string email) => Task.FromResult(_users.FirstOrDefault(x => x.Email == email));
-    public Task<bool> DoUserExistByLoginAsync(string login)
-        => Task.FromResult(_users.Any(u => u.Login == login));
-
-    public Task<bool> DoUserExistByNickAsync(string nick)
-        => Task.FromResult(_users.Any(u => u.Nick == nick));
-
     public Task<User?> GetUserByLoginAsync(string login)
         => Task.FromResult(_users.FirstOrDefault(u => u.Login == login));
 

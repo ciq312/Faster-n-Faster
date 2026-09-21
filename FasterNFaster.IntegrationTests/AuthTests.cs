@@ -15,17 +15,22 @@ using MediatR.Pipeline;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Org.BouncyCastle.Asn1;
 
-public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
 {
-    private readonly NoRateLimitApplicationFactory<Program> factory = factory;
+    private WebApplicationFactory<Program> app = null!;
 
-    public Task InitializeAsync() => factory.ResetAsync();
-    public Task DisposeAsync() => Task.CompletedTask;
+    public async Task InitializeAsync()
+    {
+        await fixture.ResetAsync();
+        app = fixture.CreateApp();
+    }
+
+    public async Task DisposeAsync() => await app.DisposeAsync();
 
     [Fact]
     public async Task FullRegisterFlow_ShouldPersistUser()
     {
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
         var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
 
@@ -34,7 +39,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
         var result = await registerResponse.Content.ReadFromJsonAsync<RegisterUserResult>();
         var userId = result!.UserId;
 
-        var confirmEmailToken = await factory.ExecuteScopedAsync<IConfirmTokenRepository, Token?>(repo =>
+        var confirmEmailToken = await app.ExecuteScopedAsync<IConfirmTokenRepository, Token?>(repo =>
         repo.GetLatestForUserAsync(
             userId,
             TokenType.EmailVerification));
@@ -43,7 +48,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
             AuthHelper.VerifyEmailUri,
             new VerifyEmailRequest(confirmEmailToken!.Value));
 
-        var userDb = await factory.ExecuteScopedAsync<IUserRepository, User?>(
+        var userDb = await app.ExecuteScopedAsync<IUserRepository, User?>(
             repo => repo.GetByIdAsync(userId));
 
         Assert.Equal(HttpStatusCode.Created, registerResponse.StatusCode);
@@ -61,11 +66,11 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
     [Fact]
     public async Task LoginExistingUser_ShouldGiveTokens()
     {
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
         var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
 
-        await AuthHelper.FullRegisterFlowAsync(factory, client, user);
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
@@ -87,11 +92,11 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
     [Fact]
     public async Task LoginUserWrongPassword_Should401()
     {
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
         var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
 
-        await AuthHelper.FullRegisterFlowAsync(factory, client, user);
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
 
         var response = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, "wrongPass"));
 
@@ -101,11 +106,11 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
     [Fact]
     public async Task RefreshWithStaleToken_Should401()
     {
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var client = app.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
 
         var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
 
-        await AuthHelper.FullRegisterFlowAsync(factory, client, user);
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
@@ -117,24 +122,25 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
         var refreshToken1 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
 
         var request1 = new HttpRequestMessage(HttpMethod.Post, AuthHelper.RefreshUri);
-        request1.Headers.Add("Cookie", $"refresh_token={refreshToken1}");
+        request1.Headers.Add("Cookie", $"refresh_token={refreshToken1!.Value}");
         var refreshResponse = await client.SendAsync(request1);
 
         var request2 = new HttpRequestMessage(HttpMethod.Post, AuthHelper.RefreshUri);
-        request2.Headers.Add("Cookie", $"refresh_token={refreshToken1}");
+        request2.Headers.Add("Cookie", $"refresh_token={refreshToken1!.Value}");
         var refreshReponseWithStaleToken = await client.SendAsync(request2);
 
         Assert.Equal(HttpStatusCode.Unauthorized, refreshReponseWithStaleToken.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
     }
 
     [Fact]
     public async Task RefreshTokensWhenAccessToExpired_ShouldGiveNew()
     {
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
         var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
 
-        await AuthHelper.FullRegisterFlowAsync(factory, client, user);
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
@@ -149,16 +155,20 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> factory) : IClassF
 
         AuthHelper.SetCookies(cookies, refreshResponse, client);
 
-        var accessToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "access_token");
-        var refreshToken2 = cookies.GetAllCookies().LastOrDefault(c => c.Name == "refresh_token");
+        var accessToken2 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "access_token");
+        var refreshToken2 = cookies.GetAllCookies().FirstOrDefault(c => c.Name == "refresh_token");
 
         Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+        Assert.NotEqual(refreshToken1!.Value, refreshToken2!.Value);
+
+        var meResponse = await client.GetAsync("api/auth/me");
+        Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
     }
 
     [Fact]
     public async Task TryAccessAuthorizedEndpoint_ShouldBeDenied()
     {
-        var client = factory.CreateClient();
+        var client = app.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
 

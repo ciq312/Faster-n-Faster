@@ -4,8 +4,6 @@ namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
 
 public class CreateLobbyValidator : Validator<CreateLobbyRequest>
 {
-    private static readonly string[] ValidGameModes = ["wordcount", "timer"];
-
     public CreateLobbyValidator()
     {
         RuleFor(x => x.LobbyName)

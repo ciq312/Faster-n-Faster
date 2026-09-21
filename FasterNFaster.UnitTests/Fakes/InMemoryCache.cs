@@ -5,9 +5,6 @@ namespace FasterNFaster.Tests.Fakes;
 public class InMemoryCache : ICache
 {
     private readonly Dictionary<string, object?> _store = new();
-    private readonly Dictionary<string, long> _versions = new();
-
-    public bool Contains(string key) => _store.ContainsKey(key);
 
     public async Task<T?> GetOrSetAsync<T>(string key, Func<Task<T?>> factory, TimeSpan ttl) where T : class
     {
@@ -17,6 +14,7 @@ public class InMemoryCache : ICache
         if (value is not null) _store[key] = value;
         return value;
     }
+<<<<<<< HEAD
 
     public async Task<bool> GetOrSetFlagAsync(string key, Func<Task<bool>> factory, TimeSpan ttl)
     {
@@ -41,4 +39,6 @@ public class InMemoryCache : ICache
     }
 
     public Task<long> GetVersionAsync(string key) => Task.FromResult(_versions.GetValueOrDefault(key));
+=======
+>>>>>>> dev
 }

@@ -1,10 +1,9 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Infrastructure.Auth;
+using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -17,13 +16,11 @@ public class RequestPasswordResetHandlerTests
     {
         var setup = await RegisteredUsersSetup.Setup(
             new RegisterUserCommand("test", KnownLogin, KnownEmail, "testpass"));
-        // Clear the verification-email-from-registration so we assert on reset calls only.
         setup.EmailSender.Sent.Clear();
-        // Clear verification token for clean token-state assertions.
         setup.TokenRepo.tokens.Clear();
 
         var handler = new RequestPasswordResetHandler(
-            setup.repo, setup.TokenRepo, setup.TokenFactory, setup.EmailSender, new RequestPasswordResetOptions());
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), setup.EmailSender);
         return (handler, setup);
     }
 
@@ -59,23 +56,13 @@ public class RequestPasswordResetHandlerTests
         var userRepo = new FakeUserRepository();
         var tokenRepo = new FakeTokenRepo();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = new ConfirmTokenFactory(
-            Options.Create(new VerifyEmailOptions
-            {
-                ExpirationTime = TimeSpan.FromDays(1)
-            }),
-            Options.Create(new ResetPasswordOptions
-            {
-                ExpirationTime = TimeSpan.FromDays(1)
-            })
-        );
+        var tokenFactory = ConfirmTokenFactoryHelper.Create();
 
-        // Anonymous-ctor user has null Login and null Password — same shape as a Google-only account.
         var googleUser = new User("googleNick");
         googleUser.SetEmail("google@user.com");
         userRepo.Seed(googleUser);
 
-        var handler = new RequestPasswordResetHandler(userRepo, tokenRepo, tokenFactory, emailSender, new RequestPasswordResetOptions());
+        var handler = new RequestPasswordResetHandler(userRepo, new ConfirmTokenIssuer(tokenRepo, tokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), emailSender);
 
         await handler.Handle(new RequestPasswordResetCommand("google@user.com"), CancellationToken.None);
 
@@ -91,7 +78,6 @@ public class RequestPasswordResetHandlerTests
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 
-        // Only one token, only one email — second call short-circuited.
         Assert.Single(setup.TokenRepo.tokens);
         Assert.Single(setup.EmailSender.SentPasswordResets);
     }
@@ -102,12 +88,10 @@ public class RequestPasswordResetHandlerTests
         var (handler, setup) = await Build();
 
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
-        // Simulate cooldown elapsed by backdating the first token's CreatedAt.
         setup.TokenRepo.tokens[0].CreatedAt = DateTime.UtcNow.AddSeconds(-30);
 
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 
-        // RemoveAllForUser(PasswordReset) runs before issuing the new token, so exactly one remains.
         Assert.Single(setup.TokenRepo.tokens);
         Assert.Equal(2, setup.EmailSender.SentPasswordResets.Count);
     }

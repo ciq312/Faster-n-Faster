@@ -1,4 +1,3 @@
-using System.Diagnostics.Eventing.Reader;
 using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;

@@ -17,7 +17,7 @@ public class RegisterAnonymousHandlerTests
         Assert.Equal("Speedy", result.UserName);
         Assert.NotEqual(Guid.Empty, result.UserId);
         Assert.Equal(result.UserId, tokenService.IssuedForUserId);
-        Assert.Equal("guest-access", result.Tokens.AccessToken);
+        Assert.Equal("guest-access", result.Tokens.AccessToken.Value);
         Assert.Null(result.Tokens.RefreshToken);
     }
 }

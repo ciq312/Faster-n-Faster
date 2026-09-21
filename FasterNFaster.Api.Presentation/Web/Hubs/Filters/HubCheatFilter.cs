@@ -1,15 +1,13 @@
 using FasterNFaster.Api.Core.Exceptions.Races;
 using FasterNFaster.Api.UseCases.Lobbies.BanForCheat;
+using FasterNFaster.Api.UseCases.Realtime;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
-using static FasterNFaster.Api.Web.Hubs.GameHubConstants;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
 
 public class HubCheatFilter(ILogger<HubCheatFilter> logger) : IHubFilter
 {
-    private readonly ILogger<HubCheatFilter> logger = logger;
-
     public async ValueTask<object?> InvokeMethodAsync(
         HubInvocationContext invocationContext,
         Func<HubInvocationContext, ValueTask<object?>> next)
@@ -34,7 +32,7 @@ public class HubCheatFilter(ILogger<HubCheatFilter> logger) : IHubFilter
 
         var sender = ctx.ServiceProvider.GetRequiredService<ISender>();
         await sender.Send(new BanForCheatCommand(userId, ex.Reason));
-        await ctx.Hub.Clients.Caller.SendAsync(Methods.Banned, $"Cheating detected: {ex.Reason}");
+        await ctx.Hub.Clients.Caller.SendAsync(GameEvents.Banned, $"Cheating detected: {ex.Reason}");
         ctx.Context.Abort();
     }
 }

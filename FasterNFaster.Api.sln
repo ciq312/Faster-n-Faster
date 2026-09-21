@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Api.Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.Api.UseCases", "FasterNFaster.Api.UseCases\FasterNFaster.Api.UseCases.csproj", "{AA853E3D-1519-488F-8EFA-3A2521C7514E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.UnitTests", "FasterNFaster.UnitTests\FasterNFaster.UnitTests.csproj", "{0645613B-2286-4796-888C-525B7071A9CC}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.IntegrationTests", "FasterNFaster.IntegrationTests\FasterNFaster.IntegrationTests.csproj", "{3DF45C92-F926-4A2E-94DD-D5718237436F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterNFaster.UnitTests", "FasterNFaster.UnitTests\FasterNFaster.UnitTests.csproj", "{2FCFCE0E-4575-4674-A159-D74A8A8275EB}"

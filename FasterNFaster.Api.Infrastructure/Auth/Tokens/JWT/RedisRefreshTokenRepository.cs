@@ -5,7 +5,6 @@ namespace FasterNFaster.Api.Infrastructure.Auth;
 
 public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefreshTokenRepository
 {
-    private readonly IConnectionMultiplexer redis = redis;
     private readonly IDatabase db = redis.GetDatabase();
 
     private static string TokenToUserKey(string token) => $"auth:refresh:{token}";
@@ -18,20 +17,16 @@ public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefres
         await tran.ExecuteAsync();
     }
 
-    public async Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan? ttl)
+    public async Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan ttl)
     {
-        var oldTokenKey = TokenToUserKey(oldRefreshToken);
-        var userIdValue = await db.StringGetAsync(oldTokenKey);
+        var userIdValue = await db.StringGetAsync(TokenToUserKey(oldRefreshToken));
         if (!IsUserIdFound(userIdValue)) return null;
 
         var userId = Guid.Parse(userIdValue.ToString());
 
-        var newTtl = ttl ?? await db.KeyTimeToLiveAsync(oldTokenKey);
-        if (newTtl is null || newTtl <= TimeSpan.Zero) return null;
-
         var tran = db.CreateTransaction();
         QueueDeleteToken(tran, userId, oldRefreshToken);
-        QueueStoreToken(tran, userId, newRefreshToken, newTtl.Value);
+        QueueStoreToken(tran, userId, newRefreshToken, ttl);
         if (!await tran.ExecuteAsync()) return null;
 
         return userId;

@@ -16,8 +16,8 @@ public class GetLeaderboardHandler(ILeaderboardRepository leaderboardRepo) : IRe
 
         int firstRank = (page - 1) * pageSize + 1;
         var items = result.Items
-            .Select((stat, i) => new LeaderboardResultDTO(
-                firstRank + i, stat.Id, stat.PlayerName, stat.BestWPM, stat.BestAccuracy, stat.AvgWPM, stat.AvgAccuracy, stat.Wins, stat.WordsTyped, stat.RacesTyped))
+            .Select((entry, i) => new LeaderboardResultDTO(
+                firstRank + i, entry.Id, entry.PlayerName, entry.BestWPM, entry.BestAccuracy, entry.AvgWPM, entry.AvgAccuracy, entry.Wins, entry.WordsTyped, entry.RacesTyped))
             .ToList();
 
         int totalPages = (int)Math.Ceiling(result.TotalPlayers / (double)pageSize);

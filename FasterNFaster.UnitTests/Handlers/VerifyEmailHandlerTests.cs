@@ -3,6 +3,7 @@ using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
+using FasterNFaster.Tests.Fakes;
 using static FasterNFaster.Tests.RegisteredUsersSetup;
 
 namespace FasterNFaster.Tests.Handlers;
@@ -29,7 +30,7 @@ public class VerifyEmailHandlerTests
         var tokenRepo = setup.TokenRepo;
         var token = tokenRepo.tokens[0].Value;
 
-        var handler = new VerifyEmailHandler(userRepo, tokenRepo);
+        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork());
 
         await Assert.ThrowsAsync<TokenNotFoundException>(async () =>
         {
@@ -47,7 +48,7 @@ public class VerifyEmailHandlerTests
         var tokenRepo = setup.TokenRepo;
         var tokenVal = tokenRepo.tokens[0].Value;
 
-        var handler = new VerifyEmailHandler(userRepo, tokenRepo);
+        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork());
 
         await handler.Handle(new VerifyEmailCommand(tokenVal), CancellationToken.None);
 
