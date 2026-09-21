@@ -50,18 +50,6 @@ public class RedisConfirmTokenRepository(IConnectionMultiplexer redis) : IConfir
             await db.KeyDeleteAsync(userKey);
     }
 
-    public async Task RemoveAllForUser(Guid userId, TokenType type)
-    {
-        var userKey = UserKey(userId, type);
-        var value = await db.StringGetAsync(userKey);
-
-        var tran = db.CreateTransaction();
-        _ = tran.KeyDeleteAsync(userKey);
-        if (value.HasValue)
-            _ = tran.KeyDeleteAsync(ValueKey(value!));
-        await tran.ExecuteAsync();
-    }
-
     private static string Serialize(Token token) =>
         JsonSerializer.Serialize(new StoredToken(token.UserId, token.Value, token.Type, token.CreatedAt, token.ExpiresAt));
 

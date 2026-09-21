@@ -6,16 +6,14 @@ namespace FasterNFaster.Api.Infrastructure.Db.Users;
 
 public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
 {
-    public async Task AddAsync(User user)
+    public void Add(User user)
     {
         appDbContext.Users.Add(user);
-        await appDbContext.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(User user)
+    public void Update(User user)
     {
         appDbContext.Users.Update(user);
-        await appDbContext.SaveChangesAsync();
     }
 
     public async Task<User?> GetByIdAsync(Guid id)

@@ -1,23 +1,23 @@
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 
 public class RaceFinishedOrchestrationHandler(
-    ILobbyRepository repo,
-    ILobbyServiceFacade lobbySessionService,
-    IPublisher publisher) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
+    ILobbyAccess lobbies,
+    IRaceAccess races,
+    ILobbyStateScope lobbyStateScope) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
-    public async Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
-    {
-        var e = notification.Event;
-        await lobbySessionService.EndSession(e.LobbyId);
+    public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken) =>
+        lobbyStateScope.Run(async () =>
+        {
+            var e = notification.Event;
 
-        var lobby = repo.Get(e.LobbyId) ?? throw new LobbyNotFoundException(e.LobbyId);
-        await lobbySessionService.RefreshPassage(lobby.HostId);
-        await publisher.Publish(new RaceSessionEndedEvent(lobby, e.Results), cancellationToken);
-    }
+            await lobbies.Mutate(e.LobbyId, l => l.EndSession());
+
+            await races.RefreshPassage(e.LobbyId);
+        });
 }

@@ -1,0 +1,36 @@
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
+using Microsoft.AspNetCore.Identity.Data;
+using MimeKit;
+
+namespace FasterNFaster.Tests.Handlers;
+
+public class DisconnectHandlerTests
+{
+    [Fact]
+    public async Task DisconnectFromLobby_ShouldRemove()
+    {
+        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+
+        await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
+
+        Assert.Single(context.Lobby.Players);
+        Assert.True(context.Lobby.Players.ToList()[0].Id == host.Id);
+    }
+    [Fact]
+    public async Task HostDisconnectFromLobby_ShouldPromoteNextAndRemoveHost()
+    {
+        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+
+        await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
+
+        Assert.Single(context.Lobby.Players);
+        Assert.True(context.Lobby.Players.ToList()[0].Id == context.Lobby.HostId);
+    }
+
+}

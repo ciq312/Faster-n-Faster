@@ -6,43 +6,49 @@ kanban-plugin: board
 
 ## To do
 
-- [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
-- [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
-- [ ] Cleanup: remove double host validation (facade ValidateHost via WithLobby + StartSession validates again)
-- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events
-- [ ] Collapse lobby/race services: remove ILobbyInternals, IRaceInternals, IRaceTransitionService, ILobbyServiceFacade → ILobbyService + IRaceService + one orchestrator
-- [ ] Decide handlers vs services as use-case owners; remove pass-through handlers and the duplicate UpdateProgress path
-- [ ] Race knows its LobbyId (or Lobby owns Race): remove IRaceEvent.WrapRaceContext, second race lock, register/deregister syncing
-- [ ] Race end: remove second notification (RaceSessionEndedEvent) hop
-- [ ] Broadcast LobbyState once per lobby change instead of from every handler
-- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
-- [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
-- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
-- [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
-- [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
-- [ ] Options: merge VerifyEmailOptions/ResetPasswordOptions; stop double-registering cooldown options as raw singletons
-- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
-- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
-- [ ] PendingRemovalRegistry: make interface synchronous
-- [ ] YAGNI: decide on abstract Race + IRaceSettings polymorphism with a single WordRace
-- [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
+- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## In progress
 
-- [ ] Refactor
-- [ ] Split Integration tests so that hosts are running separately and doesn't fail because of FastEndpoints.
 
 
 ## Bugs
 
-- [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
 - [ ] ResetPasswordHandler doesn't revoke refresh tokens (ClearActiveSession instead of InvalidateAll)
-- [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
+- [ ] FastReconnect pending removal: `finally` removes by userId only, so a stale handler (refresh → disconnect again before its continuation runs) deletes the newer CTS and the next refresh can't cancel it → player removed anyway; use compare-remove `TryRemove(KeyValuePair.Create(userId, cts))`. Also StorePendingRemoval overwrites an existing CTS without cancelling it (older delay becomes uncancellable), and the handler never disposes its CTS (`using var cts`)
 
 
 ## Done
 
+- [ ] Frontend: remove nonexistent hub calls (ChangeGameMode, ChangeWordCount, ChangeTimerDuration) and timer mode rendering in Lobby.jsx
+- [ ] useTyping: keystrokes right after race start get overwritten — needResyncRef is true on every TypingArea mount, first participants broadcast replaces local typed with stale server value → desync, correct chars count as mistakes, stuck at MAX_OVERFLOW
+- [ ] PendingRemovalRegistry: make interface synchronous
+- [ ] RaceStateConflator: merge partial files (LobbyBroadcast.cs, RaceFrame.cs) into one
+- [ ] Auth: single source for token lifetimes (JwtOptions vs AuthCookiesOptions), use cookie name option in AuthExtensions
+- [ ] Caching: drop ban/statistics caching decorators and reflection CacheSerializer; keep leaderboard cache only
+	  - Project LeaderboardPage into a DTO (LeaderboardEntry) instead of PlayerStatistics entities — otherwise CacheSerializer is still needed
+	  - Drop the lb:version bump (lived in CachedStatisticsRepository.SaveAsync); leaderboard freshness relies on the 60s TTL alone
+- [ ] Options: VerifyEmail/ResetPassword/ResendVerification/RequestPasswordReset options → one ConfirmTokenOptions (per-TokenType ExpirationTime + Cooldown, `ConfirmTokens` section). ConfirmTokenIssuer reads the cooldown itself, so handlers dropped their options and the raw `.Value` singleton registrations are gone
+- [ ] Auth: merge ResendVerification/RequestPasswordReset flows into shared token issuer; drop redundant RemoveAllForUser before Add
+- [ ] Auth: dedupe JwtTokenFactory token methods and CookieWriter cookie writers
+- [ ] Remove UserFactory: take Id/Nick from JWT claims in JoinLobby
+- [ ] Broadcasting: merge IBroadcaster + IRaceBroadcaster, replace IAudience hierarchy with ToLobby/ToPlayer methods, merge GameEvents + GameHubConstants.Methods
+- [ ] CI never ran the unit tests: backend-build pointed at `fasternfaster.api/FasterNFaster.Api.sln` and `fasternfaster.tests/FasterNFaster.Tests.csproj`, neither of which exists, so restore failed and publish-api/deploy stayed blocked behind it. Repointed at `FasterNFaster.Api.sln` + `FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj`, dropped the unused Api_project_path/Api_project_name vars, and fixed publish-api's docker context (was `./fasternfaster.api`) to `.` with `file: FasterNFaster.Api.Presentation/Dockerfile`, which is what the Dockerfile's COPY paths assume
+- [ ] Git tracked the unit test project as `fasternfaster.UnitTests/` while the folder on disk is `FasterNFaster.UnitTests/` — invisible on Windows because core.ignorecase is true. Renamed the 52 index entries to match disk via `git rm -r --cached` + `git add` (a directory `git mv` failed on a Windows lock, and the index-only route touches no files); .sln now points at the PascalCase path and the stray solution folder wrapping the project is gone. Leave core.ignorecase alone — flipping it on NTFS makes git invent renames
+- [ ] InMemoryLobbyRepository singleton shares added/updated/removed lists across lobbies — concurrent saves on different lobbies race
+- [ ] Broadcast LobbyState once per lobby change: ILobbyStateTracker collects dirty lobby ids in an AsyncLocal scope, ILobbyStateScope.Run flushes one broadcast per distinct lobby; LobbyAccess.Mutate and RaceAccess.RefreshPassage mark (not RaceAccess.Mutate — ProcessUpdate runs per keystroke). All 9 broadcast sites gone: 7 handlers lost ILobbyQuery, GameHub lost ILobbyRepository/IBroadcaster/ILobbyQuery with its OnDisconnectedAsync broadcast. Scope is opened in exactly two places — LobbyStateFlushBehavior on commands marked ILobbyStateRequest, and RaceFinishedOrchestrationHandler, because GameHub.UpdateRaceState skips MediatR on purpose and that's the path where typing ends a race. Fixes a host disconnect sending 3 identical frames (HostChanged handler + PlayerDisconnected handler + GameHub) and StartRace sending none although it flips IsSessionActive. Both access services stay singleton: LobbyAccess owns the per-lobby semaphores, and MediatREventDispatcher creates a DI scope per event, so a scoped tracker would be a different instance inside every notification handler — AsyncLocal rides ExecutionContext and survives both
+- [ ] Race end: RaceSessionEndedEvent carries LobbyId instead of the Lobby aggregate; dropped the now-dead GetRequired in RaceFinishedOrchestrationHandler. The second hop was kept here as a sequencing barrier, then deleted with the LobbyState card above: BroadcastRaceFinishedHandler no longer reads lobby state (RaceEnded's payload comes off the domain event) and the LobbyState read now sits at the end of the same block that does the writes, so MediatR's lack of sibling ordering stopped mattering. RaceFinishedEvent now fans out to SaveRaceResultHandler, RaceFinishedOrchestrationHandler and BroadcastRaceFinishedHandler in any order
+- [ ] Race knows its LobbyId (keep Lobby and Race as separate aggregates, referenced by ID, synced via domain events): pass lobbyId to Race constructor, remove IRaceEvent.WrapRaceContext, simplify register/deregister syncing
+- [ ] InMemoryLobbyRepository: drop fake unit of work (added/updated/removed lists), plain store; service dispatches events — also move domain event dispatch out of the LobbyAccess gate (SaveChanges dispatches inside the semaphore; SemaphoreSlim is non-reentrant, so any lobby event handler that re-enters Mutate on the same lobby deadlocks)
+- [ ] Add WithdrawFromRaceOnPlayerRemovedHandler on PlayerRemovedEvent and drop the race withdrawal branch from DisconnectHandler (rest of "handlers own use cases" done)
+- [ ] Collapse race services: remove IRaceInternals → IRaceService (lobby side done — ILobbyAccess + ILobbyQuery, facade deleted)
+- [x] Collapse the lobby facade: ILobbyService + ILobbyInternals → ILobbyAccess (Mutate/Create/Remove + reads); ILobbyServiceFacade, LobbyServiceFacade and IRaceTransitionService deleted; GetLobbyStateDTO → ILobbyQuery.GetLobbyState. 25 members across 3 interfaces → 9 across 2. The Internals/Service split was never real — DI handed out the same singleton for both, and the facade injected it twice
+- [x] Handlers own use cases: StartSession, KickPlayer, RefreshPassage, RemoveLobbyIfEmpty and RemovePlayerFromLobby inlined into their handlers; BanForCheat composes via DisconnectCommand instead of a shared service; dead withdraw-after-kick branch removed (Lobby.Kick already rejects during a race)
+- [x] Cleanup: remove double host validation — StartRace now validates and starts inside one Mutate (was two gate acquisitions and two SaveChanges per race start); RefreshPassage no longer takes the gate for a read-only host check
+- [ ] Unit of work: add IUnitOfWork (AppDbContext implements, scoped); repositories only Add/Update (no SaveChanges); handlers commit once — fixes non-atomic ExternalLoginHandler (user + external login saved separately). Update RegisterUser/VerifyEmail/ResetPassword/LinkToExistingAccount, BanRepository, move IStatisticsRepository.SaveAsync + cache invalidation after commit; DB commit before Redis writes
+- [ ] Cleanup: single countdown constant (3 in BroadcastRaceStartingHandler vs 3.5 in RaceTickService)
+- [ ] Tests: ResetAsync doesn't reset in-memory singletons (sessions, lobbies, location registry, rate limiter)
 - [ ] Tests: remove duplicate appsettings.json in IntegrationTests and unused usings
 - [ ] Tests: TestApplicationFactory.DisposeAsync — dispose host first (base.DisposeAsync), then DisposeAsync containers instead of StopAsync
 - [ ] Tests: RateLimiting window test — dispose WithWebHostBuilder factory, add margin to Task.Delay(window)

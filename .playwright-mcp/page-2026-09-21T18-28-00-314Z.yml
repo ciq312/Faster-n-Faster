@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "faster'n'faster" [ref=e5] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e6]:
+      - link "lobbies" [ref=e7] [cursor=pointer]:
+        - /url: /lobbies
+      - link "leaderboard" [ref=e8] [cursor=pointer]:
+        - /url: /leaderboard
+      - link "profile" [ref=e9] [cursor=pointer]:
+        - /url: /profile/me
+  - generic [ref=e10]:
+    - generic [ref=e11]:
+      - button "create lobby" [ref=e12] [cursor=pointer]
+      - button "Refresh" [ref=e13] [cursor=pointer]
+      - generic [ref=e14]:
+        - generic [ref=e15]: join via invite code
+        - generic [ref=e16]:
+          - textbox "enter code" [ref=e17]
+          - button "join lobby" [disabled] [ref=e18]
+    - generic [ref=e19]:
+      - heading "Active lobbies" [level=2] [ref=e20]
+      - paragraph [ref=e22]: No active lobbies — create one!
+  - generic [ref=e24]:
+    - generic [ref=e25]:
+      - heading "Create lobby" [level=2] [ref=e26]
+      - button "×" [ref=e27] [cursor=pointer]
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: lobby name
+        - textbox "lobby name" [ref=e31]:
+          - /placeholder: name your lobby
+          - text: claude-test
+      - generic [ref=e32]:
+        - generic [ref=e33]: visibility
+        - generic [ref=e34]:
+          - button "public" [active] [ref=e35] [cursor=pointer]
+          - button "private" [ref=e36] [cursor=pointer]
+      - button "create" [ref=e37] [cursor=pointer]

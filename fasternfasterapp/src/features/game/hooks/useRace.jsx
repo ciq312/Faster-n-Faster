@@ -24,16 +24,18 @@ export function useRace() {
         setIsRacing(state.isSessionActive);
       }),
 
-      subscribe("RaceStarting", () => {
+      subscribe("RaceStarting", ({countdownSeconds}) => {
         countdownTimersRef.current.forEach(clearTimeout);
-        countdownTimersRef.current = [
-          setTimeout(() => setCountdown(2), 1000),
-          setTimeout(() => setCountdown(1), 2000),
-          setTimeout(() => setCountdown("GO"), 3000),
-        ];
+        countdownTimersRef.current = [];
+
+        for (let i = countdownSeconds; i > 0; i--) {
+          countdownTimersRef.current.push(setTimeout(() => setCountdown(i), (countdownSeconds - i) * 1000));
+        }
+
+        countdownTimersRef.current.push(setTimeout(() => setCountdown("GO"), countdownSeconds * 1000));
+
         setIsRaceStarting(true);
         setRaceResults(null);
-        setCountdown(3);
       }),
 
       subscribe("RaceStarted", () => {

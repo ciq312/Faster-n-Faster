@@ -27,12 +27,13 @@ export function useTyping({
   useEffect(() => {
     if (!needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
+    needResyncRef.current = false;
+    if (selfTyped.length <= typed.length) return;
     setTyped(selfTyped);
     lastCorrectIndexRef.current = selfCorrectIndex;
     nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
     mistakesRef.current = selfMistakes ?? 0;
-    needResyncRef.current = false;
-  }, [selfTyped, passage, selfCorrectIndex, selfMistakes]);
+  }, [selfTyped, passage, selfCorrectIndex, selfMistakes, typed.length]);
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;
