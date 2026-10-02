@@ -12,6 +12,8 @@ services:
     ports: !reset []
     pull_policy: always
     restart: unless-stopped
+    environment:
+      DOTNET_SYSTEM_NET_DISABLEIPV6: "1"
 
   frontend:
     image: ghcr.io/ciq312/fasternfaster-frontend:latest
