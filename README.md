@@ -144,12 +144,27 @@ docker compose up --build
 
 ## CI/CD
 
-On push to `main`:
+`main` is production — every merge deploys. `dev` collects finished work.
 
-1. **backend-build** — `dotnet restore → build → test`
-2. **frontend-build** — `npm ci → npm run build`
-3. **publish** — Docker images pushed to GHCR tagged `:latest` and `:<sha>`
-4. **deploy** — SSH to VPS, `git pull`, `docker compose pull`, `docker compose up -d`, prune old images
+```
+feature/* ──PR, squash──▶ dev ──PR, merge commit──▶ main ──▶ deploy
+```
+
+- Direct pushes, force pushes and deletion are blocked on `main` and `dev`.
+- `main` only accepts PRs from `dev`, so hotfixes take the same path.
+- PR titles must follow [Conventional Commits](https://www.conventionalcommits.org) (`feat: …`, `fix(lobby): …`) — the title becomes the commit message.
+
+On every PR into `dev` or `main` (all must pass to merge):
+
+1. **backend-build** — `dotnet restore → build → unit tests`
+2. **integration-tests** — integration test project
+3. **frontend-build** — `npm ci → npm run build`
+4. **pr-title** — Conventional Commits check; **release-source** — PRs into `main` come from `dev`
+
+On push to `main` (a merged release PR), after the builds pass again:
+
+1. **publish** — Docker images pushed to GHCR tagged `:latest` and `:<sha>`
+2. **deploy** — SSH to VPS, `git reset --hard origin/main`, `docker compose pull`, `docker compose up -d`, prune old images
 
 Rollback: re-deploy with an explicit `:<sha>` image tag.
 
