@@ -144,14 +144,49 @@ docker compose up --build
 
 ## CI/CD
 
-On push to `main`:
+`main` is production — every merge deploys. `dev` collects finished work.
 
-1. **backend-build** — `dotnet restore → build → test`
-2. **frontend-build** — `npm ci → npm run build`
-3. **publish** — Docker images pushed to GHCR tagged `:latest` and `:<sha>`
-4. **deploy** — SSH to VPS, `git pull`, `docker compose pull`, `docker compose up -d`, prune old images
+```
+feature/* ──PR, squash──▶ dev ──PR, merge commit──▶ main ──▶ deploy
+```
 
-Rollback: re-deploy with an explicit `:<sha>` image tag.
+- Direct pushes, force pushes and deletion are blocked on `main` and `dev`.
+- `main` only accepts PRs from `dev`, so hotfixes take the same path.
+- PR titles must follow [Conventional Commits](https://www.conventionalcommits.org) (`feat: …`, `fix(lobby): …`) — the title becomes the commit message.
+
+On every PR into `dev` or `main` (all must pass to merge):
+
+1. **backend-build** — `dotnet restore → build → unit tests`
+2. **integration-tests** — integration test project
+3. **frontend-build** — `npm ci → npm run build`
+4. **pr-title** — Conventional Commits check; **release-source** — PRs into `main` come from `dev`
+
+On push to `main` (a merged release PR), after the builds pass again:
+
+1. **publish** — Docker images pushed to GHCR tagged `:latest` and `:<sha>`
+2. **deploy** ([`deploy.yml`](.github/workflows/deploy.yml)) — SSH to VPS, `git reset --hard <sha>`, `docker compose pull` + `up -d` with `IMAGE_TAG=<sha>`, remove older images
+
+The VPS checkout and both images are pinned to the same commit, so the compose files and Caddyfile always match the running code. Every deploy and its SHA is listed under the repo's **Environments → production**.
+
+### Rollback
+
+Re-run the deploy with an earlier SHA, either from the Actions tab (**Deploy → Run workflow**) or with:
+
+```bash
+gh workflow run deploy.yml -f sha=<full commit sha>
+```
+
+- Only commits pushed to `main` have images. Any other SHA fails at `docker compose pull`, and nothing is restarted.
+- The API applies EF Core migrations on startup, and a rollback does not undo them. The older version has to work with the newer schema.
+
+### On the server
+
+The deploy writes `IMAGE_TAG=<sha>` into `/opt/Faster-n-Faster/.env`, so manual `docker compose -f docker-compose.yml -f docker-compose.prod.yml …` commands stay on the deployed version. To see what's running:
+
+```bash
+git -C /opt/Faster-n-Faster rev-parse HEAD
+docker compose -f docker-compose.yml -f docker-compose.prod.yml images
+```
 
 ---
 
@@ -162,8 +197,8 @@ Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
 | Container | Image | Role |
 |---|---|---|
 | `caddy` | `caddy:latest` | TLS termination, automatic Let's Encrypt, routing |
-| `frontend` | `ghcr.io/ciq312/fasternfaster-frontend:latest` | nginx serving built React on :3000 |
-| `backend` | `ghcr.io/ciq312/fasternfaster-api:latest` | ASP.NET Core API on :8080 |
+| `frontend` | `ghcr.io/ciq312/fasternfaster-frontend:<sha>` | nginx serving built React on :3000 |
+| `backend` | `ghcr.io/ciq312/fasternfaster-api:<sha>` | ASP.NET Core API on :8080 |
 | `postgresDB` | `postgres:15` | Persistent storage |
 | `redis` | `redis:7-alpine` | Tokens + read caches (256 MB LRU) |
 

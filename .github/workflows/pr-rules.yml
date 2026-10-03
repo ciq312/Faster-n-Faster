@@ -1,0 +1,34 @@
+name: PR rules
+
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+    types: [ opened, edited, synchronize, reopened ]
+
+jobs:
+  pr-title:
+    if: github.base_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Title follows Conventional Commits
+      env:
+        TITLE: ${{ github.event.pull_request.title }}
+      run: |
+        pattern='^((feat|fix|refactor|perf|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+|Revert ".+")$'
+        if [[ ! "$TITLE" =~ $pattern ]]; then
+          echo "::error::PR title must follow Conventional Commits, e.g. 'fix(lobby): handle empty name'. Got: $TITLE"
+          exit 1
+        fi
+
+  release-source:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Only dev can be merged into main
+      env:
+        HEAD_BRANCH: ${{ github.head_ref }}
+      run: |
+        if [[ "$HEAD_BRANCH" != "dev" ]]; then
+          echo "::error::PRs into main must come from dev, got '$HEAD_BRANCH'. Open the PR against dev instead."
+          exit 1
+        fi

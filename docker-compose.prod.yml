@@ -8,17 +8,19 @@ services:
     restart: unless-stopped
 
   api:
-    image: ghcr.io/ciq312/fasternfaster-api:latest
+    image: ghcr.io/ciq312/fasternfaster-api:${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}
+    build: !reset null
     ports: !reset []
-    pull_policy: always
+    pull_policy: missing
     restart: unless-stopped
     environment:
       DOTNET_SYSTEM_NET_DISABLEIPV6: "1"
 
   frontend:
-    image: ghcr.io/ciq312/fasternfaster-frontend:latest
+    image: ghcr.io/ciq312/fasternfaster-frontend:${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}
+    build: !reset null
     ports: !reset []
-    pull_policy: always
+    pull_policy: missing
     restart: unless-stopped
 
   caddy:
