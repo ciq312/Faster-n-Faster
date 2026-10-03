@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full SHA of a commit pushed to main (its images must be in GHCR)
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://faster-n-faster.com
+    concurrency: production
+    steps:
+    - name: Check the SHA
+      env:
+        IMAGE_TAG: ${{ inputs.sha }}
+      run: |
+        if [[ ! "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::Expected a full 40-character commit SHA, got '$IMAGE_TAG'"
+          exit 1
+        fi
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1
+      env:
+        IMAGE_TAG: ${{ inputs.sha }}
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        envs: IMAGE_TAG
+        script: |
+          set -e
+          cd /opt/Faster-n-Faster
+          git fetch origin
+          git reset --hard "$IMAGE_TAG"
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+          sed -i -e '/^IMAGE_TAG=/d' -e '$a\' .env
+          echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          docker image ls --filter 'reference=ghcr.io/ciq312/fasternfaster-*' --format '{{.Repository}}:{{.Tag}}' \
+            | grep -v ":$IMAGE_TAG\$" | xargs -r docker rmi || true
+          docker image prune -f
