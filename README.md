@@ -158,7 +158,7 @@ On every PR into `dev` or `main` (all must pass to merge):
 
 1. **backend-build** — `dotnet restore → build → unit tests`
 2. **integration-tests** — integration test project
-3. **frontend-build** — `npm ci → npm run build`
+3. **frontend-build** — `npm ci → npm run lint -> npm run build`
 4. **pr-title** — Conventional Commits check; **release-source** — PRs into `main` come from `dev`
 
 On push to `main` (a merged release PR), after the builds pass again:
