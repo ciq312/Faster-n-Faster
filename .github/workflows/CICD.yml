@@ -59,6 +59,7 @@ jobs:
         cache: npm
         cache-dependency-path: fasternfasterapp/package-lock.json
     - run: npm ci
+    - run: npm run lint
     - run: npm run build
 
   publish-api:

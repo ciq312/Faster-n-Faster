@@ -57,7 +57,8 @@ function ConnectionProvider({ url, children }) {
             const t0 = performance.now();
             await connection.invoke("Ping", Date.now());
             console.debug(`latency: ${Math.round(performance.now() - t0)}ms`);
-          } catch {}
+          }  
+          catch { console.log("latency check failed"); }
         }, 3000)
       : null;
 
@@ -65,7 +66,7 @@ function ConnectionProvider({ url, children }) {
       try {
         await connection.start();
         setIsConnected(true);
-      } catch (err) {
+      } catch {
         showError("Can't connect to the server");
         setIsConnected(false);
       }

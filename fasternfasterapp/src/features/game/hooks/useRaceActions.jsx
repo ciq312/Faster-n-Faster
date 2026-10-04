@@ -18,22 +18,22 @@ export function useRaceActions() {
       }),
     ];
     return () => cleanups.forEach((fn) => fn());
-  }, [isConnected]);
+  }, [isConnected, subscribe, showMessage]);
 
   const rawSendProgress = useCallback(async ({ index, mistakes, typed }) => {
     await invoke("UpdateRaceState", index, mistakes, typed);
-  }, []);
+  }, [invoke]);
 
   const { throttled: sendProgress, flush: flushProgress } =
     useThrottledCallback(rawSendProgress, PROGRESS_THROTTLE_MS);
 
   const startRace = useCallback(async () => {
     await invoke("StartRace");
-  }, []);
+  }, [invoke]);
 
   const refreshPassage = useCallback(async () => {
     await invoke("RefreshPassage");
-  }, []);
+  }, [invoke]);
 
   return {
     startRace,

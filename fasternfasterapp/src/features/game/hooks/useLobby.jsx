@@ -10,7 +10,7 @@ export function useLobby() {
   const [lobbyMaxPlayers, setLobbyMaxPlayers] = useState(null);
   const [lobbyInviteCode, setLobbyInviteCode] = useState(null);
   const [colors, setColors] = useState(null);
-  const { isSelf, userId } = useAuth();
+  const { isSelf } = useAuth();
 
   useEffect(() => {
     // Wait for both the SignalR connection and the auth probe — selfId is null
@@ -39,7 +39,7 @@ export function useLobby() {
     return () => {
       cleanups.forEach((clean) => clean());
     };
-  }, [isConnected]);
+  }, [isConnected, invoke, subscribe, isSelf]);
 
   return {
     isHost,

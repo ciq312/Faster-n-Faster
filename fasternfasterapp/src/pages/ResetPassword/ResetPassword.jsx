@@ -70,7 +70,7 @@ function ResetPassword() {
               placeholder="repeat password"
             />
             {passwordMismatch && (
-              <span className="reset-password__error">passwords don't match</span>
+              <span className="reset-password__error">passwords don&apos;t match</span>
             )}
           </label>
           <button

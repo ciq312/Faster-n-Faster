@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannerMessage, useError } from "../../../shared/components/BannerProvider";
 import { API_BASE } from "../../../shared/utils/apiCall";
+import { extractHttpError } from "../../../shared/utils/extractHttpError";
 
 export function useResetPassword() {
   const { showError } = useError();
