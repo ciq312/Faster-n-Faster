@@ -192,7 +192,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml images
 
 ## Production
 
-Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
+Hosted on a Contabo VPS (8 GB RAM). All services run as Docker containers:
 
 | Container | Image | Role |
 |---|---|---|
