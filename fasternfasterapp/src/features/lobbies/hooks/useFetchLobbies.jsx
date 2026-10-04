@@ -25,7 +25,7 @@ export function useFetchLobbies() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     fetchLobbies();

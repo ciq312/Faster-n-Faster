@@ -11,7 +11,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <NavLink to="/" className="navbar__logo">
-        faster'n'faster
+        faster&apos;n&apos;faster
       </NavLink>
       <div className="navbar__links">
         <NavLink to="/lobbies" className="navbar__link">

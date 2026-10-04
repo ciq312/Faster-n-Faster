@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthContext";
 import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
 import RaceResults from "../../features/game/components/RaceResults";
@@ -12,8 +11,6 @@ import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Lobby.css";
 
 function Lobby() {
-  const { lobbyId } = useParams();
-  const location = useLocation();
   const {isSelf, userId: selfId} = useAuth();
   
   const {

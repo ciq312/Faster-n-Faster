@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useConnection } from "../../features/connection/ConnectionProvider";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import { useCreateLobby } from "../../features/lobbies/hooks/useCreateLobby";
 import { useFetchLobbies } from "../../features/lobbies/hooks/useFetchLobbies";
@@ -13,8 +11,6 @@ function Lobbies() {
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { joinLobby } = useJoinLobby();
-  const { invoke, subscribe, isConnected } = useConnection();
-  const navigate = useNavigate();
   const fetchLobbies = useFetchLobbies();
   const createLobby = useCreateLobby();
   const { showError } = useError();

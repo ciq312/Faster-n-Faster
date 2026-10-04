@@ -33,7 +33,6 @@ function Leaderboard() {
     isDescending,
     page,
     totalPages,
-    totalPlayers,
     sortBy,
     goToPage,
   } = useFetchLeaderboard();

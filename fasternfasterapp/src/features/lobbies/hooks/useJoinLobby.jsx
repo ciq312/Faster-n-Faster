@@ -6,7 +6,7 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "../../game/hooks/LobbyProvider";
 
 export function useJoinLobby() {
-    const {invoke, isConnected} = useConnection();
+    const { invoke } = useConnection();
     const navigate = useNavigate();
     const { showError } = useError();
     const { setLobbyId } = useLobbyContext();
@@ -20,7 +20,7 @@ export function useJoinLobby() {
         catch (e) {
             showError(extractHubError(e));
         }
-    }, []);
+    }, [invoke, navigate, setLobbyId, showError]);
 
     return { joinLobby };
 }   

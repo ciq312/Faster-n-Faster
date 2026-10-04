@@ -10,7 +10,7 @@ import {
 import Banner from "./Banner/Banner";
 const BannerContext = createContext();
 
-function BannerProvider({ children }) {
+function BannerProvider({ children } ) {
   const bannerRef = useRef(null);
   const bannerPromiseRef = useRef(null);
   const [banner, setBanner] = useState(null);
@@ -60,7 +60,7 @@ function BannerProvider({ children }) {
       }, duration_MS);
     });
     },
-    [closeBanner],
+    [],
   );
 
   useEffect(() => () => clearTimers(), []);

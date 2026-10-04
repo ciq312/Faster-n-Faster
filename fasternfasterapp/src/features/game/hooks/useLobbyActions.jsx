@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useBannerMessage, useError } from "../../../shared/components/BannerProvider";
+import { useBannerMessage } from "../../../shared/components/BannerProvider";
 import { ROUTES } from "../../../shared/utils/routes";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
@@ -9,12 +9,11 @@ export function useLobbyActions() {
   const { invoke, subscribe, isConnected } = useConnection();
   const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
-  const { showError } = useError();
   const navigate = useNavigate();
 
   const lobbyCleanup = useCallback(() => {
     setLobbyId(null);
-  });
+  }, [setLobbyId]);
 
   useEffect(() => {
     const cleanups = [
@@ -36,25 +35,25 @@ export function useLobbyActions() {
       }),
     ];
     return () => cleanups.forEach((fn) => fn());
-  }, [isConnected]);
+  }, [isConnected, subscribe, showMessage, lobbyCleanup, navigate]);
 
   const changeColor = useCallback(async (color) => {
     await invoke("ChangeColor", color);
-  }, []);
+  }, [invoke]);
 
   const kickPlayer = useCallback(async (targetId) => {
     await invoke("KickPlayer", targetId);
-  }, []);
+  }, [invoke]);
 
   const transferHost = useCallback(async (targetId) => {
     await invoke("TransferHost", targetId);
-  }, []);
+  }, [invoke]);
 
   const leaveLobby = useCallback(async () => {
     await invoke("LeaveLobby");
     lobbyCleanup();
     navigate(ROUTES.LOBBIES);
-  }, []);
+  }, [invoke, navigate, lobbyCleanup]);
 
   return {
     changeColor,
