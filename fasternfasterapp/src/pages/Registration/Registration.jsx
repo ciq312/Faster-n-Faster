@@ -51,7 +51,7 @@ function Registration() {
   return (
     <div className="registration">
       <div className="registration__header">
-        <h1 className="registration__logo">faster'n'faster</h1>
+        <h1 className="registration__logo">faster&apos;n&apos;faster</h1>
         <p className="registration__tagline">Play hard type fast.</p>
       </div>
 
@@ -118,7 +118,7 @@ function Registration() {
       </div>
 
       <footer className="registration__footer">
-        <span>© {new Date().getFullYear()} faster'n'faster</span>
+        <span>© {new Date().getFullYear()} faster&apos;n&apos;faster</span>
         <span className="registration__footer-sep">·</span>
         <a href="mailto:lesha.mak34@gmail.com">contact</a>
       </footer>

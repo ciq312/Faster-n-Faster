@@ -52,7 +52,7 @@ export function useRace() {
     ];
 
     return () => cleanups.map((fn) => fn());
-  }, [isConnected]);
+  }, [isConnected, subscribe]);
 
   const dismissResults = useCallback(() => {
     setRaceResults(null);

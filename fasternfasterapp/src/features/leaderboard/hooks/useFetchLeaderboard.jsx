@@ -73,7 +73,7 @@ export function useFetchLeaderboard() {
 
   const goToPage = useCallback(
     (next) => {
-      setPage((current) => Math.min(Math.max(1, next), Math.max(1, totalPages)));
+      setPage(Math.min(Math.max(1, next), Math.max(1, totalPages)));
     },
     [totalPages],
   );

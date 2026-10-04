@@ -21,7 +21,7 @@ function ForgotPassword() {
     <div className="forgot-password">
       <div className="forgot-password__header">
         <h1 className="forgot-password__logo">forgot password</h1>
-        <p className="forgot-password__tagline">we'll send you a link</p>
+        <p className="forgot-password__tagline">we&apos;ll send you a link</p>
       </div>
 
       <div className="forgot-password__card">

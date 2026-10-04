@@ -15,7 +15,7 @@ function TypingArea({
   
   useEffect(() => {
     setSelf(players.filter((p) => p.playerId === selfId).pop());
-  }, [players]);
+  }, [players, selfId]);
   
 
   const {
@@ -23,7 +23,6 @@ function TypingArea({
     inputRef,
     handleTyping,
     focusInput,
-    lastCorrectIndex,
     nextSepIndex,
   } = useTyping({
     passage,
@@ -52,7 +51,7 @@ function TypingArea({
     } else {
       setSelfPos(caretPos(typed.length));
     }
-  }, [typed.length, caretPos]);
+  }, [typed.length, caretPos, containerRef, lastOverflowRef]);
 
   return (
     <>
