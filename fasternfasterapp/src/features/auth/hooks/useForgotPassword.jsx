@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
-import { API_BASE } from "../../../shared/utils/apiCall";
+import { API_BASE } from "../../../config";
 
 const COOLDOWN_SECONDS = 15;
 

@@ -174,4 +174,51 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task RotateRefreshTokenConcurrently_OnlyOneShouldWin()
+    {
+        var userId = Guid.NewGuid();
+        var oldToken = Guid.NewGuid().ToString();
+        var ttl = TimeSpan.FromMinutes(15);
+
+        await app.ExecuteScopedAsync<IRefreshTokenRepository>(repo => repo.Issue(userId, oldToken, ttl));
+
+        var newTokenA = Guid.NewGuid().ToString();
+        var newTokenB = Guid.NewGuid().ToString();
+
+        var taskA = app.ExecuteScopedAsync<IRefreshTokenRepository, Guid?>(
+            repo => repo.RotateRefreshToken(oldToken, newTokenA, ttl));
+        var taskB = app.ExecuteScopedAsync<IRefreshTokenRepository, Guid?>(
+            repo => repo.RotateRefreshToken(oldToken, newTokenB, ttl));
+
+        var results = await Task.WhenAll(taskA, taskB);
+
+        Assert.Single(results, r => r == userId);
+        Assert.Single(results, r => r is null);
+    }
+
+    [Fact] 
+    public async Task InvalidateTokens_IssuedTokensCanNoLongerRotate()
+    {
+        var userId = Guid.NewGuid();
+
+        var tokens = new List<string>();
+        var ttl = TimeSpan.FromMinutes(15);
+        var tokensToAdd = 5;
+        for (int i = 0; i < tokensToAdd; i++)
+        {
+            var token = Guid.NewGuid().ToString();
+            tokens.Add(token);
+            await app.ExecuteScopedAsync<IRefreshTokenRepository>(repo => repo.Issue(userId, token, ttl));
+        }
+
+        await app.ExecuteScopedAsync<IRefreshTokenRepository>(repo => repo.InvalidateAll(userId));
+
+        foreach (var token in tokens)
+        {
+            var result = await app.ExecuteScopedAsync<IRefreshTokenRepository, Guid?>(repo => repo.RotateRefreshToken(token, userId.ToString(), ttl));
+            Assert.Null(result);
+        }
+    }
 }

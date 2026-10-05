@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
-import { API_BASE } from "../../../shared/utils/apiCall";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { getMockLeaderboard } from "../mockLeaderboard";
+import { API_BASE } from "../../../config";
 
 const PAGE_SIZE = 10;
 const USE_MOCK = import.meta.env.VITE_MOCK_LEADERBOARD === "true";

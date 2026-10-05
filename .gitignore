@@ -10,7 +10,6 @@ obj/
 .vs/
 *.pubxml
 *.publishproj
-appsettings.Development.json
 
 # ========================
 # Node / React

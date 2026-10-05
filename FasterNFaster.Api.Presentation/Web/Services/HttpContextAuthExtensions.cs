@@ -21,6 +21,6 @@ public static class HttpContextAuthExtensions
 
         if (!Guid.TryParse(subjectClaim, out var previousUserId)) return;
 
-        await sessions.InvalidateAll(previousUserId);
+        await sessions.RevokeAllSessions(previousUserId);
     }
 }
