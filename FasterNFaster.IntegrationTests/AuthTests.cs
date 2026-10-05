@@ -198,4 +198,27 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         Assert.Single(results, r => r is null);
     }
 
+    [Fact] 
+    public async Task InvalidateTokens_IssuedTokensCanNoLongerRotate()
+    {
+        var userId = Guid.NewGuid();
+
+        var tokens = new List<string>();
+        var ttl = TimeSpan.FromMinutes(15);
+        var tokensToAdd = 5;
+        for (int i = 0; i < tokensToAdd; i++)
+        {
+            var token = Guid.NewGuid().ToString();
+            tokens.Add(token);
+            await app.ExecuteScopedAsync<IRefreshTokenRepository>(repo => repo.Issue(userId, token, ttl));
+        }
+
+        await app.ExecuteScopedAsync<IRefreshTokenRepository>(repo => repo.InvalidateAll(userId));
+
+        foreach (var token in tokens)
+        {
+            var result = await app.ExecuteScopedAsync<IRefreshTokenRepository, Guid?>(repo => repo.RotateRefreshToken(token, userId.ToString(), ttl));
+            Assert.Null(result);
+        }
+    }
 }

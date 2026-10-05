@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using StackExchange.Redis;
 
@@ -8,80 +9,61 @@ public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefres
     private readonly IDatabase db = redis.GetDatabase();
 
     private static string TokenToUserKey(string token) => $"auth:refresh:{token}";
-    private static string UserToTokenKey(Guid userId, string token) => $"auth:user:{userId}:token:{token}";
+    private static string UserGenerationKey(Guid userId) => $"auth:user:{userId}:gen";
 
     public async Task Issue(Guid userId, string refreshToken, TimeSpan ttl)
     {
-        var tran = db.CreateTransaction();
-        QueueStoreToken(tran, userId, refreshToken, ttl);
-        await tran.ExecuteAsync();
+        var generation = await GetGeneration(userId);
+        await db.StringSetAsync(TokenToUserKey(refreshToken), Serialize(userId, generation), ttl);
     }
 
     public async Task<Guid?> RotateRefreshToken(string oldRefreshToken, string newRefreshToken, TimeSpan ttl)
     {
-        var userIdValue = await db.StringGetAsync(TokenToUserKey(oldRefreshToken));
-        if (!IsUserIdFound(userIdValue)) return null;
+        var tokenKey = TokenToUserKey(oldRefreshToken);
+        var tokenValue = await db.StringGetAsync(tokenKey);
+        if (!TryDeserialize(tokenValue, out var stored)) return null;
 
-        var userId = Guid.Parse(userIdValue.ToString());
+        var genKey = UserGenerationKey(stored.UserId);
+        var currentGenerationValue = await db.StringGetAsync(genKey);
+        if (stored.Generation != ParseGeneration(currentGenerationValue)) return null;
 
+        var rotated = await TryCommitRotation(tokenKey, newRefreshToken, stored.UserId, genKey, currentGenerationValue, ttl);
+        return rotated ? stored.UserId : null;
+    }
+
+    public Task Invalidate(string refreshToken) => db.KeyDeleteAsync(TokenToUserKey(refreshToken));
+
+    public Task InvalidateAll(Guid userId) => db.StringIncrementAsync(UserGenerationKey(userId));
+
+    private async Task<bool> TryCommitRotation(
+        string oldTokenKey, string newRefreshToken, Guid userId, string genKey, RedisValue currentGenerationValue, TimeSpan ttl)
+    {
         var tran = db.CreateTransaction();
-        tran.AddCondition(Condition.KeyExists(TokenToUserKey(oldRefreshToken)));
-        QueueDeleteToken(tran, userId, oldRefreshToken);
-        QueueStoreToken(tran, userId, newRefreshToken, ttl);
-        if (!await tran.ExecuteAsync()) return null;
-
-        return userId;
+        tran.AddCondition(Condition.KeyExists(oldTokenKey));
+        tran.AddCondition(GenerationUnchanged(genKey, currentGenerationValue));
+        _ = tran.KeyDeleteAsync(oldTokenKey);
+        _ = tran.StringSetAsync(TokenToUserKey(newRefreshToken), Serialize(userId, ParseGeneration(currentGenerationValue)), ttl);
+        return await tran.ExecuteAsync();
     }
 
-    public async Task Invalidate(string refreshToken)
+    private async Task<long> GetGeneration(Guid userId) => ParseGeneration(await db.StringGetAsync(UserGenerationKey(userId)));
+
+    private static long ParseGeneration(RedisValue value) => value.HasValue ? (long)value : 0;
+
+    private static Condition GenerationUnchanged(string genKey, RedisValue genValue) =>
+        genValue.HasValue ? Condition.StringEqual(genKey, genValue) : Condition.KeyNotExists(genKey);
+
+    private static string Serialize(Guid userId, long generation) =>
+        JsonSerializer.Serialize(new StoredToken(userId, generation));
+
+    private static bool TryDeserialize(RedisValue value, out StoredToken token)
     {
-        var tokenKey = TokenToUserKey(refreshToken);
-        var userIdValue = await db.StringGetAsync(tokenKey);
+        token = null!;
+        if (!value.HasValue) return false;
 
-        if (!IsUserIdFound(userIdValue))
-        {
-            await db.KeyDeleteAsync(tokenKey);
-            return;
-        }
-
-        var userId = Guid.Parse(userIdValue.ToString());
-
-        var tran = db.CreateTransaction();
-        QueueDeleteToken(tran, userId, refreshToken);
-        await tran.ExecuteAsync();
+        token = JsonSerializer.Deserialize<StoredToken>((string)value!)!;
+        return token is not null;
     }
 
-    public async Task InvalidateAll(Guid userId)
-    {
-        foreach (var endpoint in redis.GetEndPoints())
-        {
-            var server = redis.GetServer(endpoint);
-            var userTokenKeys = server.Keys(pattern: $"auth:user:{userId}:token:*").ToArray();
-            if (userTokenKeys.Length == 0) continue;
-
-            var batch = db.CreateBatch();
-            foreach (var key in userTokenKeys)
-            {
-                var token = key.ToString().Split(':').Last();
-                _ = batch.KeyDeleteAsync(key);
-                _ = batch.KeyDeleteAsync(TokenToUserKey(token));
-            }
-            batch.Execute();
-        }
-    }
-
-    private static bool IsUserIdFound(RedisValue userIdValue) =>
-        userIdValue.HasValue && Guid.TryParse((string?)userIdValue, out _);
-
-    private static void QueueStoreToken(ITransaction tran, Guid userId, string token, TimeSpan ttl)
-    {
-        _ = tran.StringSetAsync(TokenToUserKey(token), userId.ToString(), ttl);
-        _ = tran.StringSetAsync(UserToTokenKey(userId, token), "active", ttl);
-    }
-
-    private static void QueueDeleteToken(ITransaction tran, Guid userId, string token)
-    {
-        _ = tran.KeyDeleteAsync(TokenToUserKey(token));
-        _ = tran.KeyDeleteAsync(UserToTokenKey(userId, token));
-    }
+    private sealed record StoredToken(Guid UserId, long Generation);
 }
