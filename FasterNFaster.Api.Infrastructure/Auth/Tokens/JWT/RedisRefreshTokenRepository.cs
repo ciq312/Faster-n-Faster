@@ -25,6 +25,7 @@ public class RedisRefreshTokenRepository(IConnectionMultiplexer redis) : IRefres
         var userId = Guid.Parse(userIdValue.ToString());
 
         var tran = db.CreateTransaction();
+        tran.AddCondition(Condition.KeyExists(TokenToUserKey(oldRefreshToken)));
         QueueDeleteToken(tran, userId, oldRefreshToken);
         QueueStoreToken(tran, userId, newRefreshToken, ttl);
         if (!await tran.ExecuteAsync()) return null;

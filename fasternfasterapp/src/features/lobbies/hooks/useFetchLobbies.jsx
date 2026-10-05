@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useError } from "../../../shared/components/BannerProvider";
-import { API_BASE } from "../../../shared/utils/apiCall";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
+import { API_BASE } from "../../../config";
 
 export function useFetchLobbies() {
   const { showError } = useError();

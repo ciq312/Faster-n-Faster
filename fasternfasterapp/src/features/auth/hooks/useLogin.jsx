@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useError } from "../../../shared/components/BannerProvider";
 import { extractHttpError } from "../../../shared/utils/extractHttpError";
 import { useAuth } from "../AuthContext";
-import { API_BASE } from "../../../shared/utils/apiCall";
+import { API_BASE } from "../../../config";
 
 export function useLogin() {
   const { showError } = useError();

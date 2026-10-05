@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useAuth } from "../AuthContext";
 import { clearAuthState } from "../utils/clearAuthState";
-import { API_BASE } from "../../../shared/utils/apiCall";
+import { API_BASE } from "../../../config";
 
 export function useLogout() {
   const { clear } = useAuth();
