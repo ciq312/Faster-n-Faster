@@ -221,4 +221,36 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
             Assert.Null(result);
         }
     }
+
+    [Fact]
+    public async Task LogoutWithExpiredAccessToken_RevokesRefreshToken()
+    {
+        var client = app.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+
+        var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "testPassword");
+
+        await AuthHelper.FullRegisterFlowAsync(app, client, user);
+
+        var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
+        var refreshToken = RefreshCookieValue(loginResponse);
+
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, AuthHelper.LogoutUri);
+        logoutRequest.Headers.Add("Cookie", $"refresh_token={refreshToken}");
+        var logoutResponse = await client.SendAsync(logoutRequest);
+
+        var refreshRequest = new HttpRequestMessage(HttpMethod.Post, AuthHelper.RefreshUri);
+        refreshRequest.Headers.Add("Cookie", $"refresh_token={refreshToken}");
+        var refreshResponse = await client.SendAsync(refreshRequest);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
+    }
+
+    private static string RefreshCookieValue(HttpResponseMessage response) => CookieValue(response, "refresh_token");
+
+    private static string CookieValue(HttpResponseMessage response, string name)
+    {
+        var setCookie = response.Headers.GetValues("Set-Cookie").Single(h => h.StartsWith($"{name}="));
+        return setCookie.Split(';')[0][(name.Length + 1)..];
+    }
 }
