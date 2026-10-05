@@ -13,7 +13,7 @@ public class InMemorySessionService(IRefreshTokenRepository tokenStore) : ISessi
 
     public void SetUserSession(Guid userId, string sessionId) => userSessions[userId] = sessionId;
 
-    public async Task InvalidateAll(Guid userId)
+    public async Task RevokeAllSessions(Guid userId)
     {
         userSessions.Remove(userId, out _);
         await tokenStore.InvalidateAll(userId);

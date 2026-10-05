@@ -71,6 +71,19 @@ public class ResetPasswordHandlerTests
         Assert.Null(await ctx.TokenRepo.GetLatestForUserAsync(ctx.User.Id, TokenType.PasswordReset));
     }
 
+      [Fact]
+    public async Task ValidToken_TryRefreshAfterReset()
+    {
+        var ctx = await BuildWithValidResetToken();
+        ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
+        await ctx.TokenStore.Issue(ctx.User.Id, "refresh-1", TimeSpan.FromHours(1));
+        await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None);
+
+        var newRefresh = await ctx.TokenStore.RotateRefreshToken("refresh-1", "refresh-2", TimeSpan.FromHours(1));
+
+        Assert.Null(newRefresh);
+    }
+
     [Fact]
     public async Task UnknownToken_Throws()
     {

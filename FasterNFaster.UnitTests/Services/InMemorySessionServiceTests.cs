@@ -20,7 +20,7 @@ public class InMemorySessionServiceTests
         var userId = Guid.NewGuid();
         sessions.SetUserSession(userId, "conn-1");
 
-        await sessions.InvalidateAll(userId);
+        await sessions.RevokeAllSessions(userId);
 
         Assert.Null(sessions.GetActiveSession(userId));
     }
@@ -33,7 +33,7 @@ public class InMemorySessionServiceTests
         var token = "refresh-A";
         await tokenStore.Issue(userId, token, Ttl);
 
-        await sessions.InvalidateAll(userId);
+        await sessions.RevokeAllSessions(userId);
 
         Assert.Null(await tokenStore.RotateRefreshToken(token, "new", Ttl));
     }
@@ -47,7 +47,7 @@ public class InMemorySessionServiceTests
         sessions.SetUserSession(userA, "conn-A");
         sessions.SetUserSession(userB, "conn-B");
 
-        await sessions.InvalidateAll(userA);
+        await sessions.RevokeAllSessions(userA);
 
         Assert.Null(sessions.GetActiveSession(userA));
         Assert.Equal("conn-B", sessions.GetActiveSession(userB));
@@ -62,7 +62,7 @@ public class InMemorySessionServiceTests
         await tokenStore.Issue(userA, "refresh-A", Ttl);
         await tokenStore.Issue(userB, "refresh-B", Ttl);
 
-        await sessions.InvalidateAll(userA);
+        await sessions.RevokeAllSessions(userA);
 
         Assert.Null(await tokenStore.RotateRefreshToken("refresh-A", "a-new", Ttl));
         Assert.Equal(userB, await tokenStore.RotateRefreshToken("refresh-B", "b-new", Ttl));

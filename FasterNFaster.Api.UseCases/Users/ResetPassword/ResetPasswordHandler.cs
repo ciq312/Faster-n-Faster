@@ -34,6 +34,6 @@ public class ResetPasswordHandler(
         await unitOfWork.SaveChangesAsync();
 
         await tokenRepo.Remove(token);
-        sessionService.ClearActiveSession(user.Id);
+        await sessionService.RevokeAllSessions(user.Id);
     }
 }

@@ -20,7 +20,7 @@ public class LogoutEndpoint(
     {
         var userIdClaim = User.FindFirstValue("sub");
         if (Guid.TryParse(userIdClaim, out var userId))
-            await sessions.InvalidateAll(userId);
+            await sessions.RevokeAllSessions(userId);
 
         auth.ClearAuth();
         await Send.OkAsync(cancellation: ct);
