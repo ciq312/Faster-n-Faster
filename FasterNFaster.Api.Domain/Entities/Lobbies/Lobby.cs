@@ -99,13 +99,17 @@ public class Lobby : AggregateRoot<Guid>
         if (IsSessionActive)
             throw new InvalidOperationException("Can only change color while waiting.");
 
-        if (Players.Any(p => p.Color == newColor))
-            throw new ColorIsAlreadyTakenException();
+        var color = PlayerColors.FindInPalette(newColor) ?? throw new ColorNotInPaletteException();
 
         var player = Players.FirstOrDefault(p => p.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
 
-        player.ChangeColor(newColor);
+        if (player.Color == color) return;
+
+        if (Players.Any(p => p.Color == color))
+            throw new ColorIsAlreadyTakenException();
+
+        player.ChangeColor(color);
         LobbySettings.UpdateTimestamp();
     }
 
