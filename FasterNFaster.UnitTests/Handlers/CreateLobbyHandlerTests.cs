@@ -6,11 +6,8 @@ using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -26,7 +23,7 @@ public class CreateLobbyHandlerTests
 
         var tracker = new LobbyStateTracker();
         var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
+        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
 
@@ -50,7 +47,7 @@ public class CreateLobbyHandlerTests
 
         var tracker = new LobbyStateTracker();
         var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions())), tracker, NullLogger<RaceAccess>.Instance);
+        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var lobbyId = Guid.NewGuid();

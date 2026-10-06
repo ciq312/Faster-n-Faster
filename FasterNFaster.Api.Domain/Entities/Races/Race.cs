@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities.Races.Events;
-using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Races;
 
@@ -49,7 +48,7 @@ public abstract class Race : AggregateRoot<Guid>
         HasStarted = false;
     }
 
-    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed, IAntiCheatPolicy policy);
+    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed);
 
     public abstract List<ParticipantSnapshot> GetSnapshot();
 

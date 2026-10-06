@@ -12,20 +12,17 @@ public class RaceAccess : IRaceAccess
     private readonly ConcurrentDictionary<Guid, Race> races = new();
     private readonly AggregateGate<Race> gate;
     private readonly IPassageProvider passageProvider;
-    private readonly IAntiCheatPolicy antiCheatPolicy;
     private readonly ILobbyStateTracker tracker;
     private readonly ILogger<RaceAccess> logger;
 
     public RaceAccess(
         IEventDispatcher eventDispatcher,
         IPassageProvider passageProvider,
-        IAntiCheatPolicy antiCheatPolicy,
         ILobbyStateTracker tracker,
         ILogger<RaceAccess> logger)
     {
         gate = new AggregateGate<Race>(eventDispatcher, GetRequired);
         this.passageProvider = passageProvider;
-        this.antiCheatPolicy = antiCheatPolicy;
         this.tracker = tracker;
         this.logger = logger;
     }
@@ -33,7 +30,7 @@ public class RaceAccess : IRaceAccess
     public Task Mutate(Guid lobbyId, Action<Race> mutate) => gate.Mutate(lobbyId, mutate);
 
     public Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed) =>
-        Mutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed, antiCheatPolicy));
+        Mutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed));
 
     public async Task RefreshPassage(Guid lobbyId)
     {

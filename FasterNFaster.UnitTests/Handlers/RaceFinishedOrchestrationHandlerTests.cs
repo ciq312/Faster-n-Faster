@@ -6,8 +6,11 @@ using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
+using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests;
 using FasterNFaster.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 public class RaceFinishedOrchestrationHandlerTests
 {
@@ -58,7 +61,8 @@ public class RaceFinishedOrchestrationHandlerTests
         User other = new User("other");
         LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
 
-        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry);
+        var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
+        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry, antiCheatPolicy);
         await startRaceHandler.Handle(new StartRaceCommand(host.Id), CancellationToken.None);
 
         var broadcaster = new FakeBroadcaster();

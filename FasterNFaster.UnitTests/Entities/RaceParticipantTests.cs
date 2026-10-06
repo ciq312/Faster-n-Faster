@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Exceptions.Races;
+using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
@@ -11,59 +11,26 @@ public class RaceParticipantTests
 {
     private const string Passage = "the quick brown fox jumps over the lazy dog pepe lolo gege roro gsgs asdge eergwegro oiwernoiewnviown weoriweoieoif woerignwoeig";
 
-    private static (RaceParticipant Participant, FakeClock Clock) CreateParticipant()
+    private static (RaceParticipant Participant, FakeClock Clock) CreateParticipant(IAntiCheatPolicy? policy = null)
     {
         var clock = new FakeClock();
-        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", clock.Func);
+        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? Unlimited(), clock.Func);
         return (participant, clock);
     }
 
+    private static FakeAntiCheatPolicy Unlimited() => new(maxCharsPerSecond: 1000, budgetSlack: 1000);
+
     private static ConfiguredAntiCheatPolicy DefaultPolicy() =>
         new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-
-    // -------- happy path --------
-    [Fact]
-    public void ValidateWpm_ShouldNotThrowOnEarlyBurst()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(50));
-
-        // delta < BurstMinIndexDelta (15), so burst check is skipped
-        AntiCheatCheck.ValidateWPM(participant, 10, DefaultPolicy(), clock.Now);
-    }
-
-    [Fact]
-    public void ValidateWpm_ShouldNotThrowOnBurstLowerMaxPossible()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(3000));
-        participant.UpdateProgress(20, "the quick brown fox j", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(50));
-
-        // 5 chars in 50ms ≈ 100 chars/sec, within default burst limit
-        AntiCheatCheck.ValidateWPM(participant, 25, DefaultPolicy(), clock.Now);
-    }
-
-    [Fact]
-    public void ValidateWpm_ShouldNotThrowOnDefaultSustainedWpm()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(3000));
-
-        // 30 index ~ 6 words ~ 240 wpm — within default sustained limit
-        AntiCheatCheck.ValidateWPM(participant, 30, DefaultPolicy(), clock.Now);
-    }
 
     [Fact]
     public void UpdateProgress_AcceptsValidProgress_UpdatesAllFields()
     {
         var (participant, clock) = CreateParticipant();
 
-        participant.UpdateProgress(2, "the", 0, Passage);
+        var outcome = participant.UpdateProgress(2, "the", 0, Passage);
 
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
         Assert.Equal(2, participant.Index);
         Assert.Equal("the", participant.Typed);
         Assert.Equal(0, participant.Mistakes);
@@ -77,8 +44,9 @@ public class RaceParticipantTests
         var (participant, _) = CreateParticipant();
         participant.UpdateProgress(2, "the", 0, Passage);
 
-        participant.UpdateProgress(-1, "", 0, Passage);
+        var outcome = participant.UpdateProgress(-1, "", 0, Passage);
 
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
         Assert.Equal(2, participant.Index);
         Assert.Equal("the", participant.Typed);
     }
@@ -95,142 +63,202 @@ public class RaceParticipantTests
         Assert.Equal(2, participant.Index);
     }
 
-    // -------- WPM --------
     [Fact]
-    public void ValidateWpm_ThrowsOnTooHighBurstAfterMinIndex()
+    public void UpdateProgress_OverflowOfSixCharacters_IsAccepted()
     {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(100));
-
-        var ex = Assert.Throws<CheaterDetectedException>(() =>
-            AntiCheatCheck.ValidateWPM(participant, 15, DefaultPolicy(), clock.Now));
-
-        Assert.Equal("Burst wpm", ex.Reason);
-    }
-
-    [Fact]
-    public void ValidateWpm_ThrowsOnTooHighSustainedAfterMinIndex()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(1000));
-
-        // ~6 words in 1 sec ≈ 360 wpm, over default 300 wpm limit
-        var ex = Assert.Throws<CheaterDetectedException>(() =>
-            AntiCheatCheck.ValidateWPM(participant, 30, DefaultPolicy(), clock.Now));
-
-        Assert.Equal("Sustained wpm", ex.Reason);
-    }
-
-    [Fact]
-    public void ValidateWpm_DoesNotThrow_WhenIndexUnchanged()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(100));
-
-        // same index → delta = 0, burst check skipped
-        AntiCheatCheck.ValidateWPM(participant, 2, DefaultPolicy(), clock.Now);
-        participant.UpdateProgress(2, "the", 1, Passage);
-
-        Assert.Equal(2, participant.Index);
-        Assert.Equal(1, participant.Mistakes);
-    }
-
-    [Fact]
-    public void ValidateWpm_DoesNotThrow_OnFirstCallWhenZeroSecondsElapsed()
-    {
-        var (participant, clock) = CreateParticipant();
-
-        // no time has passed → secondsSinceLastUpdate == 0, burst check skipped
-        AntiCheatCheck.ValidateWPM(participant, 2, DefaultPolicy(), clock.Now);
+        var (participant, _) = CreateParticipant();
         participant.UpdateProgress(2, "the", 0, Passage);
 
-        Assert.Equal(2, participant.Index);
+        var outcome = participant.UpdateProgress(2, "the" + "xxxxxx", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(6, participant.Mistakes);
     }
 
-    // -------- Index correspondence --------
-
     [Fact]
-    public void ValidateIndex_ThrowsCheater_WhenTypedShorterThanIndex()
+    public void UpdateProgress_SpaceAfterCorrectCharacter_IsAccepted()
     {
         var (participant, _) = CreateParticipant();
 
-        var ex = Assert.Throws<CheaterDetectedException>(
-            () => participant.UpdateProgress(5, "the", 0, Passage));
-        Assert.Equal("typed shorter than reported index", ex.Reason);
+        var outcome = participant.UpdateProgress(3, "the ", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(3, participant.Index);
+    }
+
+
+    [Fact]
+    public void UpdateProgress_TypedShorterThanIndex_IsRejected()
+    {
+        var (participant, _) = CreateParticipant();
+
+        var outcome = participant.UpdateProgress(5, "the", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Rejected("typed shorter than reported index"), outcome);
+        Assert.Equal(-1, participant.Index);
     }
 
     [Fact]
-    public void ValidateIndex_ThrowsCheater_WhenIndexExceedsPassageLength()
+    public void UpdateProgress_IndexExceedsPassageLength_IsRejected()
     {
         var (participant, _) = CreateParticipant();
         var oversizedTyped = new string('x', Passage.Length + 5);
 
-        var ex = Assert.Throws<CheaterDetectedException>(
-            () => participant.UpdateProgress(Passage.Length + 2, oversizedTyped, 0, Passage));
-        Assert.Equal("reported index exceeds passage length", ex.Reason);
+        var outcome = participant.UpdateProgress(Passage.Length + 2, oversizedTyped, 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Rejected("reported index exceeds passage length"), outcome);
+        Assert.Equal(-1, participant.Index);
     }
 
     [Fact]
-    public void ValidateIndex_ThrowsCheater_WhenTypedPrefixDoesNotMatchPassage()
+    public void UpdateProgress_TypedPrefixDoesNotMatch_IsRejected()
     {
         var (participant, _) = CreateParticipant();
 
-        var ex = Assert.Throws<CheaterDetectedException>(
-            () => participant.UpdateProgress(2, "txe", 0, Passage));
-        Assert.Equal("typed prefix does not match passage", ex.Reason);
+        var outcome = participant.UpdateProgress(2, "txe", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Rejected("typed prefix does not match passage"), outcome);
+        Assert.Equal("", participant.Typed);
     }
 
     [Fact]
-    public void ValidateIndex_Accepts_WhenTypedHasOverflowAfterIndex()
+    public void UpdateProgress_IndexBelowStart_IsRejected()
     {
         var (participant, _) = CreateParticipant();
 
-        // index points at 'e' (passage[2]); "wzzz" overflow past unclaimed prefix
-        participant.UpdateProgress(2, "thewzzz", 0, Passage);
+        var outcome = participant.UpdateProgress(-5, "t", 0, Passage);
 
-        Assert.Equal(2, participant.Index);
-        Assert.Equal("thewzzz", participant.Typed);
-    }
-
-    // -------- Mistakes --------
-
-    [Fact]
-    public void ValidateMistakes_ThrowsCheater_WhenNewMistakesLowerThanCurrent()
-    {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 3, Passage);
-
-        clock.Advance(TimeSpan.FromMilliseconds(100));
-
-        var ex = Assert.Throws<CheaterDetectedException>(
-            () => participant.UpdateProgress(3, "the ", 1, Passage));
-        Assert.Equal("mistakes count decreased", ex.Reason);
+        Assert.Equal(ProgressOutcome.Rejected("index below start"), outcome);
+        Assert.Equal(-1, participant.Index);
     }
 
     [Fact]
-    public void ValidateMistakes_Accepts_WhenEqual()
+    public void UpdateProgress_OverflowOfSevenCharacters_IsRejected()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(2, "the", 0, Passage);
+
+        var outcome = participant.UpdateProgress(2, "the" + "xxxxxxx", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Rejected("overflow exceeds limit"), outcome);
+        Assert.Equal("the", participant.Typed);
+    }
+
+    [Fact]
+    public void UpdateProgress_SpaceAfterWrongCharacter_IsRejected()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(2, "the", 0, Passage);
+
+        var outcome = participant.UpdateProgress(2, "thex ", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Rejected("space typed after wrong character"), outcome);
+        Assert.Equal("the", participant.Typed);
+    }
+
+
+    [Fact]
+    public void UpdateProgress_TypingBeyondBudget_IsClampedToBudget()
+    {
+        var (participant, _) = CreateParticipant(DefaultPolicy());
+
+        var outcome = participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Clamped, outcome);
+        Assert.Equal("the qu", participant.Typed);
+        Assert.Equal(5, participant.Index);
+        Assert.Equal(2, participant.WordsTyped);
+    }
+
+    [Fact]
+    public void UpdateProgress_AfterClamp_AcceptsOnceBudgetRefills()
+    {
+        var (participant, clock) = CreateParticipant(DefaultPolicy());
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        clock.Advance(TimeSpan.FromSeconds(1));
+        var outcome = participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(8, participant.Index);
+        Assert.Equal("the quick", participant.Typed);
+    }
+
+
+    [Fact]
+    public void UpdateProgress_ReportedMistakesLowerThanStored_KeepsStoredCount()
     {
         var (participant, clock) = CreateParticipant();
         participant.UpdateProgress(2, "the", 3, Passage);
-
         clock.Advance(TimeSpan.FromMilliseconds(100));
-        participant.UpdateProgress(3, "the ", 3, Passage);
+
+        var outcome = participant.UpdateProgress(3, "the ", 1, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(3, participant.Mistakes);
+    }
+
+    [Fact]
+    public void UpdateProgress_ReloadWithZeroMistakes_KeepsStoredCountAndIsAccepted()
+    {
+        var (participant, clock) = CreateParticipant();
+        participant.UpdateProgress(2, "the", 5, Passage);
+        clock.Advance(TimeSpan.FromMilliseconds(100));
+
+        var outcome = participant.UpdateProgress(2, "the", 0, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(5, participant.Mistakes);
+    }
+
+    [Fact]
+    public void UpdateProgress_WrongCharactersPastIndex_AreCountedAsMistakes()
+    {
+        var (participant, _) = CreateParticipant();
+
+        participant.UpdateProgress(2, "thexyz", 0, Passage);
 
         Assert.Equal(3, participant.Mistakes);
     }
 
     [Fact]
-    public void ValidateMistakes_Accepts_WhenIncreased()
+    public void UpdateProgress_WrongCharactersPastPassageEnd_AreNotCountedAsMistakes()
     {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 1, Passage);
+        var (participant, _) = CreateParticipant();
 
-        clock.Advance(TimeSpan.FromMilliseconds(100));
-        participant.UpdateProgress(3, "the ", 2, Passage);
+        participant.UpdateProgress(0, "azzzzzz", 0, "ab");
 
+        Assert.Equal(1, participant.Mistakes);
+    }
+
+    [Fact]
+    public void UpdateProgress_NegativeReportedMistakes_KeepsStoredCount()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(2, "the", 2, Passage);
+
+        var outcome = participant.UpdateProgress(2, "the", -1, Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
         Assert.Equal(2, participant.Mistakes);
+    }
+
+
+    [Fact]
+    public void GetAccuracy_ReturnsPercentageOfCorrectCharacters()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(3, "the ", 1, Passage);
+
+        Assert.Equal(75f, participant.GetAccuracy());
+    }
+
+    [Fact]
+    public void GetAccuracy_MistakesExceedTypedCharacters_ClampsToZero()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(0, "t", 5, Passage);
+
+        Assert.Equal(0f, participant.GetAccuracy());
     }
 }

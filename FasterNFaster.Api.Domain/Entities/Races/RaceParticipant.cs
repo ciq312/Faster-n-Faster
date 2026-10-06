@@ -1,14 +1,18 @@
-using FasterNFaster.Api.Core.Exceptions.Races;
+using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Races;
 
 public class RaceParticipant
 {
-    private readonly Func<DateTime> _now;
+    public const int MaxOverflow = 6;
 
-    public RaceParticipant(Guid id, string color, string nick, Func<DateTime>? now = null)
+    private readonly Func<DateTime> _now;
+    private readonly ProgressBudget _budget;
+
+    public RaceParticipant(Guid id, string color, string nick, IAntiCheatPolicy policy, Func<DateTime>? now = null)
     {
         _now = now ?? (() => DateTime.UtcNow);
+        _budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, _now);
         Id = id;
         Color = color;
         Nick = nick;
@@ -47,22 +51,30 @@ public class RaceParticipant
 
     public RaceParticipantResult? Result { get; private set; } = null!;
 
-    /// <summary>
-    /// Validates and applies a client state snapshot. Clamps invalid values instead of rejecting.
-    /// </summary>
-    public void UpdateProgress(int newIndex, string newTyped, int newMistakes, string passage)
+    public ProgressOutcome UpdateProgress(int newIndex, string newTyped, int newMistakes, string passage)
     {
-        if (IsFinished) return;
-        if (DidUserRefresh(newIndex, newTyped)) return;
+        if (IsFinished) return ProgressOutcome.Accepted;
+        if (DidUserRefresh(newIndex, newTyped)) return ProgressOutcome.Accepted;
 
-        ValidateIndexCorrespondence(newIndex, newTyped, passage);
-        ValidateMistakes(newMistakes);
+        var violatedRule = FindViolatedRule(newIndex, newTyped, passage);
+        if (violatedRule is not null) return ProgressOutcome.Rejected(violatedRule);
+
+        var typedCharacters = Math.Max(0, newTyped.Length - Typed.Length);
+        var grantedCharacters = _budget.Take(typedCharacters);
+        var isClamped = grantedCharacters < typedCharacters;
+        if (isClamped)
+        {
+            newTyped = newTyped[..(Typed.Length + grantedCharacters)];
+            newIndex = Math.Min(newIndex, newTyped.Length - 1);
+        }
 
         Typed = newTyped;
         Index = newIndex;
         WordsTyped = CountWords(passage.AsSpan(0, newIndex + 1));
-        Mistakes = newMistakes;
+        Mistakes = Math.Max(Mistakes, Math.Max(newMistakes, CountObservedMistakes(newIndex, newTyped, passage)));
         LastUpdateAt = _now();
+
+        return isClamped ? ProgressOutcome.Clamped : ProgressOutcome.Accepted;
     }
 
     private static int CountWords(ReadOnlySpan<char> text)
@@ -83,18 +95,35 @@ public class RaceParticipant
         return count;
     }
 
-    private bool DidUserRefresh(int newIndex, string typed) => newIndex == -1 && typed == "";
-
-    private void ValidateIndexCorrespondence(int newIndex, string newTyped, string passage)
+    private static int CountObservedMistakes(int index, string typed, string passage)
     {
-        if (newIndex + 1 > newTyped.Length) throw new CheaterDetectedException("typed shorter than reported index");
-        if (newIndex + 1 > passage.Length) throw new CheaterDetectedException("reported index exceeds passage length");
-        if (!newTyped.AsSpan(0, newIndex + 1).SequenceEqual(passage.AsSpan(0, newIndex + 1))) throw new CheaterDetectedException("typed prefix does not match passage");
+        var count = 0;
+        var end = Math.Min(typed.Length, passage.Length);
+        for (var i = index + 1; i < end; i++)
+            if (typed[i] != passage[i]) count++;
+
+        return count;
     }
 
-    private void ValidateMistakes(int newMistakes)
+    private bool DidUserRefresh(int newIndex, string typed) => newIndex == -1 && typed == "";
+
+    private static string? FindViolatedRule(int newIndex, string newTyped, string passage)
     {
-        if (newMistakes < Mistakes) throw new CheaterDetectedException("mistakes count decreased");
+        if (newIndex < -1) return "index below start";
+        if (newIndex + 1 > newTyped.Length) return "typed shorter than reported index";
+        if (newIndex + 1 > passage.Length) return "reported index exceeds passage length";
+        if (!newTyped.AsSpan(0, newIndex + 1).SequenceEqual(passage.AsSpan(0, newIndex + 1))) return "typed prefix does not match passage";
+        if (newTyped.Length - 1 - newIndex > MaxOverflow) return "overflow exceeds limit";
+        if (TypesSpaceAfterWrongCharacter(newTyped, newIndex)) return "space typed after wrong character";
+        return null;
+    }
+
+    private static bool TypesSpaceAfterWrongCharacter(string typed, int index)
+    {
+        for (var i = index + 2; i < typed.Length; i++)
+            if (typed[i] == ' ') return true;
+
+        return false;
     }
 
     public void MarkFinished(int position, int wordsTyped)
@@ -122,6 +151,6 @@ public class RaceParticipant
     public float GetAccuracy()
     {
         if (Index < 0) throw new InvalidOperationException("Index can't be negative");
-        return (1 - (float)Mistakes / (Index + 1)) * 100;
+        return Math.Clamp((1 - (float)Mistakes / (Index + 1)) * 100, 0, 100);
     }
 }
