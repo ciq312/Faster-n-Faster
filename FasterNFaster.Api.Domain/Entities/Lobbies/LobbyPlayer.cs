@@ -13,7 +13,7 @@ public class LobbyPlayer : Entity<Guid>
         JoinOrder = joinOrder;
         Color = color;
     }
-    public void ChangeColor(string newColor)
+    internal void ChangeColor(string newColor)
     {
         Color = newColor;
     }
