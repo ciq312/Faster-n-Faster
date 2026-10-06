@@ -10,15 +10,6 @@ public class User : Entity<Guid>
     public readonly DateTime CreatedAt;
     public PlayerStatistics? Statistics { get; private set; }
 
-    public static User Guest(Guid id, string nick)
-    {
-        var user = new User(nick)
-        {
-            Id = id
-        };
-        return user;
-    }
-
     /// <summary>Anonymous user with a chosen nick.</summary>
     public User(string nick) : this(nick, null, null) { }
 
@@ -26,7 +17,7 @@ public class User : Entity<Guid>
     {
         Id = Guid.NewGuid();
         Nick = nick;
-        Login = login;
+        Login = login is null ? null : NormalizeLogin(login);
         Password = password;
         CreatedAt = DateTime.UtcNow;
     }
@@ -38,8 +29,12 @@ public class User : Entity<Guid>
 
     public void SetEmail(string newEmail)
     {
-        Email = newEmail;
+        Email = NormalizeEmail(newEmail);
     }
+
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
+    public static string NormalizeLogin(string login) => login.Trim().ToLowerInvariant();
 
     public void SetEmailVerified()
     {
