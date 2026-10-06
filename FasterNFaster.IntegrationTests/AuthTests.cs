@@ -56,7 +56,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         Assert.NotNull(userDb);
         Assert.True(userDb.IsEmailVerified);
         Assert.Equal(user.Nick, userDb.Nick);
-        Assert.Equal(user.Login, userDb.Login);
+        Assert.Equal(User.NormalizeLogin(user.Login), userDb.Login);
         Assert.Equal(user.Email, userDb.Email);
         //Password is hashed
         Assert.NotEqual(user.Password, userDb.Password);

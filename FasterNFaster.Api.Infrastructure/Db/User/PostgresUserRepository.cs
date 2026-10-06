@@ -23,12 +23,14 @@ public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await appDbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+        var normalizedEmail = User.NormalizeEmail(email);
+        return await appDbContext.Users.FirstOrDefaultAsync(x => x.Email == normalizedEmail);
     }
 
     public async Task<User?> GetUserByLoginAsync(string login)
     {
-        return await appDbContext.Users.FirstOrDefaultAsync(x => x.Login == login);
+        var normalizedLogin = User.NormalizeLogin(login);
+        return await appDbContext.Users.FirstOrDefaultAsync(x => x.Login == normalizedLogin);
     }
 
     public async Task<bool> IsUserRegistred(Guid userId)

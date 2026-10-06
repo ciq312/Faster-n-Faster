@@ -29,9 +29,17 @@ public class FakeUserRepository : IUserRepository
     public Task<User?> GetByIdAsync(Guid id)
         => Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
 
-    public Task<User?> GetByEmailAsync(string email) => Task.FromResult(_users.FirstOrDefault(x => x.Email == email));
+    public Task<User?> GetByEmailAsync(string email)
+    {
+        var normalizedEmail = User.NormalizeEmail(email);
+        return Task.FromResult(_users.FirstOrDefault(x => x.Email == normalizedEmail));
+    }
+
     public Task<User?> GetUserByLoginAsync(string login)
-        => Task.FromResult(_users.FirstOrDefault(u => u.Login == login));
+    {
+        var normalizedLogin = User.NormalizeLogin(login);
+        return Task.FromResult(_users.FirstOrDefault(u => u.Login == normalizedLogin));
+    }
 
     public Task<bool> IsUserRegistred(Guid id) => Task.FromResult(Users.Any(u => u.Id == id));
 }

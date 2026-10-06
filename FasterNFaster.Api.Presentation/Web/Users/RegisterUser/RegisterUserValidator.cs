@@ -15,7 +15,8 @@ public class RegisterUserValidator : Validator<RegisterUserRequest>
         .MaximumLength(10).WithMessage("Login max length is 10");
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email can't be empty")
-            .EmailAddress().WithMessage("Only email addresses accepted");
+            .EmailAddress().WithMessage("Only email addresses accepted")
+            .MaximumLength(254).WithMessage("Email max length is 254");
         RuleFor(x => x.Password)
         .NotEmpty().WithMessage("Password can't be empty")
         .MinimumLength(4).WithMessage("Password min length is 4")

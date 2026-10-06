@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Db.Users;
 using FasterNFaster.Api.UseCases.Interfaces.Db;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,12 +15,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public Task SaveChangesAsync() => base.SaveChangesAsync();
 
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            var conflict = UserUniqueViolations.Translate(ex);
+            if (conflict is null) throw;
+            throw conflict;
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.Statistics)
-            .WithOne(s => s.User)
-            .HasForeignKey<PlayerStatistics>(s => s.Id);
+        modelBuilder.Entity<User>(b =>
+        {
+            b.HasOne(u => u.Statistics)
+                .WithOne(s => s.User)
+                .HasForeignKey<PlayerStatistics>(s => s.Id);
+
+            b.HasIndex(u => u.Email).IsUnique().HasDatabaseName(UserUniqueViolations.EmailIndex);
+            b.HasIndex(u => u.Login).IsUnique().HasDatabaseName(UserUniqueViolations.LoginIndex);
+        });
 
         modelBuilder.Entity<ExternalLogin>(b =>
         {
