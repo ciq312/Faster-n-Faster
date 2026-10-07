@@ -19,6 +19,20 @@ export function useTyping({
   const needResyncRef = useRef(true);
   const { isConnected } = useConnection();
 
+  const sendProgress = useCallback(
+    (value) => {
+      // Sending before the first RaceState would overwrite the server's progress with the reloaded, empty text.
+      if (needResyncRef.current) return;
+      onProgress?.({
+        index: lastCorrectIndexRef.current,
+        mistakes: mistakesRef.current,
+        typed: value,
+        final: lastCorrectIndexRef.current === passage.length - 1,
+      });
+    },
+    [onProgress, passage],
+  );
+
   useEffect(() => {
     if (!isConnected) {
       needResyncRef.current = true;
@@ -28,12 +42,15 @@ export function useTyping({
     if (!needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
     needResyncRef.current = false;
-    if (selfTyped.length <= typed.length) return;
+    if (selfTyped.length <= typed.length) {
+      if (typed) sendProgress(typed);
+      return;
+    }
     setTyped(selfTyped);
     lastCorrectIndexRef.current = selfCorrectIndex;
     nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
     mistakesRef.current = selfMistakes ?? 0;
-  }, [selfTyped, passage, selfCorrectIndex, selfMistakes, typed.length]);
+  }, [selfTyped, passage, selfCorrectIndex, selfMistakes, typed, sendProgress]);
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;
@@ -83,15 +100,9 @@ export function useTyping({
 
       nextSep.current = passage.indexOf(" ", lastCorrectIndexRef.current + 1);
 
-      const isFinal = lastCorrectIndexRef.current === passage.length - 1;
-      onProgress?.({
-        index: lastCorrectIndexRef.current,
-        mistakes: mistakesRef.current,
-        typed: value,
-        final: isFinal,
-      });
+      sendProgress(value);
     },
-    [typed.length, passage, disabled, onProgress],
+    [typed.length, passage, disabled, sendProgress],
   );
 
   useEffect(() => {
