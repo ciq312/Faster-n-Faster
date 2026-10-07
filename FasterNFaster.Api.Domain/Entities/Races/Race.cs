@@ -39,6 +39,10 @@ public abstract class Race : AggregateRoot<Guid>
         if (HasStarted) throw new InvalidOperationException("Race already started.");
         StartTime = DateTime.UtcNow;
         HasStarted = true;
+        foreach (var participant in participants.Values)
+        {
+            participant.Start();
+        }
     }
 
     public virtual void Reset()

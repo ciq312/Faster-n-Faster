@@ -17,7 +17,6 @@ public class RaceParticipant
         Id = id;
         Color = color;
         Nick = nick;
-        StartedAt = this.now();
     }
 
     public string Nick { get; private set; }
@@ -59,6 +58,11 @@ public class RaceParticipant
         if (violatedRule is not null) return ProgressOutcome.Rejected(violatedRule);
 
         return ApplyGrant(newIndex, newTyped, newMistakes, passage);
+    }
+
+    public void Start()
+    {
+        StartedAt = now();
     }
 
     public ProgressOutcome RetryPendingClaim(string passage)
@@ -152,7 +156,7 @@ public class RaceParticipant
 
     public float GetWPM()
     {
-        float minutesElapsed = (float)(now() - StartedAt).TotalMinutes;
+        float minutesElapsed = (float)((FinishedAt ?? now()) - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
         return WordsTyped / minutesElapsed;
     }
@@ -160,6 +164,7 @@ public class RaceParticipant
     public float GetAccuracy()
     {
         if (Index < 0) throw new InvalidOperationException("Index can't be negative");
-        return Math.Clamp((1 - (float)Mistakes / (Index + 1)) * 100, 0, 100);
+        return Math.Clamp
+        ((1 - (float)Mistakes / (Index + 1)) * 100, 0, 100);
     }
 }
