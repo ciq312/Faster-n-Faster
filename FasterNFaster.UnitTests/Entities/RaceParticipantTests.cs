@@ -74,6 +74,8 @@ public class RaceParticipantTests
         Assert.Equal(6, participant.Mistakes);
     }
 
+
+
     [Fact]
     public void UpdateProgress_SpaceAfterCorrectCharacter_IsAccepted()
     {

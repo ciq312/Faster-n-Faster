@@ -15,17 +15,23 @@ public class WordRaceTests
 
     private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy)
     {
+        var (race, participant, clock) = CreateRace(policy);
+        race.Start();
+        return (race, participant, clock);
+    }
+
+    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy)
+    {
         var clock = new FakeClock();
         var race = new WordRace(Guid.NewGuid(), 9);
         race.SetPassage(Passage);
         var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock.Func);
         race.AddParticipant(participant);
-        race.Start();
         return (race, participant, clock);
     }
 
     [Fact]
-    public void ProcessUpdate_RejectedUpdate_IsDroppedWithoutThrowing()
+    public void RejectedUpdate_ShouldBeDroppedWithoutThrowing()
     {
         var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
 
@@ -36,7 +42,7 @@ public class WordRaceTests
     }
 
     [Fact]
-    public void ProcessUpdate_RejectedUpdate_RaisesRaceViolationEventWithRule()
+    public void RejectedUpdate_ShouldRaiseRaceViolationEventWithRule()
     {
         var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
 
@@ -49,11 +55,12 @@ public class WordRaceTests
     }
 
     [Fact]
-    public void ProcessUpdate_ClampedUpdate_AppliesClampedState()
+    public void ClampedUpdate_ShouldApplyClampedState()
     {
         var policy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
         var (race, participant, _) = CreateStartedRace(policy);
 
+        // 9 characters against the default slack of 6
         race.ProcessUpdate(participant.Id, 8, 0, "the quick");
 
         Assert.Equal("the qu", participant.Typed);
@@ -61,7 +68,23 @@ public class WordRaceTests
     }
 
     [Fact]
-    public void RetryPendingClaims_StalledFinalKeystroke_EventuallyFinishesAndRaisesPlayerFinishedEvent()
+    public void Write9Words_ShouldBe9WPM()
+    {
+        var (race, participant, clock) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+
+        clock.Advance(TimeSpan.FromMilliseconds(3500));
+
+        race.Start();
+
+        clock.Advance(TimeSpan.FromSeconds(60));
+
+        race.ProcessUpdate(participant.Id, Passage.Length - 1, 0, Passage);
+
+        Assert.Equal(9, participant.GetWPM());
+    }
+
+    [Fact]
+    public void StalledFinalKeystroke_ShouldEventuallyFinishAndRaisePlayerFinishedEvent()
     {
         // Slack covers everything but the last character, so the final keystroke clamps and stalls.
         var policy = new FakeAntiCheatPolicy(maxCharsPerSecond: 100, budgetSlack: Passage.Length - 1);
