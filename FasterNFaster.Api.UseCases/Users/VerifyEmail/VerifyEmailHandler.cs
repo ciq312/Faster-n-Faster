@@ -16,9 +16,9 @@ public class VerifyEmailHandler(
 {
     public async Task Handle(VerifyEmailCommand command, CancellationToken cancellationToken)
     {
-        Token token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException(command.Token);
+        Token token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException();
 
-        if (!token.IsValid()) throw new TokenNotFoundException(command.Token);
+        if (!token.IsValid() || token.Type != TokenType.EmailVerification) throw new TokenNotFoundException();
 
         User user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
         user.SetEmailVerified();

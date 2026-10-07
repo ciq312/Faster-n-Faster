@@ -1,5 +1,6 @@
 
 using FastEndpoints;
+using FasterNFaster.Api.Web.Users.Validation;
 
 namespace FasterNFaster.Api.Web.Users.RegisterUser;
 
@@ -18,8 +19,6 @@ public class RegisterUserValidator : Validator<RegisterUserRequest>
             .EmailAddress().WithMessage("Only email addresses accepted")
             .MaximumLength(254).WithMessage("Email max length is 254");
         RuleFor(x => x.Password)
-        .NotEmpty().WithMessage("Password can't be empty")
-        .MinimumLength(4).WithMessage("Password min length is 4")
-        .MaximumLength(30).WithMessage("Password max length is 30");
+            .Password();
     }
 }

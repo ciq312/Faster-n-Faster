@@ -22,7 +22,7 @@ public class RegisterUserHandler(
         if (await repo.GetUserByLoginAsync(command.Login) != null) throw new DuplicateLoginException(command.Login);
         if (await repo.GetByEmailAsync(command.Email) != null) throw new DuplicateEmailException(command.Email);
 
-        User user = new(command.Nick, command.Login, command.Password);
+        User user = new(command.Nick, command.Login, null);
         user.SetEmail(command.Email);
 
         string hashedPassword = passwordHelper.HashPassword(user, command.Password);
