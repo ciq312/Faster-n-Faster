@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 
 namespace FasterNFaster.Api.Core.Entities.Races;
 
@@ -31,7 +32,28 @@ public partial class WordRace : Race
         if (racer.IsFinished) return;
 
         var outcome = racer.UpdateProgress(index, typed, mistakes, Passage);
-        if (outcome.Status == ProgressStatus.Rejected) return;
+        HandleOutcome(racer, outcome);
+    }
+
+    public override void RetryPendingClaims()
+    {
+        if (!HasStarted) return;
+        if (Passage == null) throw new InvalidOperationException("passage isn't set");
+
+        foreach (var racer in Participants.Values.ToList())
+        {
+            if (racer.IsFinished) continue;
+            HandleOutcome(racer, racer.RetryPendingClaim(Passage));
+        }
+    }
+
+    private void HandleOutcome(RaceParticipant racer, ProgressOutcome outcome)
+    {
+        if (outcome.Status == ProgressStatus.Rejected)
+        {
+            RaiseDomainEvent(new RaceViolationEvent(LobbyId, racer.Id, racer.Nick, outcome.Rule!));
+            return;
+        }
 
         if (IsRacerFinished(racer))
         {

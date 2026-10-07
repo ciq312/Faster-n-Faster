@@ -10,7 +10,7 @@ public class HubBanFilter : IHubFilter
 {
     public async Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
     {
-        if (TryGetUserId(context.Context, out var userId))
+        if (HubUserId.TryGet(context.Context, out var userId))
         {
             var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
             if (await banService.IsBannedAsync(userId))
@@ -22,12 +22,5 @@ public class HubBanFilter : IHubFilter
         }
 
         await next(context);
-    }
-
-    private static bool TryGetUserId(HubCallerContext context, out Guid userId)
-    {
-        userId = default;
-        var sub = context.User?.FindFirst("sub")?.Value;
-        return sub is not null && Guid.TryParse(sub, out userId);
     }
 }

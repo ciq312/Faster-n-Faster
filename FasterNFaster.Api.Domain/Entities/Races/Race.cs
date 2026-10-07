@@ -74,6 +74,9 @@ public abstract class Race : AggregateRoot<Guid>
     // Applies a freshly fetched passage. No-op for race types without passages.
     public virtual void ApplyPassage(string passage) { }
 
+    // Retries any claim a participant's budget couldn't fully grant last tick. No-op for race types without a budget.
+    public virtual void RetryPendingClaims() { }
+
     protected void RaceFinished()
     {
         RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));

@@ -44,10 +44,16 @@ function ConnectionProvider({ url, children }) {
       showError(reason || "You are banned");
       navigate("/");
     };
+    const suspendedHandler = (data) => {
+      showError(`You are suspended until ${new Date(data.expiresAt).toLocaleString()}`);
+      connection.stop();
+      navigate("/");
+    };
 
     connection.on("Error", errorHandler);
     connection.on("AnotherSessionStarted", anotherSessionHandler);
     connection.on("Banned", bannedHandler);
+    connection.on("Suspended", suspendedHandler);
 
     const latencyCheckId = import.meta.env.DEV
       ? setInterval(async () => {
@@ -79,6 +85,7 @@ function ConnectionProvider({ url, children }) {
       connection.off("Error", errorHandler);
       connection.off("AnotherSessionStarted", anotherSessionHandler);
       connection.off("Banned", bannedHandler);
+      connection.off("Suspended", suspendedHandler);
       connection.stop();
     };
   }, [url]);

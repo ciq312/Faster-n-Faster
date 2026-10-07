@@ -4,7 +4,7 @@ public class ProgressBudget
 {
     private readonly double charsPerSecond;
     private readonly double capacity;
-    private readonly Func<DateTime> _now;
+    private readonly Func<DateTime> now;
     private double tokens;
     private DateTime lastRefillAt;
 
@@ -12,7 +12,7 @@ public class ProgressBudget
     {
         this.charsPerSecond = charsPerSecond;
         capacity = slack;
-        _now = now;
+        this.now = now;
         tokens = slack;
         lastRefillAt = now();
     }
@@ -27,9 +27,9 @@ public class ProgressBudget
 
     private void Refill()
     {
-        var now = _now();
-        var elapsedSeconds = Math.Max(0, (now - lastRefillAt).TotalSeconds);
-        lastRefillAt = now;
+        var currentTime = now();
+        var elapsedSeconds = Math.Max(0, (currentTime - lastRefillAt).TotalSeconds);
+        lastRefillAt = currentTime;
         tokens = Math.Min(capacity, tokens + elapsedSeconds * charsPerSecond);
     }
 }

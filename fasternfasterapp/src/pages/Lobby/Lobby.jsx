@@ -35,6 +35,7 @@ function Lobby() {
     raceResults,
     raceParticipants,
     countdown,
+    isWithdrawn,
   } = useRace();
   const {
     startRace,
@@ -118,7 +119,7 @@ function Lobby() {
             ) : raceSettings ? (
               <TypingArea
                 passage={raceSettings.passage}
-                disabled={!isRacing}
+                disabled={!isRacing || isWithdrawn}
                 onProgress={handleProgress}
                 opponents={raceParticipants}
                 selfId={selfId}

@@ -9,7 +9,10 @@ public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.PlayerId);
+        Guid? lobbyId = lobbies.GetLobbyIdOfPlayer(command.PlayerId);
+        if (lobbyId is null) return;
+
+        Lobby lobby = lobbies.GetRequired(lobbyId.Value);
 
         await lobbies.Mutate(lobby.Id, l => l.Disconnect(command.PlayerId));
 

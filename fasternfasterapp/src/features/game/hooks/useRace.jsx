@@ -10,6 +10,7 @@ export function useRace() {
   const [raceParticipants, setRaceParticipants] = useState([]);
   const countdownTimersRef = useRef([]);
   const [countdown, setCountdown] = useState(null);
+  const [isWithdrawn, setIsWithdrawn] = useState(false);
 
   useEffect(() => {
     const cleanups = [
@@ -44,10 +45,16 @@ export function useRace() {
         setIsRaceStarting(false);
         setCountdown(null);
         setIsRacing(true);
+        setIsWithdrawn(false);
       }),
 
       subscribe("RaceState", (state) => {
         setRaceParticipants(state);
+      }),
+
+      // Withdrawal only ends this race, not lobby membership.
+      subscribe("RaceWithdrawn", () => {
+        setIsWithdrawn(true);
       }),
     ];
 
@@ -66,5 +73,6 @@ export function useRace() {
     raceResults,
     raceParticipants,
     countdown,
+    isWithdrawn,
   };
 }

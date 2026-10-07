@@ -26,7 +26,7 @@ public class RaceParticipantTests
     [Fact]
     public void UpdateProgress_AcceptsValidProgress_UpdatesAllFields()
     {
-        var (participant, clock) = CreateParticipant();
+        var (participant, _) = CreateParticipant();
 
         var outcome = participant.UpdateProgress(2, "the", 0, Passage);
 
@@ -35,7 +35,6 @@ public class RaceParticipantTests
         Assert.Equal("the", participant.Typed);
         Assert.Equal(0, participant.Mistakes);
         Assert.Equal(1, participant.WordsTyped);
-        Assert.Equal(clock.Now, participant.LastUpdateAt);
     }
 
     [Fact]
@@ -182,6 +181,72 @@ public class RaceParticipantTests
         Assert.Equal(ProgressOutcome.Accepted, outcome);
         Assert.Equal(8, participant.Index);
         Assert.Equal("the quick", participant.Typed);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_NoPendingClaim_IsAcceptedNoOp()
+    {
+        var (participant, _) = CreateParticipant(DefaultPolicy());
+
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(-1, participant.Index);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_BeforeBudgetRefills_StaysClampedAndKeepsPendingClaim()
+    {
+        var (participant, _) = CreateParticipant(DefaultPolicy());
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        Assert.Equal(ProgressOutcome.Clamped, outcome);
+        Assert.Equal("the qu", participant.Typed);
+        Assert.Equal(5, participant.Index);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_AfterBudgetRefills_GrantsTheFullOriginalClaim()
+    {
+        var (participant, clock) = CreateParticipant(DefaultPolicy());
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        clock.Advance(TimeSpan.FromSeconds(1));
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(8, participant.Index);
+        Assert.Equal("the quick", participant.Typed);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_ParticipantAlreadyFinished_IsNoOp()
+    {
+        var (participant, _) = CreateParticipant(DefaultPolicy());
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+        participant.MarkWithdrawn();
+
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal("the qu", participant.Typed);
+    }
+
+    [Fact]
+    public void UpdateProgress_FreshUpdate_SupersedesStalePendingClaim()
+    {
+        var (participant, clock) = CreateParticipant(DefaultPolicy());
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+        participant.UpdateProgress(11, "the quick br", 0, Passage);
+
+        clock.Advance(TimeSpan.FromSeconds(1));
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        Assert.Equal(ProgressOutcome.Accepted, outcome);
+        Assert.Equal(11, participant.Index);
+        Assert.Equal("the quick br", participant.Typed);
     }
 
 

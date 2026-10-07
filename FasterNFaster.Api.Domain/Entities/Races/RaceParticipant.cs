@@ -6,18 +6,18 @@ public class RaceParticipant
 {
     public const int MaxOverflow = 6;
 
-    private readonly Func<DateTime> _now;
-    private readonly ProgressBudget _budget;
+    private readonly Func<DateTime> now;
+    private readonly ProgressBudget budget;
+    private (int Index, string Typed, int Mistakes)? pendingClaim;
 
     public RaceParticipant(Guid id, string color, string nick, IAntiCheatPolicy policy, Func<DateTime>? now = null)
     {
-        _now = now ?? (() => DateTime.UtcNow);
-        _budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, _now);
+        this.now = now ?? (() => DateTime.UtcNow);
+        budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, this.now);
         Id = id;
         Color = color;
         Nick = nick;
-        StartedAt = _now();
-        LastUpdateAt = _now();
+        StartedAt = this.now();
     }
 
     public string Nick { get; private set; }
@@ -47,7 +47,6 @@ public class RaceParticipant
     public int? FinishPosition { get; private set; }
     public DateTime? FinishedAt { get; private set; }
     public DateTime StartedAt { get; private set; }
-    public DateTime LastUpdateAt { get; private set; }
 
     public RaceParticipantResult? Result { get; private set; } = null!;
 
@@ -59,21 +58,31 @@ public class RaceParticipant
         var violatedRule = FindViolatedRule(newIndex, newTyped, passage);
         if (violatedRule is not null) return ProgressOutcome.Rejected(violatedRule);
 
-        var typedCharacters = Math.Max(0, newTyped.Length - Typed.Length);
-        var grantedCharacters = _budget.Take(typedCharacters);
+        return ApplyGrant(newIndex, newTyped, newMistakes, passage);
+    }
+
+    public ProgressOutcome RetryPendingClaim(string passage)
+    {
+        if (IsFinished || pendingClaim is not { } claim) return ProgressOutcome.Accepted;
+
+        return ApplyGrant(claim.Index, claim.Typed, claim.Mistakes, passage);
+    }
+
+    private ProgressOutcome ApplyGrant(int claimedIndex, string claimedTyped, int claimedMistakes, string passage)
+    {
+        var typedCharacters = Math.Max(0, claimedTyped.Length - Typed.Length);
+        var grantedCharacters = budget.Take(typedCharacters);
         var isClamped = grantedCharacters < typedCharacters;
-        if (isClamped)
-        {
-            newTyped = newTyped[..(Typed.Length + grantedCharacters)];
-            newIndex = Math.Min(newIndex, newTyped.Length - 1);
-        }
 
-        Typed = newTyped;
-        Index = newIndex;
-        WordsTyped = CountWords(passage.AsSpan(0, newIndex + 1));
-        Mistakes = Math.Max(Mistakes, Math.Max(newMistakes, CountObservedMistakes(newIndex, newTyped, passage)));
-        LastUpdateAt = _now();
+        var grantedTyped = isClamped ? claimedTyped[..(Typed.Length + grantedCharacters)] : claimedTyped;
+        var grantedIndex = isClamped ? Math.Min(claimedIndex, grantedTyped.Length - 1) : claimedIndex;
 
+        Typed = grantedTyped;
+        Index = grantedIndex;
+        WordsTyped = CountWords(passage.AsSpan(0, grantedIndex + 1));
+        Mistakes = Math.Max(Mistakes, Math.Max(claimedMistakes, CountObservedMistakes(grantedIndex, grantedTyped, passage)));
+
+        pendingClaim = isClamped ? (claimedIndex, claimedTyped, claimedMistakes) : null;
         return isClamped ? ProgressOutcome.Clamped : ProgressOutcome.Accepted;
     }
 
@@ -130,7 +139,7 @@ public class RaceParticipant
     {
         IsFinished = true;
         FinishPosition = position;
-        FinishedAt = _now();
+        FinishedAt = now();
         Result = new RaceParticipantResult(
             Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, wordsTyped, FinishPosition);
     }
@@ -138,12 +147,12 @@ public class RaceParticipant
     public void MarkWithdrawn()
     {
         IsFinished = true;
-        FinishedAt = _now();
+        FinishedAt = now();
     }
 
     public float GetWPM()
     {
-        float minutesElapsed = (float)(_now() - StartedAt).TotalMinutes;
+        float minutesElapsed = (float)(now() - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
         return WordsTyped / minutesElapsed;
     }

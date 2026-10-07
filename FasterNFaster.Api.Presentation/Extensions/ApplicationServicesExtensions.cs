@@ -50,6 +50,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<ISessionService, InMemorySessionService>();
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
         services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
+        services.AddSingleton<IStrikeRegistry, StrikeRegistry>();
         services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
         services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();

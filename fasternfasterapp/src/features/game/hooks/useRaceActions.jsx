@@ -16,6 +16,9 @@ export function useRaceActions() {
           `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
         );
       }),
+      subscribe("RaceWithdrawn", () => {
+        showMessage("You were removed from this race for suspicious input");
+      }),
     ];
     return () => cleanups.forEach((fn) => fn());
   }, [isConnected, subscribe, showMessage]);
