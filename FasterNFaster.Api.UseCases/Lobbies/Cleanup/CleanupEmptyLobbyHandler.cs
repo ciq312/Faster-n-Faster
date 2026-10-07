@@ -20,10 +20,10 @@ public class CleanupEmptyLobbyHandler(
 
         if (!lobby.IsEmpty()) return;
 
+        raceTickRegistry.DeregisterLobby(lobbyId);
+
         await lobbies.Remove(lobbyId);
 
         races.Remove(lobbyId);
-
-        raceTickRegistry.DeregisterLobby(lobbyId);
     }
 }

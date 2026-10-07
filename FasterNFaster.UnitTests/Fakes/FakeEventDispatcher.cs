@@ -6,9 +6,12 @@ public class FakeEventDispatcher : IEventDispatcher
 {
     public List<IDomainEvent> Dispatched { get; } = new();
 
-    public Task Dispatch(IDomainEvent domainEvent, CancellationToken ct)
+    public Func<IDomainEvent, Task>? OnDispatch { get; set; }
+
+    public async Task Dispatch(IDomainEvent domainEvent, CancellationToken ct)
     {
         Dispatched.Add(domainEvent);
-        return Task.CompletedTask;
+        if (OnDispatch is not null)
+            await OnDispatch(domainEvent);
     }
 }
