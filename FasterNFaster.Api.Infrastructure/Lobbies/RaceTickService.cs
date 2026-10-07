@@ -69,6 +69,8 @@ public class RaceTickService(
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
     {
+        await races.Mutate(entry.LobbyId, r => r.RetryPendingClaims());
+
         var snapshot = await races.GetSnapshot(entry.LobbyId);
 
         var connectedPlayerIds = lobby.Players

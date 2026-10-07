@@ -5,6 +5,7 @@ using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Options.Smtp;
 using FasterNFaster.Api.UseCases.Services.Users;
+using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,7 @@ public static class WebServicesExtensions
         services.Configure<AppOptions>(config.GetSection("AppUrls"));
         services.Configure<SmtpOptions>(config.GetSection("Smtp"));
         services.Configure<AntiCheatOptions>(config.GetSection("AntiCheat"));
+        services.Configure<AntiCheatSanctionOptions>(config.GetSection("AntiCheatSanctions"));
         services.Configure<ConfirmTokenOptions>(config.GetSection("ConfirmTokens"));
 
         return services;

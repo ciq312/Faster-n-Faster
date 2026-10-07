@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
@@ -8,7 +9,8 @@ namespace FasterNFaster.Api.UseCases.Lobbies.StartRace;
 public class StartRaceHandler(
     ILobbyAccess lobbies,
     IRaceAccess races,
-    IRaceTickRegistry raceTickRegistry) : IRequestHandler<StartRaceCommand, Guid>
+    IRaceTickRegistry raceTickRegistry,
+    IAntiCheatPolicy antiCheatPolicy) : IRequestHandler<StartRaceCommand, Guid>
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {
@@ -21,7 +23,7 @@ public class StartRaceHandler(
             l.StartSession();
         });
 
-        await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants()));
+        await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants(antiCheatPolicy)));
 
         raceTickRegistry.RegisterLobby(lobbyId);
 

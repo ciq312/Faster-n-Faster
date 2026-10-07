@@ -3,6 +3,7 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
+using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
@@ -30,7 +31,8 @@ public class Lobby : AggregateRoot<Guid>
         RaiseDomainEvent(new SessionStartedEvent(Id));
     }
 
-    public List<RaceParticipant> GetRaceParticipants() => Players.Select(x => new RaceParticipant(x.Id, x.Color, x.Nick)).ToList();
+    public List<RaceParticipant> GetRaceParticipants(IAntiCheatPolicy policy) =>
+        Players.Select(x => new RaceParticipant(x.Id, x.Color, x.Nick, policy)).ToList();
 
     public void EndSession()
     {

@@ -33,4 +33,17 @@ public class DisconnectHandlerTests
         Assert.True(context.Lobby.Players.ToList()[0].Id == context.Lobby.HostId);
     }
 
+    [Fact]
+    public async Task DisconnectFromLobby_WhenAlreadyDisconnected_ShouldNotThrow()
+    {
+        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+
+        await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
+        await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
+
+        Assert.Single(context.Lobby.Players);
+    }
+
 }

@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Core.Entities.Races.Events;
-using FasterNFaster.Api.Core.Interfaces;
 
 namespace FasterNFaster.Api.Core.Entities.Races;
 
@@ -49,7 +48,7 @@ public abstract class Race : AggregateRoot<Guid>
         HasStarted = false;
     }
 
-    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed, IAntiCheatPolicy policy);
+    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed);
 
     public abstract List<ParticipantSnapshot> GetSnapshot();
 
@@ -74,6 +73,9 @@ public abstract class Race : AggregateRoot<Guid>
 
     // Applies a freshly fetched passage. No-op for race types without passages.
     public virtual void ApplyPassage(string passage) { }
+
+    // Retries any claim a participant's budget couldn't fully grant last tick. No-op for race types without a budget.
+    public virtual void RetryPendingClaims() { }
 
     protected void RaceFinished()
     {

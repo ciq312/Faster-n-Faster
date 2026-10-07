@@ -1,7 +1,10 @@
 
 using System.Net;
 using System.Net.Http.Json;
+using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using Microsoft.AspNetCore.Http.Connections;
@@ -40,6 +43,80 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         await app.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
 
         await hub.StartAsync();
+
+        await connectionClosed.Task.WaitAsync(EventTimeout);
+        Assert.Equal(HubConnectionState.Disconnected, hub.State);
+    }
+
+    [Fact]
+    public async Task SuspendedUserConnect_ShouldAbort()
+    {
+        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
+        await using var hub = BuildHubConnection(client, cookies);
+
+        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.Closed += _ =>
+        {
+            connectionClosed.TrySetResult();
+            return Task.CompletedTask;
+        };
+
+        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(loginResult.UserId, "test suspension", DateTime.UtcNow.AddHours(1)));
+
+        await hub.StartAsync();
+
+        await connectionClosed.Task.WaitAsync(EventTimeout);
+        Assert.Equal(HubConnectionState.Disconnected, hub.State);
+    }
+
+    [Fact]
+    public async Task ExpiredSuspensionUserConnect_ShouldSucceed()
+    {
+        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
+        await using var hub = BuildHubConnection(client, cookies);
+
+        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(loginResult.UserId, "test suspension", DateTime.UtcNow.AddSeconds(-1)));
+
+        await hub.StartAsync();
+        await hub.InvokeAsync<long>("Ping", 0);
+
+        Assert.Equal(HubConnectionState.Connected, hub.State);
+    }
+
+    [Fact]
+    public async Task SuspendedWhileConnected_ClosesConnectionOnNextInvocation()
+    {
+        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
+        await using var hub = BuildHubConnection(client, cookies);
+
+        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.Closed += _ =>
+        {
+            connectionClosed.TrySetResult();
+            return Task.CompletedTask;
+        };
+
+        await hub.StartAsync();
+        await hub.InvokeAsync<long>("Ping", 0);
+
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(loginResult.UserId, "test suspension", expiresAt));
+        await app.ExecuteScopedAsync<IBroadcaster>(broadcaster =>
+            broadcaster.Broadcast(Audience.Player(loginResult.UserId), GameEvents.Suspended, new SuspendedDTO(expiresAt)));
+
+        // HubSuspensionFilter only catches the ban on this connection's next call, and
+        // Abort() can race with delivering this call's own response, so the invoke itself
+        // may legitimately fault - only the resulting close matters here.
+        try
+        {
+            await hub.InvokeAsync<long>("Ping", 0);
+        }
+        catch (Exception)
+        {
+        }
 
         await connectionClosed.Task.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);

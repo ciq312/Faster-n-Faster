@@ -8,10 +8,6 @@ public class ConfiguredAntiCheatPolicy(IOptions<AntiCheatOptions> options) : IAn
 {
     private readonly AntiCheatOptions opts = options.Value;
 
-    public double SustainedMaxWpm => opts.SustainedMaxWpm;
-    public double BurstMaxWpm => opts.BurstMaxWpm;
-    public int AverageWordLength => opts.AverageWordLength;
-    public int BurstMinIndexDelta => opts.BurstMinIndexDelta;
-    public int SustainedCheckMinIndex => opts.SustainedCheckMinIndex;
-    public double BurstMaxCharsPerSecond => opts.BurstMaxWpm * opts.AverageWordLength / 60.0;
+    public double MaxCharsPerSecond => opts.MaxWpm * opts.AverageWordLength / 60.0;
+    public int BudgetSlack => opts.BudgetSlack;
 }
