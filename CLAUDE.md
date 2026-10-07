@@ -12,5 +12,5 @@ Single convention, backend and frontend. Check a neighbouring file before adding
 - **Comments:** default to none. Add one only when the code can't explain itself without it — a non-obvious business rule, a reason a design choice must stay a certain way, a trick in a test. Never add a comment that just restates a well-named method or the next line. No section-banner comments (`// -------- happy path --------`).
 - **Namespaces:** file-scoped (`namespace X;`), not block-scoped. Already consistent; keep it that way.
 - **Blank lines:** single blank line between members at most; no double blank lines.
-- **Tests:** `Method_Scenario_Expected` naming. Extract a named helper for a repeated multi-step setup instead of commenting each call site.
+- **Tests:** `Scenario_Expected` naming. Extract a named helper for a repeated multi-step setup instead of commenting each call site.
 - **`.editorconfig`** enforces the private-field rule and basic formatting; let your editor/IDE flag violations rather than relying on memory.

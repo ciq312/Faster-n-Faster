@@ -29,8 +29,10 @@ public class RaceAccess : IRaceAccess
 
     public Task Mutate(Guid lobbyId, Action<Race> mutate) => gate.Mutate(lobbyId, mutate);
 
+    public Task<bool> TryMutate(Guid lobbyId, Action<Race> mutate) => gate.TryMutate(lobbyId, TryGet, mutate);
+
     public Task ProcessUpdate(Guid lobbyId, Guid playerId, int index, int mistakes, string typed) =>
-        Mutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed));
+        TryMutate(lobbyId, race => race.ProcessUpdate(playerId, index, mistakes, typed));
 
     public async Task RefreshPassage(Guid lobbyId)
     {
@@ -45,8 +47,8 @@ public class RaceAccess : IRaceAccess
         tracker.MarkChanged(lobbyId);
     }
 
-    public Task<List<ParticipantSnapshot>> GetSnapshot(Guid lobbyId) =>
-        gate.Read(lobbyId, race => race.GetSnapshot());
+    public Task<List<ParticipantSnapshot>?> GetSnapshotOrDefault(Guid lobbyId) =>
+        gate.TryRead(lobbyId, TryGet, race => race.GetSnapshot());
 
     public Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
         gate.Read(lobbyId, race => race.GetRaceSettings());

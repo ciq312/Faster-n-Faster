@@ -2,11 +2,8 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,7 +22,8 @@ public class RaceViolationHandlerTests
 
         await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
-        var race = await lobby.RaceAccess.GetSnapshot(lobby.LobbyId);
+        var race = await lobby.RaceAccess.GetSnapshotOrDefault(lobby.LobbyId);
+        Assert.NotNull(race);
         Assert.Contains(race, p => p.PlayerId == playerId);
         Assert.Empty(broadcaster.Broadcasts);
     }
@@ -38,9 +36,22 @@ public class RaceViolationHandlerTests
         for (var i = 0; i < RaceViolationThreshold; i++)
             await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
-        var race = await lobby.RaceAccess.GetSnapshot(lobby.LobbyId);
+        var race = await lobby.RaceAccess.GetSnapshotOrDefault(lobby.LobbyId);
+        Assert.NotNull(race);
         Assert.DoesNotContain(race, p => p.PlayerId == playerId);
         Assert.Contains(broadcaster.Broadcasts, s => s.EventName == GameEvents.RaceWithdrawn);
+    }
+
+    [Fact]
+    public async Task RaceAlreadyRemoved_DoesNotBroadcastRaceWithdrawn()
+    {
+        var (handler, lobby, broadcaster, _, _, playerId, _) = await Build();
+        lobby.RaceAccess.Remove(lobby.LobbyId);
+
+        for (var i = 0; i < RaceViolationThreshold; i++)
+            await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
+
+        Assert.DoesNotContain(broadcaster.Broadcasts, s => s.EventName == GameEvents.RaceWithdrawn);
     }
 
     [Fact]
@@ -97,10 +108,7 @@ public class RaceViolationHandlerTests
     {
         User host = new User("host");
         var lobby = await LobbyFactory.WithPlayers(host);
-
-        var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var startRaceHandler = new StartRaceHandler(lobby.LobbyAccess, lobby.RaceAccess, lobby.Registry, antiCheatPolicy);
-        await startRaceHandler.Handle(new StartRaceCommand(host.Id), CancellationToken.None);
+        await LobbyFactory.StartRace(lobby, host.Id);
 
         // The host is registered and an actual race participant; a guest is neither
         // (an unregistered id with no race entry is enough to exercise the guest cap).

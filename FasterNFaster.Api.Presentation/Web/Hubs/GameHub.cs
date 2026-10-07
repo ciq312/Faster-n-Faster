@@ -124,8 +124,8 @@ public partial class GameHub(
     public async Task UpdateRaceState(int index, int mistakes, string typed)
     {
         var userId = GetCallerContext().UserId;
-        //skip CQRS to minimize the allocations
-        var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(userId);
+        //skip mediator to minimize the allocations
+        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return;
         await races.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
     }
 

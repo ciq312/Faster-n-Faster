@@ -61,7 +61,8 @@ public class RaceTickService(
 
         if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {
-            await races.Mutate(entry.LobbyId, r => r.Start());
+            if (!await races.TryMutate(entry.LobbyId, r => r.Start())) return;
+
             await broadcaster.Broadcast(Audience.Lobby(entry.LobbyId), GameEvents.RaceStarted);
             registry.TransitionToRacing(entry.LobbyId);
         }
@@ -69,9 +70,10 @@ public class RaceTickService(
 
     private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
     {
-        await races.Mutate(entry.LobbyId, r => r.RetryPendingClaims());
+        if (!await races.TryMutate(entry.LobbyId, r => r.RetryPendingClaims())) return;
 
-        var snapshot = await races.GetSnapshot(entry.LobbyId);
+        var snapshot = await races.GetSnapshotOrDefault(entry.LobbyId);
+        if (snapshot is null) return;
 
         var connectedPlayerIds = lobby.Players
             .Select(p => p.Id)

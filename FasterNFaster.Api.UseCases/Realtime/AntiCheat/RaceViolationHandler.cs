@@ -32,10 +32,11 @@ public class RaceViolationHandler(
         var raceViolationCount = strikes.RecordRaceViolation(e.LobbyId, e.PlayerId);
         if (raceViolationCount < opts.RaceViolationThreshold) return;
 
-        await races.Mutate(e.LobbyId, r => r.WithdrawParticipant(e.PlayerId));
-        await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.RaceWithdrawn);
+        if (await races.TryMutate(e.LobbyId, r => r.WithdrawParticipant(e.PlayerId)))
+            await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.RaceWithdrawn);
 
-        // A strike is one race withdrawal, not one rejected update, so this only fires here.
+        // A strike is one incident that reached the withdrawal threshold, not one rejected update,
+        // and it counts even if the race is already gone, so leaving can't dodge it.
         var strikeCount = strikes.RecordStrike(e.PlayerId, DateTime.UtcNow, opts.StrikeWindow);
         if (strikeCount < opts.SuspensionThreshold) return;
 

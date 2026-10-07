@@ -9,6 +9,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+using FasterNFaster.Api.UseCases.Lobbies.StartRace;
+using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Web.Services.Implementations;
+using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests;
 
@@ -95,5 +99,12 @@ public static class LobbyFactory
         var context = await WithPlayers(host, other);
 
         return (host, other, context);
+    }
+
+    public static Task StartRace(LobbyTestContext context, Guid hostId)
+    {
+        var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
+        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry, antiCheatPolicy);
+        return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
     }
 }
