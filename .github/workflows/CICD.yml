@@ -26,6 +26,8 @@ jobs:
       run: dotnet restore  ${{ env.Solution_name }}
     - name: Build
       run: dotnet build  ${{ env.Solution_name }} --no-restore
+    - name: Check formatting
+      run: dotnet format ${{ env.Solution_name }} --verify-no-changes --no-restore
     - name: Test
       run: dotnet test  ${{ env.Test_project_path }} --no-build --verbosity normal
 
@@ -60,6 +62,7 @@ jobs:
         cache-dependency-path: fasternfasterapp/package-lock.json
     - run: npm ci
     - run: npm run lint
+    - run: npm run format:check
     - run: npm run build
 
   publish-api:
