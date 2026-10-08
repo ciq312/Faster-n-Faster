@@ -1,5 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Core.Entities.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Events;
+using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Services;
@@ -106,5 +109,13 @@ public static class LobbyFactory
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
         var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry, antiCheatPolicy);
         return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
+    }
+
+    public static void WireCleanup(LobbyTestContext context)
+    {
+        var cleanup = new CleanupEmptyLobbyHandler(context.LobbyAccess, context.RaceAccess, context.Registry);
+        context.Dispatcher.OnDispatch = domainEvent => domainEvent is PlayerRemovedEvent removed
+            ? cleanup.Handle(new DomainEventNotification<PlayerRemovedEvent>(removed), CancellationToken.None)
+            : Task.CompletedTask;
     }
 }

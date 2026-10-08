@@ -12,7 +12,9 @@ public class Lobby : AggregateRoot<Guid>
     public Guid HostId { get; private set; }
     public LobbySettings LobbySettings { get; private set; }
     public bool IsSessionActive { get; private set; } = false;
-    public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
+    private readonly List<LobbyPlayer> players = [];
+    public IReadOnlyList<LobbyPlayer> Players => players;
+
     private readonly List<Guid> bannedPlayerIds = new List<Guid>();
 
     public Lobby(string name, bool isPrivate)
@@ -61,7 +63,7 @@ public class Lobby : AggregateRoot<Guid>
         var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
         var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
         var player = new LobbyPlayer(userId, nick, joinOrder, color);
-        Players.Add(player);
+        players.Add(player);
         LobbySettings.UpdateTimestamp();
         RaiseDomainEvent(new PlayerJoinedEvent(userId, Id, nick));
     }
@@ -137,7 +139,7 @@ public class Lobby : AggregateRoot<Guid>
         var player = Players.FirstOrDefault(p => p.Id == playerId)
             ?? throw new InvalidOperationException("Player not found in this lobby.");
 
-        Players.Remove(player);
+        players.Remove(player);
         PromoteNextIfHost(playerId);
         RaiseDomainEvent(new PlayerRemovedEvent(player.Id, Id, player.Nick));
         LobbySettings.UpdateTimestamp();

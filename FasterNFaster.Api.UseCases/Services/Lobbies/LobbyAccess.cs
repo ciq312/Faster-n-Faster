@@ -41,14 +41,16 @@ public class LobbyAccess(
         return lobby;
     }
 
-    public async Task Remove(Guid lobbyId)
+    public async Task<bool> RemoveIfEmpty(Guid lobbyId)
     {
-        var lobby = repo.GetRequired(lobbyId);
-
-        repo.Remove(lobbyId);
-        gate.Release(lobbyId);
-
-        await gate.DispatchOf(lobby);
+        var removed = await gate.TryRead(lobbyId, repo.Get, lobby =>
+        {
+            if (!lobby.IsEmpty()) return false;
+            repo.Remove(lobbyId);
+            return true;
+        });
+        if (removed) gate.Release(lobbyId);
+        return removed;
     }
 
     public Lobby GetRequired(Guid lobbyId) => repo.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);

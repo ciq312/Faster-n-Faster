@@ -7,7 +7,7 @@ public interface ILobbyAccess
     Task Mutate(Guid lobbyId, Action<Lobby> mutate);
 
     Task<Lobby> Create(string lobbyName, bool isPrivate, Guid creatorId);
-    Task Remove(Guid lobbyId);
+    Task<bool> RemoveIfEmpty(Guid lobbyId);
 
     Lobby GetRequired(Guid lobbyId);
     Lobby GetOfPlayerRequired(Guid userId);

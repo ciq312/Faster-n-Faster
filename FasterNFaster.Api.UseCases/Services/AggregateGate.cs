@@ -29,7 +29,7 @@ public sealed class AggregateGate<TAggregate>(IEventDispatcher dispatcher, Func<
         WithGate(key, gate => read(Resolve(key, gate)));
 
     public Task<T?> TryRead<T>(Guid key, Func<Guid, TAggregate?> tryResolve, Func<TAggregate, T> read) =>
-        WithGate<T?>(key, gate =>
+        WithGate(key, gate =>
         {
             var aggregate = tryResolve(key);
             if (aggregate is not null) return read(aggregate);

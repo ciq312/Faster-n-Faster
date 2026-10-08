@@ -1,7 +1,4 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
 namespace FasterNFaster.Tests.Handlers;
@@ -52,7 +49,7 @@ public class DisconnectHandlerTests
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
         await LobbyFactory.StartRace(context, host.Id);
-        WireCleanup(context);
+        LobbyFactory.WireCleanup(context);
 
         var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 
@@ -68,7 +65,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
         await LobbyFactory.StartRace(context, host.Id);
-        WireCleanup(context);
+        LobbyFactory.WireCleanup(context);
 
         var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 
@@ -79,13 +76,5 @@ public class DisconnectHandlerTests
         Assert.DoesNotContain(snapshot, p => p.PlayerId == other.Id);
         Assert.Contains(snapshot, p => p.PlayerId == host.Id);
         Assert.NotNull(context.Store.Get(context.LobbyId));
-    }
-
-    private static void WireCleanup(LobbyTestContext context)
-    {
-        var cleanup = new CleanupEmptyLobbyHandler(context.LobbyAccess, context.RaceAccess, context.Registry);
-        context.Dispatcher.OnDispatch = domainEvent => domainEvent is PlayerRemovedEvent removed
-            ? cleanup.Handle(new DomainEventNotification<PlayerRemovedEvent>(removed), CancellationToken.None)
-            : Task.CompletedTask;
     }
 }
