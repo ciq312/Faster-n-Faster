@@ -1,6 +1,6 @@
 namespace FasterNFaster.Api.Web.Users.Validation;
 
-public static class ValidationExtensions 
+public static class ValidationExtensions
 {
     public static IRuleBuilderOptions<T, string> Password<T>(this IRuleBuilder<T, string> ruleBuilder)
     {
