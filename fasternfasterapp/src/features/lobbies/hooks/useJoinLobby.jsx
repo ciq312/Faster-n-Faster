@@ -6,21 +6,23 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "../../game/hooks/LobbyProvider";
 
 export function useJoinLobby() {
-    const { invoke } = useConnection();
-    const navigate = useNavigate();
-    const { showError } = useError();
-    const { setLobbyId } = useLobbyContext();
+  const { invoke } = useConnection();
+  const navigate = useNavigate();
+  const { showError } = useError();
+  const { setLobbyId } = useLobbyContext();
 
-    const joinLobby = useCallback(async (lobbyId,  inviteCode = null) => {
-        try {
-            await invoke("ConnectToLobby", lobbyId,  inviteCode);
-            setLobbyId(lobbyId);
-            navigate(`/lobby/${lobbyId}`);
-        }
-        catch (e) {
-            showError(extractHubError(e));
-        }
-    }, [invoke, navigate, setLobbyId, showError]);
+  const joinLobby = useCallback(
+    async (lobbyId, inviteCode = null) => {
+      try {
+        await invoke("ConnectToLobby", lobbyId, inviteCode);
+        setLobbyId(lobbyId);
+        navigate(`/lobby/${lobbyId}`);
+      } catch (e) {
+        showError(extractHubError(e));
+      }
+    },
+    [invoke, navigate, setLobbyId, showError],
+  );
 
-    return { joinLobby };
-}   
+  return { joinLobby };
+}

@@ -20,7 +20,7 @@
 
   --text-1: #ede9e3;
   --text-2: #8a857d;
-  --text-3: #5c5751;  
+  --text-3: #5c5751;
   --text-4: #3a3631;
 
   --font-display: "Syne", sans-serif;
@@ -53,4 +53,3 @@ body {
   background: rgba(212, 160, 18, 0.2);
   color: var(--text-1);
 }
-

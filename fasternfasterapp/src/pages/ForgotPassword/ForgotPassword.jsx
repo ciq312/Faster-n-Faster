@@ -54,8 +54,8 @@ function ForgotPassword() {
         {forgot.submitted && (
           <>
             <p className="forgot-password__body">
-              if an account with <strong>{email}</strong> exists, a reset link is on its way.
-              check your inbox.
+              if an account with <strong>{email}</strong> exists, a reset link
+              is on its way. check your inbox.
             </p>
             <button
               type="button"

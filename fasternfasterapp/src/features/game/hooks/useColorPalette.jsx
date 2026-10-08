@@ -7,8 +7,9 @@ export function useColorPalette() {
   useEffect(() => {
     if (!show) return;
     const handleClick = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target))
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
         setShow(false);
+      }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);

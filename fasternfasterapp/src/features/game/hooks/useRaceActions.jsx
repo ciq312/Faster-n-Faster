@@ -23,9 +23,12 @@ export function useRaceActions() {
     return () => cleanups.forEach((fn) => fn());
   }, [isConnected, subscribe, showMessage]);
 
-  const rawSendProgress = useCallback(async ({ index, mistakes, typed }) => {
-    await invoke("UpdateRaceState", index, mistakes, typed);
-  }, [invoke]);
+  const rawSendProgress = useCallback(
+    async ({ index, mistakes, typed }) => {
+      await invoke("UpdateRaceState", index, mistakes, typed);
+    },
+    [invoke],
+  );
 
   const { throttled: sendProgress, flush: flushProgress } =
     useThrottledCallback(rawSendProgress, PROGRESS_THROTTLE_MS);
