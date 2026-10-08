@@ -11,11 +11,15 @@ public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
         var lobbyId = lobbies.GetLobbyIdOfPlayer(command.PlayerId);
         if (lobbyId is null) return;
 
-        var lobby = lobbies.GetRequired(lobbyId.Value);
+        var wasRacing = false;
 
-        if (lobby.IsSessionActive)
-            await races.Mutate(lobby.Id, r => r.WithdrawParticipant(command.PlayerId));
+        await lobbies.Mutate(lobbyId.Value, l =>
+        {
+            wasRacing = l.IsSessionActive;
+            l.Disconnect(command.PlayerId);
+        });
 
-        await lobbies.Mutate(lobby.Id, l => l.Disconnect(command.PlayerId));
+        if (wasRacing)
+            await races.TryMutate(lobbyId.Value, r => r.WithdrawParticipant(command.PlayerId));
     }
 }

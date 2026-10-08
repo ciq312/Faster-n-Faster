@@ -61,13 +61,32 @@ public class LobbyAccessTests
     [Fact]
     public async Task Exists_ShouldReflectRemoval()
     {
-        var host = new User("host");
-        var context = await LobbyFactory.WithPlayers(host);
+        var context = await LobbyFactory.Empty(Guid.NewGuid());
 
         Assert.True(context.LobbyAccess.Exists(context.LobbyId));
 
-        await context.LobbyAccess.Remove(context.LobbyId);
+        await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
 
         Assert.False(context.LobbyAccess.Exists(context.LobbyId));
+    }
+
+    [Fact]
+    public async Task RemoveIfEmpty_WhenPlayersRemain_ReturnsFalseAndKeepsLobby()
+    {
+        var context = await LobbyFactory.WithPlayers(new User("host"));
+
+        Assert.False(await context.LobbyAccess.RemoveIfEmpty(context.LobbyId));
+
+        Assert.True(context.LobbyAccess.Exists(context.LobbyId));
+    }
+
+    [Fact]
+    public async Task RemoveIfEmpty_WhenAlreadyRemoved_ReturnsFalse()
+    {
+        var context = await LobbyFactory.Empty(Guid.NewGuid());
+
+        Assert.True(await context.LobbyAccess.RemoveIfEmpty(context.LobbyId));
+
+        Assert.False(await context.LobbyAccess.RemoveIfEmpty(context.LobbyId));
     }
 }

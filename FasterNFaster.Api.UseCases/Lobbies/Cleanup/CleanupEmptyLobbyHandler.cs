@@ -15,14 +15,10 @@ public class CleanupEmptyLobbyHandler(
     public async Task Handle(DomainEventNotification<PlayerRemovedEvent> notification, CancellationToken cancellationToken)
     {
         var lobbyId = notification.Event.LobbyId;
-        var lobby = lobbies.GetRequired(lobbyId);
 
-        if (!lobby.IsEmpty()) return;
+        if (!await lobbies.RemoveIfEmpty(lobbyId)) return;
 
         raceTickRegistry.DeregisterLobby(lobbyId);
-
-        await lobbies.Remove(lobbyId);
-
         races.Remove(lobbyId);
     }
 }

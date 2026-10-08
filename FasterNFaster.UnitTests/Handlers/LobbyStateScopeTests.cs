@@ -73,13 +73,13 @@ public class LobbyStateScopeTests
     [Fact]
     public async Task Run_SkipsLobby_RemovedDuringOperation()
     {
-        var context = await LobbyFactory.WithPlayers(new User("test"));
+        var context = await LobbyFactory.Empty(Guid.NewGuid());
         var (scope, broadcaster, tracker) = Build(context);
 
         await scope.Run(async () =>
         {
             tracker.MarkChanged(context.LobbyId);
-            await context.LobbyAccess.Remove(context.LobbyId);
+            await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
         });
 
         Assert.Empty(broadcaster.Broadcasts);
