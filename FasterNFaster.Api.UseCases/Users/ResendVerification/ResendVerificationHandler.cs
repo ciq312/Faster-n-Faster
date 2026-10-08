@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
@@ -13,11 +12,11 @@ public class ResendVerificationHandler(
 {
     public async Task Handle(ResendVerificationCommand command, CancellationToken cancellationToken)
     {
-        User? user = await userRepo.GetByEmailAsync(command.Email);
+        var user = await userRepo.GetByEmailAsync(command.Email);
         if (user is null) return;
         if (user.IsEmailVerified) return;
 
-        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.EmailVerification);
+        var token = await tokenIssuer.TryIssue(user.Id, TokenType.EmailVerification);
         if (token is null) return;
 
         await emailSender.SendConfirmationEmail(user.Nick, user.Email!, token.Value);

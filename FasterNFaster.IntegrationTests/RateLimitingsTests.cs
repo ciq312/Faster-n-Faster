@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.Web.Options.RateLimiting;
 using FasterNFaster.IntegrationTests;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -47,7 +45,7 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.1");
 
         var tasks = new List<Task<HttpResponseMessage>>();
-        for (int i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
+        for (var i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
         {
             tasks.Add(AuthHelper.Register(client));
         }
@@ -63,13 +61,13 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
     [Fact]
     public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeOk()
     {
-        TimeSpan testRateLimitWindow = TimeSpan.FromSeconds(1);
+        var testRateLimitWindow = TimeSpan.FromSeconds(1);
         await using var shortWindowApp = fixture.CreateApp(b => b.UseSetting("RateLimiting:AuthStrict:Window", testRateLimitWindow.ToString()));
         var client = shortWindowApp.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.3");
 
         var tasks = new List<Task<HttpResponseMessage>>();
-        for (int i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
+        for (var i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
         {
             tasks.Add(AuthHelper.Register(client));
         }

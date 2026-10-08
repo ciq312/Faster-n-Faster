@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 
 namespace FasterNFaster.Api.Web.Users.GoogleAuth;
 

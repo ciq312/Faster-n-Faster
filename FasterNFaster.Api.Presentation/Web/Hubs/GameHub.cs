@@ -53,7 +53,7 @@ public partial class GameHub(
         if (previousSessionId != null && previousSessionId != callerConnectionId)
         {
             logger.LogDebug("Handling another session for user {UserId}", userId);
-            await HandleSessionRestart(userId, callerConnectionId, previousSessionId);
+            await HandleSessionRestart(userId, previousSessionId);
         }
 
         logger.LogDebug("Previous sessionId: {PreviousSession}, callerId: {CallerId}", previousSessionId, callerConnectionId);
@@ -61,7 +61,7 @@ public partial class GameHub(
         sessionService.SetUserSession(userId, callerConnectionId);
     }
 
-    private async Task HandleSessionRestart(Guid userId, string callerConnectionId, string previousSession)
+    private async Task HandleSessionRestart(Guid userId, string previousSession)
     {
         sessionService.ClearActiveSession(userId);
         await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);

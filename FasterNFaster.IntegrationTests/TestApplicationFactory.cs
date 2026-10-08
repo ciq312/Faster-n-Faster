@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using DotNet.Testcontainers.Containers;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

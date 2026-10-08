@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Web.Services;
-using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.AspNetCore.Http;
 
 namespace FasterNFaster.Tests.Services;

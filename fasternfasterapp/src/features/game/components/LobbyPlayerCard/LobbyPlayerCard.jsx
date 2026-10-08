@@ -55,7 +55,7 @@ function LobbyPlayerCard({
             e.stopPropagation();
             palette.toggle(isSelf);
           }}
-        ></div>
+        />
       </div>
       {palette.showColors && colors && (
         <div className="color-panel" ref={palette.panelRef}>
@@ -70,7 +70,7 @@ function LobbyPlayerCard({
                   palette.close();
                 }
               }}
-            ></div>
+            />
           ))}
         </div>
       )}

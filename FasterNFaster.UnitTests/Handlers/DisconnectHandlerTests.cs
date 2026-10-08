@@ -23,7 +23,7 @@ public class DisconnectHandlerTests
     [Fact]
     public async Task HostDisconnectFromLobby_ShouldPromoteNextAndRemoveHost()
     {
-        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+        var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 
@@ -36,7 +36,7 @@ public class DisconnectHandlerTests
     [Fact]
     public async Task DisconnectFromLobby_WhenAlreadyDisconnected_ShouldNotThrow()
     {
-        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+        var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
 

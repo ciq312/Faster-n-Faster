@@ -7,7 +7,6 @@ namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
 
 public record CreateLobbyRequest(string LobbyName, bool IsPrivate);
 
-
 public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, CreateLobbyResult>
 {
     public override void Configure()

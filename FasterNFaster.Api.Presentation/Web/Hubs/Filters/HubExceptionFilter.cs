@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Core.Exceptions;
-    using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
 
-public class HubExceptionFilter(ILogger<HubExceptionFilter> logger) : IHubFilter
+public class HubExceptionFilter() : IHubFilter
 {
     public async ValueTask<object?> InvokeMethodAsync(
         HubInvocationContext invocationContext,

@@ -35,7 +35,6 @@ public static class AuthHelper
         return userId;
     }
 
-
     public static void SetCookies(CookieContainer cookies, HttpResponseMessage loginResponse, HttpClient client)
     {
         if (!loginResponse.Headers.TryGetValues("Set-Cookie", out var headerCookies)) throw new NotFoundException("cookies were not found");
@@ -45,7 +44,7 @@ public static class AuthHelper
             cookies.SetCookies(client.BaseAddress!, cookie);
         }
     }
-    
+
     public static string RegisterUri => "api/auth/register";
     public static string LoginUri => "api/auth/login";
     public static string VerifyEmailUri => "api/auth/verify-email";

@@ -24,7 +24,7 @@ public class RandomPassageProvider : IPassageProvider
     public ValueTask<string> GetPassageAsync(int wordCount)
     {
         var selected = new string[wordCount];
-        for (int i = 0; i < wordCount; i++)
+        for (var i = 0; i < wordCount; i++)
             selected[i] = WordPool[Random.Shared.Next(WordPool.Length)];
 
         return new ValueTask<string>(string.Join(" ", selected));

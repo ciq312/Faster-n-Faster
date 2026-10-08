@@ -1,4 +1,4 @@
-  /* ── Player card ── */
+/* ── Player card ── */
 
 .player-card {
   position: relative;
@@ -141,7 +141,9 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .host-actions__btn:hover {

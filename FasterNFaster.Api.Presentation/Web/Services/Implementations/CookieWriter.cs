@@ -1,7 +1,6 @@
 using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Web.Services.Implementations;

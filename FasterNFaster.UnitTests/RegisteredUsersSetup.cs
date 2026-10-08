@@ -1,8 +1,6 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Tests.Fakes;
-using Org.BouncyCastle.Crypto.Operators;
 
 namespace FasterNFaster.Tests;
 
@@ -23,6 +21,5 @@ public static class RegisteredUsersSetup
 
     }
     public record SetupResult(FakeUserRepository repo, FakeEmailSender EmailSender, FakeTokenRepo TokenRepo, ConfirmTokenFactory TokenFactory);
-
 
 }

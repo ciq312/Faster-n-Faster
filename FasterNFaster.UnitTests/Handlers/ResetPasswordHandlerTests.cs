@@ -4,7 +4,6 @@ using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
-using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
 
 namespace FasterNFaster.Tests.Handlers;
@@ -71,7 +70,7 @@ public class ResetPasswordHandlerTests
         Assert.Null(await ctx.TokenRepo.GetLatestForUserAsync(ctx.User.Id, TokenType.PasswordReset));
     }
 
-      [Fact]
+    [Fact]
     public async Task ValidToken_TryRefreshAfterReset()
     {
         var ctx = await BuildWithValidResetToken();
@@ -88,7 +87,7 @@ public class ResetPasswordHandlerTests
     public async Task UnknownToken_Throws()
     {
         var ctx = await BuildWithValidResetToken();
-        string originalPassword = ctx.User.Password!;
+        var originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
             ctx.Handler.Handle(new ResetPasswordCommand("not-a-real-token", NewPassword), CancellationToken.None));
@@ -101,7 +100,7 @@ public class ResetPasswordHandlerTests
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Token.ExpiresAt = DateTime.UtcNow.AddMinutes(-1);
-        string originalPassword = ctx.User.Password!;
+        var originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
             ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None));
@@ -124,7 +123,7 @@ public class ResetPasswordHandlerTests
             ExpiresAt = DateTime.UtcNow.AddHours(1)
         };
         await ctx.TokenRepo.Add(wrongType);
-        string originalPassword = ctx.User.Password!;
+        var originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
             ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None));

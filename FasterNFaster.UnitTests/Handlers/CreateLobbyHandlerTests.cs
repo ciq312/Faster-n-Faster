@@ -1,5 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.Infrastructure.Users;
@@ -17,7 +15,6 @@ public class CreateLobbyHandlerTests
     public async Task CreateLobby_ShouldReturnLobbyIdAndName()
     {
         var passageProvider = new RandomPassageProvider();
-        var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository();
 
@@ -41,7 +38,6 @@ public class CreateLobbyHandlerTests
     public async Task CreateLobby_ShouldStoreTheLobby()
     {
         var passageProvider = new RandomPassageProvider();
-        var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
         var lobbyStore = new InMemoryLobbyRepository();
 

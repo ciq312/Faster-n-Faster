@@ -32,9 +32,12 @@ export function useFetchLeaderboard() {
             Page: pageNumber,
             PageSize: PAGE_SIZE,
           });
-          const response = await fetch(`${API_BASE}/api/leaderboards?${query}`, {
-            method: "GET",
-          });
+          const response = await fetch(
+            `${API_BASE}/api/leaderboards?${query}`,
+            {
+              method: "GET",
+            },
+          );
           if (!response.ok) {
             showError(await extractHttpError(response));
             return;

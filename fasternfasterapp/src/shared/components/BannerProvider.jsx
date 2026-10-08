@@ -10,7 +10,7 @@ import {
 import Banner from "./Banner/Banner";
 const BannerContext = createContext();
 
-function BannerProvider({ children } ) {
+function BannerProvider({ children }) {
   const bannerRef = useRef(null);
   const bannerPromiseRef = useRef(null);
   const [banner, setBanner] = useState(null);
@@ -52,13 +52,14 @@ function BannerProvider({ children } ) {
       timers.current.fade = setTimeout(() => {
         setFading(true);
       }, duration_MS - 400);
-      bannerPromiseRef.current = new Promise(resolve => {timers.current.remove = setTimeout(() => {
-        bannerRef.current = null;
-        setBanner(null);
-        setFading(false);
-        resolve();
-      }, duration_MS);
-    });
+      bannerPromiseRef.current = new Promise((resolve) => {
+        timers.current.remove = setTimeout(() => {
+          bannerRef.current = null;
+          setBanner(null);
+          setFading(false);
+          resolve();
+        }, duration_MS);
+      });
     },
     [],
   );

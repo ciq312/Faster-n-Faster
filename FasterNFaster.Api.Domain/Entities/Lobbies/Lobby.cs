@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
 
@@ -14,7 +13,7 @@ public class Lobby : AggregateRoot<Guid>
     public LobbySettings LobbySettings { get; private set; }
     public bool IsSessionActive { get; private set; } = false;
     public ICollection<LobbyPlayer> Players { get; private set; } = new List<LobbyPlayer>();
-    private List<Guid> bannedPlayerIds = new List<Guid>();
+    private readonly List<Guid> bannedPlayerIds = new List<Guid>();
 
     public Lobby(string name, bool isPrivate)
     {
@@ -132,7 +131,7 @@ public class Lobby : AggregateRoot<Guid>
         RaiseDomainEvent(new PlayerDisconnectedEvent(playerId, Id, player.Nick));
         return player;
     }
-    
+
     private LobbyPlayer RemovePlayerInternal(Guid playerId)
     {
         var player = Players.FirstOrDefault(p => p.Id == playerId)
@@ -144,9 +143,6 @@ public class Lobby : AggregateRoot<Guid>
         LobbySettings.UpdateTimestamp();
         return player;
     }
-
-
-
 
     private void PromoteNextIfHost(Guid leavingPlayerId)
     {
@@ -166,7 +162,7 @@ public class Lobby : AggregateRoot<Guid>
 
     public void GenerateUniqueInviteCode(Func<string, bool> codeExists)
     {
-        string code = LobbySettings.CreateUniqueInviteCode(codeExists);
+        var code = LobbySettings.CreateUniqueInviteCode(codeExists);
         LobbySettings.SetInviteCode(code);
     }
 

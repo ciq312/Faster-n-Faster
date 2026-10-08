@@ -1,10 +1,8 @@
-using System.Net.Http.Headers;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.AspNetCore.Identity;
 
 namespace FasterNFaster.Tests.Handlers;
 

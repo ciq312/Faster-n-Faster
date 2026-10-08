@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;

@@ -2,7 +2,7 @@ namespace FasterNFaster.Api.Core.Entities.Lobbies;
 
 public class LobbySettings
 {
-    const int CODE_LENGTH = 6;
+    private const int CODE_LENGTH = 6;
 
     private static readonly char[] AlphanumericChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();

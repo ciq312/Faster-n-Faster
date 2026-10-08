@@ -13,4 +13,5 @@ Single convention, backend and frontend. Check a neighbouring file before adding
 - **Namespaces:** file-scoped (`namespace X;`), not block-scoped. Already consistent; keep it that way.
 - **Blank lines:** single blank line between members at most; no double blank lines.
 - **Tests:** `Scenario_Expected` naming. Extract a named helper for a repeated multi-step setup instead of commenting each call site.
-- **`.editorconfig`** enforces the private-field rule and basic formatting; let your editor/IDE flag violations rather than relying on memory.
+- **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; nothing does in C#, so follow it by hand.
+- **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. Fix locally with `dotnet format FasterNFaster.Api.sln` and `npm run format` before pushing.

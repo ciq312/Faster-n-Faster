@@ -7,8 +7,6 @@ using FasterNFaster.Api.Web.Options.Smtp;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Auth;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 
 namespace FasterNFaster.Api.Extensions;
 

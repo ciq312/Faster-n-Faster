@@ -19,7 +19,7 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task NoPriorToken_IssuesAndStoresToken()
     {
-        Token? token = await issuer.TryIssue(userId, TokenType.PasswordReset);
+        var token = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.NotNull(token);
         Assert.Equal(userId, token.UserId);
@@ -30,9 +30,9 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task WithinCooldown_ReturnsNullAndKeepsPriorToken()
     {
-        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset);
+        var first = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
-        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset);
+        var second = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.Null(second);
         Assert.Same(first, Assert.Single(tokenRepo.tokens));
@@ -41,10 +41,10 @@ public class ConfirmTokenIssuerTests
     [Fact]
     public async Task AfterCooldown_ReplacesPriorToken()
     {
-        Token? first = await issuer.TryIssue(userId, TokenType.PasswordReset);
+        var first = await issuer.TryIssue(userId, TokenType.PasswordReset);
         first!.CreatedAt = DateTime.UtcNow - Cooldown - TimeSpan.FromSeconds(1);
 
-        Token? second = await issuer.TryIssue(userId, TokenType.PasswordReset);
+        var second = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.NotNull(second);
         Assert.NotEqual(first.Value, second.Value);
@@ -56,7 +56,7 @@ public class ConfirmTokenIssuerTests
     {
         await issuer.TryIssue(userId, TokenType.PasswordReset);
 
-        Token? verification = await issuer.TryIssue(userId, TokenType.EmailVerification);
+        var verification = await issuer.TryIssue(userId, TokenType.EmailVerification);
 
         Assert.NotNull(verification);
         Assert.Equal(2, tokenRepo.tokens.Count);

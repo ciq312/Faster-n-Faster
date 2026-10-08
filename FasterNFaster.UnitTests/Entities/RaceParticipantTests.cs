@@ -85,7 +85,6 @@ public class RaceParticipantTests
         Assert.Equal(3, participant.Index);
     }
 
-
     [Fact]
     public void UpdateProgress_TypedShorterThanIndex_IsRejected()
     {
@@ -154,7 +153,6 @@ public class RaceParticipantTests
         Assert.Equal(ProgressOutcome.Rejected("space typed after wrong character"), outcome);
         Assert.Equal("the", participant.Typed);
     }
-
 
     [Fact]
     public void UpdateProgress_TypingBeyondBudget_IsClampedToBudget()
@@ -249,7 +247,6 @@ public class RaceParticipantTests
         Assert.Equal("the quick br", participant.Typed);
     }
 
-
     [Fact]
     public void UpdateProgress_ReportedMistakesLowerThanStored_KeepsStoredCount()
     {
@@ -307,7 +304,6 @@ public class RaceParticipantTests
         Assert.Equal(ProgressOutcome.Accepted, outcome);
         Assert.Equal(2, participant.Mistakes);
     }
-
 
     [Fact]
     public void GetAccuracy_ReturnsPercentageOfCorrectCharacters()

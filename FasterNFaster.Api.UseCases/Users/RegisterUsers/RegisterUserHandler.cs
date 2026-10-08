@@ -25,7 +25,7 @@ public class RegisterUserHandler(
         User user = new(command.Nick, command.Login, null);
         user.SetEmail(command.Email);
 
-        string hashedPassword = passwordHelper.HashPassword(user, command.Password);
+        var hashedPassword = passwordHelper.HashPassword(user, command.Password);
         user.SetPassword(hashedPassword);
 
         repo.Add(user);

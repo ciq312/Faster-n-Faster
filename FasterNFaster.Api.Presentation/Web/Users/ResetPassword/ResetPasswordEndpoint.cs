@@ -2,7 +2,6 @@ using FastEndpoints;
 using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using MediatR;
-using Microsoft.AspNetCore.Builder;
 
 namespace FasterNFaster.Api.Web.Users.ResetPassword;
 

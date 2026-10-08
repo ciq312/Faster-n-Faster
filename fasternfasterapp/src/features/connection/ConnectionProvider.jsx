@@ -45,7 +45,9 @@ function ConnectionProvider({ url, children }) {
       navigate("/");
     };
     const suspendedHandler = (data) => {
-      showError(`You are suspended until ${new Date(data.expiresAt).toLocaleString()}`);
+      showError(
+        `You are suspended until ${new Date(data.expiresAt).toLocaleString()}`,
+      );
       connection.stop();
       navigate("/");
     };
@@ -57,14 +59,16 @@ function ConnectionProvider({ url, children }) {
 
     const latencyCheckId = import.meta.env.DEV
       ? setInterval(async () => {
-          if (connection.state !== signalR.HubConnectionState.Connected)
+          if (connection.state !== signalR.HubConnectionState.Connected) {
             return;
+          }
           try {
             const t0 = performance.now();
             await connection.invoke("Ping", Date.now());
             console.debug(`latency: ${Math.round(performance.now() - t0)}ms`);
-          }  
-          catch { console.log("latency check failed"); }
+          } catch {
+            console.log("latency check failed");
+          }
         }, 3000)
       : null;
 
