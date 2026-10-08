@@ -3,7 +3,6 @@ using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.LoginUsers;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Builder;
 
 namespace FasterNFaster.Api.Web.Users.LoginUser;
 

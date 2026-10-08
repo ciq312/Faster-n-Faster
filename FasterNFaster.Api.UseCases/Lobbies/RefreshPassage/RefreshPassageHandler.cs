@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
@@ -11,7 +10,7 @@ public class RefreshPassageHandler(
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.CallerId);
+        var lobby = lobbies.GetOfPlayerRequired(command.CallerId);
 
         if (lobby.IsSessionActive) throw new InvalidOperationException("Can't refresh when session active");
 

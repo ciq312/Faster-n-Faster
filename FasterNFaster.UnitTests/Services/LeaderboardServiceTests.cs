@@ -1,11 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
-using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
-using FasterNFaster.Api.UseCases.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Tests.Services;
@@ -18,14 +15,14 @@ public class LeaderboardServiceTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        List<User> users = new List<User>();
-        List<PlayerStatistics> statistics = new List<PlayerStatistics>();
+        var users = new List<User>();
+        var statistics = new List<PlayerStatistics>();
 
-        for (int i = 1; i <= 5; i++)
+        for (var i = 1; i <= 5; i++)
         {
-            User user = new User($"Player{i}");
-            PlayerStatistics stat = new PlayerStatistics(user.Id);
-            RaceParticipantResult result = new RaceParticipantResult(Guid.NewGuid(), stat.Id, user.Nick, i * 10, 95 - i, i * 5, i * 20, i);
+            var user = new User($"Player{i}");
+            var stat = new PlayerStatistics(user.Id);
+            var result = new RaceParticipantResult(Guid.NewGuid(), stat.Id, user.Nick, i * 10, 95 - i, i * 5, i * 20, i);
             stat.RegisterRace(result);
             users.Add(user);
             statistics.Add(stat);

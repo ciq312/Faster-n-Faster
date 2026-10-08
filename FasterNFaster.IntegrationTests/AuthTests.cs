@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
@@ -11,9 +10,7 @@ using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
 using FasterNFaster.IntegrationTests;
-using MediatR.Pipeline;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Org.BouncyCastle.Asn1;
 
 public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
 {
@@ -62,7 +59,6 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         Assert.NotEqual(user.Password, userDb.Password);
     }
 
-
     [Fact]
     public async Task LoginExistingUser_ShouldGiveTokens()
     {
@@ -74,7 +70,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        CookieContainer cookies = new CookieContainer();
+        var cookies = new CookieContainer();
 
         AuthHelper.SetCookies(cookies, loginResponse, client);
 
@@ -87,7 +83,6 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         Assert.NotEmpty(accessToken.Value);
         Assert.NotEmpty(refreshToken.Value);
     }
-
 
     [Fact]
     public async Task LoginUserWrongPassword_Should401()
@@ -114,7 +109,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        CookieContainer cookies = new CookieContainer();
+        var cookies = new CookieContainer();
 
         AuthHelper.SetCookies(cookies, loginResponse, client);
 
@@ -144,7 +139,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
 
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        CookieContainer cookies = new CookieContainer();
+        var cookies = new CookieContainer();
 
         AuthHelper.SetCookies(cookies, loginResponse, client);
 
@@ -198,7 +193,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         Assert.Single(results, r => r is null);
     }
 
-    [Fact] 
+    [Fact]
     public async Task InvalidateTokens_IssuedTokensCanNoLongerRotate()
     {
         var userId = Guid.NewGuid();
@@ -206,7 +201,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
         var tokens = new List<string>();
         var ttl = TimeSpan.FromMinutes(15);
         var tokensToAdd = 5;
-        for (int i = 0; i < tokensToAdd; i++)
+        for (var i = 0; i < tokensToAdd; i++)
         {
             var token = Guid.NewGuid().ToString();
             tokens.Add(token);

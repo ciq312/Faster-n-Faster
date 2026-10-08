@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
 
@@ -24,8 +23,10 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
     public void Prune(IReadOnlySet<Guid> activeLobbyIds)
     {
         foreach (var lobbyId in broadcasts.Keys)
+        {
             if (!activeLobbyIds.Contains(lobbyId))
                 broadcasts.TryRemove(lobbyId, out _);
+        }
     }
 
     private async Task Pump(Guid lobbyId, LobbyBroadcast state)

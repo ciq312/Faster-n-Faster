@@ -1,4 +1,3 @@
-using System.Data.Common;
 using FasterNFaster.Api.Core.Entities.Races;
 
 namespace FasterNFaster.Api.Core.Entities;

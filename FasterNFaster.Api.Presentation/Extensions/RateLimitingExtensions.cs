@@ -1,10 +1,6 @@
 using System.Threading.RateLimiting;
 using FasterNFaster.Api.Web.Options.RateLimiting;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using static FasterNFaster.Api.Web.Options.RateLimiting.RateLimitOptions;
 
 namespace FasterNFaster.Api.Extensions;
@@ -60,8 +56,10 @@ public static class RateLimitingExtensions
     private static async ValueTask OnRejected(OnRejectedContext context, CancellationToken ct)
     {
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
             context.HttpContext.Response.Headers.RetryAfter =
                 ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+        }
 
         await context.HttpContext.Response.WriteAsJsonAsync(
             new { message = "Too many requests, try again shortly." }, ct);

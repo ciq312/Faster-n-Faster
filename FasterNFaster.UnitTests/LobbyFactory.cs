@@ -82,7 +82,7 @@ public static class LobbyFactory
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
         var joinHandler = new JoinLobbyHandler(lobbies);
-        for (int i = 0; i < users.Length; i++)
+        for (var i = 0; i < users.Length; i++)
         {
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, users[i].Nick), CancellationToken.None);
         }
@@ -93,8 +93,8 @@ public static class LobbyFactory
 
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()
     {
-        User host = new User("host");
-        User other = new User("other");
+        var host = new User("host");
+        var other = new User("other");
 
         var context = await WithPlayers(host, other);
 

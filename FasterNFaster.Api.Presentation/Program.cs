@@ -1,13 +1,10 @@
 using DotNetEnv;
 using FastEndpoints;
 using FasterNFaster.Api.Extensions;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.Web.Hubs;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -16,7 +13,6 @@ Log.Logger = new LoggerConfiguration()
 
 if (File.Exists(".env"))
     Env.Load();
-
 
 var builder = WebApplication.CreateBuilder(args);
 

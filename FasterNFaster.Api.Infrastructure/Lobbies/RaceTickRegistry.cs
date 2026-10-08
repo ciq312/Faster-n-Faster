@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;

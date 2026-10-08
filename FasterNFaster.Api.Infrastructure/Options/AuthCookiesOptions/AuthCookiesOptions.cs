@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 
-
 public class AuthCookiesOptions
 {
     public string AccessTokenCookieName { get; set; } = "access_token";

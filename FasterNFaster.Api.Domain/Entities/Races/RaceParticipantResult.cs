@@ -15,7 +15,6 @@ public class RaceParticipantResult
     public int? FinishPosition { get; private set; }
     public DateTime FinishedAt { get; private set; }
 
-
     public RaceParticipantResult(
         Guid id,
         Guid lobbyPlayerId,
@@ -28,22 +27,29 @@ public class RaceParticipantResult
     )
     {
         if (accuracy is < 0 or > 100)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(accuracy),
                 "Accuracy must be between 0 and 100."
             );
+        }
 
         if (mistakeCount < 0)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(mistakeCount),
                 "Mistake count cannot be negative."
             );
+        }
 
         if (finishPosition < 1)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(finishPosition),
                 "Finish position must be at least 1."
             );
+        }
+
         Id = id;
         LobbyPlayerId = lobbyPlayerId;
         Nick = nick;

@@ -5,7 +5,6 @@ using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.UseCases.Realtime.AntiCheat;

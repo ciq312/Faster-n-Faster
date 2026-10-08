@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
@@ -13,12 +12,12 @@ public class RequestPasswordResetHandler(
 {
     public async Task Handle(RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
-        User? user = await userRepo.GetByEmailAsync(command.Email);
-        if (user is null) return;   
-        
+        var user = await userRepo.GetByEmailAsync(command.Email);
+        if (user is null) return;
+
         if (user.Password is null) return;
 
-        Token? token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset);
+        var token = await tokenIssuer.TryIssue(user.Id, TokenType.PasswordReset);
         if (token is null) return;
 
         await emailSender.SendPasswordResetEmail(user.Nick, user.Email!, token.Value);

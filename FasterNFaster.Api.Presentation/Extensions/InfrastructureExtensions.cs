@@ -1,11 +1,8 @@
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Db;
 using FasterNFaster.Api.Web.Hubs.Filters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
 namespace FasterNFaster.Api.Extensions;

@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
@@ -14,8 +13,8 @@ public class StartRaceHandler(
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.UserId);
-        Guid lobbyId = lobby.Id;
+        var lobby = lobbies.GetOfPlayerRequired(command.UserId);
+        var lobbyId = lobby.Id;
 
         await lobbies.Mutate(lobbyId, l =>
         {

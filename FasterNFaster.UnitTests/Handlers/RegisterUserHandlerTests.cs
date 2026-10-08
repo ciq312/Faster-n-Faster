@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;

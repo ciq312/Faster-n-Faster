@@ -11,7 +11,7 @@ public class ConfirmTokenFactory(IOptions<ConfirmTokenOptions> options) : IConfi
 {
     public Token GetToken(Guid userId, TokenType type)
     {
-        TimeSpan expirationTime = options.Value.For(type).ExpirationTime;
+        var expirationTime = options.Value.For(type).ExpirationTime;
         return new Token()
         {
             UserId = userId,
