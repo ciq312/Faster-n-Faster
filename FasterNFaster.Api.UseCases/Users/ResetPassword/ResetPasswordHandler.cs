@@ -19,9 +19,9 @@ public class ResetPasswordHandler(
     public async Task Handle(ResetPasswordCommand command, CancellationToken cancellationToken)
     {
         var token = await tokenRepo.GetByValueAsync(command.Token);
-        if (token is null) throw new TokenNotFoundException(command.Token);
-        if (token.Type != TokenType.PasswordReset) throw new TokenNotFoundException(command.Token);
-        if (!token.IsValid()) throw new TokenNotFoundException(command.Token);
+        if (token is null) throw new TokenNotFoundException();
+        if (token.Type != TokenType.PasswordReset) throw new TokenNotFoundException();
+        if (!token.IsValid()) throw new TokenNotFoundException();
 
         var user = await userRepo.GetByIdAsync(token.UserId)
             ?? throw new UserNotFoundException(token.UserId);

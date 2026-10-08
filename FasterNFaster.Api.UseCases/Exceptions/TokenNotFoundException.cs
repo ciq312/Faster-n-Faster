@@ -4,9 +4,7 @@ namespace FasterNFaster.Api.UseCases.Exceptions;
 
 public class TokenNotFoundException : NotFoundException
 {
-    public string Token { get; private set; }
-    public TokenNotFoundException(string token) : base($"token {token} wasn't found")
+    public TokenNotFoundException() : base($"token wasn't found or expired")
     {
-        Token = token;
     }
 }
