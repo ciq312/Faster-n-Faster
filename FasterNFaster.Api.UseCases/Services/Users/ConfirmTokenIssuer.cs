@@ -11,11 +11,11 @@ public class ConfirmTokenIssuer(
 {
     public async Task<Token?> TryIssue(Guid userId, TokenType type)
     {
-        TimeSpan cooldown = options.Value.For(type).Cooldown;
-        Token? latest = await tokenRepo.GetLatestForUserAsync(userId, type);
+        var cooldown = options.Value.For(type).Cooldown;
+        var latest = await tokenRepo.GetLatestForUserAsync(userId, type);
         if (latest is not null && DateTime.UtcNow - latest.CreatedAt < cooldown) return null;
 
-        Token token = tokenFactory.GetToken(userId, type);
+        var token = tokenFactory.GetToken(userId, type);
         await tokenRepo.Add(token);
         return token;
     }

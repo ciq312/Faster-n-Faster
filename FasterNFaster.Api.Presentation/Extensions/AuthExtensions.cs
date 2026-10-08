@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 
 namespace FasterNFaster.Api.Extensions;
@@ -22,7 +18,7 @@ public static class AuthExtensions
         services.AddAuthentication(o =>
         {
             o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; 
+            o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddCookie("External", options =>
         {

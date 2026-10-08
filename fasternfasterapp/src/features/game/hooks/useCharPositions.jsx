@@ -1,4 +1,10 @@
-import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 
 export function useCharPositions(passage, typedLength) {
   const charsRef = useRef([]);

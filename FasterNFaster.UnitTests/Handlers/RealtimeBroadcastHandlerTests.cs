@@ -1,11 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
-using FasterNFaster.Api.Infrastructure.Lobbies;
-using FasterNFaster.Api.Infrastructure.Races;
-using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
@@ -16,13 +12,7 @@ using FasterNFaster.Api.UseCases.Realtime.PlayerJoined;
 using FasterNFaster.Api.UseCases.Realtime.PlayerKicked;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
-using FasterNFaster.Api.UseCases.Services;
-using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Tests.Fakes;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -86,7 +76,7 @@ public class RealtimeBroadcastHandlerTests
     public async Task HostChanged_BroadcastsToLobby()
     {
         var user = new User("test");
-        var userId = user.Id;
+        _ = user.Id;
         var newHost = new User("newhost");
         var newHostId = newHost.Id;
         var context = await LobbyFactory.WithPlayers(user);

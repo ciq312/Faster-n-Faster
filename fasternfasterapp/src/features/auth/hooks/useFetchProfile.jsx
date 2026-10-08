@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 
 export function useFetchProfile() {
   const [isPending, setIsPending] = useState(true);
-  const {showMessage } = useBannerMessage();
+  const { showMessage } = useBannerMessage();
   const { userName, isGuest } = useAuth();
   const [profileData, setProfileData] = useState(null);
 
@@ -17,22 +17,20 @@ export function useFetchProfile() {
         });
         if (!response.ok) {
           setProfileData({ nick: userName });
-          }
-        else {
-        const data = await response.json();
-        setProfileData(data.dto);
+        } else {
+          const data = await response.json();
+          setProfileData(data.dto);
         }
       } finally {
         setIsPending(false);
       }
-      
     };
 
     getProfile();
   }, [userName]);
 
   useEffect(() => {
-      if (isGuest) showMessage(`Register to see the results of your races`);
+    if (isGuest) showMessage(`Register to see the results of your races`);
   }, [isGuest, showMessage]);
 
   return { profileData, isPending };

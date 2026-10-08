@@ -97,7 +97,9 @@ public class RaceParticipant
         foreach (var c in text)
         {
             if (c == ' ')
+            {
                 inWord = false;
+            }
             else if (!inWord)
             {
                 inWord = true;
@@ -156,7 +158,7 @@ public class RaceParticipant
 
     public float GetWPM()
     {
-        float minutesElapsed = (float)((FinishedAt ?? now()) - StartedAt).TotalMinutes;
+        var minutesElapsed = (float)((FinishedAt ?? now()) - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
         return WordsTyped / minutesElapsed;
     }

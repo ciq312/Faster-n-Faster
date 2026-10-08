@@ -7,7 +7,7 @@ import { useJoinLobby } from "./useJoinLobby";
 export function useCreateLobby() {
   const { showError } = useError();
   const [loading, setLoading] = useState(false);
-  const {joinLobby} = useJoinLobby();
+  const { joinLobby } = useJoinLobby();
 
   const execute = async (lobbyData) => {
     setLoading(true);
@@ -27,13 +27,12 @@ export function useCreateLobby() {
       const data = await response.json();
       await joinLobby(data.lobbyId, data.inviteCode);
       return true;
-    } catch (e){
+    } catch (e) {
       showError(e.message);
       return false;
     } finally {
       setLoading(false);
     }
-
   };
 
   return { execute, loading };

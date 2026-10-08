@@ -10,10 +10,10 @@ public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepositor
 {
     public async Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
     {
-        IQueryable<PlayerStatistics> query = context.Statistics.AsNoTracking()
+        var query = context.Statistics.AsNoTracking()
             .Where(s => !context.BannedPlayers.Any(b => b.UserId == s.Id && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow)));
 
-        int total = await query.CountAsync();
+        var total = await query.CountAsync();
 
         var items = await ApplyOrder(query, sort, descending)
             .Skip((page - 1) * pageSize)

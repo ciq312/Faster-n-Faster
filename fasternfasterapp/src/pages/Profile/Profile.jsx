@@ -12,12 +12,12 @@ function formatNumber(value, precision = 1) {
 
 function formatPercent(value, precision = 2) {
   if (typeof value !== "number") return "—";
-  return (value).toFixed(precision);
+  return value.toFixed(precision);
 }
 
 function Profile() {
   const { profileData, isPending } = useFetchProfile();
-  const {isGuest} = useAuth();
+  const { isGuest } = useAuth();
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -68,8 +68,8 @@ function Profile() {
             <section className="profile-hero">
               <span className="profile-hero__label">Best WPM</span>
               <span className="profile-hero__value">
-                {(formatNumber(profileData?.bestWPM))}
-                <span className="profile-hero__unit"></span>
+                {formatNumber(profileData?.bestWPM)}
+                <span className="profile-hero__unit" />
               </span>
             </section>
 

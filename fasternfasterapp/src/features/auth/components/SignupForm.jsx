@@ -83,7 +83,9 @@ function SignupForm({ onSubmit, loading }) {
             placeholder="repeat password"
           />
           {passwordMismatch && (
-            <span className="registration__error">passwords don&apos;t match</span>
+            <span className="registration__error">
+              passwords don&apos;t match
+            </span>
           )}
         </label>
       </div>

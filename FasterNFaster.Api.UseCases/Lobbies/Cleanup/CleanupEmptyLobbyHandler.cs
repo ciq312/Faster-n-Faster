@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
@@ -15,8 +14,8 @@ public class CleanupEmptyLobbyHandler(
 {
     public async Task Handle(DomainEventNotification<PlayerRemovedEvent> notification, CancellationToken cancellationToken)
     {
-        Guid lobbyId = notification.Event.LobbyId;
-        Lobby lobby = lobbies.GetRequired(lobbyId);
+        var lobbyId = notification.Event.LobbyId;
+        var lobby = lobbies.GetRequired(lobbyId);
 
         if (!lobby.IsEmpty()) return;
 

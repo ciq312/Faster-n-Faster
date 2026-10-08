@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
@@ -9,10 +8,10 @@ public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
-        Guid? lobbyId = lobbies.GetLobbyIdOfPlayer(command.PlayerId);
+        var lobbyId = lobbies.GetLobbyIdOfPlayer(command.PlayerId);
         if (lobbyId is null) return;
 
-        Lobby lobby = lobbies.GetRequired(lobbyId.Value);
+        var lobby = lobbies.GetRequired(lobbyId.Value);
 
         if (lobby.IsSessionActive)
             await races.Mutate(lobby.Id, r => r.WithdrawParticipant(command.PlayerId));

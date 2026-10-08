@@ -37,17 +37,26 @@ export function useLobbyActions() {
     return () => cleanups.forEach((fn) => fn());
   }, [isConnected, subscribe, showMessage, lobbyCleanup, navigate]);
 
-  const changeColor = useCallback(async (color) => {
-    await invoke("ChangeColor", color);
-  }, [invoke]);
+  const changeColor = useCallback(
+    async (color) => {
+      await invoke("ChangeColor", color);
+    },
+    [invoke],
+  );
 
-  const kickPlayer = useCallback(async (targetId) => {
-    await invoke("KickPlayer", targetId);
-  }, [invoke]);
+  const kickPlayer = useCallback(
+    async (targetId) => {
+      await invoke("KickPlayer", targetId);
+    },
+    [invoke],
+  );
 
-  const transferHost = useCallback(async (targetId) => {
-    await invoke("TransferHost", targetId);
-  }, [invoke]);
+  const transferHost = useCallback(
+    async (targetId) => {
+      await invoke("TransferHost", targetId);
+    },
+    [invoke],
+  );
 
   const leaveLobby = useCallback(async () => {
     await invoke("LeaveLobby");

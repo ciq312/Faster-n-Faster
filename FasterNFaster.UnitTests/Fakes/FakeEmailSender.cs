@@ -1,4 +1,3 @@
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 namespace FasterNFaster.Tests.Fakes;

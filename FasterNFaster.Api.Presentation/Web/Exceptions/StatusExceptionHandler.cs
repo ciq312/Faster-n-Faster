@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 
 namespace FasterNFaster.Api.Web.Exceptions;
 

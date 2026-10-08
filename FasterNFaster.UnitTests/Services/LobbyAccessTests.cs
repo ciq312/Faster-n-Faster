@@ -7,9 +7,9 @@ public class LobbyAccessTests
     [Fact]
     public async Task Mutate_ShouldPersistAndDispatchEvents()
     {
-        User host = new User("hehe");
-        User other = new User("bebe");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
+        var host = new User("hehe");
+        var other = new User("bebe");
+        var context = await LobbyFactory.WithPlayers(host, other);
 
         await context.LobbyAccess.Mutate(context.LobbyId, l => l.TransferHost(host.Id, other.Id));
 
@@ -20,9 +20,9 @@ public class LobbyAccessTests
     [Fact]
     public async Task Mutate_ShouldTrackAndUntrackPlayers()
     {
-        User host = new User("host");
-        User other = new User("other");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
+        var host = new User("host");
+        var other = new User("other");
+        var context = await LobbyFactory.WithPlayers(host, other);
 
         Assert.Equal(context.LobbyId, context.LobbyAccess.GetLobbyIdOfPlayer(other.Id));
 
@@ -34,8 +34,8 @@ public class LobbyAccessTests
     [Fact]
     public async Task Mutate_WhenAggregateThrows_ShouldNotPersist()
     {
-        User host = new User("host");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host);
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => context.LobbyAccess.Mutate(context.LobbyId, l => l.EndSession()));
@@ -46,9 +46,9 @@ public class LobbyAccessTests
     [Fact]
     public async Task Mutate_ShouldReleaseGateAfterThrow()
     {
-        User host = new User("host");
-        User other = new User("other");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
+        var host = new User("host");
+        var other = new User("other");
+        var context = await LobbyFactory.WithPlayers(host, other);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => context.LobbyAccess.Mutate(context.LobbyId, l => l.EndSession()));
@@ -61,8 +61,8 @@ public class LobbyAccessTests
     [Fact]
     public async Task Exists_ShouldReflectRemoval()
     {
-        User host = new User("host");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host);
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
 
         Assert.True(context.LobbyAccess.Exists(context.LobbyId));
 

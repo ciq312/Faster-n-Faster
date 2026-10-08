@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
@@ -11,7 +10,7 @@ public class LoginUserHandler(IUserRepository userRepo, IPasswordHelper password
 {
     public async Task<LoginUserResult> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
-        User user = await userRepo.GetUserByLoginAsync(command.Login)
+        var user = await userRepo.GetUserByLoginAsync(command.Login)
             ?? throw new InvalidCredentialsException();
 
         if (!passwordHelper.VerifyPassword(user, user.Password!, command.Password))

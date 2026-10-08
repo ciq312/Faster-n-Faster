@@ -4,7 +4,6 @@ using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Web.Users.RefreshToken;

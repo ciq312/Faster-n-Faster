@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Core.Interfaces.Events;
-using FasterNFaster.Api.Infrastructure;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Caching;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
@@ -9,7 +8,6 @@ using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
@@ -26,8 +24,6 @@ using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Api.Infrastructure.Db.Users;
 using FasterNFaster.Api.Infrastructure.Helpers;
 using FasterNFaster.Api.UseCases.Helpers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 
 namespace FasterNFaster.Api.Extensions;
 

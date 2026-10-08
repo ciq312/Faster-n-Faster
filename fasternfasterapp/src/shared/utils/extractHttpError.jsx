@@ -3,8 +3,9 @@ export async function extractHttpError(response) {
     const body = await response.json();
     if (body.errors) {
       const firstKey = Object.keys(body.errors)[0];
-      if (firstKey && body.errors[firstKey]?.length)
+      if (firstKey && body.errors[firstKey]?.length) {
         return body.errors[firstKey][0];
+      }
     }
     if (body["error"]) {
       return body["error"];

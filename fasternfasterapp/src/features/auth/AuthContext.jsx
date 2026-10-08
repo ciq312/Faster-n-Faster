@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isSelf = useCallback((id) => userId === id, [userId]);
-  
+
   const isGuest = role === "Guest";
 
   useEffect(() => {
@@ -54,7 +54,18 @@ export function AuthProvider({ children }) {
   }, [refresh]);
 
   return (
-    <AuthContext.Provider value={{ userId, userName, role, isGuest, status, refresh, clear, isSelf }}>
+    <AuthContext.Provider
+      value={{
+        userId,
+        userName,
+        role,
+        isGuest,
+        status,
+        refresh,
+        clear,
+        isSelf,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

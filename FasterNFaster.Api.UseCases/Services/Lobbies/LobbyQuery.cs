@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.LobbyState;
@@ -9,7 +8,7 @@ public class LobbyQuery(ILobbyAccess lobbies, IRaceAccess races) : ILobbyQuery
 {
     public async Task<LobbyStateDTO> GetLobbyState(Guid lobbyId)
     {
-        Lobby lobby = lobbies.GetRequired(lobbyId);
+        var lobby = lobbies.GetRequired(lobbyId);
 
         var players = lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color));
 

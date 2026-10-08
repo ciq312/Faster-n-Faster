@@ -11,8 +11,8 @@ import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Lobby.css";
 
 function Lobby() {
-  const {isSelf, userId: selfId} = useAuth();
-  
+  const { isSelf, userId: selfId } = useAuth();
+
   const {
     isHost,
     players,
@@ -21,12 +21,8 @@ function Lobby() {
     lobbyInviteCode,
     colors,
   } = useLobby();
-  const {
-    changeColor,
-    kickPlayer,
-    transferHost,
-    leaveLobby
-  } = useLobbyActions();
+  const { changeColor, kickPlayer, transferHost, leaveLobby } =
+    useLobbyActions();
   const {
     dismissResults,
     isRacing,
@@ -37,12 +33,8 @@ function Lobby() {
     countdown,
     isWithdrawn,
   } = useRace();
-  const {
-    startRace,
-    sendProgress,
-    flushProgress,
-    refreshPassage,
-  } = useRaceActions();
+  const { startRace, sendProgress, flushProgress, refreshPassage } =
+    useRaceActions();
   const maxPerSide = 10;
   const half = Math.min(players.length, maxPerSide);
 

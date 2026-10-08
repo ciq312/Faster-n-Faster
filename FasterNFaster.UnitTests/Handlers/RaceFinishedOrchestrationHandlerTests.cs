@@ -53,9 +53,9 @@ public class RaceFinishedOrchestrationHandlerTests
 
     private static async Task<(RaceFinishedOrchestrationHandler Handler, LobbyTestContext Context, FakeBroadcaster Broadcaster)> Build()
     {
-        User host = new User("host");
-        User other = new User("other");
-        LobbyTestContext context = await LobbyFactory.WithPlayers(host, other);
+        var host = new User("host");
+        var other = new User("other");
+        var context = await LobbyFactory.WithPlayers(host, other);
         await LobbyFactory.StartRace(context, host.Id);
 
         var broadcaster = new FakeBroadcaster();

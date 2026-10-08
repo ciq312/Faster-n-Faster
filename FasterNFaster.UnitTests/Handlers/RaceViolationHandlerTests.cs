@@ -84,8 +84,10 @@ public class RaceViolationHandlerTests
         var (handler, lobby, _, bans, strikes, playerId, logger) = await Build();
 
         for (var pass = 0; pass < 2; pass++)
+        {
             for (var i = 0; i < SuspensionThreshold; i++)
                 await WithdrawFromRace(handler, lobby, strikes, playerId);
+        }
 
         Assert.Equal(2, bans.Suspensions.Count);
         Assert.Contains(LogLevel.Error, logger.Levels);
@@ -106,7 +108,7 @@ public class RaceViolationHandlerTests
 
     private static async Task<(RaceViolationHandler Handler, LobbyTestContext Lobby, FakeBroadcaster Broadcaster, FakeBanRepository Bans, StrikeRegistry Strikes, Guid PlayerId, FakeLogger<RaceViolationHandler> Logger)> Build(bool registerPlayer = true)
     {
-        User host = new User("host");
+        var host = new User("host");
         var lobby = await LobbyFactory.WithPlayers(host);
         await LobbyFactory.StartRace(lobby, host.Id);
 

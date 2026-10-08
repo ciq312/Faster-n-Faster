@@ -1,5 +1,3 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Core.Exceptions;
@@ -16,11 +14,11 @@ public class VerifyEmailHandler(
 {
     public async Task Handle(VerifyEmailCommand command, CancellationToken cancellationToken)
     {
-        Token token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException(command.Token);
+        var token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException(command.Token);
 
         if (!token.IsValid()) throw new TokenNotFoundException(command.Token);
 
-        User user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
+        var user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
         user.SetEmailVerified();
         repo.Update(user);
         await unitOfWork.SaveChangesAsync();

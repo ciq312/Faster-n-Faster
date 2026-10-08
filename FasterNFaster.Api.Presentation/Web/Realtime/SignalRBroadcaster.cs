@@ -32,7 +32,6 @@ public class SignalRBroadcaster(
         _ => throw new ArgumentOutOfRangeException(nameof(audience))
     };
 
-
     private IEnumerable<Guid> MembersOf(Guid lobbyId) =>
         lobbyStore.Get(lobbyId)?.Players.Select(p => p.Id) ?? [];
 
