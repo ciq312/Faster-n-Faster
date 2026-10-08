@@ -9,6 +9,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 public class RaceFinishedOrchestrationHandler(
     ILobbyAccess lobbies,
     IRaceAccess races,
+    IRaceTickRegistry registry,
     ILobbyStateScope lobbyStateScope) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
     public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken) =>
@@ -19,5 +20,7 @@ public class RaceFinishedOrchestrationHandler(
             await lobbies.Mutate(e.LobbyId, l => l.EndSession());
 
             await races.RefreshPassage(e.LobbyId);
+
+            registry.DeregisterLobby(e.LobbyId);
         });
 }

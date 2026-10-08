@@ -22,6 +22,16 @@ public class RaceFinishedOrchestrationHandlerTests
     }
 
     [Fact]
+    public async Task Handle_DeregistersLobbyFromRaceTick()
+    {
+        var (handler, context, _) = await Build();
+
+        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
+
+        Assert.Empty(context.Registry.GetRacingLobbies());
+    }
+
+    [Fact]
     public async Task Handle_BroadcastsLobbyStateOnce_WhenNoOuterScope()
     {
         var (handler, context, broadcaster) = await Build();
@@ -61,7 +71,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.RaceAccess, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.RaceAccess, context.Registry, scope);
 
         return (handler, context, broadcaster);
     }
