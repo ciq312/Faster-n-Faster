@@ -14,7 +14,7 @@ export default defineConfig([
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat["jsx-runtime"],
   {
-    plugins: { reactHooks: reactHooks },
+    plugins: { reactHooks },
     settings: { react: { version: "detect" } },
     rules: {
       "reactHooks/rules-of-hooks": "error",
