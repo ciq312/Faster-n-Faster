@@ -110,7 +110,7 @@ public class LobbyConcurrencyTests
             var sweep = LobbyFactory.SweepService(context, time);
             time.Advance(LobbyFactory.EmptyLobbyTtl);
 
-            await RunTogether([
+            await ConcurrentRunner.RunTogether([
                 () => sweep.Sweep(CancellationToken.None),
                 () => JoinIgnoringNotFound(context, joiner)
             ]);
@@ -132,25 +132,10 @@ public class LobbyConcurrencyTests
     private static User[] Players(int count) =>
         Enumerable.Range(0, count).Select(i => new User($"player{i}")).ToArray();
 
-    private static async Task RunTogether(IEnumerable<Func<Task>> actions)
-    {
-        var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var tasks = actions
-            .Select(action => Task.Run(async () =>
-            {
-                await start.Task;
-                await action();
-            }))
-            .ToList();
-
-        start.SetResult();
-        await Task.WhenAll(tasks);
-    }
-
     private static Task JoinTogether(LobbyTestContext context, IEnumerable<User> joiners)
     {
         var handler = new JoinLobbyHandler(context.LobbyAccess);
-        return RunTogether(joiners.Select<User, Func<Task>>(u =>
+        return ConcurrentRunner.RunTogether(joiners.Select<User, Func<Task>>(u =>
             () => handler.Handle(new JoinLobbyCommand(u.Id, context.LobbyId, u.Nick), CancellationToken.None)));
     }
 
@@ -169,7 +154,7 @@ public class LobbyConcurrencyTests
     private static Task DisconnectTogether(LobbyTestContext context, IEnumerable<User> leavers)
     {
         var handler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
-        return RunTogether(leavers.Select<User, Func<Task>>(u =>
+        return ConcurrentRunner.RunTogether(leavers.Select<User, Func<Task>>(u =>
             () => handler.Handle(new DisconnectCommand(u.Id), CancellationToken.None)));
     }
 
