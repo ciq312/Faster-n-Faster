@@ -7,7 +7,8 @@ public class InMemorySessionService(IRefreshTokenRepository tokenStore) : ISessi
 {
     private readonly ConcurrentDictionary<Guid, string> userSessions = new();
 
-    public void ClearActiveSession(Guid userId) => userSessions.Remove(userId, out _);
+    public void ClearSessionIfActive(Guid userId, string sessionId) =>
+        userSessions.TryRemove(KeyValuePair.Create(userId, sessionId));
 
     public string? GetActiveSession(Guid userId) => userSessions.GetValueOrDefault(userId);
 

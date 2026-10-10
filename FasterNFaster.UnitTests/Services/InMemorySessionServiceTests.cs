@@ -67,4 +67,42 @@ public class InMemorySessionServiceTests
         Assert.Null(await tokenStore.RotateRefreshToken("refresh-A", "a-new", Ttl));
         Assert.Equal(userB, await tokenStore.RotateRefreshToken("refresh-B", "b-new", Ttl));
     }
+
+    [Fact]
+    public void MatchingSession_RemovesEntry()
+    {
+        var (sessions, _) = Create();
+        var userId = Guid.NewGuid();
+        sessions.SetUserSession(userId, "conn-1");
+
+        sessions.ClearSessionIfActive(userId, "conn-1");
+
+        Assert.Null(sessions.GetActiveSession(userId));
+    }
+
+    [Fact]
+    public void StaleSession_KeepsNewerEntry()
+    {
+        var (sessions, _) = Create();
+        var userId = Guid.NewGuid();
+        sessions.SetUserSession(userId, "conn-1");
+        sessions.SetUserSession(userId, "conn-2");
+
+        sessions.ClearSessionIfActive(userId, "conn-1");
+
+        Assert.Equal("conn-2", sessions.GetActiveSession(userId));
+    }
+
+    [Fact]
+    public void UnknownUser_DoesNothing()
+    {
+        var (sessions, _) = Create();
+        var userId = Guid.NewGuid();
+        var otherUser = Guid.NewGuid();
+        sessions.SetUserSession(otherUser, "conn-other");
+
+        sessions.ClearSessionIfActive(userId, "conn-1");
+
+        Assert.Equal("conn-other", sessions.GetActiveSession(otherUser));
+    }
 }
