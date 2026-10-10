@@ -50,22 +50,19 @@ public partial class GameHub(
     private async Task StoreSession(Guid userId, string callerConnectionId)
     {
         var previousSessionId = sessionService.GetActiveSession(userId);
-        if (previousSessionId != null && previousSessionId != callerConnectionId)
-        {
-            logger.LogDebug("Handling another session for user {UserId}", userId);
-            await HandleSessionRestart(userId, previousSessionId);
-        }
+        sessionService.SetUserSession(userId, callerConnectionId);
 
         logger.LogDebug("Previous sessionId: {PreviousSession}, callerId: {CallerId}", previousSessionId, callerConnectionId);
 
-        sessionService.SetUserSession(userId, callerConnectionId);
+        if (previousSessionId != null && previousSessionId != callerConnectionId)
+        {
+            logger.LogDebug("Handling another session for user {UserId}", userId);
+            await HandleSessionRestart(previousSessionId);
+        }
     }
 
-    private async Task HandleSessionRestart(Guid userId, string previousSession)
-    {
-        sessionService.ClearActiveSession(userId);
+    private async Task HandleSessionRestart(string previousSession) =>
         await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);
-    }
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {
@@ -143,6 +140,7 @@ public partial class GameHub(
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = GetCallerContext().UserId;
+        sessionService.ClearSessionIfActive(userId, Context.ConnectionId);
 
         if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId)
         {
@@ -154,8 +152,6 @@ public partial class GameHub(
         {
             await sender.Send(new FastReconnectCommand(lobbyId, userId));
             await sender.Send(new DisconnectCommand(userId));
-
-            sessionService.ClearActiveSession(userId);
 
             logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", userId, lobbyId);
 
