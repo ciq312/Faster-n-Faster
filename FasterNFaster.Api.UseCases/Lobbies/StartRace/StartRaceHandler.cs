@@ -16,11 +16,7 @@ public class StartRaceHandler(
         var lobby = lobbies.GetOfPlayerRequired(command.UserId);
         var lobbyId = lobby.Id;
 
-        await lobbies.Mutate(lobbyId, l =>
-        {
-            l.ValidateHost(command.UserId);
-            l.StartSession();
-        });
+        await lobbies.Mutate(lobbyId, l => l.StartSession(command.UserId));
 
         await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants(antiCheatPolicy)));
 
