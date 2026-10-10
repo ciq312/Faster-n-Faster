@@ -1,8 +1,10 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.Tests.Handlers;
 
@@ -96,6 +98,37 @@ public class LobbyConcurrencyTests
         }
     }
 
+    [Fact]
+    public async Task SweepAndJoinTogether_LeavesLobbyConsistent()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var creator = Guid.NewGuid();
+            var joiner = new User("joiner");
+            var context = await LobbyFactory.Empty(creator);
+            var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+            var sweep = LobbyFactory.SweepService(context, time);
+            time.Advance(LobbyFactory.EmptyLobbyTtl);
+
+            await RunTogether([
+                () => sweep.Sweep(CancellationToken.None),
+                () => JoinIgnoringNotFound(context, joiner)
+            ]);
+
+            if (context.Store.Get(context.LobbyId) is null)
+            {
+                Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+                Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+            }
+            else
+            {
+                Assert.Equal(joiner.Id, Assert.Single(context.Lobby.Players).Id);
+                Assert.Equal(joiner.Id, context.Lobby.HostId);
+                Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+            }
+        }
+    }
+
     private static User[] Players(int count) =>
         Enumerable.Range(0, count).Select(i => new User($"player{i}")).ToArray();
 
@@ -119,6 +152,18 @@ public class LobbyConcurrencyTests
         var handler = new JoinLobbyHandler(context.LobbyAccess);
         return RunTogether(joiners.Select<User, Func<Task>>(u =>
             () => handler.Handle(new JoinLobbyCommand(u.Id, context.LobbyId, u.Nick), CancellationToken.None)));
+    }
+
+    private static async Task JoinIgnoringNotFound(LobbyTestContext context, User joiner)
+    {
+        try
+        {
+            await new JoinLobbyHandler(context.LobbyAccess)
+                .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None);
+        }
+        catch (LobbyNotFoundException)
+        {
+        }
     }
 
     private static Task DisconnectTogether(LobbyTestContext context, IEnumerable<User> leavers)

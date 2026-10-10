@@ -7,6 +7,7 @@ public class RateLimitOptions
     public WindowLimit AuthStrict { get; set; } = new() { PermitLimit = 5 };
     public WindowLimit AuthModerate { get; set; } = new() { PermitLimit = 10 };
     public WindowLimit Lookup { get; set; } = new() { PermitLimit = 30 };
+    public WindowLimit LobbyCreate { get; set; } = new() { PermitLimit = 10 };
 
     public class WindowLimit
     {

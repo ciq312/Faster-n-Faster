@@ -65,6 +65,7 @@ public class Lobby : AggregateRoot<Guid>
         var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
         var player = new LobbyPlayer(userId, nick, joinOrder, color);
         players.Add(player);
+        ClaimHostIfVacant(userId);
         LobbySettings.UpdateTimestamp();
         RaiseDomainEvent(new PlayerJoinedEvent(userId, Id, nick));
     }
@@ -162,6 +163,11 @@ public class Lobby : AggregateRoot<Guid>
         RaiseDomainEvent(new HostChangedEvent(Id, newHost.Id, newHost.Nick));
     }
 
+    private void ClaimHostIfVacant(Guid joinerId)
+    {
+        if (!IsPlayerIn(HostId)) AssignHost(joinerId);
+    }
+
     public void BanPlayer(Guid userId) => bannedPlayerIds.Add(userId);
 
     public void GenerateUniqueInviteCode(Func<string, bool> codeExists)
@@ -180,6 +186,9 @@ public class Lobby : AggregateRoot<Guid>
     public bool IsPlayerIn(Guid userId) => Players.Any(p => p.Id == userId);
 
     public bool IsEmpty() => Players.Count == 0;
+
+    public bool IsAbandoned(DateTime now, TimeSpan emptyLobbyTtl) =>
+        IsEmpty() && now - LobbySettings.CreatedAt >= emptyLobbyTtl;
 
     public IEnumerable<ColorStatus> GetColors()
         => PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)));

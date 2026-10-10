@@ -13,6 +13,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
@@ -24,6 +25,7 @@ using FasterNFaster.Api.Web.Services.Implementations;
 using FasterNFaster.Api.Infrastructure.Db.Users;
 using FasterNFaster.Api.Infrastructure.Helpers;
 using FasterNFaster.Api.UseCases.Helpers;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FasterNFaster.Api.Extensions;
 
@@ -74,6 +76,7 @@ public static class ApplicationServicesExtensions
 
         services.AddSingleton<LobbyAccess>();
         services.AddSingleton<ILobbyAccess>(sp => sp.GetRequiredService<LobbyAccess>());
+        services.AddSingleton<EmptyLobbyRemover>();
 
         services.AddSingleton<ILobbyQuery, LobbyQuery>();
 
@@ -81,6 +84,8 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<ILobbyStateScope, LobbyStateScope>();
 
         services.AddHostedService<RaceTickService>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddHostedService<EmptyLobbySweepService>();
 
         services.AddMediatR(cfg =>
         {

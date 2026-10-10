@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
+using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
 namespace FasterNFaster.Tests.Entities;
@@ -161,6 +162,108 @@ public class LobbyTests
         var exception = Record.Exception(() => lobby.EnsureCanRefreshPassage(first));
 
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public void HostNeverJoined_JoinerBecomesHost()
+    {
+        var (lobby, _) = CreateLobbyWithUnjoinedHost();
+        var joiner = Guid.NewGuid();
+
+        lobby.Join(joiner, "joiner", null);
+
+        Assert.Equal(joiner, lobby.HostId);
+    }
+
+    [Fact]
+    public void HostNeverJoined_JoinerCanStartSession()
+    {
+        var (lobby, _) = CreateLobbyWithUnjoinedHost();
+        var joiner = Guid.NewGuid();
+        lobby.Join(joiner, "joiner", null);
+
+        lobby.StartSession(joiner);
+
+        Assert.True(lobby.IsSessionActive);
+    }
+
+    [Fact]
+    public void CreatorJoinsFirst_CreatorStaysHost()
+    {
+        var (lobby, creator) = CreateLobbyWithUnjoinedHost();
+
+        lobby.Join(creator, "creator", null);
+
+        Assert.Equal(creator, lobby.HostId);
+    }
+
+    [Fact]
+    public void HostIsMember_JoinerDoesNotBecomeHost()
+    {
+        var (lobby, creator) = CreateLobbyWithUnjoinedHost();
+        lobby.Join(creator, "creator", null);
+
+        lobby.Join(Guid.NewGuid(), "joiner", null);
+
+        Assert.Equal(creator, lobby.HostId);
+    }
+
+    [Fact]
+    public void HostNeverJoined_JoinRaisesNoHostChangedEvent()
+    {
+        var (lobby, _) = CreateLobbyWithUnjoinedHost();
+
+        lobby.Join(Guid.NewGuid(), "joiner", null);
+
+        Assert.DoesNotContain(lobby.DrainEvents(), e => e is HostChangedEvent);
+    }
+
+    [Fact]
+    public void CreatorJoinsAfterTakeover_TakeoverHostStays()
+    {
+        var (lobby, creator) = CreateLobbyWithUnjoinedHost();
+        var joiner = Guid.NewGuid();
+        lobby.Join(joiner, "joiner", null);
+
+        lobby.Join(creator, "creator", null);
+
+        Assert.Equal(joiner, lobby.HostId);
+    }
+
+    [Fact]
+    public void EmptyLobbyAtTtl_IsAbandoned()
+    {
+        var lobby = new Lobby("Test", isPrivate: false);
+        var ttl = TimeSpan.FromMinutes(2);
+
+        Assert.True(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl, ttl));
+    }
+
+    [Fact]
+    public void EmptyLobbyYoungerThanTtl_IsNotAbandoned()
+    {
+        var lobby = new Lobby("Test", isPrivate: false);
+        var ttl = TimeSpan.FromMinutes(2);
+
+        Assert.False(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl - TimeSpan.FromTicks(1), ttl));
+    }
+
+    [Fact]
+    public void OldLobbyWithPlayers_IsNotAbandoned()
+    {
+        var (lobby, _, _) = CreateLobbyWithTwoPlayers();
+        var ttl = TimeSpan.FromMinutes(2);
+
+        Assert.False(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl, ttl));
+    }
+
+    private static (Lobby Lobby, Guid Creator) CreateLobbyWithUnjoinedHost()
+    {
+        var lobby = new Lobby("Test", isPrivate: false);
+        var creator = Guid.NewGuid();
+        lobby.AssignHost(creator);
+
+        return (lobby, creator);
     }
 
     private static (Lobby Lobby, Guid First, Guid Second) CreateLobbyWithTwoPlayers()
