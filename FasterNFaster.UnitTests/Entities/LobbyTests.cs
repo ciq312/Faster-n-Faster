@@ -233,7 +233,7 @@ public class LobbyTests
     [Fact]
     public void EmptyLobbyAtTtl_IsAbandoned()
     {
-        var lobby = new Lobby("Test", isPrivate: false);
+        var lobby = CreateLobby();
         var ttl = TimeSpan.FromMinutes(2);
 
         Assert.True(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl, ttl));
@@ -242,7 +242,7 @@ public class LobbyTests
     [Fact]
     public void EmptyLobbyYoungerThanTtl_IsNotAbandoned()
     {
-        var lobby = new Lobby("Test", isPrivate: false);
+        var lobby = CreateLobby();
         var ttl = TimeSpan.FromMinutes(2);
 
         Assert.False(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl - TimeSpan.FromTicks(1), ttl));
@@ -276,9 +276,26 @@ public class LobbyTests
         Assert.Equal([first, second], ids);
     }
 
+    [Fact]
+    public void InviteCodesTaken_NewLobbyGetsFirstFreeCode()
+    {
+        List<string> tried = [];
+
+        var lobby = new Lobby("Test", isPrivate: false, code =>
+        {
+            tried.Add(code);
+            return tried.Count < 3;
+        });
+
+        Assert.Equal(3, tried.Count);
+        Assert.Equal(tried[^1], lobby.LobbySettings.InviteCode);
+    }
+
+    private static Lobby CreateLobby() => new("Test", isPrivate: false, inviteCodeExists: _ => false);
+
     private static (Lobby Lobby, Guid Creator) CreateLobbyWithUnjoinedHost()
     {
-        var lobby = new Lobby("Test", isPrivate: false);
+        var lobby = CreateLobby();
         var creator = Guid.NewGuid();
         lobby.AssignHost(creator);
 
@@ -287,7 +304,7 @@ public class LobbyTests
 
     private static (Lobby Lobby, Guid First, Guid Second) CreateLobbyWithTwoPlayers()
     {
-        var lobby = new Lobby("Test", isPrivate: false);
+        var lobby = CreateLobby();
         var first = Guid.NewGuid();
         var second = Guid.NewGuid();
 

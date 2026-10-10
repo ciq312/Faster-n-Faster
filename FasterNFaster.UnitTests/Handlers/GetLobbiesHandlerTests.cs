@@ -23,7 +23,7 @@ public class GetLobbiesHandlerTests
     public async Task MatchingInviteCode_ReturnsThatLobby()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
-        var code = context.Lobby.LobbySettings.InviteCode!;
+        var code = context.Lobby.LobbySettings.InviteCode;
 
         var result = await Handler(context).Handle(new GetLobbiesQuery(code), CancellationToken.None);
 

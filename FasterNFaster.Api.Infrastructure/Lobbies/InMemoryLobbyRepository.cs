@@ -21,9 +21,7 @@ public class InMemoryLobbyRepository : ILobbyRepository
         lobbies.GetValueOrDefault(id) ?? throw new LobbyNotFoundException(id);
 
     public Lobby? GetByInviteCode(string code) =>
-        lobbies.Values.FirstOrDefault(l =>
-            l.LobbySettings.InviteCode != null &&
-            l.LobbySettings.InviteCode.Equals(code, StringComparison.OrdinalIgnoreCase));
+        lobbies.Values.FirstOrDefault(l => l.LobbySettings.InviteCode.Equals(code, StringComparison.OrdinalIgnoreCase));
 
     public IReadOnlyCollection<Lobby> GetAll() => lobbies.Values.ToList();
 }

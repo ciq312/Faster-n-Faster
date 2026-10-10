@@ -17,11 +17,11 @@ public class Lobby : AggregateRoot<Guid>
 
     private readonly List<Guid> bannedPlayerIds = new List<Guid>();
 
-    public Lobby(string name, bool isPrivate)
+    public Lobby(string name, bool isPrivate, Func<string, bool> inviteCodeExists)
     {
         Id = Guid.NewGuid();
         Name = name;
-        LobbySettings = new LobbySettings(isPrivate);
+        LobbySettings = new LobbySettings(isPrivate, inviteCodeExists);
     }
     public void StartSession(Guid initiatorId)
     {
@@ -169,12 +169,6 @@ public class Lobby : AggregateRoot<Guid>
     }
 
     public void BanPlayer(Guid userId) => bannedPlayerIds.Add(userId);
-
-    public void GenerateUniqueInviteCode(Func<string, bool> codeExists)
-    {
-        var code = LobbySettings.CreateUniqueInviteCode(codeExists);
-        LobbySettings.SetInviteCode(code);
-    }
 
     public void EnsureCanRefreshPassage(Guid callerId)
     {

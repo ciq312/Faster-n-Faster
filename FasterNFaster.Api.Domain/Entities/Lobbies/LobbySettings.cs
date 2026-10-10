@@ -9,13 +9,14 @@ public class LobbySettings
 
     public int MaxPlayers { get; private set; } = 10;
     public bool IsPrivate { get; private set; }
-    public string? InviteCode { get; private set; }
+    public string InviteCode { get; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public LobbySettings(bool isPrivate)
+    public LobbySettings(bool isPrivate, Func<string, bool> inviteCodeExists)
     {
         IsPrivate = isPrivate;
+        InviteCode = CreateUniqueInviteCode(inviteCodeExists);
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -25,7 +26,7 @@ public class LobbySettings
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public string CreateUniqueInviteCode(Func<string, bool> codeExists)
+    private string CreateUniqueInviteCode(Func<string, bool> codeExists)
     {
 
         while (true)
@@ -46,10 +47,4 @@ public class LobbySettings
                         span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
                 }
             );
-
-    public void SetInviteCode(string code)
-    {
-        InviteCode = code;
-        UpdateTimestamp();
-    }
 }

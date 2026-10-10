@@ -145,7 +145,7 @@ public class LobbyAccessTests
     public async Task FindIdByInviteCode_LowercaseCode_ReturnsLobbyId()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var code = context.Lobby.LobbySettings.InviteCode!;
+        var code = context.Lobby.LobbySettings.InviteCode;
 
         Assert.Equal(context.LobbyId, context.LobbyAccess.FindIdByInviteCode(code.ToLowerInvariant()));
     }

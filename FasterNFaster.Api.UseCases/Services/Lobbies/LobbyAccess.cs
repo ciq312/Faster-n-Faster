@@ -31,9 +31,8 @@ public class LobbyAccess(
         if (locationRegistry.GetLobbyIdOfPlayer(creatorId) != null)
             throw new AlreadyInLobbyException();
 
-        Lobby lobby = new(lobbyName, isPrivate);
+        Lobby lobby = new(lobbyName, isPrivate, code => repo.GetByInviteCode(code) != null);
         lobby.AssignHost(creatorId);
-        lobby.GenerateUniqueInviteCode(c => repo.GetByInviteCode(c) != null);
 
         repo.Add(lobby);
         await gate.DispatchOf(lobby);
