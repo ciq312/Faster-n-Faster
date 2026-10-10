@@ -3,6 +3,7 @@ using FasterNFaster.Api.Web.Exceptions;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Options.App;
 using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
+using FasterNFaster.Api.Web.Options.Lobbies;
 using FasterNFaster.Api.Web.Options.Smtp;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
@@ -42,6 +43,7 @@ public static class WebServicesExtensions
         services.Configure<AntiCheatOptions>(config.GetSection("AntiCheat"));
         services.Configure<AntiCheatSanctionOptions>(config.GetSection("AntiCheatSanctions"));
         services.Configure<ConfirmTokenOptions>(config.GetSection("ConfirmTokens"));
+        services.Configure<LobbyCleanupOptions>(config.GetSection("LobbyCleanup"));
 
         return services;
     }

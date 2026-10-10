@@ -1,4 +1,7 @@
+using System.Net.Http.Json;
+using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Options.RateLimiting;
+using FasterNFaster.Api.Web.Users.RegisterAnonymous;
 using FasterNFaster.IntegrationTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -81,4 +84,28 @@ public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>,
         Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
         Assert.Equal(System.Net.HttpStatusCode.Created, nthResponse.StatusCode);
     }
+
+    [Fact]
+    public async Task ExceedLobbyCreateLimit_ShouldReturn429()
+    {
+        var client = app.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.4");
+        var guestResponse = await client.PostAsJsonAsync(AuthHelper.GuestUri, new RegisterAnonymousRequest { Nick = "guest" });
+        guestResponse.EnsureSuccessStatusCode();
+
+        var tasks = new List<Task<HttpResponseMessage>>();
+        for (var i = 0; i < rateLimitOptions.LobbyCreate.PermitLimit; i++)
+        {
+            tasks.Add(CreateLobby(client));
+        }
+        var okResponses = await Task.WhenAll(tasks);
+
+        var nthResponse = await CreateLobby(client);
+
+        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
+        Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
+    }
+
+    private static Task<HttpResponseMessage> CreateLobby(HttpClient client) =>
+        client.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
 }

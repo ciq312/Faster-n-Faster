@@ -50,5 +50,6 @@ public static class AuthHelper
     public static string VerifyEmailUri => "api/auth/verify-email";
     public static string RefreshUri => "api/auth/refresh";
     public static string LogoutUri => "api/auth/logout";
+    public static string GuestUri => "api/auth/guest";
 
 }

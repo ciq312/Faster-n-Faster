@@ -14,6 +14,7 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Web.Options.Lobbies;
 using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 
@@ -36,6 +37,8 @@ public record LobbyTestContext(
 
 public static class LobbyFactory
 {
+    public static readonly TimeSpan EmptyLobbyTtl = TimeSpan.FromMinutes(2);
+
     /// <summary>
     /// Creates a lobby with no players. Host is assigned but not joined.
     /// </summary>
@@ -111,9 +114,20 @@ public static class LobbyFactory
         return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
     }
 
+    public static EmptyLobbyRemover Remover(LobbyTestContext context) =>
+        new(context.LobbyAccess, context.RaceAccess, context.Registry);
+
+    public static EmptyLobbySweepService SweepService(LobbyTestContext context, TimeProvider time) =>
+        new(
+            context.Store,
+            Remover(context),
+            time,
+            Options.Create(new LobbyCleanupOptions { EmptyLobbyTtl = EmptyLobbyTtl }),
+            NullLogger<EmptyLobbySweepService>.Instance);
+
     public static void WireCleanup(LobbyTestContext context)
     {
-        var cleanup = new CleanupEmptyLobbyHandler(context.LobbyAccess, context.RaceAccess, context.Registry);
+        var cleanup = new CleanupEmptyLobbyHandler(Remover(context));
         context.Dispatcher.OnDispatch = domainEvent => domainEvent is PlayerRemovedEvent removed
             ? cleanup.Handle(new DomainEventNotification<PlayerRemovedEvent>(removed), CancellationToken.None)
             : Task.CompletedTask;

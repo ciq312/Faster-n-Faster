@@ -10,6 +10,7 @@ public static class RateLimitPolicies
     public const string AuthStrict = "auth-strict";
     public const string AuthModerate = "auth-moderate";
     public const string Lookup = "lookup";
+    public const string LobbyCreate = "lobby-create";
 }
 
 public static class RateLimitingExtensions
@@ -32,6 +33,8 @@ public static class RateLimitingExtensions
                 context => IpPartition(context, options.AuthModerate, options.Enabled));
             limiter.AddPolicy(RateLimitPolicies.Lookup,
                 context => IpPartition(context, options.Lookup, options.Enabled));
+            limiter.AddPolicy(RateLimitPolicies.LobbyCreate,
+                context => IpPartition(context, options.LobbyCreate, options.Enabled));
         });
 
         return services;
