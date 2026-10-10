@@ -9,31 +9,35 @@ namespace FasterNFaster.Api.Web.Realtime;
 public class SignalRBroadcaster(
     IHubContext<GameHub> hub,
     ISessionService sessionService,
-    ILobbyRepository lobbyStore) : IBroadcaster
+    ILobbyAccess lobbies) : IBroadcaster
 {
-    public Task Broadcast<T>(IAudience audience, string eventName, T payload)
+    public async Task Broadcast<T>(IAudience audience, string eventName, T payload)
     {
-        var clients = Resolve(audience);
-        return clients is null ? Task.CompletedTask : clients.SendAsync(eventName, payload);
+        var clients = await Resolve(audience);
+        if (clients is null) return;
+
+        await clients.SendAsync(eventName, payload);
     }
 
-    public Task Broadcast(IAudience audience, string eventName)
+    public async Task Broadcast(IAudience audience, string eventName)
     {
-        var clients = Resolve(audience);
-        return clients is null ? Task.CompletedTask : clients.SendAsync(eventName);
+        var clients = await Resolve(audience);
+        if (clients is null) return;
+
+        await clients.SendAsync(eventName);
     }
 
-    private IClientProxy? Resolve(IAudience audience) => audience switch
+    private async Task<IClientProxy?> Resolve(IAudience audience) => audience switch
     {
-        LobbyAudience a => Connections(MembersOf(a.LobbyId)),
-        LobbyExceptAudience a => Connections(MembersOf(a.LobbyId).Where(id => id != a.UserId)),
+        LobbyAudience a => Connections(await MembersOf(a.LobbyId)),
+        LobbyExceptAudience a => Connections((await MembersOf(a.LobbyId)).Where(id => id != a.UserId)),
         PlayerAudience a => ConnectionOf(a.UserId),
         PlayersAudience a => Connections(a.PlayerIds),
         _ => throw new ArgumentOutOfRangeException(nameof(audience))
     };
 
-    private IEnumerable<Guid> MembersOf(Guid lobbyId) =>
-        lobbyStore.Get(lobbyId)?.Players.Select(p => p.Id) ?? [];
+    private async Task<IReadOnlyList<Guid>> MembersOf(Guid lobbyId) =>
+        await lobbies.TryRead(lobbyId, l => l.GetPlayerIds()) ?? [];
 
     private IClientProxy Connections(IEnumerable<Guid> userIds) =>
         hub.Clients.Clients(userIds.Select(sessionService.GetActiveSession).OfType<string>().ToList());

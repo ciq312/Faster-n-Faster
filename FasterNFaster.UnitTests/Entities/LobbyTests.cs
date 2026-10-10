@@ -257,6 +257,25 @@ public class LobbyTests
         Assert.False(lobby.IsAbandoned(lobby.LobbySettings.CreatedAt + ttl, ttl));
     }
 
+    [Fact]
+    public void GetPlayerIds_ReturnsEveryJoinedPlayer()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+
+        Assert.Equal([first, second], lobby.GetPlayerIds());
+    }
+
+    [Fact]
+    public void GetPlayerIds_LaterJoin_DoesNotChangeReturnedList()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        var ids = lobby.GetPlayerIds();
+
+        lobby.Join(Guid.NewGuid(), "third", null);
+
+        Assert.Equal([first, second], ids);
+    }
+
     private static (Lobby Lobby, Guid Creator) CreateLobbyWithUnjoinedHost()
     {
         var lobby = new Lobby("Test", isPrivate: false);

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class EmptyLobbySweepService(
-    ILobbyRepository lobbyStore,
+    ILobbyAccess lobbies,
     EmptyLobbyRemover remover,
     TimeProvider timeProvider,
     IOptions<LobbyCleanupOptions> options,
@@ -28,17 +28,21 @@ public class EmptyLobbySweepService(
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var removed = 0;
 
-        foreach (var lobby in lobbyStore.GetAll().Where(l => l.IsAbandoned(now, opts.EmptyLobbyTtl)))
+        foreach (var lobbyId in lobbies.GetAllIds())
         {
             if (cancellationToken.IsCancellationRequested) break;
 
             try
             {
-                if (await remover.TryRemove(lobby.Id)) removed++;
+                if (await lobbies.TryRead(lobbyId, l => l.IsAbandoned(now, opts.EmptyLobbyTtl))
+                    && await remover.TryRemove(lobbyId))
+                {
+                    removed++;
+                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Empty lobby sweep failed for lobby {LobbyId}", lobby.Id);
+                logger.LogError(ex, "Empty lobby sweep failed for lobby {LobbyId}", lobbyId);
             }
         }
 

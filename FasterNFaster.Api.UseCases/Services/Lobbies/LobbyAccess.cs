@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.Core.Interfaces.Events;
-using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
@@ -18,7 +17,7 @@ public class LobbyAccess(
     {
         await gate.Mutate(lobbyId, lobby =>
         {
-            var before = lobby.Players.Select(p => p.Id).ToHashSet();
+            var before = lobby.GetPlayerIds().ToHashSet();
             mutate(lobby);
             repo.Update(lobby);
             SyncLocations(lobbyId, before, lobby);
@@ -53,10 +52,13 @@ public class LobbyAccess(
         return removed;
     }
 
-    public Lobby GetRequired(Guid lobbyId) => repo.Get(lobbyId) ?? throw new LobbyNotFoundException(lobbyId);
+    public Task<T> Read<T>(Guid lobbyId, Func<Lobby, T> read) => gate.Read(lobbyId, read);
 
-    public Lobby GetOfPlayerRequired(Guid userId) =>
-        GetRequired(locationRegistry.GetLobbyIdOfPlayerRequired(userId));
+    public Task<T?> TryRead<T>(Guid lobbyId, Func<Lobby, T> read) => gate.TryRead(lobbyId, repo.Get, read);
+
+    public IReadOnlyCollection<Guid> GetAllIds() => [.. repo.GetAll().Select(l => l.Id)];
+
+    public Guid? FindIdByInviteCode(string code) => repo.GetByInviteCode(code)?.Id;
 
     public Guid? GetLobbyIdOfPlayer(Guid userId) => locationRegistry.GetLobbyIdOfPlayer(userId);
 
@@ -66,7 +68,7 @@ public class LobbyAccess(
 
     private void SyncLocations(Guid lobbyId, HashSet<Guid> before, Lobby lobby)
     {
-        var after = lobby.Players.Select(p => p.Id).ToHashSet();
+        var after = lobby.GetPlayerIds().ToHashSet();
 
         foreach (var added in after.Except(before)) locationRegistry.Track(added, lobbyId);
         foreach (var removed in before.Except(after)) locationRegistry.Untrack(removed);

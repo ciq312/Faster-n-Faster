@@ -185,13 +185,15 @@ public class Lobby : AggregateRoot<Guid>
 
     public bool IsPlayerIn(Guid userId) => Players.Any(p => p.Id == userId);
 
+    public IReadOnlyList<Guid> GetPlayerIds() => [.. players.Select(p => p.Id)];
+
     public bool IsEmpty() => Players.Count == 0;
 
     public bool IsAbandoned(DateTime now, TimeSpan emptyLobbyTtl) =>
         IsEmpty() && now - LobbySettings.CreatedAt >= emptyLobbyTtl;
 
-    public IEnumerable<ColorStatus> GetColors()
-        => PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)));
+    public IReadOnlyList<ColorStatus> GetColors()
+        => [.. PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)))];
 
     public bool IsPlayerBanned(Guid id) => bannedPlayerIds.Contains(id);
 
