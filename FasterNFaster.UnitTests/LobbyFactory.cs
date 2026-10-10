@@ -119,7 +119,7 @@ public static class LobbyFactory
 
     public static EmptyLobbySweepService SweepService(LobbyTestContext context, TimeProvider time) =>
         new(
-            context.Store,
+            context.LobbyAccess,
             Remover(context),
             time,
             Options.Create(new LobbyCleanupOptions { EmptyLobbyTtl = EmptyLobbyTtl }),

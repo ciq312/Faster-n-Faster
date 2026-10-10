@@ -13,9 +13,7 @@ public class RefreshHandler(
     {
         pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
 
-        var lobby = lobbies.GetOfPlayerRequired(command.UserId);
-
-        tracker.MarkChanged(lobby.Id);
+        tracker.MarkChanged(lobbies.GetLobbyIdOfPlayerRequired(command.UserId));
         return Task.CompletedTask;
     }
 }

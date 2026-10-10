@@ -17,11 +17,11 @@ public class Lobby : AggregateRoot<Guid>
 
     private readonly List<Guid> bannedPlayerIds = new List<Guid>();
 
-    public Lobby(string name, bool isPrivate)
+    public Lobby(string name, bool isPrivate, Func<string, bool> inviteCodeExists)
     {
         Id = Guid.NewGuid();
         Name = name;
-        LobbySettings = new LobbySettings(isPrivate);
+        LobbySettings = new LobbySettings(isPrivate, inviteCodeExists);
     }
     public void StartSession(Guid initiatorId)
     {
@@ -170,12 +170,6 @@ public class Lobby : AggregateRoot<Guid>
 
     public void BanPlayer(Guid userId) => bannedPlayerIds.Add(userId);
 
-    public void GenerateUniqueInviteCode(Func<string, bool> codeExists)
-    {
-        var code = LobbySettings.CreateUniqueInviteCode(codeExists);
-        LobbySettings.SetInviteCode(code);
-    }
-
     public void EnsureCanRefreshPassage(Guid callerId)
     {
         const string action = "change the passage";
@@ -185,13 +179,15 @@ public class Lobby : AggregateRoot<Guid>
 
     public bool IsPlayerIn(Guid userId) => Players.Any(p => p.Id == userId);
 
+    public IReadOnlyList<Guid> GetPlayerIds() => [.. players.Select(p => p.Id)];
+
     public bool IsEmpty() => Players.Count == 0;
 
     public bool IsAbandoned(DateTime now, TimeSpan emptyLobbyTtl) =>
         IsEmpty() && now - LobbySettings.CreatedAt >= emptyLobbyTtl;
 
-    public IEnumerable<ColorStatus> GetColors()
-        => PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)));
+    public IReadOnlyList<ColorStatus> GetColors()
+        => [.. PlayerColors.Palette.Select(c => new ColorStatus(c, !Players.Any(p => p.Color == c)))];
 
     public bool IsPlayerBanned(Guid id) => bannedPlayerIds.Contains(id);
 

@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
@@ -13,12 +14,16 @@ public class StartRaceHandler(
 {
     public async Task<Guid> Handle(StartRaceCommand command, CancellationToken cancellationToken)
     {
-        var lobby = lobbies.GetOfPlayerRequired(command.UserId);
-        var lobbyId = lobby.Id;
+        var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(command.UserId);
 
-        await lobbies.Mutate(lobbyId, l => l.StartSession(command.UserId));
+        List<RaceParticipant> participants = [];
+        await lobbies.Mutate(lobbyId, l =>
+        {
+            l.StartSession(command.UserId);
+            participants = l.GetRaceParticipants(antiCheatPolicy);
+        });
 
-        await races.Mutate(lobbyId, r => r.AddParticipants(lobby.GetRaceParticipants(antiCheatPolicy)));
+        await races.Mutate(lobbyId, r => r.AddParticipants(participants));
 
         raceTickRegistry.RegisterLobby(lobbyId);
 

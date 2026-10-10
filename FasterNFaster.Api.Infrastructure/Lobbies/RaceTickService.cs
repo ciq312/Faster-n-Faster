@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
@@ -10,7 +9,7 @@ namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class RaceTickService(
     IRaceTickRegistry registry,
-    ILobbyRepository lobbyStore,
+    ILobbyAccess lobbies,
     IBroadcaster broadcaster,
     IRaceAccess races,
     RaceStateConflator conflator,
@@ -24,11 +23,11 @@ public class RaceTickService(
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            var lobbies = registry.GetRacingLobbies();
-            await Task.WhenAll(lobbies.Select(TickLobby));
+            var racingLobbies = registry.GetRacingLobbies();
+            await Task.WhenAll(racingLobbies.Select(TickLobby));
 
-            if (conflator.TrackedLobbies != lobbies.Count)
-                conflator.Prune(lobbies.Select(entry => entry.LobbyId).ToHashSet());
+            if (conflator.TrackedLobbies != racingLobbies.Count)
+                conflator.Prune(racingLobbies.Select(entry => entry.LobbyId).ToHashSet());
         }
     }
 
@@ -36,8 +35,7 @@ public class RaceTickService(
     {
         try
         {
-            var lobby = lobbyStore.Get(entry.LobbyId);
-            if (lobby == null)
+            if (!lobbies.Exists(entry.LobbyId))
             {
                 registry.DeregisterLobby(entry.LobbyId);
                 return;
@@ -46,7 +44,7 @@ public class RaceTickService(
             if (entry.Phase == RacePhase.Countdown)
                 await HandleCountdown(entry);
             else
-                await HandleRacing(entry, lobby);
+                await HandleRacing(entry);
         }
         catch (Exception ex)
         {
@@ -67,16 +65,15 @@ public class RaceTickService(
         }
     }
 
-    private async Task HandleRacing(RacingLobbyEntry entry, Lobby lobby)
+    private async Task HandleRacing(RacingLobbyEntry entry)
     {
         if (!await races.TryMutate(entry.LobbyId, r => r.RetryPendingClaims())) return;
 
         var snapshot = await races.GetSnapshotOrDefault(entry.LobbyId);
         if (snapshot is null) return;
 
-        var connectedPlayerIds = lobby.Players
-            .Select(p => p.Id)
-            .ToList();
+        var connectedPlayerIds = await lobbies.TryRead(entry.LobbyId, l => l.GetPlayerIds());
+        if (connectedPlayerIds is null) return;
 
         conflator.Publish(entry.LobbyId, connectedPlayerIds, snapshot);
     }

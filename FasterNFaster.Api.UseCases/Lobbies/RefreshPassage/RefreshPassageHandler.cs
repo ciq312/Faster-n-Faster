@@ -10,10 +10,10 @@ public class RefreshPassageHandler(
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)
     {
-        var lobby = lobbies.GetOfPlayerRequired(command.CallerId);
+        var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(command.CallerId);
 
-        lobby.EnsureCanRefreshPassage(command.CallerId);
+        await lobbies.Mutate(lobbyId, l => l.EnsureCanRefreshPassage(command.CallerId));
 
-        await races.RefreshPassage(lobby.Id);
+        await races.RefreshPassage(lobbyId);
     }
 }

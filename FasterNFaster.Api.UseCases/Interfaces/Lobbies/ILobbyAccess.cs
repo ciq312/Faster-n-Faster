@@ -9,8 +9,10 @@ public interface ILobbyAccess
     Task<Lobby> Create(string lobbyName, bool isPrivate, Guid creatorId);
     Task<bool> RemoveIfEmpty(Guid lobbyId);
 
-    Lobby GetRequired(Guid lobbyId);
-    Lobby GetOfPlayerRequired(Guid userId);
+    Task<T> Read<T>(Guid lobbyId, Func<Lobby, T> read);
+    Task<T?> TryRead<T>(Guid lobbyId, Func<Lobby, T> read);
+    IReadOnlyCollection<Guid> GetAllIds();
+    Guid? FindIdByInviteCode(string code);
     Guid? GetLobbyIdOfPlayer(Guid userId);
     Guid GetLobbyIdOfPlayerRequired(Guid userId);
     bool Exists(Guid lobbyId);

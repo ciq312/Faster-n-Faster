@@ -12,6 +12,6 @@ public record LobbyStateDTO(
     bool IsPrivate,
     string? InviteCode,
     int MaxPlayers,
-    IEnumerable<ColorStatus> Colors,
+    IReadOnlyList<ColorStatus> Colors,
     IReadOnlyList<LobbyPlayerDTO> Players);
 

@@ -1,9 +1,14 @@
+using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
+using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+using FasterNFaster.Api.UseCases.LobbyState;
+using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
+using FasterNFaster.Tests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.Tests.Handlers;
@@ -11,6 +16,7 @@ namespace FasterNFaster.Tests.Handlers;
 public class LobbyConcurrencyTests
 {
     private const int Rounds = 50;
+    private static readonly TimeSpan RoundTimeout = TimeSpan.FromSeconds(5);
 
     [Fact]
     public async Task ParallelJoins_EachPlayerJoinsOnceWithUniqueOrderAndColor()
@@ -127,6 +133,100 @@ public class LobbyConcurrencyTests
                 Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
             }
         }
+    }
+
+    [Fact]
+    public async Task JoinsAndLeavesWithStateReads_NoReaderThrows()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var players = Players(10);
+            var context = await LobbyFactory.WithPlayers(players[..5]);
+            LobbyFactory.WireCleanup(context);
+            var leavers = players[1..5];
+
+            var exception = await Record.ExceptionAsync(() => ConcurrentRunner
+                .RunTogether(ReadersAndWriters(context, players[5..], leavers, []))
+                .WaitAsync(RoundTimeout));
+
+            Assert.Null(exception);
+            Assert.Equal(
+                players[5..].Select(u => u.Id).Append(players[0].Id).ToHashSet(),
+                context.Lobby.GetPlayerIds().ToHashSet());
+            AssertRegistryMatchesLobby(context, leavers);
+        }
+    }
+
+    [Fact]
+    public async Task JoinsAndLeavesWithStateReads_EveryStateIsConsistentSnapshot()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var players = Players(10);
+            var context = await LobbyFactory.WithPlayers(players[..5]);
+            LobbyFactory.WireCleanup(context);
+            ConcurrentBag<LobbyStateDTO> states = [];
+
+            await ConcurrentRunner
+                .RunTogether(ReadersAndWriters(context, players[5..], players[1..5], states))
+                .WaitAsync(RoundTimeout);
+
+            Assert.NotEmpty(states);
+            foreach (var state in states)
+            {
+                Assert.Equal(state.Players.Count, state.Colors.Count(c => !c.IsAvailable));
+                Assert.Equal(state.Players.Count, state.Players.Select(p => p.Color).Distinct().Count());
+                if (state.Players.Count > 0)
+                    Assert.Single(state.Players, p => p.IsHost);
+            }
+        }
+    }
+
+    private static List<Func<Task>> ReadersAndWriters(
+        LobbyTestContext context,
+        User[] joiners,
+        User[] leavers,
+        ConcurrentBag<LobbyStateDTO> states)
+    {
+        const int readersPerKind = 5;
+        const int readsPerReader = 20;
+
+        var joinHandler = new JoinLobbyHandler(context.LobbyAccess);
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var lobbiesHandler = new GetLobbiesHandler(context.LobbyAccess, context.RaceAccess);
+
+        List<Func<Task>> actions = [];
+        actions.AddRange(joiners.Select<User, Func<Task>>(u =>
+            () => joinHandler.Handle(new JoinLobbyCommand(u.Id, context.LobbyId, u.Nick), CancellationToken.None)));
+        actions.AddRange(leavers.Select<User, Func<Task>>(u =>
+            () => disconnectHandler.Handle(new DisconnectCommand(u.Id), CancellationToken.None)));
+
+        for (var i = 0; i < readersPerKind; i++)
+        {
+            actions.Add(() => Repeat(readsPerReader, async () =>
+                states.Add(await context.LobbyQuery.GetLobbyState(context.LobbyId))));
+            actions.Add(() => Repeat(readsPerReader, () =>
+                lobbiesHandler.Handle(new GetLobbiesQuery(), CancellationToken.None)));
+            actions.Add(() => Repeat(readsPerReader, () =>
+                context.LobbyAccess.TryRead(context.LobbyId, l => l.GetPlayerIds())));
+            actions.Add(() =>
+            {
+                var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, new FakeBroadcaster());
+                return Repeat(readsPerReader, () => scope.Run(() =>
+                {
+                    context.Tracker.MarkChanged(context.LobbyId);
+                    return Task.CompletedTask;
+                }));
+            });
+        }
+
+        return actions;
+    }
+
+    private static async Task Repeat(int times, Func<Task> action)
+    {
+        for (var i = 0; i < times; i++)
+            await action();
     }
 
     private static User[] Players(int count) =>

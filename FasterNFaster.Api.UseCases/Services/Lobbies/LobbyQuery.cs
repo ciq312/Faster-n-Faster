@@ -8,15 +8,12 @@ public class LobbyQuery(ILobbyAccess lobbies, IRaceAccess races) : ILobbyQuery
 {
     public async Task<LobbyStateDTO> GetLobbyState(Guid lobbyId)
     {
-        var lobby = lobbies.GetRequired(lobbyId);
-
-        var players = lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color));
-
         var raceSettings = await races.GetRaceSettings(lobbyId);
 
-        return new LobbyStateDTO(
-                 lobby.Id, lobby.Name, raceSettings.RaceType, lobby.IsSessionActive, raceSettings, lobby.LobbySettings.IsPrivate,
-                 lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
-                 lobby.GetColors(), [.. players]);
+        return await lobbies.Read(lobbyId, lobby => new LobbyStateDTO(
+            lobby.Id, lobby.Name, raceSettings.RaceType, lobby.IsSessionActive, raceSettings, lobby.LobbySettings.IsPrivate,
+            lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
+            lobby.GetColors(),
+            [.. lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color))]));
     }
 }
