@@ -12,9 +12,7 @@ public class RefreshPassageHandler(
     {
         var lobby = lobbies.GetOfPlayerRequired(command.CallerId);
 
-        if (lobby.IsSessionActive) throw new InvalidOperationException("Can't refresh when session active");
-
-        lobby.ValidateHost(command.CallerId);
+        lobby.EnsureCanRefreshPassage(command.CallerId);
 
         await races.RefreshPassage(lobby.Id);
     }

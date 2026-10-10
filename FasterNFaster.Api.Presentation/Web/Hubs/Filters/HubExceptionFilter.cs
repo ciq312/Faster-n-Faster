@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Web.Hubs.Filters;
 
-public class HubExceptionFilter() : IHubFilter
+public class HubExceptionFilter(ILogger<HubExceptionFilter> logger) : IHubFilter
 {
     public async ValueTask<object?> InvokeMethodAsync(
         HubInvocationContext invocationContext,
@@ -16,6 +16,13 @@ public class HubExceptionFilter() : IHubFilter
         catch (StatusException ex)
         {
             throw new HubException(ex.Message);
+        }
+        catch (Exception ex) when (ex is not HubException)
+        {
+            Guid? userId = HubUserId.TryGet(invocationContext.Context, out var id) ? id : null;
+            logger.LogError(ex, "Unhandled exception in hub method {HubMethod} for user {UserId}", invocationContext.HubMethodName, userId);
+
+            throw;
         }
     }
 }

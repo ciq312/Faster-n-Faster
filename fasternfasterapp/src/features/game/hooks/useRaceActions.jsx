@@ -6,7 +6,7 @@ import { useThrottledCallback } from "./useThrottledCallback";
 const PROGRESS_THROTTLE_MS = 100;
 
 export function useRaceActions() {
-  const { invoke, subscribe, isConnected } = useConnection();
+  const { invoke, invokeOrShowError, subscribe, isConnected } = useConnection();
   const { showMessage } = useBannerMessage();
 
   useEffect(() => {
@@ -34,12 +34,12 @@ export function useRaceActions() {
     useThrottledCallback(rawSendProgress, PROGRESS_THROTTLE_MS);
 
   const startRace = useCallback(async () => {
-    await invoke("StartRace");
-  }, [invoke]);
+    await invokeOrShowError("StartRace");
+  }, [invokeOrShowError]);
 
   const refreshPassage = useCallback(async () => {
-    await invoke("RefreshPassage");
-  }, [invoke]);
+    await invokeOrShowError("RefreshPassage");
+  }, [invokeOrShowError]);
 
   return {
     startRace,

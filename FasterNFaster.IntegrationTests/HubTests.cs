@@ -3,12 +3,15 @@ using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace FasterNFaster.IntegrationTests;
@@ -152,7 +155,29 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         await anotherSessionStarted.Task.WaitAsync(EventTimeout);
     }
 
-    private static RegisterUserRequest NewUser() => new("test", "test", "test@gmail.com", "testpass");
+    [Fact]
+    public async Task NonHostStartRace_ShouldThrowHubException()
+    {
+        var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
+        var createResponse = await hostClient.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
+        var lobby = await createResponse.Content.ReadFromJsonAsync<CreateLobbyResult>()
+            ?? throw new InvalidOperationException("can't parse create lobby result");
+
+        await using var hostHub = BuildHubConnection(hostClient, hostCookies);
+        await hostHub.StartAsync();
+        await hostHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+
+        var (guestClient, guestCookies, _) = await RegisterAndLoginAsync(NewUser("guest"));
+        await using var guestHub = BuildHubConnection(guestClient, guestCookies);
+        await guestHub.StartAsync();
+        await guestHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+
+        var ex = await Assert.ThrowsAsync<HubException>(() => guestHub.InvokeAsync("StartRace"));
+
+        Assert.EndsWith("Only the host can start the race", ex.Message);
+    }
+
+    private static RegisterUserRequest NewUser(string prefix = "test") => new(prefix, prefix, $"{prefix}@gmail.com", "testpass");
 
     private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
     {

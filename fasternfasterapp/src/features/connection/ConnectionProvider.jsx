@@ -12,6 +12,7 @@ import {
   useBannerMessage,
   useError,
 } from "../../shared/components/BannerProvider";
+import { extractHubError } from "../../shared/utils/extractHubError";
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
@@ -99,6 +100,17 @@ function ConnectionProvider({ url, children }) {
     [],
   );
 
+  const invokeOrShowError = useCallback(
+    async (methodName, ...args) => {
+      try {
+        return await invoke(methodName, ...args);
+      } catch (e) {
+        showError(extractHubError(e));
+      }
+    },
+    [invoke, showError],
+  );
+
   const subscribe = useCallback((methodName, callback) => {
     const conn = connectionRef.current;
     conn?.on(methodName, callback);
@@ -114,6 +126,7 @@ function ConnectionProvider({ url, children }) {
       value={{
         subscribe,
         invoke,
+        invokeOrShowError,
         disconnect,
         isConnected,
       }}

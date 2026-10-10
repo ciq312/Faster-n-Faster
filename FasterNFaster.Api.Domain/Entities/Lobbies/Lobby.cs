@@ -23,9 +23,10 @@ public class Lobby : AggregateRoot<Guid>
         Name = name;
         LobbySettings = new LobbySettings(isPrivate);
     }
-    public void StartSession()
+    public void StartSession(Guid initiatorId)
     {
-        if (IsSessionActive) throw new InvalidOperationException("Session is already active.");
+        EnsureHost(initiatorId, "start the race");
+        if (IsSessionActive) throw new LobbyInRaceException("start the race");
         if (Players.Count == 0) throw new InvalidOperationException("Can't start session with no players");
 
         IsSessionActive = true;
@@ -74,18 +75,18 @@ public class Lobby : AggregateRoot<Guid>
         LobbySettings.UpdateTimestamp();
     }
 
-    public void ValidateHost(Guid userId)
+    private void EnsureHost(Guid userId, string action)
     {
-        if (HostId != userId)
-            throw new InvalidOperationException("Only the host can perform this action.");
+        if (!IsPlayerHost(userId))
+            throw new NotHostException(action);
     }
 
     public void TransferHost(Guid hostId, Guid newHostId)
     {
-        ValidateHost(hostId);
+        EnsureHost(hostId, "promote a player");
 
         if (hostId == newHostId)
-            throw new InvalidOperationException("Cannot transfer host to yourself.");
+            throw new HostTransferToSelfException();
 
         var target =
             Players.FirstOrDefault(p => p.Id == newHostId)
@@ -100,7 +101,7 @@ public class Lobby : AggregateRoot<Guid>
     public void ChangePlayerColor(Guid playerId, string newColor)
     {
         if (IsSessionActive)
-            throw new InvalidOperationException("Can only change color while waiting.");
+            throw new LobbyInRaceException("change color");
 
         var color = PlayerColors.FindInPalette(newColor) ?? throw new ColorNotInPaletteException();
 
@@ -118,8 +119,9 @@ public class Lobby : AggregateRoot<Guid>
 
     public LobbyPlayer Kick(Guid initiatorId, Guid targetPlayerId)
     {
-        ValidateHost(initiatorId);
-        if (IsSessionActive) throw new InvalidOperationException("Can't kick when racing");
+        const string action = "kick players";
+        EnsureHost(initiatorId, action);
+        if (IsSessionActive) throw new LobbyInRaceException(action);
 
         var kickedPlayer = RemovePlayerInternal(targetPlayerId);
         BanPlayer(kickedPlayer.Id);
@@ -166,6 +168,13 @@ public class Lobby : AggregateRoot<Guid>
     {
         var code = LobbySettings.CreateUniqueInviteCode(codeExists);
         LobbySettings.SetInviteCode(code);
+    }
+
+    public void EnsureCanRefreshPassage(Guid callerId)
+    {
+        const string action = "change the passage";
+        EnsureHost(callerId, action);
+        if (IsSessionActive) throw new LobbyInRaceException(action);
     }
 
     public bool IsPlayerIn(Guid userId) => Players.Any(p => p.Id == userId);

@@ -6,7 +6,7 @@ import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
 
 export function useLobbyActions() {
-  const { invoke, subscribe, isConnected } = useConnection();
+  const { invoke, invokeOrShowError, subscribe, isConnected } = useConnection();
   const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
   const navigate = useNavigate();
@@ -39,23 +39,23 @@ export function useLobbyActions() {
 
   const changeColor = useCallback(
     async (color) => {
-      await invoke("ChangeColor", color);
+      await invokeOrShowError("ChangeColor", color);
     },
-    [invoke],
+    [invokeOrShowError],
   );
 
   const kickPlayer = useCallback(
     async (targetId) => {
-      await invoke("KickPlayer", targetId);
+      await invokeOrShowError("KickPlayer", targetId);
     },
-    [invoke],
+    [invokeOrShowError],
   );
 
   const transferHost = useCallback(
     async (targetId) => {
-      await invoke("TransferHost", targetId);
+      await invokeOrShowError("TransferHost", targetId);
     },
-    [invoke],
+    [invokeOrShowError],
   );
 
   const leaveLobby = useCallback(async () => {
