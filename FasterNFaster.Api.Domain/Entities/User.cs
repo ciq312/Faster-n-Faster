@@ -7,7 +7,7 @@ public class User : Entity<Guid>
     public string? Login { get; private set; }
     public string? Password { get; private set; }
     public bool IsEmailVerified { get; private set; } = false;
-    public readonly DateTime CreatedAt;
+    public DateTime CreatedAt { get; private set; }
     public PlayerStatistics? Statistics { get; private set; }
 
     /// <summary>Anonymous user with a chosen nick.</summary>

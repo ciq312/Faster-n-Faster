@@ -37,6 +37,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithOne(s => s.User)
                 .HasForeignKey<PlayerStatistics>(s => s.Id);
 
+            b.Property(u => u.CreatedAt).HasDefaultValueSql("now()");
+
             b.HasIndex(u => u.Email).IsUnique().HasDatabaseName(UserUniqueViolations.EmailIndex);
             b.HasIndex(u => u.Login).IsUnique().HasDatabaseName(UserUniqueViolations.LoginIndex);
         });

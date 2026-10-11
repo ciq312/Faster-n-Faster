@@ -55,7 +55,7 @@ public class RaceParticipantTests
     {
         var (participant, _) = CreateParticipant();
         participant.UpdateProgress(2, "the", 0, Passage);
-        participant.MarkFinished(1, 1);
+        participant.MarkFinished(1);
 
         participant.UpdateProgress(5, "the q", 0, Passage);
 
@@ -321,5 +321,33 @@ public class RaceParticipantTests
         participant.UpdateProgress(0, "t", 5, Passage);
 
         Assert.Equal(0f, participant.GetAccuracy());
+    }
+
+    [Fact]
+    public void FinishedParticipant_ResultWordsTypedEqualsWordsTyped()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(8, "the quick", 0, Passage);
+
+        participant.MarkFinished(1);
+
+        Assert.Equal(2, participant.WordsTyped);
+        Assert.Equal(participant.WordsTyped, participant.Result!.WordsTyped);
+    }
+
+    [Fact]
+    public void ClockAdvancesAfterFinish_WpmStaysFrozen()
+    {
+        var (participant, clock) = CreateParticipant();
+        participant.Start();
+        clock.Advance(TimeSpan.FromSeconds(60));
+        participant.UpdateProgress(2, "the", 0, Passage);
+        participant.MarkFinished(1);
+        var wpmAtFinish = participant.GetWPM();
+
+        clock.Advance(TimeSpan.FromSeconds(60));
+
+        Assert.Equal(wpmAtFinish, participant.GetWPM());
+        Assert.Equal(participant.Result!.WPM, participant.GetWPM());
     }
 }

@@ -141,13 +141,13 @@ public class RaceParticipant
         return false;
     }
 
-    public void MarkFinished(int position, int wordsTyped)
+    public void MarkFinished(int position)
     {
         IsFinished = true;
         FinishPosition = position;
         FinishedAt = now();
         Result = new RaceParticipantResult(
-            Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, wordsTyped, FinishPosition);
+            Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, WordsTyped, FinishPosition);
     }
 
     public void MarkWithdrawn()

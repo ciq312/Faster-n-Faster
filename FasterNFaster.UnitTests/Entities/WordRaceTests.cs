@@ -13,18 +13,18 @@ public class WordRaceTests
 {
     private const string Passage = "the quick brown fox jumps over the lazy dog";
 
-    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy)
+    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
     {
-        var (race, participant, clock) = CreateRace(policy);
+        var (race, participant, clock) = CreateRace(policy, passage);
         race.Start();
         return (race, participant, clock);
     }
 
-    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy)
+    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
     {
         var clock = new FakeClock();
         var race = new WordRace(Guid.NewGuid(), 9);
-        race.SetPassage(Passage);
+        race.ApplyPassage(passage);
         var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock.Func);
         race.AddParticipant(participant);
         return (race, participant, clock);
@@ -99,5 +99,24 @@ public class WordRaceTests
         Assert.True(participant.IsFinished);
         var finished = Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
         Assert.Equal(participant.Id, finished.PlayerId);
+    }
+
+    [Fact]
+    public void ApplyPassageAfterStart_Throws()
+    {
+        var (race, _, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+
+        Assert.Throws<InvalidOperationException>(() => race.ApplyPassage("another passage"));
+    }
+
+    [Fact]
+    public void PassageWithRepeatedSpace_ResultCountsEachWordOnce()
+    {
+        const string passage = "the  quick brown";
+        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000), passage);
+
+        race.ProcessUpdate(participant.Id, passage.Length - 1, 0, passage);
+
+        Assert.Equal(3, participant.Result!.WordsTyped);
     }
 }
