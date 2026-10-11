@@ -18,18 +18,10 @@ export default defineConfig(({ mode }) => ({
   },
 
   esbuild: {
-    loader: "jsx",
-    include: /src\/.*\.jsx?$/,
-    exclude: [],
     drop: mode === "production" ? ["debugger"] : [],
     pure:
       mode === "production"
         ? ["console.log", "console.debug", "console.info", "console.warn"]
         : [],
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: { ".js": "jsx" },
-    },
   },
 }));
