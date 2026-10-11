@@ -36,7 +36,6 @@ function ConnectionProvider({ url, children }) {
     connection.onreconnecting(() => setIsConnected(false));
     connection.onreconnected(() => setIsConnected(true));
 
-    const errorHandler = (e) => showError(e);
     const anotherSessionHandler = () => {
       showMessage("Someone else logged into your account");
       navigate("/");
@@ -53,7 +52,6 @@ function ConnectionProvider({ url, children }) {
       navigate("/");
     };
 
-    connection.on("Error", errorHandler);
     connection.on("AnotherSessionStarted", anotherSessionHandler);
     connection.on("Banned", bannedHandler);
     connection.on("Suspended", suspendedHandler);
@@ -87,7 +85,6 @@ function ConnectionProvider({ url, children }) {
 
     return () => {
       clearInterval(latencyCheckId);
-      connection.off("Error", errorHandler);
       connection.off("AnotherSessionStarted", anotherSessionHandler);
       connection.off("Banned", bannedHandler);
       connection.off("Suspended", suspendedHandler);

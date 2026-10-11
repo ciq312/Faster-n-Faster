@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
@@ -85,7 +86,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
     }
 
     [Fact]
-    public async Task LoginUserWrongPassword_Should401()
+    public async Task LoginUserWrongPassword_Returns401WithErrorAndNoCode()
     {
         var client = app.CreateClient();
 
@@ -95,7 +96,27 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : IClassF
 
         var response = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, "wrongPass"));
 
+        using var body = await response.Content.ReadFromJsonAsync<JsonDocument>();
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.False(string.IsNullOrEmpty(body!.RootElement.GetProperty("error").GetString()));
+        Assert.False(body.RootElement.TryGetProperty("code", out _));
+    }
+
+    [Fact]
+    public async Task LoginUnverifiedUser_Returns403WithCodeAndEmail()
+    {
+        var client = app.CreateClient();
+
+        var user = new RegisterUserRequest("unverified", "unverified", "unverified@example.com", "testPassword");
+        var registerResponse = await client.PostAsJsonAsync(AuthHelper.RegisterUri, user);
+        registerResponse.EnsureSuccessStatusCode();
+
+        var response = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
+
+        using var body = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("EMAIL_NOT_VERIFIED", body!.RootElement.GetProperty("code").GetString());
+        Assert.Equal("unverified@example.com", body.RootElement.GetProperty("email").GetString());
     }
 
     [Fact]

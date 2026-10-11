@@ -27,7 +27,7 @@ export function useLogin() {
           .catch(() => null);
         if (body?.code === "EMAIL_NOT_VERIFIED") {
           navigate(
-            `/check-your-email?email=${encodeURIComponent(body.email ?? login)}`,
+            `/check-your-email?email=${encodeURIComponent(body.email ?? "")}`,
           );
           return;
         }
