@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
-namespace FasterNFaster.Api.UseCases.Services;
+namespace FasterNFaster.Api.UseCases.Services.Lobbies;
 
 public class LobbyAccess(
     ILobbyRepository repo,

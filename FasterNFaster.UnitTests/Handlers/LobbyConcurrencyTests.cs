@@ -6,7 +6,7 @@ using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
-using FasterNFaster.Api.UseCases.LobbyState;
+using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;

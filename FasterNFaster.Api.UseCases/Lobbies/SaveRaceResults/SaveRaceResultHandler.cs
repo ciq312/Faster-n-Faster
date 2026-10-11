@@ -3,7 +3,7 @@ using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
+namespace FasterNFaster.Api.UseCases.Lobbies.SaveRaceResults;
 
 public class SaveRaceResultHandler(IRaceResultQueue queue)
     : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>

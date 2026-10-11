@@ -3,7 +3,7 @@ using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime.HostChanged;
+namespace FasterNFaster.Api.UseCases.Realtime.PlayerPromoted;
 
 public class BroadcastPlayerPromotedHandler(IBroadcaster broadcaster)
     : INotificationHandler<DomainEventNotification<HostChangedEvent>>

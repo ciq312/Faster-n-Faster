@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Races;
 
-namespace FasterNFaster.Api.UseCases.LobbyState;
+namespace FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
 public record LobbyStateDTO(
     Guid LobbyId,

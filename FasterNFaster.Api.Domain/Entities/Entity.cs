@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core;
+namespace FasterNFaster.Api.Core.Entities;
 
 public abstract class Entity<TId> where TId : notnull
 {

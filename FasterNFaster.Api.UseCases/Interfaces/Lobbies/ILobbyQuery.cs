@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.LobbyState;
+using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 

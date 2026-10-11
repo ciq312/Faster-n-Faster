@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
+using FasterNFaster.Api.UseCases.Lobbies.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.UnitTests.Fakes;

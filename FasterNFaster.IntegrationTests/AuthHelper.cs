@@ -5,7 +5,7 @@ using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.Web.Users.RegisterUser;
-using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
+using FasterNFaster.Api.Web.Users.VerifyEmail;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FasterNFaster.IntegrationTests;

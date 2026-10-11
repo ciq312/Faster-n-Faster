@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
+namespace FasterNFaster.Api.UseCases.Lobbies.RaceEndOrchestration;
 
 public class RaceFinishedOrchestrationHandler(
     ILobbyAccess lobbies,

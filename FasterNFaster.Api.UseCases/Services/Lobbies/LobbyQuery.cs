@@ -1,8 +1,8 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.LobbyState;
+using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
-namespace FasterNFaster.Api.UseCases.Services;
+namespace FasterNFaster.Api.UseCases.Services.Lobbies;
 
 public class LobbyQuery(ILobbyAccess lobbies, IRaceAccess races) : ILobbyQuery
 {

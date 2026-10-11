@@ -1,7 +1,7 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Handlers;
+namespace FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 
 public class RegisterAnonymousHandler(ITokenService tokenService) : IRequestHandler<RegisterAnonymousCommand, RegisterAnonymousResult>
 {

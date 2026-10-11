@@ -9,7 +9,7 @@ using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
-using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
+using FasterNFaster.Api.Web.Users.VerifyEmail;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FasterNFaster.IntegrationTests;

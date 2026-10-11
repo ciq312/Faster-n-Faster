@@ -3,7 +3,7 @@ using FasterNFaster.Api.Extensions;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
+namespace FasterNFaster.Api.Web.Users.VerifyEmail;
 
 public class VerifyEmailEndpoint(ISender sender) : Endpoint<VerifyEmailRequest>
 {
