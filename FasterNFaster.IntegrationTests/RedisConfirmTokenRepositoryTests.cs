@@ -1,26 +1,21 @@
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class RedisConfirmTokenRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class RedisConfirmTokenRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
     private static readonly TimeSpan Lifetime = TimeSpan.FromHours(1);
     private static readonly TimeSpan ShortLifetime = TimeSpan.FromMilliseconds(200);
 
-    private WebApplicationFactory<Program> app = null!;
     private IConfirmTokenRepository repo = null!;
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        await fixture.ResetAsync();
-        app = fixture.CreateApp();
-        repo = app.Services.GetRequiredService<IConfirmTokenRepository>();
+        await base.InitializeAsync();
+        repo = App.Services.GetRequiredService<IConfirmTokenRepository>();
     }
-
-    public async Task DisposeAsync() => await app.DisposeAsync();
 
     [Fact]
     public async Task AddedToken_FoundByValueWithAllFields()

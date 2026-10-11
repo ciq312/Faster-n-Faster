@@ -1,26 +1,21 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class RedisRefreshTokenRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class RedisRefreshTokenRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
     private const int ConcurrentRotations = 10;
     private static readonly TimeSpan Ttl = TimeSpan.FromHours(1);
     private static readonly TimeSpan ShortTtl = TimeSpan.FromMilliseconds(200);
 
-    private WebApplicationFactory<Program> app = null!;
     private IRefreshTokenRepository repo = null!;
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
-        await fixture.ResetAsync();
-        app = fixture.CreateApp();
-        repo = app.Services.GetRequiredService<IRefreshTokenRepository>();
+        await base.InitializeAsync();
+        repo = App.Services.GetRequiredService<IRefreshTokenRepository>();
     }
-
-    public async Task DisposeAsync() => await app.DisposeAsync();
 
     [Fact]
     public async Task IssuedToken_RotatesToOwner()

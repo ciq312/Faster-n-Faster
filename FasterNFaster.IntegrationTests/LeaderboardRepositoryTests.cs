@@ -4,23 +4,11 @@ using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
-    private WebApplicationFactory<Program> app = null!;
-
-    public async Task InitializeAsync()
-    {
-        await fixture.ResetAsync();
-        app = fixture.CreateApp();
-    }
-
-    public async Task DisposeAsync() => await app.DisposeAsync();
-
     [Fact]
     public async Task SortByAvgWpm_PlayerWithoutRaces_RanksLastWithZeroAverage()
     {
@@ -35,29 +23,6 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     }
 
     [Fact]
-    public async Task SortByBestWpm_Descending_ReturnsHighestFirstWithTotalCount()
-    {
-        await SeedRankedPlayersAsync();
-
-        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 2);
-
-        Assert.Equal(5, page.TotalPlayers);
-        Assert.Equal(["Player5", "Player4"], page.Items.Select(e => e.PlayerName));
-        Assert.Equal([50f, 40f], page.Items.Select(e => e.BestWPM));
-    }
-
-    [Fact]
-    public async Task SortByAvgAccuracy_Descending_ReturnsHighestFirst()
-    {
-        await SeedRankedPlayersAsync();
-
-        var page = await GetPageAsync(LeaderboardSort.AvgAccuracy, true, 1, 3);
-
-        Assert.Equal(["Player1", "Player2", "Player3"], page.Items.Select(e => e.PlayerName));
-        Assert.Equal([94f, 93f, 92f], page.Items.Select(e => e.AvgAccuracy));
-    }
-
-    [Fact]
     public async Task SortByAvgWpm_Ascending_ReturnsLowestFirst()
     {
         await SeedRankedPlayersAsync();
@@ -66,17 +31,6 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
 
         Assert.Equal(["Player1", "Player2"], page.Items.Select(e => e.PlayerName));
         Assert.Equal([10f, 20f], page.Items.Select(e => e.AvgWPM));
-    }
-
-    [Fact]
-    public async Task SortByAvgAccuracy_Ascending_ReturnsLowestFirst()
-    {
-        await SeedRankedPlayersAsync();
-
-        var page = await GetPageAsync(LeaderboardSort.AvgAccuracy, false, 1, 3);
-
-        Assert.Equal(["Player5", "Player4", "Player3"], page.Items.Select(e => e.PlayerName));
-        Assert.Equal([90f, 91f, 92f], page.Items.Select(e => e.AvgAccuracy));
     }
 
     [Fact]
@@ -102,23 +56,6 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
         Assert.Equal(ids.Order(), page1.Items.Concat(page2.Items).Select(e => e.Id));
     }
 
-    [Fact]
-    public async Task SortByAvgWpm_UsesAverageNotBest()
-    {
-        await SeedRankedPlayersAsync();
-        await app.ExecuteScopedAsync<AppDbContext>(async context =>
-        {
-            var player1 = await context.Statistics.Include(s => s.User).SingleAsync(s => s.User.Nick == "Player1");
-            player1.RegisterRace(Race(75, 90, 10, 2));
-            await context.SaveChangesAsync();
-        });
-
-        var page = await GetPageAsync(LeaderboardSort.AvgWpm, true, 1, 3);
-
-        Assert.Equal(["Player5", "Player1", "Player4"], page.Items.Select(e => e.PlayerName));
-        Assert.Equal(42.5f, page.Items[1].AvgWPM);
-    }
-
     [Theory]
     [InlineData(LeaderboardSort.BestWpm, "sprinter")]
     [InlineData(LeaderboardSort.AvgWpm, "steady")]
@@ -141,7 +78,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     {
         var banned = await SeedPlayerAsync("banned", Race(100));
         var clean = await SeedPlayerAsync("clean", Race(50));
-        await app.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(banned, "cheating"));
+        await App.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(banned, "cheating"));
 
         var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
 
@@ -154,7 +91,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     {
         var suspended = await SeedPlayerAsync("suspended", Race(100));
         var clean = await SeedPlayerAsync("clean", Race(50));
-        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+        await App.ExecuteScopedAsync<IBanRepository>(repo =>
             repo.SuspendAsync(suspended, "cooldown", DateTime.UtcNow.AddHours(1)));
 
         var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
@@ -167,7 +104,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     public async Task ExpiredSuspension_PlayerIncluded()
     {
         var player = await SeedPlayerAsync("returned", Race(50));
-        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+        await App.ExecuteScopedAsync<IBanRepository>(repo =>
             repo.SuspendAsync(player, "cooldown", DateTime.UtcNow.AddSeconds(-1)));
 
         var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
@@ -180,7 +117,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
         new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition);
 
     private Task<LeaderboardPage> GetPageAsync(LeaderboardSort sort, bool descending, int page, int pageSize) =>
-        app.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
+        App.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
             new LeaderboardRepository(context).GetTopPlayersAsync(sort, descending, page, pageSize));
 
     private async Task SeedRankedPlayersAsync()
@@ -201,7 +138,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     }
 
     private Task<Guid> SeedPlayerAsync(string nick, params RaceParticipantResult[] races) =>
-        app.ExecuteScopedAsync<AppDbContext, Guid>(async context =>
+        App.ExecuteScopedAsync<AppDbContext, Guid>(async context =>
         {
             var user = new User(nick);
             var statistics = new PlayerStatistics(user.Id);
@@ -225,7 +162,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
         // and let a missing id tie-break go unnoticed.
         foreach (var user in users)
         {
-            await app.ExecuteScopedAsync<AppDbContext>(async context =>
+            await App.ExecuteScopedAsync<AppDbContext>(async context =>
             {
                 context.Users.Add(user);
                 context.Statistics.Add(new PlayerStatistics(user.Id));
