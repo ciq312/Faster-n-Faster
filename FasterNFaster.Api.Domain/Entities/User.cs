@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public class User : Entity<Guid>
 {

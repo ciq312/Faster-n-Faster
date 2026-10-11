@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
+namespace FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 
 public class CreateLobbyValidator : Validator<CreateLobbyRequest>
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Leaderboards;
 
-namespace FasterNFaster.Api.Web.Leaderboards;
+namespace FasterNFaster.Api.Presentation.Web.Leaderboards;
 
 public class GetLeaderboardsRequest
 {

@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace FasterNFaster.Api.Web.HealthCheck;
+namespace FasterNFaster.Api.Presentation.Web.HealthCheck;
 
 public class HealthEndpoint : EndpointWithoutRequest<HealthResponse>
 {

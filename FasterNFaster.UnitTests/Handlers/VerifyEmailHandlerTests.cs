@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;

@@ -1,3 +1,3 @@
-namespace FasterNFaster.Api.Core.Exceptions.Lobbies;
+namespace FasterNFaster.Api.Domain.Exceptions.Lobbies;
 
 public class HostTransferToSelfException() : BadRequestException("You are already the host");

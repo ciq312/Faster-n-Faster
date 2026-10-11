@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Races;
+namespace FasterNFaster.Api.Domain.Entities.Races;
 
 public enum ProgressStatus
 {

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Domain.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using StackExchange.Redis;
 

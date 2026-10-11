@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using FasterNFaster.UnitTests.Fakes;

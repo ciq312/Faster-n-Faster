@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public class BannedPlayer : Entity<Guid>
 {

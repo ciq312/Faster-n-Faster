@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Auth;
 
-namespace FasterNFaster.Api.Web.Services.Interfaces;
+namespace FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 
 public interface IAuthTokenWriter
 {

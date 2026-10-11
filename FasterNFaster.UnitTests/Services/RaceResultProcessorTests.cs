@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.UnitTests.Fakes;

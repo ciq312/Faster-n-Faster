@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
-using FasterNFaster.Api.Web.Hubs.Filters;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.Presentation.Web.Hubs.Filters;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;

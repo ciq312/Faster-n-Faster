@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Events;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

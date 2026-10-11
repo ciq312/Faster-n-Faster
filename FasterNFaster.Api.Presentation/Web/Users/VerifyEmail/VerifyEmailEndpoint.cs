@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.VerifyEmail;
+namespace FasterNFaster.Api.Presentation.Web.Users.VerifyEmail;
 
 public class VerifyEmailEndpoint(ISender sender) : Endpoint<VerifyEmailRequest>
 {

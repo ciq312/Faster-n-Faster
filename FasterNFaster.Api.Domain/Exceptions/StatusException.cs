@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Exceptions;
+namespace FasterNFaster.Api.Domain.Exceptions;
 
 public class StatusException(string message) : Exception(message)
 {

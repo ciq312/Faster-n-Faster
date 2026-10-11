@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using FasterNFaster.Api.UseCases.Realtime;
 
-namespace FasterNFaster.Api.Web.Hubs;
+namespace FasterNFaster.Api.Presentation.Web.Hubs;
 
 [Authorize]
 public partial class GameHub(

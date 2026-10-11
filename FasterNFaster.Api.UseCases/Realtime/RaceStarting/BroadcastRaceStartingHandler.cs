@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Services.Races;

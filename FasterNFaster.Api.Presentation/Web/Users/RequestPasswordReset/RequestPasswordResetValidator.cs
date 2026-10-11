@@ -1,6 +1,6 @@
 using FastEndpoints;
 
-namespace FasterNFaster.Api.Web.Users.RequestPasswordReset;
+namespace FasterNFaster.Api.Presentation.Web.Users.RequestPasswordReset;
 
 public class RequestPasswordResetValidator : Validator<RequestPasswordResetRequest>
 {

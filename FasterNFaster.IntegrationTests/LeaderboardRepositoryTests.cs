@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Db;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.UseCases.Interfaces.Users;

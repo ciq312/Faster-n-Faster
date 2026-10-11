@@ -2,7 +2,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Realtime;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FasterNFaster.Api.Web.Hubs.Filters;
+namespace FasterNFaster.Api.Presentation.Web.Hubs.Filters;
 
 public class HubBanFilter : IHubFilter
 {

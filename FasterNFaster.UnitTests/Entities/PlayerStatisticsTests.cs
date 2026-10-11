@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
 
 namespace FasterNFaster.UnitTests.Entities;
 

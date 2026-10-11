@@ -1,7 +1,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication;
 
-namespace FasterNFaster.Api.Web.Users.GoogleAuth;
+namespace FasterNFaster.Api.Presentation.Web.Users.GoogleAuth;
 
 public class GoogleChallengeEndpoint : Endpoint<GoogleChallengeRequest>
 {

@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Users.Validation;
+namespace FasterNFaster.Api.Presentation.Web.Users.Validation;
 
 public static class ValidationExtensions
 {

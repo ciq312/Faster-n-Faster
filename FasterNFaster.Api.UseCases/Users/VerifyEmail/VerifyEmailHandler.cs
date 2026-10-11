@@ -1,10 +1,10 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using MediatR;
 using FasterNFaster.Api.UseCases.Interfaces.Db;
-using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Domain.Entities.Auth;
 
 namespace FasterNFaster.Api.UseCases.Users.VerifyEmail;
 

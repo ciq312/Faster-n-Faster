@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace FasterNFaster.Api.Web.Exceptions;
+namespace FasterNFaster.Api.Presentation.Web.Exceptions;
 
 public class StatusExceptionHandler : IExceptionHandler
 {

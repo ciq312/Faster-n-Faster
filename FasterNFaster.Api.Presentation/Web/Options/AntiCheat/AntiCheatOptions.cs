@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.AntiCheat;
+namespace FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
 
 public class AntiCheatOptions
 {

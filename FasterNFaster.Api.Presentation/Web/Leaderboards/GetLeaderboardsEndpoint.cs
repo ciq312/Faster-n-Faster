@@ -2,7 +2,7 @@ using FastEndpoints;
 using FasterNFaster.Api.UseCases.Leaderboards;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Leaderboards;
+namespace FasterNFaster.Api.Presentation.Web.Leaderboards;
 
 public class GetLeaderboardsEndpoint(ISender sender) : Endpoint<GetLeaderboardsRequest, GetLeaderboardResults>
 {

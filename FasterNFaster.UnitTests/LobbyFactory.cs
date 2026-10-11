@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Entities.Races.Events;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Lobbies.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Events;
@@ -17,9 +17,9 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Options.Lobbies;
-using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.Presentation.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 

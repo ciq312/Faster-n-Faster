@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FastEndpoints;
 
-namespace FasterNFaster.Api.Web.Users.Me;
+namespace FasterNFaster.Api.Presentation.Web.Users.Me;
 
 public class MeEndpoint : EndpointWithoutRequest<MeResponse>
 {

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 

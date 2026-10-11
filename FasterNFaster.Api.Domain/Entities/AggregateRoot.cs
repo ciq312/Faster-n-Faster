@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
 {

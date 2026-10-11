@@ -1,9 +1,9 @@
 using FasterNFaster.Api.UseCases.Auth;
-using FasterNFaster.Api.Web.Options.AuthCookies;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
+using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Api.Web.Services.Implementations;
+namespace FasterNFaster.Api.Presentation.Web.Services.Implementations;
 
 public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<AuthCookiesOptions> options) : IAuthTokenWriter
 {

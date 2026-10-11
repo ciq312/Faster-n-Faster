@@ -1,9 +1,9 @@
 using System.Threading.RateLimiting;
-using FasterNFaster.Api.Web.Options.RateLimiting;
+using FasterNFaster.Api.Presentation.Web.Options.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
-using static FasterNFaster.Api.Web.Options.RateLimiting.RateLimitOptions;
+using static FasterNFaster.Api.Presentation.Web.Options.RateLimiting.RateLimitOptions;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class RateLimitPolicies
 {

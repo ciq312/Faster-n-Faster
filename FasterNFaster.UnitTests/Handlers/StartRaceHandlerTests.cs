@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
+using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.UnitTests.Handlers;

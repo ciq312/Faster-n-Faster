@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using Microsoft.EntityFrameworkCore;
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Domain.Entities;
 
 namespace FasterNFaster.Api.Infrastructure.Db.Users;
 

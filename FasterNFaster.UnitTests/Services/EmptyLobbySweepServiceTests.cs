@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Domain.Entities;
 using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Services;

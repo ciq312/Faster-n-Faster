@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Auth;
+namespace FasterNFaster.Api.Domain.Entities.Auth;
 
 public enum TokenType
 {

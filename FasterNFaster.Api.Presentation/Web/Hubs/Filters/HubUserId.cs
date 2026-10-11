@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace FasterNFaster.Api.Web.Hubs.Filters;
+namespace FasterNFaster.Api.Presentation.Web.Hubs.Filters;
 
 internal static class HubUserId
 {

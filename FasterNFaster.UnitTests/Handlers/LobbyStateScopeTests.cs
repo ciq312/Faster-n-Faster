@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;

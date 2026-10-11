@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
 namespace FasterNFaster.Api.Infrastructure.Users;

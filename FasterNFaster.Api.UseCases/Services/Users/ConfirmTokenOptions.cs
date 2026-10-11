@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using FasterNFaster.Api.Core.Entities.Auth;
+using FasterNFaster.Api.Domain.Entities.Auth;
 
 namespace FasterNFaster.Api.UseCases.Services.Users;
 

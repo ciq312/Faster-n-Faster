@@ -1,10 +1,10 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Users.LoginUser;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.LoginUser;
+namespace FasterNFaster.Api.Presentation.Web.Users.LoginUser;
 
 public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResult>
 {

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 
 namespace FasterNFaster.Api.UseCases.Services;
 

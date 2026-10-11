@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Domain.Interfaces;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

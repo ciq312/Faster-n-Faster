@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
 namespace FasterNFaster.UnitTests.Handlers;

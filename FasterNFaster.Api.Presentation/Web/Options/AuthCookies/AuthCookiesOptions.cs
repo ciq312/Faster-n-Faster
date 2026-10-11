@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.AuthCookies;
+namespace FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
 
 public class AuthCookiesOptions
 {

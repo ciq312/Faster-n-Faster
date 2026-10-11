@@ -1,7 +1,7 @@
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FasterNFaster.Api.Web.Hubs.Filters;
+namespace FasterNFaster.Api.Presentation.Web.Hubs.Filters;
 
 public class HubSuspensionFilter : IHubFilter
 {

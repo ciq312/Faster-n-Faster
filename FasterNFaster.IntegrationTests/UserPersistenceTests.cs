@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Db;
 using Microsoft.EntityFrameworkCore;
 

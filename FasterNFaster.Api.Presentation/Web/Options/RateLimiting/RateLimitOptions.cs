@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.RateLimiting;
+namespace FasterNFaster.Api.Presentation.Web.Options.RateLimiting;
 
 public class RateLimitOptions
 {

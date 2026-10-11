@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.UnitTests.Services;

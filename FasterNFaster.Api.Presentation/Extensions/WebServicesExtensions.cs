@@ -1,15 +1,15 @@
 using FastEndpoints;
-using FasterNFaster.Api.Web.Exceptions;
-using FasterNFaster.Api.Web.Options.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Exceptions;
+using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Options.App;
 using FasterNFaster.Api.Infrastructure.Options.Lobbies;
 using FasterNFaster.Api.Infrastructure.Options.Smtp;
-using FasterNFaster.Api.Web.Options.AuthCookies;
+using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Auth;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class WebServicesExtensions
 {

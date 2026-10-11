@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using MediatR;
 

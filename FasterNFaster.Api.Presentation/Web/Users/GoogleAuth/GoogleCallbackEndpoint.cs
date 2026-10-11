@@ -2,12 +2,12 @@ using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Users.ExternalLogin;
 using FasterNFaster.Api.Infrastructure.Options.App;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Api.Web.Users.GoogleAuth;
+namespace FasterNFaster.Api.Presentation.Web.Users.GoogleAuth;
 
 public class GoogleCallbackEndpoint(
     ISender sender,

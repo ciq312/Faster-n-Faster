@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities.Races;
 
 namespace FasterNFaster.Api.UseCases.Interfaces.Races;
 

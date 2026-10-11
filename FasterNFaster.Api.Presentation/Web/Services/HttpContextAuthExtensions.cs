@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 
-namespace FasterNFaster.Api.Web.Services;
+namespace FasterNFaster.Api.Presentation.Web.Services;
 
 public static class HttpContextAuthExtensions
 {

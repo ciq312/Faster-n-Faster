@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Domain.Interfaces;
 
-namespace FasterNFaster.Api.Core.Entities.Races;
+namespace FasterNFaster.Api.Domain.Entities.Races;
 
 public class RaceParticipant
 {

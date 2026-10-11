@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.RequestPasswordReset;
+namespace FasterNFaster.Api.Presentation.Web.Users.RequestPasswordReset;
 
 public class RequestPasswordResetEndpoint(ISender sender) : Endpoint<RequestPasswordResetRequest>
 {

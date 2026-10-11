@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Lobbies.GetLobbies;
+namespace FasterNFaster.Api.Presentation.Web.Lobbies.GetLobbies;
 
 public class GetLobbiesRequest
 {

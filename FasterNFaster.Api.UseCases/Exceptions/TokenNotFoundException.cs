@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 
 namespace FasterNFaster.Api.UseCases.Exceptions;
 

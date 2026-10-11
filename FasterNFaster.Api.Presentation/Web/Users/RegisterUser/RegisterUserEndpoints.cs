@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.RegisterUser;
+namespace FasterNFaster.Api.Presentation.Web.Users.RegisterUser;
 
 public class RegisterUserEndpoint(ISender sender) : Endpoint<RegisterUserRequest, RegisterUserResult>
 {

@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 
 namespace FasterNFaster.UnitTests.Entities;
 

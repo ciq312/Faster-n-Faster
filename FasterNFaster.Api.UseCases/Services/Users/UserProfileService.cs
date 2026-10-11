@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 
 namespace FasterNFaster.Api.UseCases.Services.Users;

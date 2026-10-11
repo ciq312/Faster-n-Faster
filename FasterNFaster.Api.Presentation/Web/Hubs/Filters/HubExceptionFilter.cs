@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FasterNFaster.Api.Web.Hubs.Filters;
+namespace FasterNFaster.Api.Presentation.Web.Hubs.Filters;
 
 public class HubExceptionFilter(ILogger<HubExceptionFilter> logger) : IHubFilter
 {

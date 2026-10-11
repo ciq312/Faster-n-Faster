@@ -1,10 +1,10 @@
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Entities.Races.Events;
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.Domain.Entities.Races.Events;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Services.Implementations;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Options;
 

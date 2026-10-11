@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Events;

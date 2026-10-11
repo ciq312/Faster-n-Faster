@@ -1,9 +1,9 @@
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Users.ResendVerification;
+namespace FasterNFaster.Api.Presentation.Web.Users.ResendVerification;
 
 public class ResendVerificationEndpoint(ISender sender) : Endpoint<ResendVerificationRequest>
 {

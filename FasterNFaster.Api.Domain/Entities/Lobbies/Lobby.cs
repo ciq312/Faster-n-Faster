@@ -1,10 +1,10 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
-using FasterNFaster.Api.Core.Interfaces;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.Domain.Interfaces;
 
-namespace FasterNFaster.Api.Core.Entities.Lobbies;
+namespace FasterNFaster.Api.Domain.Entities.Lobbies;
 
 public class Lobby : AggregateRoot<Guid>
 {

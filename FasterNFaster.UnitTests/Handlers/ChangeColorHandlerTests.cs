@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.Core.Exceptions.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
+using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 
 namespace FasterNFaster.UnitTests.Handlers;

@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobbies;
+namespace FasterNFaster.Api.Domain.Entities.Lobbies;
 
 public class LobbyPlayer : Entity<Guid>
 {

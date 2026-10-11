@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Users.Logout;
-using FasterNFaster.Api.Web.Options.AuthCookies;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
+using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Api.Web.Users.Logout;
+namespace FasterNFaster.Api.Presentation.Web.Users.Logout;
 
 public class LogoutEndpoint(
     ISender sender,

@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Interfaces;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Caching;
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
@@ -19,16 +19,16 @@ using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Services.Lobbies;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Api.Web.Realtime;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.Presentation.Web.Realtime;
+using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using FasterNFaster.Api.Web.Services.Implementations;
+using FasterNFaster.Api.Presentation.Web.Services.Implementations;
 using FasterNFaster.Api.Infrastructure.Db.Users;
 using FasterNFaster.Api.Infrastructure.Helpers;
 using FasterNFaster.Api.UseCases.Helpers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class ApplicationServicesExtensions
 {
