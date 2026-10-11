@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 using Microsoft.Extensions.Options;

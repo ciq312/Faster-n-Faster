@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;

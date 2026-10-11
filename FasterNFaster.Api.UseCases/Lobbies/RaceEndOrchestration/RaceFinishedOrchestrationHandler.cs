@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 

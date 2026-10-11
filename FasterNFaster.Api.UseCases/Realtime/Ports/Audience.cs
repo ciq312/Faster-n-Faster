@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Realtime;
+namespace FasterNFaster.Api.UseCases.Realtime.Ports;
 
 public static class Audience
 {

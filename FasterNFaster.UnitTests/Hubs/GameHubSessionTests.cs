@@ -2,7 +2,7 @@ using System.Security.Claims;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Users;
-using FasterNFaster.Api.Presentation.Web.Hubs;
+using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;

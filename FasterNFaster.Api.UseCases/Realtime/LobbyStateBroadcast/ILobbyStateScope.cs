@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+namespace FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 
 public interface ILobbyStateScope
 {

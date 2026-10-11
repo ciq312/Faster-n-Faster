@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Services.Lobbies;
 using FasterNFaster.UnitTests.Fakes;
 

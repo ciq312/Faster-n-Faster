@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
-using FasterNFaster.Api.Presentation.Web.Hubs.Filters;
+using FasterNFaster.Api.Presentation.Web.Realtime.Filters;
 using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;

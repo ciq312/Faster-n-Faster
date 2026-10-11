@@ -1,7 +1,6 @@
-using FasterNFaster.Api.Presentation.Web.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Presentation.Web.Realtime;
