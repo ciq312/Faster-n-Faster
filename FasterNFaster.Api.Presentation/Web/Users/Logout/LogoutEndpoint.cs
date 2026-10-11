@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FastEndpoints;
 using FasterNFaster.Api.UseCases.Users.Logout;
-using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
+using FasterNFaster.Api.Web.Options.AuthCookies;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Options;

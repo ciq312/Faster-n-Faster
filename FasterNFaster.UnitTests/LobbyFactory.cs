@@ -18,7 +18,7 @@ using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.StartRace;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Options.Lobbies;
+using FasterNFaster.Api.Infrastructure.Options.Lobbies;
 using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;

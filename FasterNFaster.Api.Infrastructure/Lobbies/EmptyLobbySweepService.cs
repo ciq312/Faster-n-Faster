@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
-using FasterNFaster.Api.Web.Options.Lobbies;
+using FasterNFaster.Api.Infrastructure.Options.Lobbies;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 

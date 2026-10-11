@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Http;
-
-namespace FasterNFaster.Api.Web.Options.AuthCookiesOptions;
+namespace FasterNFaster.Api.Web.Options.AuthCookies;
 
 public class AuthCookiesOptions
 {

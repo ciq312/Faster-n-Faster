@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.Smtp;
+namespace FasterNFaster.Api.Infrastructure.Options.Smtp;
 
 public class SmtpOptions
 {

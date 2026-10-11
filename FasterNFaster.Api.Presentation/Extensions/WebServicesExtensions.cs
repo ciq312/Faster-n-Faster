@@ -1,10 +1,10 @@
 using FastEndpoints;
 using FasterNFaster.Api.Web.Exceptions;
 using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Options.App;
-using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
-using FasterNFaster.Api.Web.Options.Lobbies;
-using FasterNFaster.Api.Web.Options.Smtp;
+using FasterNFaster.Api.Infrastructure.Options.App;
+using FasterNFaster.Api.Infrastructure.Options.Lobbies;
+using FasterNFaster.Api.Infrastructure.Options.Smtp;
+using FasterNFaster.Api.Web.Options.AuthCookies;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Auth;

@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Web.Options.App;
+namespace FasterNFaster.Api.Infrastructure.Options.App;
 
 public class AppOptions
 {
