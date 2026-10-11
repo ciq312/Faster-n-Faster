@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Domain.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 
 namespace FasterNFaster.Api.UseCases.Services.Lobbies;
 

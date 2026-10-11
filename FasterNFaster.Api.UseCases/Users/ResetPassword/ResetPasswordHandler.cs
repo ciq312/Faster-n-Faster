@@ -1,11 +1,11 @@
 using FasterNFaster.Api.Domain.Entities.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using MediatR;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Db;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
+using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ResetPassword;
 

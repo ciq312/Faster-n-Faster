@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FasterNFaster.Api.Presentation.Extensions;
 

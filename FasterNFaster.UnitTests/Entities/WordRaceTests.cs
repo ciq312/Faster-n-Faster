@@ -1,6 +1,6 @@
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Interfaces;
 using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
