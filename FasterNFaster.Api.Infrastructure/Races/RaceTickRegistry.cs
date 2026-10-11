@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
 
-namespace FasterNFaster.Api.Infrastructure.Lobbies;
+namespace FasterNFaster.Api.Infrastructure.Races;
 
 public class RaceTickRegistry(TimeProvider timeProvider) : IRaceTickRegistry
 {

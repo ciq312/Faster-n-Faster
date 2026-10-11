@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
-using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 
 namespace FasterNFaster.UnitTests.Handlers;
 

@@ -1,11 +1,12 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
-using FasterNFaster.Api.UseCases.Services.Races;
 using Microsoft.Extensions.Hosting;
 
-namespace FasterNFaster.Api.Infrastructure.Lobbies;
+namespace FasterNFaster.Api.Infrastructure.Races;
 
 public class RaceTickService(
     IRaceTickRegistry registry,

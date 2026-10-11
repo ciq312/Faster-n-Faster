@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Lobbies.RaceEndOrchestration;
+using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Shared;

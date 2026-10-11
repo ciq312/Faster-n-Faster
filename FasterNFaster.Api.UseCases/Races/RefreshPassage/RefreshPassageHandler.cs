@@ -1,8 +1,8 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races.Services;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
+namespace FasterNFaster.Api.UseCases.Races.RefreshPassage;
 
 public class RefreshPassageHandler(
     ILobbyAccess lobbies,

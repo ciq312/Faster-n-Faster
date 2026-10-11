@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Entities.Races;
-using FasterNFaster.Api.Infrastructure.Lobbies;
+using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 

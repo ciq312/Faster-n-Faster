@@ -3,7 +3,7 @@ using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 
-namespace FasterNFaster.Api.Infrastructure.Lobbies;
+namespace FasterNFaster.Api.Infrastructure.Races;
 
 public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConflator> logger)
 {

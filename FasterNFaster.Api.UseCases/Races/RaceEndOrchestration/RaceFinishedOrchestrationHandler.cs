@@ -1,11 +1,12 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Lobbies.RaceEndOrchestration;
+namespace FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 
 public class RaceFinishedOrchestrationHandler(
     ILobbyAccess lobbies,

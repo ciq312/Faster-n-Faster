@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using FasterNFaster.Api.Domain.Entities.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 
-namespace FasterNFaster.Api.UseCases.Interfaces.Races;
+namespace FasterNFaster.Api.UseCases.Races.Services;
 
 public interface IRaceAccess
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
+using FasterNFaster.Api.UseCases.Races.Services;
 
 namespace FasterNFaster.Api.UseCases.Services.Lobbies;
 

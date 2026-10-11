@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Services.Races;
+namespace FasterNFaster.Api.UseCases.Races;
 
 public static class RaceCountdown
 {

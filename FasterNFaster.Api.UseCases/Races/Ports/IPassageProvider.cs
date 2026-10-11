@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Races;
+namespace FasterNFaster.Api.UseCases.Races.Ports;
 
 public interface IPassageProvider
 {
