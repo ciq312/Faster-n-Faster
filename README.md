@@ -70,9 +70,10 @@ FasterNFaster.Api.Domain/          — domain layer, zero external dependencies
 FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
 ├── <Area>/
 │   ├── <UseCase>/   — Command/Query + Handler (+ Result), e.g. Auth/LoginUser, Lobbies/JoinLobby
-│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation
+│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation, plus the types in their signatures
 │   ├── Services/    — in-process orchestration next to its interfaces (lobby/race lifecycle)
-│   └── Exceptions/  — area-specific exceptions
+│   ├── Exceptions/  — area-specific exceptions
+│   └── *.cs         — area-wide constants (Realtime/GameEvents, Races/RaceCountdown)
 └── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
 FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
 ├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby store, race tick loop + conflator
