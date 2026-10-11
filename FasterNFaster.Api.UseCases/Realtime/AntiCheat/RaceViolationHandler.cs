@@ -40,7 +40,7 @@ public class RaceViolationHandler(
         if (strikeCount < opts.SuspensionThreshold) return;
 
         // Guests cap at race withdrawal: no durable identity to suspend against.
-        if (!await users.IsUserRegistred(e.PlayerId)) return;
+        if (!await users.IsUserRegistered(e.PlayerId)) return;
 
         var expiresAt = DateTime.UtcNow.Add(opts.SuspensionDuration);
         var suspensionCount = await bans.SuspendAsync(e.PlayerId, $"Repeated anti-cheat violations ({e.Rule})", expiresAt);

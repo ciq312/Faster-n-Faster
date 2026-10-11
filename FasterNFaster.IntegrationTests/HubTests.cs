@@ -233,14 +233,14 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     {
         var hub = BuildHubConnection(client, cookies);
         await hub.StartAsync();
-        await hub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+        await hub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.InviteCode);
 
         return hub;
     }
 
     private static RegisterUserRequest NewUser(string prefix = "test") => new(prefix, prefix, $"{prefix}@gmail.com", "testpass");
 
-    private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
+    private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResponse LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
     {
         user ??= NewUser();
         var client = App.CreateClient();
@@ -250,11 +250,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         return await LoginAsync(client, user);
     }
 
-    private static async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> LoginAsync(HttpClient client, RegisterUserRequest user)
+    private static async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResponse LoginResult)> LoginAsync(HttpClient client, RegisterUserRequest user)
     {
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginUserResult>()
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginUserResponse>()
             ?? throw new InvalidOperationException("can't parse login result");
 
         var cookies = new CookieContainer();

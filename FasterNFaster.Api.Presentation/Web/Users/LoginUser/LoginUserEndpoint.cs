@@ -6,7 +6,7 @@ using MediatR;
 
 namespace FasterNFaster.Api.Presentation.Web.Users.LoginUser;
 
-public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResult>
+public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<LoginUserRequest, LoginUserResponse>
 {
     public override void Configure()
     {
@@ -21,6 +21,6 @@ public class LoginUserEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint
 
         auth.WriteAuth(result.Tokens);
 
-        await Send.OkAsync(new LoginUserResult(result.UserId, result.Nick), cancellation: ct);
+        await Send.OkAsync(new LoginUserResponse(result.UserId, result.Nick), cancellation: ct);
     }
 }

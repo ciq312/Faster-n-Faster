@@ -1,3 +1,3 @@
 namespace FasterNFaster.Api.Presentation.Web.Users.LoginUser;
 
-public record LoginUserResult(Guid UserId, string Nick);
+public record LoginUserResponse(Guid UserId, string Nick);

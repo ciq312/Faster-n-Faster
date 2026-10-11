@@ -11,7 +11,7 @@ public class RegisterAnonymousRequest
     public string Nick { get; set; } = null!;
 }
 
-public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResult>
+public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : Endpoint<RegisterAnonymousRequest, RegisterAnonymousResponse>
 {
     public override void Configure()
     {
@@ -28,7 +28,7 @@ public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : 
 
         await Send.CreatedAtAsync<RegisterAnonymousEndpoint>(
             routeValues: null,
-            responseBody: new RegisterAnonymousResult(result.UserId),
+            responseBody: new RegisterAnonymousResponse(result.UserId),
             cancellation: ct);
     }
 }

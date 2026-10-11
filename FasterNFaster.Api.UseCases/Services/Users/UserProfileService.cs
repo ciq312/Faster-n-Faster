@@ -12,7 +12,7 @@ public class UserProfileService(
 {
     public async Task<PlayerStatistics?> GetProfileAsync(Guid userId)
     {
-        if (!await userRepo.IsUserRegistred(userId))
+        if (!await userRepo.IsUserRegistered(userId))
             throw new UserNotFoundException(userId);
 
         return await statsRepo.GetByUserIdAsync(userId);
@@ -22,7 +22,7 @@ public class UserProfileService(
     {
         foreach (var result in results)
         {
-            if (!await userRepo.IsUserRegistred(result.LobbyPlayerId)) continue;
+            if (!await userRepo.IsUserRegistered(result.LobbyPlayerId)) continue;
 
             var stats = await statsRepo.FindAsync(result.LobbyPlayerId);
             if (stats == null)
