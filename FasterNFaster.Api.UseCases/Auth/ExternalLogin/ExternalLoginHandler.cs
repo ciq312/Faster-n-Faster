@@ -1,0 +1,62 @@
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Shared;
+using FasterNFaster.Api.UseCases.Users.Ports;
+using MediatR;
+
+namespace FasterNFaster.Api.UseCases.Auth.ExternalLogin;
+
+public class ExternalLoginHandler(
+    IUserRepository userRepo,
+    IExternalLoginRepository externalLogins,
+    ITokenService tokenService,
+    IUnitOfWork unitOfWork) : IRequestHandler<ExternalLoginCommand, ExternalLoginResult>
+{
+    public async Task<ExternalLoginResult> Handle(ExternalLoginCommand command, CancellationToken cancellationToken)
+    {
+        var user = await GetLinkedUserAsync(command)
+                   ?? await LinkToExistingAccountAsync(command)
+                   ?? await RegisterNewUserAsync(command);
+
+        var tokens = await tokenService.IssuePlayerTokens(user.Id, user.Nick);
+
+        return new ExternalLoginResult(tokens);
+    }
+
+    private async Task<User?> GetLinkedUserAsync(ExternalLoginCommand command)
+    {
+        var login = await externalLogins.GetByProviderAndSubjectAsync(command.Provider, command.Subject);
+        if (login is null) return null;
+
+        return await userRepo.GetByIdAsync(login.UserId)
+            ?? throw new InvalidOperationException($"External login references missing user {login.UserId}.");
+    }
+
+    private async Task<User?> LinkToExistingAccountAsync(ExternalLoginCommand command)
+    {
+        if (!command.EmailVerified) return null;
+
+        var user = await userRepo.GetByEmailAsync(command.Email);
+        if (user is null) return null;
+
+        externalLogins.Add(user.Id, command.Provider, command.Subject, command.Email);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return user;
+    }
+
+    private async Task<User> RegisterNewUserAsync(ExternalLoginCommand command)
+    {
+        var user = new User(command.Name, null, null);
+        user.SetEmail(command.Email);
+        user.SetEmailVerified();
+
+        userRepo.Add(user);
+        externalLogins.Add(user.Id, command.Provider, command.Subject, command.Email);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return user;
+    }
+}

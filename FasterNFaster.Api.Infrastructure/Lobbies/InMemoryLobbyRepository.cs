@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.Domain.Entities.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 

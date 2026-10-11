@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

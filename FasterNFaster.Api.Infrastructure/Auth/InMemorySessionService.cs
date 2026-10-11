@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 

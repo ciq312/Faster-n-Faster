@@ -1,5 +1,5 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Races.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;

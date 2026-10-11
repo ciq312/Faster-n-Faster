@@ -1,9 +1,9 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.Infrastructure.Db;
-using FasterNFaster.Api.Infrastructure.Db.Statistics;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.Infrastructure.Leaderboards;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
+using FasterNFaster.Api.UseCases.AntiCheat.Ports;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
 namespace FasterNFaster.IntegrationTests;
 

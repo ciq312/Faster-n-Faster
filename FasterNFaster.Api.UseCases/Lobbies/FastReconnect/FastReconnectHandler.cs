@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.FastReconnect;

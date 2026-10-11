@@ -1,5 +1,5 @@
 services:
-  postgres: 
+  postgres:
     image: postgres:15
     container_name: postgresDB
     environment:
@@ -39,9 +39,9 @@ services:
     environment:
         ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
         ConnectionStrings__Redis: redis:6379
-        JwtOptions__JWT_PRIVATE_TOKEN: ${JWTOPTIONS__JWT_PRIVATE_TOKEN}
+        JwtOptions__PrivateKey: ${JWTOPTIONS__PRIVATEKEY}
         Google__ClientId: ${GOOGLE__CLIENTID}
-        Google__ClientSecret: ${GOOGLE__CLIENTSECRET} 
+        Google__ClientSecret: ${GOOGLE__CLIENTSECRET}
     ports:
       - "8080:8080"
     depends_on:

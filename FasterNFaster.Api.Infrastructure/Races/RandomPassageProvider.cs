@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
 

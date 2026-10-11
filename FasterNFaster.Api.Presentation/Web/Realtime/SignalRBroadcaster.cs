@@ -1,10 +1,9 @@
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.Web.Hubs;
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FasterNFaster.Api.Web.Realtime;
+namespace FasterNFaster.Api.Presentation.Web.Realtime;
 
 public class SignalRBroadcaster(
     IHubContext<GameHub> hub,

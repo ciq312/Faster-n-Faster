@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.UseCases.Users.Ports;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

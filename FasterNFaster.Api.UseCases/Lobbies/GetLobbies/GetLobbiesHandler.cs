@@ -1,5 +1,5 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Races.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
@@ -23,7 +23,7 @@ public class GetLobbiesHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
                 l.Name,
                 raceSettings.RaceType,
                 l.LobbySettings.IsPrivate,
-                l.IsSessionActive.ToString(),
+                l.IsSessionActive,
                 l.Players.Count,
                 l.LobbySettings.MaxPlayers,
                 l.LobbySettings.CreatedAt

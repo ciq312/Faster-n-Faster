@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
-using FasterNFaster.Api.Web.Users.RegisterUser;
-using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
+using FasterNFaster.Api.Domain.Entities.Auth;
+using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
+using FasterNFaster.Api.Presentation.Web.Auth.VerifyEmail;
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Auth.RegisterUser;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FasterNFaster.IntegrationTests;

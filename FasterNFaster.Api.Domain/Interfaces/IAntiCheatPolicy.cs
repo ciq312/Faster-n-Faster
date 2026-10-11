@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Interfaces;
+namespace FasterNFaster.Api.Domain.Interfaces;
 
 public interface IAntiCheatPolicy
 {

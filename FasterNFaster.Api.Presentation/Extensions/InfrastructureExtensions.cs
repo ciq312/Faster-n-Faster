@@ -1,11 +1,11 @@
-using FasterNFaster.Api.Infrastructure.Db;
-using FasterNFaster.Api.UseCases.Interfaces.Db;
-using FasterNFaster.Api.Web.Hubs.Filters;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
+using FasterNFaster.Api.Presentation.Web.Realtime.Filters;
+using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class InfrastructureExtensions
 {

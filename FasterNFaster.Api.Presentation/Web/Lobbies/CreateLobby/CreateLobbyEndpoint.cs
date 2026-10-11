@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
+namespace FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 
 public record CreateLobbyRequest(string LobbyName, bool IsPrivate);
 

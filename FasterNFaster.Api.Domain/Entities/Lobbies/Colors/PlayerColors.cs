@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Colors;
+namespace FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 
 public static class PlayerColors
 {

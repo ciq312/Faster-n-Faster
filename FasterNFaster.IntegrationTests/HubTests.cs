@@ -2,22 +2,24 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.Presentation.Web.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
+using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
+using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
+using FasterNFaster.Api.UseCases.AntiCheat.Ports;
+using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
-using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Api.Web.Lobbies.CreateLobby;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Users.LoginUser;
-using FasterNFaster.Api.Web.Users.RegisterUser;
+using FasterNFaster.Api.UseCases.Users.Ports;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR;
@@ -233,14 +235,14 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     {
         var hub = BuildHubConnection(client, cookies);
         await hub.StartAsync();
-        await hub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+        await hub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.InviteCode);
 
         return hub;
     }
 
     private static RegisterUserRequest NewUser(string prefix = "test") => new(prefix, prefix, $"{prefix}@gmail.com", "testpass");
 
-    private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
+    private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResponse LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
     {
         user ??= NewUser();
         var client = App.CreateClient();
@@ -250,11 +252,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         return await LoginAsync(client, user);
     }
 
-    private static async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> LoginAsync(HttpClient client, RegisterUserRequest user)
+    private static async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResponse LoginResult)> LoginAsync(HttpClient client, RegisterUserRequest user)
     {
         var loginResponse = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginUserResult>()
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginUserResponse>()
             ?? throw new InvalidOperationException("can't parse login result");
 
         var cookies = new CookieContainer();

@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.UseCases.Services.Users;
+using FasterNFaster.Api.UseCases.Auth.Services;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.UnitTests.Fakes;

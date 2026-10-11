@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

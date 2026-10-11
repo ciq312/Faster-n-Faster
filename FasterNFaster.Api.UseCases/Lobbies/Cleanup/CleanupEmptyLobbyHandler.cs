@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.UseCases.Events;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Cleanup;

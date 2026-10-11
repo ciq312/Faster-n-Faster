@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.UseCases.Users.Ports;
 
 namespace FasterNFaster.UnitTests.Fakes;
 
@@ -41,5 +41,5 @@ public class FakeUserRepository : IUserRepository
         return Task.FromResult(_users.FirstOrDefault(u => u.Login == normalizedLogin));
     }
 
-    public Task<bool> IsUserRegistred(Guid id) => Task.FromResult(Users.Any(u => u.Id == id));
+    public Task<bool> IsUserRegistered(Guid id) => Task.FromResult(Users.Any(u => u.Id == id));
 }

@@ -1,33 +1,35 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Interfaces;
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Interfaces;
+using FasterNFaster.Api.Domain.Interfaces.Events;
+using FasterNFaster.Api.Infrastructure.AntiCheat;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.Infrastructure.Caching;
-using FasterNFaster.Api.Infrastructure.Db.Statistics;
+using FasterNFaster.Api.Infrastructure.Leaderboards;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
+using FasterNFaster.Api.Infrastructure.Shared.Caching;
 using FasterNFaster.Api.Infrastructure.Users;
-using FasterNFaster.Api.UseCases.Helpers.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Presentation.Web.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Auth;
+using FasterNFaster.Api.Presentation.Web.Realtime;
+using FasterNFaster.Api.UseCases;
+using FasterNFaster.Api.UseCases.AntiCheat.Ports;
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Auth.Services;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
-using FasterNFaster.Api.UseCases.Services;
-using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Api.Web.Realtime;
-using FasterNFaster.Api.Web.Services.Interfaces;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Shared;
+using FasterNFaster.Api.UseCases.Users.Ports;
+using FasterNFaster.Api.UseCases.Users.Services;
 using Microsoft.AspNetCore.Identity;
-using FasterNFaster.Api.Web.Services.Implementations;
-using FasterNFaster.Api.Infrastructure.Db.Users;
-using FasterNFaster.Api.Infrastructure.Helpers;
-using FasterNFaster.Api.UseCases.Helpers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class ApplicationServicesExtensions
 {
