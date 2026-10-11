@@ -2,7 +2,7 @@ using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class GetLobbiesHandlerTests
 {

@@ -8,10 +8,10 @@ using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.LobbyState;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class LobbyConcurrencyTests
 {

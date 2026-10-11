@@ -4,11 +4,11 @@ using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RaceViolationHandlerTests
 {

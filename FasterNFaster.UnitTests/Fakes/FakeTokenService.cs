@@ -1,7 +1,7 @@
 using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeTokenService : ITokenService
 {

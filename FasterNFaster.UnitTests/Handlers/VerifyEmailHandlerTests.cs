@@ -3,10 +3,10 @@ using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.VerifyEmail;
-using FasterNFaster.Tests.Fakes;
-using static FasterNFaster.Tests.RegisteredUsersSetup;
+using FasterNFaster.UnitTests.Fakes;
+using static FasterNFaster.UnitTests.RegisteredUsersSetup;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class VerifyEmailHandlerTests
 {

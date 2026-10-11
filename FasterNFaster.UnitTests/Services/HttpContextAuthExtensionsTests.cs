@@ -1,18 +1,19 @@
 using System.Security.Claims;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Web.Services;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.AspNetCore.Http;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 // Exercises the account-switching step used by LoginUserEndpoint and GoogleCallbackEndpoint.
-// Uses the real InMemorySessionService + TokenStore so we assert on observable state
+// Uses the real InMemorySessionService over FakeRefreshTokenRepository so we assert on observable state
 // (session cleared, refresh token invalidated) instead of "was the method called".
 public class HttpContextAuthExtensionsTests
 {
     private static InMemorySessionService CreateSessions()
     {
-        var tokenStore = new InMemoryRefreshTokenRepository();
+        var tokenStore = new FakeRefreshTokenRepository();
         return new InMemorySessionService(tokenStore);
     }
 

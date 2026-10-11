@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.UseCases.Leaderboards;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Caching;
+namespace FasterNFaster.UnitTests.Caching;
 
 public class CachedLeaderboardRepositoryTests
 {

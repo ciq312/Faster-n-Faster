@@ -10,7 +10,7 @@ using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
@@ -23,7 +23,7 @@ using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests;
+namespace FasterNFaster.UnitTests;
 
 public record LobbyTestContext(
     InMemoryLobbyRepository Store,

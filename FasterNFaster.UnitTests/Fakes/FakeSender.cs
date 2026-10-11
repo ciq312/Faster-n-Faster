@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeSender : ISender
 {

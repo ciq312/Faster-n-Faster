@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Lobbies;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class RaceStateConflatorTests
 {

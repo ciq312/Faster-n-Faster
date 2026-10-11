@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 
-namespace FasterNFaster.Tests.Entities;
+namespace FasterNFaster.UnitTests.Entities;
 
 public class LobbyTests
 {

@@ -1,11 +1,11 @@
 using System.Security.Claims;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.Web.Hubs.Filters;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace FasterNFaster.Tests.Hubs;
+namespace FasterNFaster.UnitTests.Hubs;
 
 public class HubExceptionFilterTests
 {

@@ -2,10 +2,10 @@ using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Services.Implementations;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Tests.Entities;
+namespace FasterNFaster.UnitTests.Entities;
 
 public class RaceParticipantTests
 {

@@ -2,7 +2,7 @@ using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public static class ConfirmTokenFactoryHelper
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Services;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class LobbyStateTrackerTests
 {

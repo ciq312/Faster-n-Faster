@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using FluentValidation.TestHelper;
 
-namespace FasterNFaster.Tests.Validators;
+namespace FasterNFaster.UnitTests.Validators;
 
 public class RegisterUserValidatorTests
 {

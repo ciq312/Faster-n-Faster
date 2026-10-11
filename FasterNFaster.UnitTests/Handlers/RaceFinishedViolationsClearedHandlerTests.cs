@@ -4,7 +4,7 @@ using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RaceFinishedViolationsClearedHandlerTests
 {

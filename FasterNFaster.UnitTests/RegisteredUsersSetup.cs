@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests;
+namespace FasterNFaster.UnitTests;
 
 public static class RegisteredUsersSetup
 {

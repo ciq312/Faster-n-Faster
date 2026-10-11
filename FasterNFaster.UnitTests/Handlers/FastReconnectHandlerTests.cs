@@ -2,7 +2,7 @@ using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class FastReconnectHandlerTests
 {

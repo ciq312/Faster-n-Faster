@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Entities;
+namespace FasterNFaster.UnitTests.Entities;
 
 public class ProgressBudgetTests
 {

@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class JwtTokenFactoryTests
 {

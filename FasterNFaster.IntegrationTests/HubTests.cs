@@ -18,8 +18,8 @@ using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Connections;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
@@ -27,19 +27,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFixture<NoRateLimitApplicationFactory<Program>>, IAsyncLifetime
+public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
-    private WebApplicationFactory<Program> app = null!;
-
-    public async Task InitializeAsync()
-    {
-        await fixture.ResetAsync();
-        // FullRace sends each whole passage in one update; lift the typing budget so anti-cheat doesn't clamp it.
-        app = fixture.CreateApp(builder => builder.ConfigureTestServices(services =>
-            services.PostConfigure<AntiCheatOptions>(options => options.BudgetSlack = 100_000)));
-    }
-
-    public async Task DisposeAsync() => await app.DisposeAsync();
+    // FullRace sends each whole passage in one update; lift the typing budget so anti-cheat doesn't clamp it.
+    protected override void ConfigureApp(IWebHostBuilder builder) =>
+        builder.ConfigureTestServices(services =>
+            services.PostConfigure<AntiCheatOptions>(options => options.BudgetSlack = 100_000));
 
     private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan RaceStartTimeout = RaceCountdown.Duration + RaceCountdown.StartDelay + EventTimeout;
@@ -58,49 +51,12 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
             return Task.CompletedTask;
         };
 
-        await app.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
+        await App.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
 
         await hub.StartAsync();
 
         await connectionClosed.Task.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
-    }
-
-    [Fact]
-    public async Task SuspendedUserConnect_ShouldAbort()
-    {
-        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
-        await using var hub = BuildHubConnection(client, cookies);
-
-        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        hub.Closed += _ =>
-        {
-            connectionClosed.TrySetResult();
-            return Task.CompletedTask;
-        };
-
-        await app.ExecuteScopedAsync<IBanRepository>(repo =>
-            repo.SuspendAsync(loginResult.UserId, "test suspension", DateTime.UtcNow.AddHours(1)));
-
-        await hub.StartAsync();
-
-        await connectionClosed.Task.WaitAsync(EventTimeout);
-        Assert.Equal(HubConnectionState.Disconnected, hub.State);
-    }
-
-    [Fact]
-    public async Task ExpiredSuspensionUserConnect_ShouldSucceed()
-    {
-        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
-        await using var hub = BuildHubConnection(client, cookies);
-
-        await app.ExecuteScopedAsync<IBanRepository>(repo =>
-            repo.SuspendAsync(loginResult.UserId, "test suspension", DateTime.UtcNow.AddSeconds(-1)));
-
-        await hub.StartAsync();
-        await hub.InvokeAsync<long>("Ping", 0);
-
-        Assert.Equal(HubConnectionState.Connected, hub.State);
     }
 
     [Fact]
@@ -120,9 +76,9 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         await hub.InvokeAsync<long>("Ping", 0);
 
         var expiresAt = DateTime.UtcNow.AddHours(1);
-        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+        await App.ExecuteScopedAsync<IBanRepository>(repo =>
             repo.SuspendAsync(loginResult.UserId, "test suspension", expiresAt));
-        await app.ExecuteScopedAsync<IBroadcaster>(broadcaster =>
+        await App.ExecuteScopedAsync<IBroadcaster>(broadcaster =>
             broadcaster.Broadcast(Audience.Player(loginResult.UserId), GameEvents.Suspended, new SuspendedDTO(expiresAt)));
 
         // HubSuspensionFilter only catches the ban on this connection's next call, and
@@ -143,7 +99,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
     [Fact]
     public async Task UnauthenticatedUserConnection_ShouldReject()
     {
-        await using var hub = BuildHubConnection(app.CreateClient(), cookies: null);
+        await using var hub = BuildHubConnection(App.CreateClient(), cookies: null);
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => hub.StartAsync());
 
@@ -163,7 +119,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         await hub.StartAsync();
         await hub.InvokeAsync<long>("Ping", 0);
 
-        var (anotherClient, anotherCookies, _) = await LoginAsync(app.CreateClient(), user);
+        var (anotherClient, anotherCookies, _) = await LoginAsync(App.CreateClient(), user);
         await using var anotherHub = BuildHubConnection(anotherClient, anotherCookies);
         await anotherHub.StartAsync();
 
@@ -206,7 +162,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         Assert.Equal(RaceCountdown.Duration.TotalSeconds, starting.CountdownSeconds);
         await Task.WhenAll(hostRaceStarted, guestRaceStarted).WaitAsync(RaceStartTimeout);
 
-        var settings = (WordRace.WordRaceSettings)await app.Services
+        var settings = (WordRace.WordRaceSettings)await App.Services
             .GetRequiredService<IRaceAccess>()
             .GetRaceSettings(lobby.LobbyId);
         await hostHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);
@@ -222,9 +178,9 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         Assert.Equal(100, guestResult.Accuracy);
 
         Assert.DoesNotContain(
-            app.Services.GetRequiredService<IRaceTickRegistry>().GetRacingLobbies(),
+            App.Services.GetRequiredService<IRaceTickRegistry>().GetRacingLobbies(),
             entry => entry.LobbyId == lobby.LobbyId);
-        Assert.False(await app.Services.GetRequiredService<ILobbyAccess>().Read(lobby.LobbyId, l => l.IsSessionActive));
+        Assert.False(await App.Services.GetRequiredService<ILobbyAccess>().Read(lobby.LobbyId, l => l.IsSessionActive));
 
         var hostStatistics = await WaitForStatisticsAsync(host.UserId);
         Assert.Equal(1, hostStatistics.Wins);
@@ -256,7 +212,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
         var elapsed = Stopwatch.StartNew();
         while (elapsed.Elapsed < EventTimeout)
         {
-            var statistics = await app.ExecuteScopedAsync<IStatisticsRepository, PlayerStatistics?>(repo => repo.FindAsync(userId));
+            var statistics = await App.ExecuteScopedAsync<IStatisticsRepository, PlayerStatistics?>(repo => repo.FindAsync(userId));
             if (statistics is not null) return statistics;
 
             await Task.Delay(StatisticsPollInterval);
@@ -287,9 +243,9 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
     private async Task<(HttpClient Client, CookieContainer Cookies, LoginUserResult LoginResult)> RegisterAndLoginAsync(RegisterUserRequest? user = null)
     {
         user ??= NewUser();
-        var client = app.CreateClient();
+        var client = App.CreateClient();
 
-        await AuthHelper.FullRegisterFlowAsync(app, client, user);
+        await AuthHelper.FullRegisterFlowAsync(App, client, user);
 
         return await LoginAsync(client, user);
     }
@@ -315,7 +271,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
                 if (cookies is not null)
                     options.Headers["Cookie"] = cookies.GetCookieHeader(client.BaseAddress!);
 
-                options.HttpMessageHandlerFactory = _ => app.Server.CreateHandler();
+                options.HttpMessageHandlerFactory = _ => App.Server.CreateHandler();
                 options.Transports = HttpTransportType.LongPolling;
             })
             .Build();

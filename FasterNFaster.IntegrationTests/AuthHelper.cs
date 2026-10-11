@@ -6,8 +6,9 @@ using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
-using FasterNFaster.IntegrationTests;
 using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace FasterNFaster.IntegrationTests;
 
 public static class AuthHelper
 {

@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Users.ExternalLogin;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class ExternalLoginHandlerTests
 {

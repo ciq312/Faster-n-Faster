@@ -5,8 +5,9 @@ using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
-using FasterNFaster.Tests;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
+
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RaceFinishedOrchestrationHandlerTests
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeBanRepository : IBanRepository
 {
