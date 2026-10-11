@@ -1,8 +1,8 @@
 using FastEndpoints;
 using FasterNFaster.Api.Domain.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.Services;
 
-namespace FasterNFaster.Api.Presentation.Web.Profile;
+namespace FasterNFaster.Api.Presentation.Web.Users.GetUserProfile;
 
 public class GetUserProfileEndpoint(IUserProfileService profileService) : EndpointWithoutRequest<GetUserProfileResult>
 {

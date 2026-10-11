@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Auth;
-using FasterNFaster.Api.Infrastructure.Db.Users;
+using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.EntityFrameworkCore;
 

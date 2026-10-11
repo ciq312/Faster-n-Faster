@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities;
 
-namespace FasterNFaster.Api.UseCases.Interfaces.Users;
+namespace FasterNFaster.Api.UseCases.Users.Ports;
 
 public interface IStatisticsRepository
 {

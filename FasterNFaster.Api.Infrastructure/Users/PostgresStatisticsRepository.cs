@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.Ports;
 using Microsoft.EntityFrameworkCore;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Statistics;
+namespace FasterNFaster.Api.Infrastructure.Users;
 
 public class PostgresStatisticsRepository(AppDbContext context) : IStatisticsRepository
 {

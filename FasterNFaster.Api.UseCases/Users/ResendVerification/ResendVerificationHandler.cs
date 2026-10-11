@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Users.ResendVerification;

@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.Ports;
 
-namespace FasterNFaster.Api.UseCases.Services.Users;
+namespace FasterNFaster.Api.UseCases.Users.Services;
 
 public class UserProfileService(
     IUserRepository userRepo,

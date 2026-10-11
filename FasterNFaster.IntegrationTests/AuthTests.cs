@@ -8,7 +8,7 @@ using FasterNFaster.Api.Presentation.Web.Users.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Users.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Users.VerifyEmail;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.Ports;
 using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using Microsoft.AspNetCore.Mvc.Testing;
 

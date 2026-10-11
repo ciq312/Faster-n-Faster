@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Users;
+namespace FasterNFaster.Api.Infrastructure.Users;
 
 public static class UserUniqueViolations
 {
