@@ -1,7 +1,7 @@
 using System.Threading.RateLimiting;
-using FasterNFaster.Api.Presentation.Web.Options.RateLimiting;
+using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.RateLimiting;
-using static FasterNFaster.Api.Presentation.Web.Options.RateLimiting.RateLimitOptions;
+using static FasterNFaster.Api.Presentation.Web.Shared.RateLimitOptions;
 
 namespace FasterNFaster.Api.Presentation.Extensions;
 

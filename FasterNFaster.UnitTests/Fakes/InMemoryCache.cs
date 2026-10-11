@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Caching;
+using FasterNFaster.Api.Infrastructure.Shared.Caching;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

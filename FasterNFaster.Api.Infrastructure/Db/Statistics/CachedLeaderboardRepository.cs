@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Caching;
+using FasterNFaster.Api.Infrastructure.Shared.Caching;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
 

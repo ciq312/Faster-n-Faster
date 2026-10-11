@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Realtime.RaceFinished;

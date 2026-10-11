@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Options.App;
+using FasterNFaster.Api.Infrastructure.Shared;
 using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
 using FasterNFaster.Api.UseCases.Users.ExternalLogin;
 using MediatR;

@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.Hubs.Filters;
-using FasterNFaster.Api.UseCases.Interfaces.Db;
+using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;

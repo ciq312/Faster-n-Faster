@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Db;
+using FasterNFaster.Api.UseCases.Shared;
 
 namespace FasterNFaster.UnitTests.Fakes;
 

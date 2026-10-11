@@ -1,6 +1,6 @@
 using DotNetEnv;
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.Presentation.Web.Hubs;
 using Microsoft.AspNetCore.HttpOverrides;

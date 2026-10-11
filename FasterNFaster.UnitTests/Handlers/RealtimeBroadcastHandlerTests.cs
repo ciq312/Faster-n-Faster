@@ -2,7 +2,6 @@ using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
@@ -12,6 +11,7 @@ using FasterNFaster.Api.UseCases.Realtime.PlayerKicked;
 using FasterNFaster.Api.UseCases.Realtime.PlayerPromoted;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
+using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;

@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Entities;
-using FasterNFaster.Api.Infrastructure.Db;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.IntegrationTests;

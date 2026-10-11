@@ -3,6 +3,7 @@ using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Shared;
 
 namespace FasterNFaster.Api.UseCases.Services.Races;
 

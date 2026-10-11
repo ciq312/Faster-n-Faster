@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
 using Microsoft.EntityFrameworkCore;

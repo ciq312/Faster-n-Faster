@@ -1,0 +1,77 @@
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Auth;
+using FasterNFaster.Api.Infrastructure.Db.Users;
+using FasterNFaster.Api.UseCases.Shared;
+using Microsoft.EntityFrameworkCore;
+
+namespace FasterNFaster.Api.Infrastructure.Shared.Persistence;
+
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IUnitOfWork
+{
+    public DbSet<User> Users { get; set; }
+    public DbSet<ExternalLogin> ExternalLogins { get; set; }
+    public DbSet<PlayerStatistics> Statistics { get; set; }
+    public DbSet<BannedPlayer> BannedPlayers { get; set; }
+
+    public Task SaveChangesAsync() => base.SaveChangesAsync();
+
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            var conflict = UserUniqueViolations.Translate(ex);
+            if (conflict is null) throw;
+            throw conflict;
+        }
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(b =>
+        {
+            b.HasOne(u => u.Statistics)
+                .WithOne(s => s.User)
+                .HasForeignKey<PlayerStatistics>(s => s.Id);
+
+            b.Property(u => u.CreatedAt).HasDefaultValueSql("now()");
+
+            b.HasIndex(u => u.Email).IsUnique().HasDatabaseName(UserUniqueViolations.EmailIndex);
+            b.HasIndex(u => u.Login).IsUnique().HasDatabaseName(UserUniqueViolations.LoginIndex);
+        });
+
+        modelBuilder.Entity<ExternalLogin>(b =>
+        {
+            b.HasKey(x => x.Id);
+
+            b.Property(x => x.Provider)
+                .HasMaxLength(32)
+                .IsRequired();
+
+            b.Property(x => x.ExternalSubject)
+                .HasMaxLength(256)
+                .IsRequired();
+
+            b.Property(x => x.ExternalEmail)
+            .HasMaxLength(256);
+
+            b.HasIndex(x => new { x.Provider, x.ExternalSubject })
+                .IsUnique();
+
+            b.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BannedPlayer>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.UserId).IsUnique();
+            b.Property(x => x.Reason).HasMaxLength(200);
+        });
+    }
+}
