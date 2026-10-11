@@ -1,4 +1,4 @@
-namespace FasterNFaster.Tests;
+namespace FasterNFaster.UnitTests;
 
 public static class ConcurrentRunner
 {

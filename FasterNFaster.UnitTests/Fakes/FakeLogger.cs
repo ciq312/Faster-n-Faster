@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeLogger<T> : ILogger<T>
 {

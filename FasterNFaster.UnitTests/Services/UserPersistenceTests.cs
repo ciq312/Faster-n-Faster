@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Db;
 using Microsoft.EntityFrameworkCore;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class UserPersistenceTests
 {

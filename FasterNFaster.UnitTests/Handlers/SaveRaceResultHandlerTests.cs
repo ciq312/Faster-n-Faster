@@ -2,9 +2,9 @@ using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Events;
 using FasterNFaster.Api.UseCases.Lobbies.UpdateProgress.Handlers;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class SaveRaceResultHandlerTests
 {

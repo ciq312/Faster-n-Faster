@@ -2,9 +2,10 @@ using System.Net.Http.Json;
 using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Options.RateLimiting;
 using FasterNFaster.Api.Web.Users.RegisterAnonymous;
-using FasterNFaster.IntegrationTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+
+namespace FasterNFaster.IntegrationTests;
 
 public class RateLimitingTests : IClassFixture<TestApplicationFactory<Program>>, IAsyncLifetime
 {

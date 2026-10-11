@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class DisconnectHandlerTests
 {

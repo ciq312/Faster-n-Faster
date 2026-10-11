@@ -9,14 +9,14 @@ using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.Web.Hubs;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests.Hubs;
+namespace FasterNFaster.UnitTests.Hubs;
 
 public class GameHubSessionTests
 {
-    private readonly InMemorySessionService sessions = new(new InMemoryRefreshTokenRepository());
+    private readonly InMemorySessionService sessions = new(new FakeRefreshTokenRepository());
     private readonly FakeHubCallerClients clients = new();
     private readonly FakeSender sender = new();
     private readonly FakeTimeProvider time = new(DateTimeOffset.UtcNow);

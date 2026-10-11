@@ -3,9 +3,9 @@ using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RequestPasswordResetHandlerTests
 {

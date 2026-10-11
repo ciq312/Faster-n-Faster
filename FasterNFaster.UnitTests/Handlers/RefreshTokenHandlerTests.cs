@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Auth;
 using FasterNFaster.Api.UseCases.Users.RefreshToken;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RefreshTokenHandlerTests
 {

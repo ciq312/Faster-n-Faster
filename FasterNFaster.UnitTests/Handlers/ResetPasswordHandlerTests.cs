@@ -4,9 +4,9 @@ using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Users.RegisterUsers;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class ResetPasswordHandlerTests
 {
@@ -19,7 +19,7 @@ public class ResetPasswordHandlerTests
     {
         public required FakeUserRepository UserRepo { get; init; }
         public required FakeTokenRepo TokenRepo { get; init; }
-        public required InMemoryRefreshTokenRepository TokenStore { get; init; }
+        public required FakeRefreshTokenRepository TokenStore { get; init; }
         public required InMemorySessionService Sessions { get; init; }
         public required ResetPasswordHandler Handler { get; init; }
         public required User User { get; init; }
@@ -38,7 +38,7 @@ public class ResetPasswordHandlerTests
         var resetToken = setup.TokenFactory.GetToken(user.Id, TokenType.PasswordReset);
         await setup.TokenRepo.Add(resetToken);
 
-        var tokenStore = new InMemoryRefreshTokenRepository();
+        var tokenStore = new FakeRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
 
         var handler = new ResetPasswordHandler(
@@ -57,7 +57,7 @@ public class ResetPasswordHandlerTests
     }
 
     [Fact]
-    public async Task ValidToken_UpdatesPasswordAndDeletesTokenAndInvalidatesSessions()
+    public async Task ValidToken_UpdatesPasswordConsumesResetTokenAndClearsActiveSession()
     {
         var ctx = await BuildWithValidResetToken();
         ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
@@ -71,10 +71,9 @@ public class ResetPasswordHandlerTests
     }
 
     [Fact]
-    public async Task ValidToken_TryRefreshAfterReset()
+    public async Task ValidToken_RevokesIssuedRefreshTokens()
     {
         var ctx = await BuildWithValidResetToken();
-        ctx.Sessions.SetUserSession(ctx.User.Id, "conn-1");
         await ctx.TokenStore.Issue(ctx.User.Id, "refresh-1", TimeSpan.FromHours(1));
         await ctx.Handler.Handle(new ResetPasswordCommand(ctx.Token.Value, NewPassword), CancellationToken.None);
 

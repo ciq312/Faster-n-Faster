@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeRaceResultQueue : IRaceResultQueue
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Interfaces;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeAntiCheatPolicy(double maxCharsPerSecond, int budgetSlack) : IAntiCheatPolicy
 {

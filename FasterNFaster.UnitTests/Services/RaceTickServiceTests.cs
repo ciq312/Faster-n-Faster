@@ -4,10 +4,10 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class RaceTickServiceTests
 {

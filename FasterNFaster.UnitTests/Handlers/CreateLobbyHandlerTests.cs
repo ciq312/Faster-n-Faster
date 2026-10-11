@@ -4,10 +4,10 @@ using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Services;
 using FasterNFaster.Api.UseCases.Services.Races;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class CreateLobbyHandlerTests
 {

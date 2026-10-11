@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.Web.Exceptions;
 using Microsoft.AspNetCore.Http;
 
-namespace FasterNFaster.Tests.Exceptions;
+namespace FasterNFaster.UnitTests.Exceptions;
 
 public class StatusExceptionHandlerTests
 {

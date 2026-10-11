@@ -1,20 +1,21 @@
 using FasterNFaster.Api.Infrastructure.Auth;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class InMemorySessionServiceTests
 {
     private static readonly TimeSpan Ttl = TimeSpan.FromHours(1);
 
-    private static (InMemorySessionService sessions, InMemoryRefreshTokenRepository tokenStore) Create()
+    private static (InMemorySessionService sessions, FakeRefreshTokenRepository tokenStore) Create()
     {
-        var tokenStore = new InMemoryRefreshTokenRepository();
+        var tokenStore = new FakeRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
         return (sessions, tokenStore);
     }
 
     [Fact]
-    public async Task InvalidateAll_RemovesActiveSession()
+    public async Task RevokeAllSessions_RemovesActiveSession()
     {
         var (sessions, _) = Create();
         var userId = Guid.NewGuid();
@@ -26,7 +27,7 @@ public class InMemorySessionServiceTests
     }
 
     [Fact]
-    public async Task InvalidateAll_InvalidatesRefreshToken()
+    public async Task RevokeAllSessions_RevokesRefreshTokens()
     {
         var (sessions, tokenStore) = Create();
         var userId = Guid.NewGuid();
@@ -39,7 +40,7 @@ public class InMemorySessionServiceTests
     }
 
     [Fact]
-    public async Task InvalidateAll_OtherUsersSessionsUnaffected()
+    public async Task RevokeAllSessions_OtherUsersSessionsUnaffected()
     {
         var (sessions, _) = Create();
         var userA = Guid.NewGuid();
@@ -54,7 +55,7 @@ public class InMemorySessionServiceTests
     }
 
     [Fact]
-    public async Task InvalidateAll_OtherUsersRefreshTokensUnaffected()
+    public async Task RevokeAllSessions_OtherUsersRefreshTokensUnaffected()
     {
         var (sessions, tokenStore) = Create();
         var userA = Guid.NewGuid();

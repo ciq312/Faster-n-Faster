@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Identity;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public static class PasswordHelperFactory
 {

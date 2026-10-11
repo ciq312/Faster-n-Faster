@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Infrastructure.Caching;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class InMemoryCache : ICache
 {

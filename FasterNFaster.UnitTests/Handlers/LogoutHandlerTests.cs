@@ -1,15 +1,16 @@
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Users.Logout;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class LogoutHandlerTests
 {
     private static readonly TimeSpan Ttl = TimeSpan.FromHours(1);
 
-    private static (LogoutHandler handler, InMemorySessionService sessions, InMemoryRefreshTokenRepository tokenStore) Create()
+    private static (LogoutHandler handler, InMemorySessionService sessions, FakeRefreshTokenRepository tokenStore) Create()
     {
-        var tokenStore = new InMemoryRefreshTokenRepository();
+        var tokenStore = new FakeRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
         return (new LogoutHandler(tokenStore, sessions), sessions, tokenStore);
     }

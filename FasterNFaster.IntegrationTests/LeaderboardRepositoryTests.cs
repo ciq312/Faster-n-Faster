@@ -5,6 +5,7 @@ using FasterNFaster.Api.Infrastructure.Db.Statistics;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Leaderboards;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -24,27 +25,214 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     public async Task SortByAvgWpm_PlayerWithoutRaces_RanksLastWithZeroAverage()
     {
         var idle = await SeedPlayerAsync("idle");
-        var racer = await SeedPlayerAsync("racer", 60, 80);
+        var racer = await SeedPlayerAsync("racer", Race(60), Race(80));
 
-        var page = await app.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
-            new LeaderboardRepository(context).GetTopPlayersAsync(LeaderboardSort.AvgWpm, true, 1, 10));
+        var page = await GetPageAsync(LeaderboardSort.AvgWpm, true, 1, 10);
 
         Assert.Equal([racer, idle], page.Items.Select(e => e.Id));
         Assert.Equal(70, page.Items[0].AvgWPM);
         Assert.Equal(0, page.Items[1].AvgWPM);
     }
 
-    private Task<Guid> SeedPlayerAsync(string nick, params float[] raceWpms) =>
+    [Fact]
+    public async Task SortByBestWpm_Descending_ReturnsHighestFirstWithTotalCount()
+    {
+        await SeedRankedPlayersAsync();
+
+        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 2);
+
+        Assert.Equal(5, page.TotalPlayers);
+        Assert.Equal(["Player5", "Player4"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal([50f, 40f], page.Items.Select(e => e.BestWPM));
+    }
+
+    [Fact]
+    public async Task SortByAvgAccuracy_Descending_ReturnsHighestFirst()
+    {
+        await SeedRankedPlayersAsync();
+
+        var page = await GetPageAsync(LeaderboardSort.AvgAccuracy, true, 1, 3);
+
+        Assert.Equal(["Player1", "Player2", "Player3"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal([94f, 93f, 92f], page.Items.Select(e => e.AvgAccuracy));
+    }
+
+    [Fact]
+    public async Task SortByAvgWpm_Ascending_ReturnsLowestFirst()
+    {
+        await SeedRankedPlayersAsync();
+
+        var page = await GetPageAsync(LeaderboardSort.AvgWpm, false, 1, 2);
+
+        Assert.Equal(["Player1", "Player2"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal([10f, 20f], page.Items.Select(e => e.AvgWPM));
+    }
+
+    [Fact]
+    public async Task SortByAvgAccuracy_Ascending_ReturnsLowestFirst()
+    {
+        await SeedRankedPlayersAsync();
+
+        var page = await GetPageAsync(LeaderboardSort.AvgAccuracy, false, 1, 3);
+
+        Assert.Equal(["Player5", "Player4", "Player3"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal([90f, 91f, 92f], page.Items.Select(e => e.AvgAccuracy));
+    }
+
+    [Fact]
+    public async Task SecondPage_ContinuesWhereFirstPageEnds()
+    {
+        await SeedRankedPlayersAsync();
+
+        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 2, 2);
+
+        Assert.Equal(5, page.TotalPlayers);
+        Assert.Equal(["Player3", "Player2"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal([30f, 20f], page.Items.Select(e => e.BestWPM));
+    }
+
+    [Fact]
+    public async Task TiedValues_PagesOrderTiesById()
+    {
+        var ids = await SeedPlayersWithoutRacesAsync(4);
+
+        var page1 = await GetPageAsync(LeaderboardSort.RacesTyped, false, 1, 2);
+        var page2 = await GetPageAsync(LeaderboardSort.RacesTyped, false, 2, 2);
+
+        Assert.Equal(ids.Order(), page1.Items.Concat(page2.Items).Select(e => e.Id));
+    }
+
+    [Fact]
+    public async Task SortByAvgWpm_UsesAverageNotBest()
+    {
+        await SeedRankedPlayersAsync();
+        await app.ExecuteScopedAsync<AppDbContext>(async context =>
+        {
+            var player1 = await context.Statistics.Include(s => s.User).SingleAsync(s => s.User.Nick == "Player1");
+            player1.RegisterRace(Race(75, 90, 10, 2));
+            await context.SaveChangesAsync();
+        });
+
+        var page = await GetPageAsync(LeaderboardSort.AvgWpm, true, 1, 3);
+
+        Assert.Equal(["Player5", "Player1", "Player4"], page.Items.Select(e => e.PlayerName));
+        Assert.Equal(42.5f, page.Items[1].AvgWPM);
+    }
+
+    [Theory]
+    [InlineData(LeaderboardSort.BestWpm, "sprinter")]
+    [InlineData(LeaderboardSort.AvgWpm, "steady")]
+    [InlineData(LeaderboardSort.BestAccuracy, "lucky")]
+    [InlineData(LeaderboardSort.AvgAccuracy, "precise")]
+    [InlineData(LeaderboardSort.Wins, "winner")]
+    [InlineData(LeaderboardSort.WordsTyped, "wordy")]
+    [InlineData(LeaderboardSort.RacesTyped, "grinder")]
+    public async Task EachSort_Descending_RanksThatColumnsLeaderFirst(LeaderboardSort sort, string leader)
+    {
+        await SeedOneLeaderPerSortAsync();
+
+        var page = await GetPageAsync(sort, true, 1, 1);
+
+        Assert.Equal(leader, Assert.Single(page.Items).PlayerName);
+    }
+
+    [Fact]
+    public async Task BannedPlayer_ExcludedFromItemsAndTotal()
+    {
+        var banned = await SeedPlayerAsync("banned", Race(100));
+        var clean = await SeedPlayerAsync("clean", Race(50));
+        await app.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(banned, "cheating"));
+
+        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
+
+        Assert.Equal([clean], page.Items.Select(e => e.Id));
+        Assert.Equal(1, page.TotalPlayers);
+    }
+
+    [Fact]
+    public async Task ActiveSuspension_ExcludedFromItemsAndTotal()
+    {
+        var suspended = await SeedPlayerAsync("suspended", Race(100));
+        var clean = await SeedPlayerAsync("clean", Race(50));
+        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(suspended, "cooldown", DateTime.UtcNow.AddHours(1)));
+
+        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
+
+        Assert.Equal([clean], page.Items.Select(e => e.Id));
+        Assert.Equal(1, page.TotalPlayers);
+    }
+
+    [Fact]
+    public async Task ExpiredSuspension_PlayerIncluded()
+    {
+        var player = await SeedPlayerAsync("returned", Race(50));
+        await app.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(player, "cooldown", DateTime.UtcNow.AddSeconds(-1)));
+
+        var page = await GetPageAsync(LeaderboardSort.BestWpm, true, 1, 10);
+
+        Assert.Equal([player], page.Items.Select(e => e.Id));
+        Assert.Equal(1, page.TotalPlayers);
+    }
+
+    private static RaceParticipantResult Race(float wpm = 30, float accuracy = 60, int wordsTyped = 10, int? finishPosition = 2) =>
+        new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition);
+
+    private Task<LeaderboardPage> GetPageAsync(LeaderboardSort sort, bool descending, int page, int pageSize) =>
+        app.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
+            new LeaderboardRepository(context).GetTopPlayersAsync(sort, descending, page, pageSize));
+
+    private async Task SeedRankedPlayersAsync()
+    {
+        for (var i = 1; i <= 5; i++)
+            await SeedPlayerAsync($"Player{i}", Race(i * 10, 95 - i, i * 20, i));
+    }
+
+    private async Task SeedOneLeaderPerSortAsync()
+    {
+        await SeedPlayerAsync("sprinter", Race(wpm: 120), Race(wpm: 10));
+        await SeedPlayerAsync("steady", Race(wpm: 90), Race(wpm: 90));
+        await SeedPlayerAsync("lucky", Race(accuracy: 100), Race(accuracy: 0));
+        await SeedPlayerAsync("precise", Race(accuracy: 95), Race(accuracy: 95));
+        await SeedPlayerAsync("winner", Race(finishPosition: 1), Race(finishPosition: 1));
+        await SeedPlayerAsync("wordy", Race(wordsTyped: 500));
+        await SeedPlayerAsync("grinder", Race(), Race(), Race());
+    }
+
+    private Task<Guid> SeedPlayerAsync(string nick, params RaceParticipantResult[] races) =>
         app.ExecuteScopedAsync<AppDbContext, Guid>(async context =>
         {
             var user = new User(nick);
             var statistics = new PlayerStatistics(user.Id);
-            foreach (var wpm in raceWpms)
-                statistics.RegisterRace(new RaceParticipantResult(Guid.NewGuid(), user.Id, nick, wpm, 100, 0, 10, 1));
+            foreach (var race in races)
+                statistics.RegisterRace(race);
 
             context.Users.Add(user);
             context.Statistics.Add(statistics);
             await context.SaveChangesAsync();
             return user.Id;
         });
+
+    private async Task<List<Guid>> SeedPlayersWithoutRacesAsync(int count)
+    {
+        var users = Enumerable.Range(0, count)
+            .Select(i => new User($"Idle{i}"))
+            .OrderByDescending(u => u.Id)
+            .ToList();
+
+        // One save per user: EF Core sorts a batch's inserts by key, which would store rows in id order
+        // and let a missing id tie-break go unnoticed.
+        foreach (var user in users)
+        {
+            await app.ExecuteScopedAsync<AppDbContext>(async context =>
+            {
+                context.Users.Add(user);
+                context.Statistics.Add(new PlayerStatistics(user.Id));
+                await context.SaveChangesAsync();
+            });
+        }
+
+        return users.Select(u => u.Id).ToList();
+    }
 }

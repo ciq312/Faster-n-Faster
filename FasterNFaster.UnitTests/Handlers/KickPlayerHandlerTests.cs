@@ -4,7 +4,7 @@ using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class KickPlayerHandlerTests
 {

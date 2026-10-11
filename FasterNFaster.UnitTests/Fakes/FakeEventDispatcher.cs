@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Core.Interfaces.Events;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeEventDispatcher : IEventDispatcher
 {

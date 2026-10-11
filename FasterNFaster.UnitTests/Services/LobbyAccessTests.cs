@@ -1,7 +1,8 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Tests;
+
+namespace FasterNFaster.UnitTests.Services;
 
 public class LobbyAccessTests
 {

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.UseCases.Exceptions;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class LobbyQueryTests
 {

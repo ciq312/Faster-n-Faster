@@ -56,7 +56,7 @@ public class TestApplicationFactory<TProgram>
         .ConfigureTestServices(services =>
         {
             services.RemoveAll<IEmailSender>();
-            services.AddScoped<IEmailSender, FakeEmailSender>();
+            services.AddScoped<IEmailSender, NoOpEmailSender>();
         });
 
         base.ConfigureWebHost(builder);

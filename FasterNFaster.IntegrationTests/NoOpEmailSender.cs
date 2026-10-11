@@ -2,7 +2,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Auth;
 
 namespace FasterNFaster.IntegrationTests;
 
-public class FakeEmailSender : IEmailSender
+public class NoOpEmailSender : IEmailSender
 {
     public Task SendConfirmationEmail(string receiverName, string receiverEmailAddress, string verificationToken) =>
         Task.CompletedTask;

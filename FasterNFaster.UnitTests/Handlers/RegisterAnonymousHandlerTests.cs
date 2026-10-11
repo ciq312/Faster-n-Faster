@@ -1,8 +1,8 @@
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 using FasterNFaster.Api.UseCases.Users.RegisterAnonymous.Handlers;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RegisterAnonymousHandlerTests
 {

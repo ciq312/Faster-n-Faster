@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class ConfirmTokenIssuerTests
 {

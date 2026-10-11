@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class JoinLobbyHandlerTests
 {

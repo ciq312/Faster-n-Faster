@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Races;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class RaceResultQueueTests
 {

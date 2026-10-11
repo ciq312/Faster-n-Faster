@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.RefreshPassage;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RefreshPassageHandlerTests
 {

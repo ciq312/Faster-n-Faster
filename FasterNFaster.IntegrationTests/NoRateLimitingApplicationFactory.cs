@@ -1,5 +1,6 @@
-using FasterNFaster.IntegrationTests;
 using Microsoft.AspNetCore.Hosting;
+
+namespace FasterNFaster.IntegrationTests;
 
 public class NoRateLimitApplicationFactory<TProgram>
     : TestApplicationFactory<TProgram> where TProgram : class

@@ -3,7 +3,7 @@ using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class TransferHostHandlerTests
 {

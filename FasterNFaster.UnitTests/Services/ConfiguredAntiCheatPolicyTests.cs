@@ -2,7 +2,7 @@ using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Services.Implementations;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class ConfiguredAntiCheatPolicyTests
 {

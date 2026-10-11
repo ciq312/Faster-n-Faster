@@ -12,9 +12,9 @@ using FasterNFaster.Api.UseCases.Realtime.PlayerJoined;
 using FasterNFaster.Api.UseCases.Realtime.PlayerKicked;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
-using FasterNFaster.Tests.Fakes;
+using FasterNFaster.UnitTests.Fakes;
 
-namespace FasterNFaster.Tests.Handlers;
+namespace FasterNFaster.UnitTests.Handlers;
 
 public class RealtimeBroadcastHandlerTests
 {

@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class EmptyLobbySweepServiceTests
 {

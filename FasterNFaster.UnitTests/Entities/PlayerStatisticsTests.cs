@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Races;
 
-namespace FasterNFaster.Tests.Entities;
+namespace FasterNFaster.UnitTests.Entities;
 
 public class PlayerStatisticsTests
 {

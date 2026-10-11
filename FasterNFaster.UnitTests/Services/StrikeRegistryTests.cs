@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Infrastructure.Users;
 
-namespace FasterNFaster.Tests.Services;
+namespace FasterNFaster.UnitTests.Services;
 
 public class StrikeRegistryTests
 {

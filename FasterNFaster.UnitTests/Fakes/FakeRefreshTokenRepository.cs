@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 
-namespace FasterNFaster.Api.Infrastructure.Auth;
+namespace FasterNFaster.UnitTests.Fakes;
 
-public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
+public class FakeRefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly ConcurrentDictionary<string, Guid> tokenToUser = new();
     private readonly ConcurrentDictionary<string, DateTime> expiries = new();
