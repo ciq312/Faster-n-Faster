@@ -65,6 +65,27 @@ public class GetLobbiesHandlerTests
         Assert.Equal(result.Lobbies.OrderByDescending(l => l.CreatedAt), result.Lobbies);
     }
 
+    [Fact]
+    public async Task NoActiveRace_ReportsSessionInactive()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+
+        var result = await Handler(context).Handle(new GetLobbiesQuery(), CancellationToken.None);
+
+        Assert.False(Assert.Single(result.Lobbies).IsSessionActive);
+    }
+
+    [Fact]
+    public async Task RaceStarted_ReportsSessionActive()
+    {
+        var (host, _, context) = await LobbyFactory.TwoUsersSetup();
+        await LobbyFactory.StartRace(context, host.Id);
+
+        var result = await Handler(context).Handle(new GetLobbiesQuery(), CancellationToken.None);
+
+        Assert.True(Assert.Single(result.Lobbies).IsSessionActive);
+    }
+
     private static GetLobbiesHandler Handler(LobbyTestContext context) =>
         new(context.LobbyAccess, context.RaceAccess);
 }

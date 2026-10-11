@@ -7,7 +7,7 @@ public record LobbyListItem(
     string Name,
     string? GameMode,
     bool IsPrivate,
-    string Status,
+    bool IsSessionActive,
     int PlayerCount,
     int MaxPlayers,
     DateTime CreatedAt
