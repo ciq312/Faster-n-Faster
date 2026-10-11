@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
 
 namespace FasterNFaster.Api.Presentation.Extensions;
@@ -12,8 +13,12 @@ public static class AuthExtensions
         var accessTokenCookieName = config.GetSection("AuthCookies").Get<AuthCookiesOptions>()?.AccessTokenCookieName
             ?? new AuthCookiesOptions().AccessTokenCookieName;
 
+        var jwt = config.GetSection("JwtOptions").Get<JwtOptions>() ?? new JwtOptions();
+        if (string.IsNullOrEmpty(jwt.PrivateKey))
+            throw new InvalidOperationException("JwtOptions:PrivateKey is not configured.");
+
         var rsa = RSA.Create();
-        rsa.ImportRSAPrivateKey(Convert.FromBase64String(config["JwtOptions:PrivateKey"]!), out _);
+        rsa.ImportRSAPrivateKey(Convert.FromBase64String(jwt.PrivateKey), out _);
 
         services.AddAuthentication(o =>
         {
@@ -49,8 +54,8 @@ public static class AuthExtensions
                 ValidateIssuerSigningKey = true,
                 RoleClaimType = "role",
                 NameClaimType = "name",
-                ValidIssuer = config["JwtOptions:Issuer"],
-                ValidAudience = config["JwtOptions:Audience"],
+                ValidIssuer = jwt.Issuer,
+                ValidAudience = jwt.Audience,
                 IssuerSigningKey = new RsaSecurityKey(rsa),
             };
 

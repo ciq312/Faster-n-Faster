@@ -1,8 +1,8 @@
 using FastEndpoints;
 using FasterNFaster.Api.Presentation.Extensions;
-using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
 using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
+using FasterNFaster.Api.UseCases.Users.RefreshToken;
 using MediatR;
 using Microsoft.Extensions.Options;
 

@@ -1,6 +1,6 @@
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.Infrastructure.Options.App;
 using FasterNFaster.Api.Infrastructure.Options.Smtp;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;

@@ -2,13 +2,13 @@ using System.Security.Claims;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.Presentation.Web.Hubs;
 using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.Presentation.Web.Hubs;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 

@@ -3,13 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Presentation.Web.Users.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Users.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Users.VerifyEmail;
+using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FasterNFaster.IntegrationTests;

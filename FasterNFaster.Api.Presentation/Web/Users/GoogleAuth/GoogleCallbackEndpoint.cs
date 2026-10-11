@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using FastEndpoints;
-using FasterNFaster.Api.UseCases.Users.ExternalLogin;
 using FasterNFaster.Api.Infrastructure.Options.App;
 using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
+using FasterNFaster.Api.UseCases.Users.ExternalLogin;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;

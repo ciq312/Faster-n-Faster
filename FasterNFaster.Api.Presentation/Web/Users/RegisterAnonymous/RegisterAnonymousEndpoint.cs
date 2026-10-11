@@ -1,7 +1,7 @@
 using FastEndpoints;
 using FasterNFaster.Api.Presentation.Extensions;
-using FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 using FasterNFaster.Api.Presentation.Web.Services.Interfaces;
+using FasterNFaster.Api.UseCases.Users.RegisterAnonymous;
 using MediatR;
 
 namespace FasterNFaster.Api.Presentation.Web.Users.RegisterAnonymous;
