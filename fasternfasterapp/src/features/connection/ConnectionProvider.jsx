@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from "react";
@@ -22,6 +23,24 @@ function ConnectionProvider({ url, children }) {
   const connectionRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  const onAnotherSessionStarted = useEffectEvent(() => {
+    showMessage("Someone else logged into your account");
+    navigate("/");
+  });
+  const onBanned = useEffectEvent((reason) => {
+    showError(reason || "You are banned");
+    navigate("/");
+  });
+  const onSuspended = useEffectEvent((data) => {
+    showError(
+      `You are suspended until ${new Date(data.expiresAt).toLocaleString()}`,
+    );
+    navigate("/");
+  });
+  const onStartFailed = useEffectEvent(() => {
+    showError("Can't connect to the server");
+  });
+
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(url, {
@@ -30,26 +49,24 @@ function ConnectionProvider({ url, children }) {
       .withAutomaticReconnect()
       .build();
 
+    let ignore = false;
     connectionRef.current = connection;
 
-    connection.onclose(() => setIsConnected(false));
-    connection.onreconnecting(() => setIsConnected(false));
-    connection.onreconnected(() => setIsConnected(true));
+    connection.onclose(() => {
+      if (!ignore) setIsConnected(false);
+    });
+    connection.onreconnecting(() => {
+      if (!ignore) setIsConnected(false);
+    });
+    connection.onreconnected(() => {
+      if (!ignore) setIsConnected(true);
+    });
 
-    const anotherSessionHandler = () => {
-      showMessage("Someone else logged into your account");
-      navigate("/");
-    };
-    const bannedHandler = (reason) => {
-      showError(reason || "You are banned");
-      navigate("/");
-    };
+    const anotherSessionHandler = () => onAnotherSessionStarted();
+    const bannedHandler = (reason) => onBanned(reason);
     const suspendedHandler = (data) => {
-      showError(
-        `You are suspended until ${new Date(data.expiresAt).toLocaleString()}`,
-      );
       connection.stop();
-      navigate("/");
+      onSuspended(data);
     };
 
     connection.on("AnotherSessionStarted", anotherSessionHandler);
@@ -74,9 +91,10 @@ function ConnectionProvider({ url, children }) {
     const start = async () => {
       try {
         await connection.start();
-        setIsConnected(true);
+        if (!ignore) setIsConnected(true);
       } catch {
-        showError("Can't connect to the server");
+        if (ignore) return;
+        onStartFailed();
         setIsConnected(false);
       }
     };
@@ -84,10 +102,13 @@ function ConnectionProvider({ url, children }) {
     start();
 
     return () => {
+      ignore = true;
       clearInterval(latencyCheckId);
       connection.off("AnotherSessionStarted", anotherSessionHandler);
       connection.off("Banned", bannedHandler);
       connection.off("Suspended", suspendedHandler);
+      connectionRef.current = null;
+      setIsConnected(false);
       connection.stop();
     };
   }, [url]);

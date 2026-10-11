@@ -14,6 +14,8 @@ function VerifyEmail() {
       return;
     }
 
+    let ignore = false;
+
     const verify = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/auth/verify-email`, {
@@ -21,16 +23,17 @@ function VerifyEmail() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
         });
-        setStatus(res.ok ? "success" : "failed");
+        if (!ignore) setStatus(res.ok ? "success" : "failed");
       } catch {
-        setStatus("failed");
+        if (!ignore) setStatus("failed");
       }
     };
-    const verifyDelayed = async () => {
-      await new Promise((res) => setTimeout(res, 1000));
-      verify();
+    const timeoutId = setTimeout(verify, 1000);
+
+    return () => {
+      ignore = true;
+      clearTimeout(timeoutId);
     };
-    verifyDelayed();
   }, [token]);
 
   return (

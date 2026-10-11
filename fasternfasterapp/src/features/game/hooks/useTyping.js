@@ -62,7 +62,7 @@ export function useTyping({
       if (isMaxOverflow) return;
 
       const isNewCharTyped = value.length - 1 === typed.length;
-      const IsCharDeleted = value.length + 1 === typed.length;
+      const isCharDeleted = value.length + 1 === typed.length;
 
       if (isNewCharTyped) {
         const newChar = value[value.length - 1];
@@ -79,18 +79,15 @@ export function useTyping({
             lastCorrectIndexRef.current + 1 === value.length - 1;
           if (isPreviousCharCorrect) {
             lastCorrectIndexRef.current = lastCorrectIndexRef.current + 1;
-            const IsLastChar =
+            const isLastChar =
               lastCorrectIndexRef.current === passage.length - 1;
-            if (IsLastChar) inputRef.current.blur();
+            if (isLastChar) inputRef.current.blur();
           }
         } else {
-          const handleMistake = () => {
-            setTyped(value);
-            mistakesRef.current++;
-          };
-          handleMistake();
+          setTyped(value);
+          mistakesRef.current++;
         }
-      } else if (IsCharDeleted) {
+      } else if (isCharDeleted) {
         lastCorrectIndexRef.current = Math.min(
           lastCorrectIndexRef.current,
           value.length - 1,
@@ -121,7 +118,6 @@ export function useTyping({
     inputRef,
     handleTyping,
     focusInput,
-    lastCorrectIndex: lastCorrectIndexRef.current,
     nextSepIndex: nextSep.current,
   };
 }

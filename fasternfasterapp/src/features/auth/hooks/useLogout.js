@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useAuth } from "../AuthContext";
-import { clearAuthState } from "../utils/clearAuthState";
 import { API_BASE } from "../../../config";
 
 export function useLogout() {
@@ -25,7 +24,6 @@ export function useLogout() {
       // even if the request failed, otherwise they'd be stuck.
       connection?.disconnect?.();
       clear();
-      clearAuthState();
       setLoading(false);
       navigate("/");
     }

@@ -85,10 +85,6 @@ function BannerProvider({ children }) {
   );
 }
 
-export function useBanner() {
-  return useContext(BannerContext);
-}
-
 export function useError() {
   const { showBanner, closeBanner } = useContext(BannerContext);
 
