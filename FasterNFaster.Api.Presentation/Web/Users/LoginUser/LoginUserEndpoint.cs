@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Extensions;
-using FasterNFaster.Api.UseCases.Users.LoginUsers;
+using FasterNFaster.Api.UseCases.Users.LoginUser;
 using FasterNFaster.Api.Web.Services.Interfaces;
 using MediatR;
 

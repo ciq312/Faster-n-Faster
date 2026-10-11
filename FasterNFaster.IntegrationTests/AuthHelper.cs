@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
+using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using FasterNFaster.Api.Web.Users.VerifyEmail;
 using Microsoft.AspNetCore.Mvc.Testing;

@@ -5,7 +5,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
+using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;

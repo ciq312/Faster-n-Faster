@@ -7,7 +7,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Db;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.RegisterUsers;
+namespace FasterNFaster.Api.UseCases.Users.RegisterUser;
 
 public class RegisterUserHandler(
     IUserRepository repo,

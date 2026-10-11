@@ -2,7 +2,7 @@ using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
+using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.UseCases.Users.ResetPassword;
 using FasterNFaster.UnitTests.Fakes;
 

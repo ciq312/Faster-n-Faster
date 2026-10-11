@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Entities.Auth;
 using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
+using FasterNFaster.Api.UseCases.Users.RegisterUser;
 using FasterNFaster.Api.UseCases.Users.ResendVerification;
 using FasterNFaster.UnitTests.Fakes;
 

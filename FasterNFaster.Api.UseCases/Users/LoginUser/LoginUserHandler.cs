@@ -4,7 +4,7 @@ using FasterNFaster.Api.UseCases.Interfaces.Auth;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Users.LoginUsers;
+namespace FasterNFaster.Api.UseCases.Users.LoginUser;
 
 public class LoginUserHandler(IUserRepository userRepo, IPasswordHelper passwordHelper, ITokenService tokenService) : IRequestHandler<LoginUserCommand, LoginUserResult>
 {

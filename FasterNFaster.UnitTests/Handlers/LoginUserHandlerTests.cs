@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Users.LoginUsers;
+using FasterNFaster.Api.UseCases.Users.LoginUser;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;
