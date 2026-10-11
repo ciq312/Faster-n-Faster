@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+namespace FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 
 public class AntiCheatSanctionOptions
 {

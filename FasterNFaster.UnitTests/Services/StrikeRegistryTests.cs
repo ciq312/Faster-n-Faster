@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.Infrastructure.AntiCheat;
 
 namespace FasterNFaster.UnitTests.Services;
 

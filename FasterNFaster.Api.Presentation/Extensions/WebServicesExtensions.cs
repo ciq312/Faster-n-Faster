@@ -3,10 +3,10 @@ using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Options.Lobbies;
 using FasterNFaster.Api.Infrastructure.Options.Smtp;
 using FasterNFaster.Api.Infrastructure.Shared;
-using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
 using FasterNFaster.Api.Presentation.Web.Shared;
-using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Services.Users;
 
 namespace FasterNFaster.Api.Presentation.Extensions;

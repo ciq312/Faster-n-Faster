@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.Infrastructure.Users;
-using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+using FasterNFaster.Api.Infrastructure.AntiCheat;
+using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Shared;
 
 namespace FasterNFaster.UnitTests.Handlers;

@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Users;
+namespace FasterNFaster.Api.UseCases.AntiCheat.Ports;
 
 public interface IBanRepository
 {

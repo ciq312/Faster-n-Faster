@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 
 namespace FasterNFaster.IntegrationTests;
 

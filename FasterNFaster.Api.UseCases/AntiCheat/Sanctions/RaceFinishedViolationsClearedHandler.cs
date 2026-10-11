@@ -1,9 +1,9 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
-namespace FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+namespace FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 
 // Race.Id is reused across race runs in the same lobby (see Race.Reset()), so the per-race
 // violation count is keyed by LobbyId and must be cleared here rather than relying on Race.Id.

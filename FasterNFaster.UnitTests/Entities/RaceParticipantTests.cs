@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces;
-using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
-using FasterNFaster.Api.Presentation.Web.Services.Implementations;
+using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Options;
 

@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.Infrastructure.AntiCheat;
+using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging;

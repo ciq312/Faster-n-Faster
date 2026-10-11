@@ -1,8 +1,7 @@
 using FasterNFaster.Api.Domain.Interfaces;
-using FasterNFaster.Api.Presentation.Web.Options.AntiCheat;
 using Microsoft.Extensions.Options;
 
-namespace FasterNFaster.Api.Presentation.Web.Services.Implementations;
+namespace FasterNFaster.Api.Presentation.Web.AntiCheat;
 
 public class ConfiguredAntiCheatPolicy(IOptions<AntiCheatOptions> options) : IAntiCheatPolicy
 {
