@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Core.Entities.Races;
 using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.Core.Entities.Lobbies.Events;
+using FasterNFaster.Api.Core.Exceptions;
 using FasterNFaster.Api.Core.Interfaces;
 using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Services.Implementations;
@@ -119,4 +120,180 @@ public class WordRaceTests
 
         Assert.Equal(3, participant.Result!.WordsTyped);
     }
+
+    [Fact]
+    public void FirstFinisher_GetsPositionOne()
+    {
+        var (race, alice, _, _) = CreateStartedRaceWithTwoRacers();
+
+        Finish(race, alice);
+
+        Assert.Equal(1, alice.FinishPosition);
+    }
+
+    [Fact]
+    public void FirstFinisher_RaisesPlayerFinishedEventWithResult()
+    {
+        var (race, alice, _, _) = CreateStartedRaceWithTwoRacers();
+
+        Finish(race, alice);
+
+        var finished = Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
+        Assert.Equal(race.LobbyId, finished.LobbyId);
+        Assert.Equal(alice.Id, finished.PlayerId);
+        Assert.Equal(1, finished.FinishPosition);
+        Assert.Equal(100, finished.Accuracy);
+    }
+
+    [Fact]
+    public void SecondFinisher_GetsPositionTwo()
+    {
+        var (race, alice, bob, _) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+
+        Finish(race, bob);
+
+        Assert.Equal(2, bob.FinishPosition);
+    }
+
+    [Fact]
+    public void FinisherWhileOthersStillRacing_RaisesNoRaceFinished()
+    {
+        var (race, alice, _, _) = CreateStartedRaceWithTwoRacers();
+
+        Finish(race, alice);
+
+        Assert.DoesNotContain(race.DomainEvents, e => e is RaceFinishedEvent);
+        Assert.True(race.HasStarted);
+    }
+
+    [Fact]
+    public void LastFinisher_RaisesRaceFinishedWithEveryResult()
+    {
+        var (race, alice, bob, _) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+
+        Finish(race, bob);
+
+        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
+        Assert.Equal(race.LobbyId, finished.LobbyId);
+        Assert.Equal(
+            new int?[] { 1, 2 },
+            finished.Results.Select(r => r.FinishPosition).OrderBy(position => position));
+    }
+
+    [Fact]
+    public void LastFinisher_ResetsRace()
+    {
+        var (race, alice, bob, _) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+
+        Finish(race, bob);
+
+        Assert.Empty(race.Participants);
+        Assert.False(race.HasStarted);
+    }
+
+    [Fact]
+    public void FinishedRacerUpdatesAgain_RaisesNoSecondPlayerFinished()
+    {
+        var (race, alice, _, _) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+
+        Finish(race, alice);
+
+        Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
+    }
+
+    [Fact]
+    public void UpdateBeforeStart_IsIgnored()
+    {
+        var (race, participant, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+
+        race.ProcessUpdate(participant.Id, 2, 0, "the");
+
+        Assert.Equal(-1, participant.Index);
+        Assert.Empty(race.DomainEvents);
+    }
+
+    [Fact]
+    public void UnknownPlayerUpdates_ThrowsUserNotFound()
+    {
+        var (race, _, _, _) = CreateStartedRaceWithTwoRacers();
+
+        Assert.Throws<UserNotFoundException>(() => race.ProcessUpdate(Guid.NewGuid(), 2, 0, "the"));
+    }
+
+    [Fact]
+    public void LastUnfinishedRacerWithdraws_RaisesRaceFinishedWithFinishersOnly()
+    {
+        var (race, alice, bob, _) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+
+        race.WithdrawParticipant(bob.Id);
+
+        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
+        var result = Assert.Single(finished.Results);
+        Assert.Equal(alice.Id, result.LobbyPlayerId);
+    }
+
+    [Fact]
+    public void RacerWithdrawsWhileOthersRace_RaisesNoRaceFinished()
+    {
+        var (race, alice, _, _) = CreateStartedRaceWithTwoRacers();
+
+        race.WithdrawParticipant(alice.Id);
+
+        Assert.DoesNotContain(race.DomainEvents, e => e is RaceFinishedEvent);
+        Assert.True(race.HasStarted);
+    }
+
+    [Fact]
+    public void EveryoneWithdraws_RaisesRaceFinishedWithNoResults()
+    {
+        var (race, alice, bob, _) = CreateStartedRaceWithTwoRacers();
+
+        race.WithdrawParticipant(alice.Id);
+        race.WithdrawParticipant(bob.Id);
+
+        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
+        Assert.Empty(finished.Results);
+    }
+
+    [Fact]
+    public void FinishedRacerWithdraws_KeepsFinishTime()
+    {
+        var (race, alice, _, clock) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+        var finishedAtBefore = alice.FinishedAt;
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        race.WithdrawParticipant(alice.Id);
+
+        Assert.Equal(finishedAtBefore, alice.FinishedAt);
+    }
+
+    [Fact]
+    public void UnknownPlayerWithdraws_IsNoOp()
+    {
+        var (race, _, _, _) = CreateStartedRaceWithTwoRacers();
+
+        race.WithdrawParticipant(Guid.NewGuid());
+
+        Assert.Empty(race.DomainEvents);
+        Assert.True(race.HasStarted);
+    }
+
+    private static (WordRace Race, RaceParticipant Alice, RaceParticipant Bob, FakeClock Clock) CreateStartedRaceWithTwoRacers()
+    {
+        var policy = new FakeAntiCheatPolicy(1000, 1000);
+        var (race, alice, clock) = CreateRace(policy);
+        var bob = new RaceParticipant(Guid.NewGuid(), "#000", "bob", policy, clock.Func);
+        race.AddParticipant(bob);
+        race.Start();
+        return (race, alice, bob, clock);
+    }
+
+    private static void Finish(WordRace race, RaceParticipant racer) =>
+        race.ProcessUpdate(racer.Id, Passage.Length - 1, 0, Passage);
 }
