@@ -13,22 +13,26 @@ public class RaceTickService(
     IBroadcaster broadcaster,
     IRaceAccess races,
     RaceStateConflator conflator,
+    TimeProvider timeProvider,
     ILogger<RaceTickService> logger) : BackgroundService
 {
     private const int TickIntervalMs = 200;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TickIntervalMs));
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(TickIntervalMs), timeProvider);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            var racingLobbies = registry.GetRacingLobbies();
-            await Task.WhenAll(racingLobbies.Select(TickLobby));
+            await Tick();
+    }
 
-            if (conflator.TrackedLobbies != racingLobbies.Count)
-                conflator.Prune(racingLobbies.Select(entry => entry.LobbyId).ToHashSet());
-        }
+    public async Task Tick()
+    {
+        var racingLobbies = registry.GetRacingLobbies();
+        await Task.WhenAll(racingLobbies.Select(TickLobby));
+
+        if (conflator.TrackedLobbies != racingLobbies.Count)
+            conflator.Prune(racingLobbies.Select(entry => entry.LobbyId).ToHashSet());
     }
 
     private async Task TickLobby(RacingLobbyEntry entry)
@@ -54,7 +58,7 @@ public class RaceTickService(
 
     private async Task HandleCountdown(RacingLobbyEntry entry)
     {
-        var elapsed = DateTime.UtcNow - entry.RegisteredAt;
+        var elapsed = timeProvider.GetUtcNow().UtcDateTime - entry.RegisteredAt;
 
         if (elapsed >= RaceCountdown.Duration + RaceCountdown.StartDelay)
         {

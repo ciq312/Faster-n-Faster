@@ -3,13 +3,13 @@ using FasterNFaster.Api.UseCases.Interfaces.Races;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
-public class RaceTickRegistry : IRaceTickRegistry
+public class RaceTickRegistry(TimeProvider timeProvider) : IRaceTickRegistry
 {
     private readonly ConcurrentDictionary<Guid, RacingLobbyEntry> lobbies = new();
 
     public void RegisterLobby(Guid lobbyId)
     {
-        lobbies[lobbyId] = new RacingLobbyEntry(lobbyId, RacePhase.Countdown, DateTime.UtcNow);
+        lobbies[lobbyId] = new RacingLobbyEntry(lobbyId, RacePhase.Countdown, timeProvider.GetUtcNow().UtcDateTime);
     }
 
     public void DeregisterLobby(Guid lobbyId) => lobbies.TryRemove(lobbyId, out _);
