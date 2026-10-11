@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
 namespace FasterNFaster.Tests.Handlers;
@@ -76,5 +77,19 @@ public class DisconnectHandlerTests
         Assert.DoesNotContain(snapshot, p => p.PlayerId == other.Id);
         Assert.Contains(snapshot, p => p.PlayerId == host.Id);
         Assert.NotNull(context.Store.Get(context.LobbyId));
+    }
+
+    [Fact]
+    public async Task LastActiveRacerDisconnectsMidRace_DispatchesRaceFinished()
+    {
+        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+        await LobbyFactory.StartRace(context, host.Id);
+        await context.RaceAccess.Mutate(context.LobbyId, r => r.WithdrawParticipant(host.Id));
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+
+        await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
+
+        var finished = Assert.Single(context.Dispatcher.Dispatched.OfType<RaceFinishedEvent>());
+        Assert.Equal(context.LobbyId, finished.LobbyId);
     }
 }

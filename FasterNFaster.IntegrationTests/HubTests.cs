@@ -1,18 +1,29 @@
 
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using FasterNFaster.Api.Core.Entities;
+using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Interfaces.Races;
 using FasterNFaster.Api.UseCases.Interfaces.Realtime;
 using FasterNFaster.Api.UseCases.Interfaces.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.AntiCheat;
+using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
+using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
+using FasterNFaster.Api.UseCases.Services.Races;
 using FasterNFaster.Api.Web.Lobbies.CreateLobby;
+using FasterNFaster.Api.Web.Options.AntiCheat;
 using FasterNFaster.Api.Web.Users.LoginUser;
 using FasterNFaster.Api.Web.Users.RegisterUser;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -23,12 +34,16 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
     public async Task InitializeAsync()
     {
         await fixture.ResetAsync();
-        app = fixture.CreateApp();
+        // FullRace sends each whole passage in one update; lift the typing budget so anti-cheat doesn't clamp it.
+        app = fixture.CreateApp(builder => builder.ConfigureTestServices(services =>
+            services.PostConfigure<AntiCheatOptions>(options => options.BudgetSlack = 100_000)));
     }
 
     public async Task DisposeAsync() => await app.DisposeAsync();
 
     private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RaceStartTimeout = RaceCountdown.Duration + RaceCountdown.StartDelay + EventTimeout;
+    private static readonly TimeSpan StatisticsPollInterval = TimeSpan.FromMilliseconds(50);
 
     [Fact]
     public async Task BannedUserConnect_ShouldAbort()
@@ -159,22 +174,112 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IClassFi
     public async Task NonHostStartRace_ShouldThrowHubException()
     {
         var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
-        var createResponse = await hostClient.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
-        var lobby = await createResponse.Content.ReadFromJsonAsync<CreateLobbyResult>()
-            ?? throw new InvalidOperationException("can't parse create lobby result");
-
-        await using var hostHub = BuildHubConnection(hostClient, hostCookies);
-        await hostHub.StartAsync();
-        await hostHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+        var lobby = await CreateLobbyAsync(hostClient);
+        await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
 
         var (guestClient, guestCookies, _) = await RegisterAndLoginAsync(NewUser("guest"));
-        await using var guestHub = BuildHubConnection(guestClient, guestCookies);
-        await guestHub.StartAsync();
-        await guestHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+        await using var guestHub = await JoinLobbyAsync(guestClient, guestCookies, lobby);
 
         var ex = await Assert.ThrowsAsync<HubException>(() => guestHub.InvokeAsync("StartRace"));
 
         Assert.EndsWith("Only the host can start the race", ex.Message);
+    }
+
+    [Fact]
+    public async Task FullRace_TwoPlayers_FinishInOrderAndPersistStatistics()
+    {
+        var (hostClient, hostCookies, host) = await RegisterAndLoginAsync();
+        var (guestClient, guestCookies, guest) = await RegisterAndLoginAsync(NewUser("guest"));
+        var lobby = await CreateLobbyAsync(hostClient);
+        await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
+        await using var guestHub = await JoinLobbyAsync(guestClient, guestCookies, lobby);
+
+        var raceStarting = NextEventAsync<RaceStartingDTO>(guestHub, GameEvents.RaceStarting);
+        var hostRaceStarted = NextEventAsync(hostHub, GameEvents.RaceStarted);
+        var guestRaceStarted = NextEventAsync(guestHub, GameEvents.RaceStarted);
+        var hostRaceEnded = NextEventAsync<RaceEndedDTO>(hostHub, GameEvents.RaceEnded);
+        var guestRaceEnded = NextEventAsync<RaceEndedDTO>(guestHub, GameEvents.RaceEnded);
+
+        await hostHub.InvokeAsync("StartRace");
+
+        var starting = await raceStarting.WaitAsync(EventTimeout);
+        Assert.Equal(RaceCountdown.Duration.TotalSeconds, starting.CountdownSeconds);
+        await Task.WhenAll(hostRaceStarted, guestRaceStarted).WaitAsync(RaceStartTimeout);
+
+        var settings = (WordRace.WordRaceSettings)await app.Services
+            .GetRequiredService<IRaceAccess>()
+            .GetRaceSettings(lobby.LobbyId);
+        await hostHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);
+        await guestHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);
+
+        var ended = await hostRaceEnded.WaitAsync(EventTimeout);
+        await guestRaceEnded.WaitAsync(EventTimeout);
+        var hostResult = Assert.Single(ended.Results, r => r.PlayerId == host.UserId);
+        var guestResult = Assert.Single(ended.Results, r => r.PlayerId == guest.UserId);
+        Assert.Equal(1, hostResult.FinishPosition);
+        Assert.Equal(2, guestResult.FinishPosition);
+        Assert.Equal(100, hostResult.Accuracy);
+        Assert.Equal(100, guestResult.Accuracy);
+
+        Assert.DoesNotContain(
+            app.Services.GetRequiredService<IRaceTickRegistry>().GetRacingLobbies(),
+            entry => entry.LobbyId == lobby.LobbyId);
+        Assert.False(await app.Services.GetRequiredService<ILobbyAccess>().Read(lobby.LobbyId, l => l.IsSessionActive));
+
+        var hostStatistics = await WaitForStatisticsAsync(host.UserId);
+        Assert.Equal(1, hostStatistics.Wins);
+        Assert.Equal(1, hostStatistics.RacesTyped);
+        Assert.Equal(settings.WordCount, hostStatistics.WordsTyped);
+        Assert.Equal(100, hostStatistics.BestAccuracy);
+
+        var guestStatistics = await WaitForStatisticsAsync(guest.UserId);
+        Assert.Equal(0, guestStatistics.Wins);
+        Assert.Equal(1, guestStatistics.RacesTyped);
+    }
+
+    private static Task<T> NextEventAsync<T>(HubConnection hub, string eventName)
+    {
+        var received = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.On<T>(eventName, payload => received.TrySetResult(payload));
+        return received.Task;
+    }
+
+    private static Task NextEventAsync(HubConnection hub, string eventName)
+    {
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.On(eventName, () => received.TrySetResult());
+        return received.Task;
+    }
+
+    private async Task<PlayerStatistics> WaitForStatisticsAsync(Guid userId)
+    {
+        var elapsed = Stopwatch.StartNew();
+        while (elapsed.Elapsed < EventTimeout)
+        {
+            var statistics = await app.ExecuteScopedAsync<IStatisticsRepository, PlayerStatistics?>(repo => repo.FindAsync(userId));
+            if (statistics is not null) return statistics;
+
+            await Task.Delay(StatisticsPollInterval);
+        }
+
+        throw new TimeoutException($"Statistics for user {userId} were not saved within {EventTimeout}");
+    }
+
+    private static async Task<CreateLobbyResult> CreateLobbyAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
+
+        return await response.Content.ReadFromJsonAsync<CreateLobbyResult>()
+            ?? throw new InvalidOperationException("can't parse create lobby result");
+    }
+
+    private async Task<HubConnection> JoinLobbyAsync(HttpClient client, CookieContainer cookies, CreateLobbyResult lobby)
+    {
+        var hub = BuildHubConnection(client, cookies);
+        await hub.StartAsync();
+        await hub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.inviteCode);
+
+        return hub;
     }
 
     private static RegisterUserRequest NewUser(string prefix = "test") => new(prefix, prefix, $"{prefix}@gmail.com", "testpass");

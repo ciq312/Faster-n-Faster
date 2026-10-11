@@ -127,6 +127,18 @@ public class LobbyTests
     }
 
     [Fact]
+    public void HostKicksSelf_ThrowsHostKickSelf_AndKeepsHost()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+
+        Assert.Throws<HostKickSelfException>(() => lobby.Kick(first, first));
+
+        Assert.True(lobby.IsPlayerIn(first));
+        Assert.Equal(first, lobby.HostId);
+        Assert.False(lobby.IsPlayerBanned(first));
+    }
+
+    [Fact]
     public void KickDuringRace_ShouldThrowLobbyInRace_AndKeepTarget()
     {
         var (lobby, first, second) = CreateLobbyWithTwoPlayers();
@@ -291,7 +303,265 @@ public class LobbyTests
         Assert.Equal(tried[^1], lobby.LobbySettings.InviteCode);
     }
 
+    [Fact]
+    public void JoinPrivateLobbyWithoutCode_ThrowsInvalidInviteCode()
+    {
+        var lobby = CreatePrivateLobby();
+        var joiner = Guid.NewGuid();
+
+        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", null));
+
+        Assert.False(lobby.IsPlayerIn(joiner));
+    }
+
+    [Fact]
+    public void JoinPrivateLobbyWithWrongCode_ThrowsInvalidInviteCode()
+    {
+        var lobby = CreatePrivateLobby();
+        var joiner = Guid.NewGuid();
+
+        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", "wrong"));
+
+        Assert.False(lobby.IsPlayerIn(joiner));
+    }
+
+    [Fact]
+    public void JoinPrivateLobbyWithLowercaseCode_AddsPlayer()
+    {
+        var lobby = CreatePrivateLobby();
+        var joiner = Guid.NewGuid();
+
+        lobby.Join(joiner, "joiner", lobby.LobbySettings.InviteCode.ToLowerInvariant());
+
+        Assert.True(lobby.IsPlayerIn(joiner));
+    }
+
+    [Fact]
+    public void JoinPublicLobbyWithAnyCode_AddsPlayer()
+    {
+        var lobby = CreateLobby();
+        var joiner = Guid.NewGuid();
+
+        lobby.Join(joiner, "joiner", "anything");
+
+        Assert.True(lobby.IsPlayerIn(joiner));
+    }
+
+    [Fact]
+    public void KickedPlayerJoins_ThrowsPlayerBannedInLobby()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        lobby.Kick(first, second);
+
+        Assert.Throws<PlayerBannedInLobbyException>(() => lobby.Join(second, "second", null));
+
+        Assert.False(lobby.IsPlayerIn(second));
+    }
+
+    [Fact]
+    public void JoinFullLobby_ThrowsLobbyFull()
+    {
+        var lobby = CreateLobby();
+        for (var i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
+            lobby.Join(Guid.NewGuid(), $"player{i}", null);
+
+        Assert.Throws<LobbyFullException>(() => lobby.Join(Guid.NewGuid(), "extra", null));
+
+        Assert.Equal(lobby.LobbySettings.MaxPlayers, lobby.Players.Count);
+    }
+
+    [Fact]
+    public void JoinDuringSession_ThrowsLobbyIsNotAcceptingPlayers()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        lobby.StartSession(first);
+        var joiner = Guid.NewGuid();
+
+        Assert.Throws<LobbyIsNotAcceptingPlayersException>(() => lobby.Join(joiner, "joiner", null));
+
+        Assert.False(lobby.IsPlayerIn(joiner));
+    }
+
+    [Fact]
+    public void PlayerAlreadyInJoins_IsNoOp()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.Join(first, "first", null);
+
+        Assert.Equal(2, lobby.Players.Count);
+        Assert.Empty(lobby.DrainEvents());
+    }
+
+    [Fact]
+    public void NewPlayerJoins_GetsNextJoinOrderAndFirstFreeColor()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        lobby.ChangePlayerColor(first, PlayerColors.Palette[2]);
+        var joiner = Guid.NewGuid();
+
+        lobby.Join(joiner, "joiner", null);
+
+        var player = lobby.Players.Single(p => p.Id == joiner);
+        Assert.Equal(3, player.JoinOrder);
+        Assert.Equal(PlayerColors.Palette[0], player.Color);
+    }
+
+    [Fact]
+    public void NewPlayerJoins_RaisesPlayerJoinedEvent()
+    {
+        var lobby = CreateLobby();
+        var joiner = Guid.NewGuid();
+
+        lobby.Join(joiner, "joiner", null);
+
+        var joined = Assert.Single(lobby.DrainEvents().OfType<PlayerJoinedEvent>());
+        Assert.Equal(joiner, joined.UserId);
+        Assert.Equal(lobby.Id, joined.LobbyId);
+        Assert.Equal("joiner", joined.Nick);
+    }
+
+    [Fact]
+    public void HostKicksPlayer_RemovesAndBansTarget()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+
+        var kicked = lobby.Kick(first, second);
+
+        Assert.Equal(second, kicked.Id);
+        Assert.False(lobby.IsPlayerIn(second));
+        Assert.True(lobby.IsPlayerBanned(second));
+    }
+
+    [Fact]
+    public void HostKicksPlayer_RaisesPlayerKickedEvent()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.Kick(first, second);
+
+        var kicked = Assert.Single(lobby.DrainEvents().OfType<PlayerKickedEvent>());
+        Assert.Equal(second, kicked.UserId);
+        Assert.Equal(lobby.Id, kicked.LobbyId);
+        Assert.Equal("second", kicked.Nick);
+    }
+
+    [Fact]
+    public void HostTransfersToMember_ChangesHostAndRaisesHostChanged()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.TransferHost(first, second);
+
+        Assert.Equal(second, lobby.HostId);
+        var changed = Assert.Single(lobby.DrainEvents().OfType<HostChangedEvent>());
+        Assert.Equal(lobby.Id, changed.LobbyId);
+        Assert.Equal(second, changed.NewHostId);
+        Assert.Equal("second", changed.NewHostNick);
+    }
+
+    [Fact]
+    public void HostTransfersToPlayerNotInLobby_ThrowsInvalidOperation_AndKeepsHost()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+
+        Assert.Throws<InvalidOperationException>(() => lobby.TransferHost(first, Guid.NewGuid()));
+
+        Assert.Equal(first, lobby.HostId);
+    }
+
+    [Fact]
+    public void ColorChangedToFreeColor_ReleasesPreviousColor()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+
+        lobby.ChangePlayerColor(first, PlayerColors.Palette[2]);
+
+        Assert.Equal(PlayerColors.Palette[2], ColorOf(lobby, first));
+        Assert.Contains(lobby.GetColors(), c => c.Color == PlayerColors.Palette[0] && c.IsAvailable);
+        Assert.Contains(lobby.GetColors(), c => c.Color == PlayerColors.Palette[2] && !c.IsAvailable);
+    }
+
+    [Fact]
+    public void HostDisconnects_PromotesLowestJoinOrder()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        var third = Guid.NewGuid();
+        lobby.Join(third, "third", null);
+        lobby.TransferHost(first, third);
+
+        lobby.Disconnect(third);
+
+        Assert.Equal(first, lobby.HostId);
+    }
+
+    [Fact]
+    public void HostDisconnects_RaisesHostChangedEvent()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.Disconnect(first);
+
+        var changed = Assert.Single(lobby.DrainEvents().OfType<HostChangedEvent>());
+        Assert.Equal(second, changed.NewHostId);
+        Assert.Equal("second", changed.NewHostNick);
+    }
+
+    [Fact]
+    public void NonHostDisconnects_KeepsHostAndRaisesNoHostChanged()
+    {
+        var (lobby, first, second) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.Disconnect(second);
+
+        Assert.Equal(first, lobby.HostId);
+        Assert.DoesNotContain(lobby.DrainEvents(), e => e is HostChangedEvent);
+    }
+
+    [Fact]
+    public void LastPlayerDisconnects_LeavesLobbyEmptyWithoutHostChanged()
+    {
+        var lobby = CreateLobby();
+        var only = Guid.NewGuid();
+        lobby.Join(only, "only", null);
+        lobby.DrainEvents();
+
+        lobby.Disconnect(only);
+
+        Assert.True(lobby.IsEmpty());
+        Assert.DoesNotContain(lobby.DrainEvents(), e => e is HostChangedEvent);
+    }
+
+    [Fact]
+    public void HostStartsSession_RaisesSessionStartedEvent()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        lobby.StartSession(first);
+
+        var started = Assert.Single(lobby.DrainEvents().OfType<SessionStartedEvent>());
+        Assert.Equal(lobby.Id, started.LobbyId);
+    }
+
+    [Fact]
+    public void HostStartsSessionWithNoPlayers_ThrowsInvalidOperation()
+    {
+        var (lobby, creator) = CreateLobbyWithUnjoinedHost();
+
+        Assert.Throws<InvalidOperationException>(() => lobby.StartSession(creator));
+
+        Assert.False(lobby.IsSessionActive);
+    }
+
     private static Lobby CreateLobby() => new("Test", isPrivate: false, inviteCodeExists: _ => false);
+
+    private static Lobby CreatePrivateLobby() => new("Test", isPrivate: true, inviteCodeExists: _ => false);
 
     private static (Lobby Lobby, Guid Creator) CreateLobbyWithUnjoinedHost()
     {
