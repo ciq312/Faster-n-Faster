@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Infrastructure.Options.Lobbies;
+namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class LobbyCleanupOptions
 {

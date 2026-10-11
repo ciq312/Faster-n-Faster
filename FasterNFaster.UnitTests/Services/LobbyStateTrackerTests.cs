@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Services.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 
 namespace FasterNFaster.UnitTests.Services;
 

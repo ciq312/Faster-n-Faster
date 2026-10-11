@@ -1,10 +1,10 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Domain.Interfaces.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 
-namespace FasterNFaster.Api.UseCases.Services.Lobbies;
+namespace FasterNFaster.Api.UseCases.Lobbies.Services;
 
 public class LobbyAccess(
     ILobbyRepository repo,

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 
 namespace FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;

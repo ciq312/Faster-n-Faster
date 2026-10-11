@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby;

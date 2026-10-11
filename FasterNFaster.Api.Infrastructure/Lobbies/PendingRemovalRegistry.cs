@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 
-namespace FasterNFaster.Api.Infrastructure.Users;
+namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class PendingRemovalRegistry : IPendingRemovalsRegistry
 {

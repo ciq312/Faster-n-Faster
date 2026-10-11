@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Users;
+namespace FasterNFaster.Api.UseCases.Lobbies.Ports;
 
 public interface IPendingRemovalsRegistry
 {

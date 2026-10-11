@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;

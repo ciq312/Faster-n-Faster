@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.Infrastructure.Lobbies;
 
 namespace FasterNFaster.UnitTests.Services;
 

@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.Services;
 using MediatR;

@@ -1,9 +1,8 @@
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
-using FasterNFaster.Api.Infrastructure.Users;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Services;
-using FasterNFaster.Api.UseCases.Services.Lobbies;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 

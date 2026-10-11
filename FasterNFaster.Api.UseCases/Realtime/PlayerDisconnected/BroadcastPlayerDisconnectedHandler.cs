@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using MediatR;

@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 
 namespace FasterNFaster.UnitTests.Services;
 

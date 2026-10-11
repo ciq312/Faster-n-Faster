@@ -1,11 +1,11 @@
 using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.Services;

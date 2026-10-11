@@ -1,4 +1,4 @@
-using FasterNFaster.Api.Infrastructure.Users;
+using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using Microsoft.Extensions.Time.Testing;
 

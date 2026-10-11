@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Exceptions;
 
-namespace FasterNFaster.Api.UseCases.Exceptions;
+namespace FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 
 public class LobbyNotFoundException : NotFoundException
 {

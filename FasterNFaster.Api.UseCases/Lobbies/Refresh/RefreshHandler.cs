@@ -1,5 +1,5 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Refresh;

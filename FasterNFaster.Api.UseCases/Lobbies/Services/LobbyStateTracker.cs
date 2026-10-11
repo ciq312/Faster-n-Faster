@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
 
-namespace FasterNFaster.Api.UseCases.Services.Lobbies;
+namespace FasterNFaster.Api.UseCases.Lobbies.Services;
 
 public sealed class LobbyStateTracker : ILobbyStateTracker
 {

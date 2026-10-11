@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.Infrastructure.Options.Lobbies;
+using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Options.Smtp;
 using FasterNFaster.Api.Infrastructure.Shared;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
