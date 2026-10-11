@@ -122,6 +122,7 @@ public class Lobby : AggregateRoot<Guid>
     {
         const string action = "kick players";
         EnsureHost(initiatorId, action);
+        if (initiatorId == targetPlayerId) throw new HostKickSelfException();
         if (IsSessionActive) throw new LobbyInRaceException(action);
 
         var kickedPlayer = RemovePlayerInternal(targetPlayerId);
