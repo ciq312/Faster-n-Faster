@@ -34,7 +34,7 @@ public abstract class Race : AggregateRoot<Guid>
             AddParticipant(participant);
     }
 
-    public virtual void Start()
+    public void Start()
     {
         if (HasStarted) throw new InvalidOperationException("Race already started.");
         StartTime = DateTime.UtcNow;
@@ -45,7 +45,7 @@ public abstract class Race : AggregateRoot<Guid>
         }
     }
 
-    public virtual void Reset()
+    public void Reset()
     {
         participants.Clear();
         nextFinishPosition = 1;

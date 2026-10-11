@@ -3,7 +3,6 @@ namespace FasterNFaster.Api.Core.Entities.Races;
 public class RaceParticipantResult
 {
     public Guid Id { get; private set; }
-    public Guid LobbyId { get; private set; }
     public Guid LobbyPlayerId { get; private set; }
     public string Nick { get; private set; }
     public float WPM { get; private set; }

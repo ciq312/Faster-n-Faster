@@ -16,7 +16,7 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyAccess l
         var lobby = await lobbies.Create(command.LobbyName, command.IsPrivate, command.HostId);
 
         var race = new WordRace(lobby.Id, DefaultPassageLength);
-        race.SetPassage(passage);
+        race.ApplyPassage(passage);
 
         races.Register(race);
 

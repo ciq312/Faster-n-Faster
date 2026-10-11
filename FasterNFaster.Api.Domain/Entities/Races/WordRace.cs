@@ -57,8 +57,8 @@ public partial class WordRace : Race
 
         if (IsRacerFinished(racer))
         {
-            racer.MarkFinished(nextFinishPosition++, GetNumberWordsInPassage());
-            RaiseDomainEvent(new PlayerFinishedEvent(LobbyId, racer.Nick, racer.Id, racer.FinishPosition, racer.GetWPM(), racer.GetAccuracy()));
+            racer.MarkFinished(nextFinishPosition++);
+            RaiseDomainEvent(new PlayerFinishedEvent(LobbyId, racer.Nick, racer.Id, racer.FinishPosition, racer.Result!.WPM, racer.Result.Accuracy));
             if (IsRaceFinished())
                 RaceFinished();
         }
@@ -70,10 +70,8 @@ public partial class WordRace : Race
     {
         if (HasStarted)
             throw new InvalidOperationException("Cannot change passage after race start.");
-        SetPassage(passage);
+        Passage = passage;
     }
-
-    public void SetPassage(string passage) => Passage = passage;
 
     public override WordRaceSettings GetRaceSettings()
     {
@@ -82,10 +80,4 @@ public partial class WordRace : Race
     }
 
     private bool IsRacerFinished(RaceParticipant racer) => racer.Index >= Passage!.Length - 1;
-
-    private int GetNumberWordsInPassage()
-    {
-        if (Passage == null) throw new InvalidOperationException("Passage is null");
-        return Passage.Split(' ').Length;
-    }
 }

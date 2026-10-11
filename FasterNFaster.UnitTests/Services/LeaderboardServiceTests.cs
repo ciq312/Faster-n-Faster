@@ -9,7 +9,7 @@ namespace FasterNFaster.Tests.Services;
 
 public class LeaderboardServiceTests : IAsyncLifetime
 {
-    private readonly DbContextOptions<AppDbContext> _options = new DbContextOptionsBuilder<AppDbContext>()
+    private readonly DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
         .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
         .Options;
 
@@ -28,7 +28,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
             statistics.Add(stat);
         }
 
-        using var context = new AppDbContext(_options);
+        using var context = new AppDbContext(options);
         context.Users.AddRange(users);
         context.Statistics.AddRange(statistics);
         await context.SaveChangesAsync();
@@ -40,7 +40,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     public async Task GetTopPlayersAsync_ReturnsSortedPlayers()
     {
 
-        using var context = new AppDbContext(_options);
+        using var context = new AppDbContext(options);
         var service = new LeaderboardRepository(context);
 
         var result = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 2);
@@ -62,7 +62,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     public async Task GetTopPlayersAsync_ReturnsSortedPlayersAsc()
     {
 
-        using var context = new AppDbContext(_options);
+        using var context = new AppDbContext(options);
         var service = new LeaderboardRepository(context);
 
         // Ascending now means literal sort direction: page 1 holds the lowest values.
@@ -83,7 +83,7 @@ public class LeaderboardServiceTests : IAsyncLifetime
     [Fact]
     public async Task GetTopPlayersAsync_SecondPage_SkipsFirstPage()
     {
-        using var context = new AppDbContext(_options);
+        using var context = new AppDbContext(options);
         var service = new LeaderboardRepository(context);
 
         var page2 = await service.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 2, 2);
@@ -93,5 +93,52 @@ public class LeaderboardServiceTests : IAsyncLifetime
         // Page 1 holds WPM 50 and 40; page 2 continues at 30, 20.
         Assert.Equal(30, list[0].AvgWPM);
         Assert.Equal(20, list[1].AvgWPM);
+    }
+
+    [Fact]
+    public async Task TiedValues_PagesOrderTiesById()
+    {
+        var ids = await SeedPlayersWithoutRacesAsync(4);
+        using var context = new AppDbContext(options);
+        var repository = new LeaderboardRepository(context);
+
+        var page1 = await repository.GetTopPlayersAsync(LeaderboardSort.RacesTyped, false, 1, 2);
+        var page2 = await repository.GetTopPlayersAsync(LeaderboardSort.RacesTyped, false, 2, 2);
+
+        Assert.Equal(ids.Order(), page1.Items.Concat(page2.Items).Select(e => e.Id));
+    }
+
+    [Fact]
+    public async Task SortByAvgWpm_UsesAverageNotBest()
+    {
+        using (var seedContext = new AppDbContext(options))
+        {
+            var player1 = await seedContext.Statistics.Include(s => s.User).SingleAsync(s => s.User.Nick == "Player1");
+            player1.RegisterRace(new RaceParticipantResult(Guid.NewGuid(), player1.Id, "Player1", 75, 90, 0, 10, 2));
+            await seedContext.SaveChangesAsync();
+        }
+
+        using var context = new AppDbContext(options);
+        var repository = new LeaderboardRepository(context);
+
+        var result = await repository.GetTopPlayersAsync(LeaderboardSort.AvgWpm, true, 1, 3);
+
+        Assert.Equal(["Player5", "Player1", "Player4"], result.Items.Select(e => e.PlayerName));
+        Assert.Equal(42.5f, result.Items[1].AvgWPM);
+    }
+
+    private async Task<List<Guid>> SeedPlayersWithoutRacesAsync(int count)
+    {
+        var users = Enumerable.Range(0, count)
+            .Select(i => new User($"Idle{i}"))
+            .OrderByDescending(u => u.Id)
+            .ToList();
+
+        using var context = new AppDbContext(options);
+        context.Users.AddRange(users);
+        context.Statistics.AddRange(users.Select(u => new PlayerStatistics(u.Id)));
+        await context.SaveChangesAsync();
+
+        return users.Select(u => u.Id).ToList();
     }
 }

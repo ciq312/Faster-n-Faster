@@ -90,12 +90,6 @@ namespace FasterNFaster.Api.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<float>("AvgAccuracy")
-                        .HasColumnType("real");
-
-                    b.Property<float>("AvgWPM")
-                        .HasColumnType("real");
-
                     b.Property<float>("BestAccuracy")
                         .HasColumnType("real");
 
@@ -127,6 +121,11 @@ namespace FasterNFaster.Api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Email")
                         .HasColumnType("text");
