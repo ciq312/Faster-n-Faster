@@ -1,11 +1,10 @@
 using System.Linq.Expressions;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 using Microsoft.EntityFrameworkCore;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Statistics;
+namespace FasterNFaster.Api.Infrastructure.Leaderboards;
 
 public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepository
 {

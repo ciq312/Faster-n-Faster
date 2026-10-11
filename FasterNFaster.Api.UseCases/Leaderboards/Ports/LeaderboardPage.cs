@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Interfaces.Users;
+namespace FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
 public record LeaderboardPage(IReadOnlyList<LeaderboardEntry> Items, int TotalPlayers);
 

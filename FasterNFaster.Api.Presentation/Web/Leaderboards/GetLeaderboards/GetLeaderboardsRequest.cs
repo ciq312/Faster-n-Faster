@@ -1,6 +1,6 @@
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
-namespace FasterNFaster.Api.Presentation.Web.Leaderboards;
+namespace FasterNFaster.Api.Presentation.Web.Leaderboards.GetLeaderboards;
 
 public class GetLeaderboardsRequest
 {

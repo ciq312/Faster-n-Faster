@@ -1,5 +1,5 @@
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.GetLeaderboard;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;

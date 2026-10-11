@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Leaderboards;
+namespace FasterNFaster.Api.UseCases.Leaderboards.GetLeaderboard;
 
 public record GetLeaderboardResults(
     List<LeaderboardResultDTO> Items,

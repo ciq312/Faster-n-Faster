@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Infrastructure.Db.Statistics;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.Infrastructure.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Caching;

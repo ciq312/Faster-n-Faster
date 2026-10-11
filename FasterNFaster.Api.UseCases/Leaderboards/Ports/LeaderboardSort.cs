@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Leaderboards;
+namespace FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
 /// <summary>Whitelisted sortable leaderboard columns. Binding to this enum rejects arbitrary property names.</summary>
 public enum LeaderboardSort

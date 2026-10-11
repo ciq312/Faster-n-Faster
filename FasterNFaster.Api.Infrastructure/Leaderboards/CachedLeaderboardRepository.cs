@@ -1,8 +1,7 @@
 using FasterNFaster.Api.Infrastructure.Shared.Caching;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
-namespace FasterNFaster.Api.Infrastructure.Db.Statistics;
+namespace FasterNFaster.Api.Infrastructure.Leaderboards;
 
 public class CachedLeaderboardRepository(ILeaderboardRepository inner, ICache cache) : ILeaderboardRepository
 {

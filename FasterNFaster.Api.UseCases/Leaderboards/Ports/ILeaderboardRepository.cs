@@ -1,6 +1,4 @@
-using FasterNFaster.Api.UseCases.Leaderboards;
-
-namespace FasterNFaster.Api.UseCases.Interfaces.Users;
+namespace FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
 public interface ILeaderboardRepository
 {

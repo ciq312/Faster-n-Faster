@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.UseCases.Leaderboards;
+namespace FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
 public sealed record LeaderboardPlayerReadModel(
     Guid Id,
