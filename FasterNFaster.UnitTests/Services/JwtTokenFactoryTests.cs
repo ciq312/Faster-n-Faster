@@ -10,7 +10,7 @@ public class JwtTokenFactoryTests
 {
     private readonly JwtOptions jwtOptions = new()
     {
-        JWT_PRIVATE_TOKEN = Convert.ToBase64String(RSA.Create(2048).ExportRSAPrivateKey()),
+        PrivateKey = Convert.ToBase64String(RSA.Create(2048).ExportRSAPrivateKey()),
         Issuer = "issuer",
         Audience = "audience",
         AccessTokenLifetime = TimeSpan.FromMinutes(5),

@@ -46,7 +46,7 @@ public class TestApplicationFactory<TProgram>
 
         builder
         .UseEnvironment("Test")
-        .UseSetting("JwtOptions:JWT_PRIVATE_TOKEN", jwtPrivateKey)
+        .UseSetting("JwtOptions:PrivateKey", jwtPrivateKey)
         .UseSetting("Google:ClientId", "test-client-id")
         .UseSetting("Google:ClientSecret", "test-client-secret")
         .UseSetting("ConnectionStrings:DefaultConnection", postgres.GetConnectionString())

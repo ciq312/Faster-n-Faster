@@ -13,7 +13,7 @@ public static class AuthExtensions
             ?? new AuthCookiesOptions().AccessTokenCookieName;
 
         var rsa = RSA.Create();
-        rsa.ImportRSAPrivateKey(Convert.FromBase64String(config["JwtOptions:JWT_PRIVATE_TOKEN"]!), out _);
+        rsa.ImportRSAPrivateKey(Convert.FromBase64String(config["JwtOptions:PrivateKey"]!), out _);
 
         services.AddAuthentication(o =>
         {

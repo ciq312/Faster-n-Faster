@@ -12,7 +12,7 @@ public class JwtTokenFactory(IOptions<JwtOptions> options) : IJwtTokenFactory
     private static readonly JsonWebTokenHandler TokenHandler = new();
 
     private readonly JwtOptions jwtOptions = options.Value;
-    private readonly SigningCredentials signingCredentials = CreateSigningCredentials(options.Value.JWT_PRIVATE_TOKEN);
+    private readonly SigningCredentials signingCredentials = CreateSigningCredentials(options.Value.PrivateKey);
 
     public IssuedToken CreateAccessToken(string userId, string userName) =>
         CreateToken(userId, userName, jwtOptions.PlayerRole, jwtOptions.AccessTokenLifetime);
