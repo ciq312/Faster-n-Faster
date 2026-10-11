@@ -60,28 +60,31 @@ Caddy  (:80/:443, automatic Let's Encrypt TLS)
 
 ### Backend layers
 
+Every layer below Domain is split into the same feature areas: `Auth`, `Users`, `Lobbies`, `Races`, `AntiCheat`, `Realtime`, `Leaderboards`, plus a `Shared` folder for cross-cutting code. A layer only has an area folder when it has code for that area.
+
 ```
-fasternfaster.api/
-├── Core/                — domain layer, zero external dependencies
-│   ├── Entities/        — aggregates that enforce their own invariants and raise domain events
-│   ├── Exceptions/      — domain exceptions (LobbyFullException, CheaterDetectedException, ...)
-│   └── Interfaces/      — domain contracts (IDomainEvent, IEventDispatcher, IAntiCheatPolicy)
-├── UseCases/            — application layer, feature-sliced CQRS
-│   ├── Users/           — RegisterUser, LoginUser, VerifyEmail, ... (Command + Handler pairs)
-│   ├── Lobbies/         — CreateLobby, JoinLobby, StartRace, KickPlayer, Disconnect, ...
-│   ├── Leaderboards/    — leaderboard query
-│   ├── Realtime/        — Broadcast* handlers that react to domain events
-│   ├── Interfaces/      — ports implemented by Infrastructure and Web
-│   └── Services/        — hot-path orchestration (lobby/race lifecycle)
-├── Infrastructure/      — adapters: EF Core/Postgres repositories, Redis cache + token stores,
-│                          SMTP, in-memory lobby store, race tick loop + conflator
-└── Web/
-    ├── Hubs/            — SignalR hub (thin: resolve context → call facade) + hub filters
-    ├── <feature>/       — FastEndpoints, one folder per use case (Users/, Lobbies/, ...)
-    └── Options/         — strongly-typed config (JWT, SMTP, cookies, rate limits, anti-cheat)
+FasterNFaster.Api.Domain/          — domain layer, zero external dependencies
+├── Entities/        — aggregates that enforce their own invariants and raise domain events
+├── Exceptions/      — domain exceptions (LobbyFullException, ColorIsAlreadyTakenException, ...)
+└── Interfaces/      — domain contracts (IDomainEvent, IEventDispatcher, IAntiCheatPolicy)
+FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
+├── <Area>/
+│   ├── <UseCase>/   — Command/Query + Handler (+ Result), e.g. Auth/LoginUser, Lobbies/JoinLobby
+│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation
+│   ├── Services/    — in-process orchestration next to its interfaces (lobby/race lifecycle)
+│   └── Exceptions/  — area-specific exceptions
+└── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
+FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
+├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby store, race tick loop + conflator
+└── Shared/          — Persistence (AppDbContext, Migrations), Caching, AppOptions
+FasterNFaster.Api.Presentation/
+├── Web/<Area>/      — FastEndpoints, one folder per use case; Web/Realtime holds the SignalR hub,
+│                      hub filters and broadcaster
+├── Web/Shared/      — exception handler, health endpoint, rate-limit options
+└── Extensions/      — DI composition root
 ```
 
-Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements interfaces defined in `UseCases/Interfaces/` — nothing in the core references EF Core, Redis, or SignalR.
+Dependencies flow inward: `Presentation → Infrastructure → UseCases → Domain`. Infrastructure implements the `Ports/` interfaces of each UseCases area — nothing in Domain or UseCases references EF Core, Redis, or SignalR.
 
 ### Race hot path
 
@@ -92,7 +95,7 @@ The conflator keeps a single "latest frame" slot per lobby: if a broadcast is st
 ### Key design decisions
 
 - **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick and broadcasts one conflated frame per lobby (see [Race hot path](#race-hot-path)). This keeps bandwidth and CPU flat regardless of typing speed.
-- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Users/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to the race service to avoid per-keystroke mediator allocations.
+- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Auth/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to the race service to avoid per-keystroke mediator allocations.
 - **Domain events over direct coupling** — aggregates raise events (`PlayerJoinedEvent`, `RaceFinishedEvent`, ...) that are dispatched as MediatR notifications; broadcast handlers in `UseCases/Realtime/` subscribe and push the SignalR messages. The domain never references SignalR, and a new side effect is a new handler, not an edit to existing code.
 - **Decorator-pattern caching** — `CachedBanRepository`, `CachedLeaderboardRepository`, and `CachedStatisticsRepository` wrap the Postgres repositories with Redis cache-aside logic. Callers depend on the same interface either way; caching is composed in DI and can be removed without touching business code.
 - **Cross-cutting concerns as hub filters** — ban checks, cheat detection, and exception mapping live in dedicated SignalR hub filters (`HubBanFilter`, `HubCheatFilter`, `HubExceptionFilter`) instead of being repeated inside hub methods.
