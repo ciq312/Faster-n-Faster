@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
+using FasterNFaster.Api.Presentation.Web.Auth.RegisterAnonymous;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Presentation.Web.Shared;
-using FasterNFaster.Api.Presentation.Web.Users.RegisterAnonymous;
 using Microsoft.Extensions.Configuration;
 
 namespace FasterNFaster.IntegrationTests;

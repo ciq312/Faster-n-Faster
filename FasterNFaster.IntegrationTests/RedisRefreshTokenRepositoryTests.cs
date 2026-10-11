@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FasterNFaster.IntegrationTests;

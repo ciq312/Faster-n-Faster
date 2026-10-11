@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Entities.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using StackExchange.Redis;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;

@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Domain.Entities;
-using FasterNFaster.Api.UseCases.Users.ExternalLogin;
+using FasterNFaster.Api.UseCases.Auth.ExternalLogin;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;

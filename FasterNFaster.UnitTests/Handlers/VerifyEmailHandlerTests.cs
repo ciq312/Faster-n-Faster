@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Exceptions;
-using FasterNFaster.Api.UseCases.Exceptions;
-using FasterNFaster.Api.UseCases.Users.RegisterUser;
-using FasterNFaster.Api.UseCases.Users.VerifyEmail;
+using FasterNFaster.Api.UseCases.Auth.Exceptions;
+using FasterNFaster.Api.UseCases.Auth.RegisterUser;
+using FasterNFaster.Api.UseCases.Auth.VerifyEmail;
 using FasterNFaster.UnitTests.Fakes;
 using static FasterNFaster.UnitTests.RegisteredUsersSetup;
 

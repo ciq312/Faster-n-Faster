@@ -1,5 +1,5 @@
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.UseCases.Users.Logout;
+using FasterNFaster.Api.UseCases.Auth.Logout;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;

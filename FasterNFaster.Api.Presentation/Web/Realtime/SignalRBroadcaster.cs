@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.AspNetCore.SignalR;

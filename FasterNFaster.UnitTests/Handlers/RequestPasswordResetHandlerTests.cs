@@ -1,8 +1,8 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Auth;
-using FasterNFaster.Api.UseCases.Services.Users;
-using FasterNFaster.Api.UseCases.Users.RegisterUser;
-using FasterNFaster.Api.UseCases.Users.RequestPasswordReset;
+using FasterNFaster.Api.UseCases.Auth.RegisterUser;
+using FasterNFaster.Api.UseCases.Auth.RequestPasswordReset;
+using FasterNFaster.Api.UseCases.Auth.Services;
 using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Handlers;

@@ -1,5 +1,4 @@
-using FasterNFaster.Api.UseCases.Auth;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using FasterNFaster.Api.UseCases.Users.Ports;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;

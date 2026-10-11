@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Auth;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;

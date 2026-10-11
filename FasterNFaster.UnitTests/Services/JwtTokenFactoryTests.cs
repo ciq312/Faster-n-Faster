@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.UseCases.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 

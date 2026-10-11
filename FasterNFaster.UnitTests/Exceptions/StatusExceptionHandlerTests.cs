@@ -1,7 +1,7 @@
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Shared;
-using FasterNFaster.Api.UseCases.Exceptions;
+using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using Microsoft.AspNetCore.Http;
 
 namespace FasterNFaster.UnitTests.Exceptions;

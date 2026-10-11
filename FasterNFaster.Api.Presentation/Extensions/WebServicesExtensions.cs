@@ -1,13 +1,12 @@
 using FastEndpoints;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Lobbies;
-using FasterNFaster.Api.Infrastructure.Options.Smtp;
 using FasterNFaster.Api.Infrastructure.Shared;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
-using FasterNFaster.Api.Presentation.Web.Options.AuthCookies;
+using FasterNFaster.Api.Presentation.Web.Auth;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
-using FasterNFaster.Api.UseCases.Services.Users;
+using FasterNFaster.Api.UseCases.Auth.Services;
 
 namespace FasterNFaster.Api.Presentation.Extensions;
 
