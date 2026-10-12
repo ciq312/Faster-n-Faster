@@ -43,11 +43,16 @@ public class Lobby : AggregateRoot<Guid>
         IsSessionActive = false;
     }
 
-    public void Join(Guid userId, string nick, string? code)
+    public void Join(Guid userId, string nick, string? code, Func<Guid, bool> tryClaimPlayer)
     {
         if (IsPlayerIn(userId)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && LobbySettings.IsPrivate) throw new InvalidInviteCodeException();
         if (IsPlayerBanned(userId)) throw new PlayerBannedInLobbyException();
+        if (IsSessionActive) throw new LobbyIsNotAcceptingPlayersException();
+        if (Players.Count >= LobbySettings.MaxPlayers) throw new LobbyFullException();
+
+        // Last check on purpose: a granted claim must never be followed by a throw.
+        if (!tryClaimPlayer(userId)) throw new AlreadyInLobbyException();
 
         AddPlayer(userId, nick);
     }
@@ -55,12 +60,6 @@ public class Lobby : AggregateRoot<Guid>
 
     private void AddPlayer(Guid userId, string nick)
     {
-        if (IsSessionActive)
-            throw new LobbyIsNotAcceptingPlayersException();
-
-        if (Players.Count >= LobbySettings.MaxPlayers)
-            throw new LobbyFullException();
-
         var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
         var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
         var player = new LobbyPlayer(userId, nick, joinOrder, color);

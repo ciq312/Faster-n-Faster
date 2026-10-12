@@ -51,11 +51,31 @@ public class InMemoryLobbyStoreTests
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
         var (otherLobbyId, _) = await context.Lobbies.Create("Other", false, Guid.NewGuid());
-        await context.Lobbies.Mutate(otherLobbyId, l => l.Join(host.Id, host.Nick, null));
+        await context.Lobbies.Mutate(otherLobbyId, l => l.Join(host.Id, host.Nick, null, _ => true));
 
         await context.Lobbies.Mutate(context.LobbyId, l => l.Disconnect(host.Id));
 
         Assert.Equal(otherLobbyId, context.Lobbies.GetLobbyIdOfPlayer(host.Id));
+    }
+
+    [Fact]
+    public async Task TryClaimPlayer_WhenInOtherLobby_ReturnsFalse()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+
+        Assert.False(context.Lobbies.TryClaimPlayer(host.Id, Guid.NewGuid()));
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(host.Id));
+    }
+
+    [Fact]
+    public async Task TryClaimPlayer_SameLobbyTwice_ReturnsTrue()
+    {
+        var context = await LobbyFactory.Empty(Guid.NewGuid());
+        var playerId = Guid.NewGuid();
+
+        Assert.True(context.Lobbies.TryClaimPlayer(playerId, context.LobbyId));
+        Assert.True(context.Lobbies.TryClaimPlayer(playerId, context.LobbyId));
     }
 
     [Fact]

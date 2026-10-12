@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
@@ -60,6 +62,35 @@ public class LobbyConcurrencyTests
             Assert.Equal(maxPlayers, players.Select(p => p.JoinOrder).Distinct().Count());
             Assert.Equal(maxPlayers, context.Dispatcher.Dispatched.OfType<PlayerJoinedEvent>().Count());
             await AssertRegistryMatchesLobby(context, []);
+        }
+    }
+
+    [Fact]
+    public async Task JoinTwoLobbiesTogether_PlayerEndsUpInExactlyOne()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var context = await LobbyFactory.WithPlayers(new User("host"));
+            var (otherLobbyId, _) = await context.Lobbies.Create("Other", false, Guid.NewGuid());
+            var joiner = new User("joiner");
+            var handler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
+            var releaseFirst = await HoldGate(context.Lobbies, context.LobbyId);
+            var releaseSecond = await HoldGate(context.Lobbies, otherLobbyId);
+
+            var joinFirst = Record.ExceptionAsync(() =>
+                handler.Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None));
+            var joinSecond = Record.ExceptionAsync(() =>
+                handler.Handle(new JoinLobbyCommand(joiner.Id, otherLobbyId, joiner.Nick), CancellationToken.None));
+            releaseFirst();
+            releaseSecond();
+            var outcomes = await Task.WhenAll(joinFirst, joinSecond);
+
+            Assert.Single(outcomes, e => e is null);
+            Assert.Single(outcomes, e => e is AlreadyInLobbyException);
+            var inFirst = await context.ReadLobby(l => l.IsPlayerIn(joiner.Id));
+            var inSecond = await context.Lobbies.Read(otherLobbyId, l => l.IsPlayerIn(joiner.Id));
+            Assert.True(inFirst ^ inSecond);
+            Assert.Equal(inFirst ? context.LobbyId : otherLobbyId, context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
         }
     }
 
@@ -223,6 +254,20 @@ public class LobbyConcurrencyTests
         }
 
         return actions;
+    }
+
+    private static async Task<Action> HoldGate(InMemoryLobbyStore lobbies, Guid lobbyId)
+    {
+        var held = new TaskCompletionSource();
+        var release = new ManualResetEventSlim();
+        _ = Task.Run(() => lobbies.Mutate(lobbyId, _ =>
+        {
+            held.SetResult();
+            release.Wait();
+        }));
+        await held.Task;
+
+        return release.Set;
     }
 
     private static async Task Repeat(int times, Func<Task> action)

@@ -15,4 +15,7 @@ public interface ILobbyStore
     Guid? FindIdByInviteCode(string code);
     Guid? GetLobbyIdOfPlayer(Guid playerId);
     Guid GetLobbyIdOfPlayerRequired(Guid playerId);
+
+    // Valid only from inside Mutate of the lobby being joined.
+    bool TryClaimPlayer(Guid playerId, Guid lobbyId);
 }

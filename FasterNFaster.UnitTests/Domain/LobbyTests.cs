@@ -7,6 +7,52 @@ namespace FasterNFaster.UnitTests.Domain;
 
 public class LobbyTests
 {
+    private static readonly Func<Guid, bool> Claim = _ => true;
+
+    [Fact]
+    public void Join_WhenClaimRefused_ThrowsAlreadyInLobbyAndAddsNoPlayer()
+    {
+        var lobby = CreateLobby();
+        var joiner = Guid.NewGuid();
+
+        Assert.Throws<AlreadyInLobbyException>(() => lobby.Join(joiner, "joiner", null, _ => false));
+
+        Assert.False(lobby.IsPlayerIn(joiner));
+        Assert.Empty(lobby.DrainEvents());
+    }
+
+    [Fact]
+    public void Join_WhenLobbyFull_DoesNotClaim()
+    {
+        var lobby = CreateLobby();
+        for (var i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
+            lobby.Join(Guid.NewGuid(), $"player{i}", null, Claim);
+        var claimed = new List<Guid>();
+
+        Assert.Throws<LobbyFullException>(() => lobby.Join(Guid.NewGuid(), "extra", null, id =>
+        {
+            claimed.Add(id);
+            return true;
+        }));
+
+        Assert.Empty(claimed);
+    }
+
+    [Fact]
+    public void Join_WhenAlreadyIn_DoesNotClaim()
+    {
+        var (lobby, first, _) = CreateLobbyWithTwoPlayers();
+        var claimed = new List<Guid>();
+
+        lobby.Join(first, "first", null, id =>
+        {
+            claimed.Add(id);
+            return true;
+        });
+
+        Assert.Empty(claimed);
+    }
+
     [Fact]
     public void ChangePlayerColor_PaletteColorInAnyCase_StoresPaletteEntry()
     {
@@ -182,7 +228,7 @@ public class LobbyTests
         var (lobby, _) = CreateLobbyWithUnjoinedHost();
         var joiner = Guid.NewGuid();
 
-        lobby.Join(joiner, "joiner", null);
+        lobby.Join(joiner, "joiner", null, Claim);
 
         Assert.Equal(joiner, lobby.HostId);
     }
@@ -192,7 +238,7 @@ public class LobbyTests
     {
         var (lobby, _) = CreateLobbyWithUnjoinedHost();
         var joiner = Guid.NewGuid();
-        lobby.Join(joiner, "joiner", null);
+        lobby.Join(joiner, "joiner", null, Claim);
 
         lobby.StartSession(joiner);
 
@@ -204,7 +250,7 @@ public class LobbyTests
     {
         var (lobby, creator) = CreateLobbyWithUnjoinedHost();
 
-        lobby.Join(creator, "creator", null);
+        lobby.Join(creator, "creator", null, Claim);
 
         Assert.Equal(creator, lobby.HostId);
     }
@@ -213,9 +259,9 @@ public class LobbyTests
     public void HostIsMember_JoinerDoesNotBecomeHost()
     {
         var (lobby, creator) = CreateLobbyWithUnjoinedHost();
-        lobby.Join(creator, "creator", null);
+        lobby.Join(creator, "creator", null, Claim);
 
-        lobby.Join(Guid.NewGuid(), "joiner", null);
+        lobby.Join(Guid.NewGuid(), "joiner", null, Claim);
 
         Assert.Equal(creator, lobby.HostId);
     }
@@ -225,7 +271,7 @@ public class LobbyTests
     {
         var (lobby, _) = CreateLobbyWithUnjoinedHost();
 
-        lobby.Join(Guid.NewGuid(), "joiner", null);
+        lobby.Join(Guid.NewGuid(), "joiner", null, Claim);
 
         Assert.DoesNotContain(lobby.DrainEvents(), e => e is HostChangedEvent);
     }
@@ -235,9 +281,9 @@ public class LobbyTests
     {
         var (lobby, creator) = CreateLobbyWithUnjoinedHost();
         var joiner = Guid.NewGuid();
-        lobby.Join(joiner, "joiner", null);
+        lobby.Join(joiner, "joiner", null, Claim);
 
-        lobby.Join(creator, "creator", null);
+        lobby.Join(creator, "creator", null, Claim);
 
         Assert.Equal(joiner, lobby.HostId);
     }
@@ -283,7 +329,7 @@ public class LobbyTests
         var (lobby, first, second) = CreateLobbyWithTwoPlayers();
         var ids = lobby.GetPlayerIds();
 
-        lobby.Join(Guid.NewGuid(), "third", null);
+        lobby.Join(Guid.NewGuid(), "third", null, Claim);
 
         Assert.Equal([first, second], ids);
     }
@@ -309,7 +355,7 @@ public class LobbyTests
         var lobby = CreatePrivateLobby();
         var joiner = Guid.NewGuid();
 
-        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", null));
+        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", null, Claim));
 
         Assert.False(lobby.IsPlayerIn(joiner));
     }
@@ -320,7 +366,7 @@ public class LobbyTests
         var lobby = CreatePrivateLobby();
         var joiner = Guid.NewGuid();
 
-        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", "wrong"));
+        Assert.Throws<InvalidInviteCodeException>(() => lobby.Join(joiner, "joiner", "wrong", Claim));
 
         Assert.False(lobby.IsPlayerIn(joiner));
     }
@@ -331,7 +377,7 @@ public class LobbyTests
         var lobby = CreatePrivateLobby();
         var joiner = Guid.NewGuid();
 
-        lobby.Join(joiner, "joiner", lobby.LobbySettings.InviteCode.ToLowerInvariant());
+        lobby.Join(joiner, "joiner", lobby.LobbySettings.InviteCode.ToLowerInvariant(), Claim);
 
         Assert.True(lobby.IsPlayerIn(joiner));
     }
@@ -342,7 +388,7 @@ public class LobbyTests
         var lobby = CreateLobby();
         var joiner = Guid.NewGuid();
 
-        lobby.Join(joiner, "joiner", "anything");
+        lobby.Join(joiner, "joiner", "anything", Claim);
 
         Assert.True(lobby.IsPlayerIn(joiner));
     }
@@ -353,7 +399,7 @@ public class LobbyTests
         var (lobby, first, second) = CreateLobbyWithTwoPlayers();
         lobby.Kick(first, second);
 
-        Assert.Throws<PlayerBannedInLobbyException>(() => lobby.Join(second, "second", null));
+        Assert.Throws<PlayerBannedInLobbyException>(() => lobby.Join(second, "second", null, Claim));
 
         Assert.False(lobby.IsPlayerIn(second));
     }
@@ -363,9 +409,9 @@ public class LobbyTests
     {
         var lobby = CreateLobby();
         for (var i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
-            lobby.Join(Guid.NewGuid(), $"player{i}", null);
+            lobby.Join(Guid.NewGuid(), $"player{i}", null, Claim);
 
-        Assert.Throws<LobbyFullException>(() => lobby.Join(Guid.NewGuid(), "extra", null));
+        Assert.Throws<LobbyFullException>(() => lobby.Join(Guid.NewGuid(), "extra", null, Claim));
 
         Assert.Equal(lobby.LobbySettings.MaxPlayers, lobby.Players.Count);
     }
@@ -377,7 +423,7 @@ public class LobbyTests
         lobby.StartSession(first);
         var joiner = Guid.NewGuid();
 
-        Assert.Throws<LobbyIsNotAcceptingPlayersException>(() => lobby.Join(joiner, "joiner", null));
+        Assert.Throws<LobbyIsNotAcceptingPlayersException>(() => lobby.Join(joiner, "joiner", null, Claim));
 
         Assert.False(lobby.IsPlayerIn(joiner));
     }
@@ -388,7 +434,7 @@ public class LobbyTests
         var (lobby, first, _) = CreateLobbyWithTwoPlayers();
         lobby.DrainEvents();
 
-        lobby.Join(first, "first", null);
+        lobby.Join(first, "first", null, Claim);
 
         Assert.Equal(2, lobby.Players.Count);
         Assert.Empty(lobby.DrainEvents());
@@ -401,7 +447,7 @@ public class LobbyTests
         lobby.ChangePlayerColor(first, PlayerColors.Palette[2]);
         var joiner = Guid.NewGuid();
 
-        lobby.Join(joiner, "joiner", null);
+        lobby.Join(joiner, "joiner", null, Claim);
 
         var player = lobby.Players.Single(p => p.Id == joiner);
         Assert.Equal(3, player.JoinOrder);
@@ -414,7 +460,7 @@ public class LobbyTests
         var lobby = CreateLobby();
         var joiner = Guid.NewGuid();
 
-        lobby.Join(joiner, "joiner", null);
+        lobby.Join(joiner, "joiner", null, Claim);
 
         var joined = Assert.Single(lobby.DrainEvents().OfType<PlayerJoinedEvent>());
         Assert.Equal(joiner, joined.UserId);
@@ -490,7 +536,7 @@ public class LobbyTests
     {
         var (lobby, first, _) = CreateLobbyWithTwoPlayers();
         var third = Guid.NewGuid();
-        lobby.Join(third, "third", null);
+        lobby.Join(third, "third", null, Claim);
         lobby.TransferHost(first, third);
 
         lobby.Disconnect(third);
@@ -528,7 +574,7 @@ public class LobbyTests
     {
         var lobby = CreateLobby();
         var only = Guid.NewGuid();
-        lobby.Join(only, "only", null);
+        lobby.Join(only, "only", null, Claim);
         lobby.DrainEvents();
 
         lobby.Disconnect(only);
@@ -578,9 +624,9 @@ public class LobbyTests
         var first = Guid.NewGuid();
         var second = Guid.NewGuid();
 
-        lobby.Join(first, "first", null);
+        lobby.Join(first, "first", null, Claim);
         lobby.AssignHost(first);
-        lobby.Join(second, "second", null);
+        lobby.Join(second, "second", null, Claim);
 
         return (lobby, first, second);
     }

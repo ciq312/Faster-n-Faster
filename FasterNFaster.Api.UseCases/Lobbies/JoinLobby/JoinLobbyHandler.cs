@@ -1,4 +1,3 @@
-using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using MediatR;
@@ -9,10 +8,11 @@ public class JoinLobbyHandler(ILobbyStore lobbies, ILobbyStateTracker tracker) :
 {
     public async Task Handle(JoinLobbyCommand command, CancellationToken cancellationToken)
     {
-        if (lobbies.GetLobbyIdOfPlayer(command.PlayerId) is Guid existingId && existingId != command.LobbyId)
-            throw new AlreadyInLobbyException();
-
-        await lobbies.Mutate(command.LobbyId, l => l.Join(command.PlayerId, command.Nick, command.InviteCode));
+        await lobbies.Mutate(command.LobbyId, l => l.Join(
+            command.PlayerId,
+            command.Nick,
+            command.InviteCode,
+            id => lobbies.TryClaimPlayer(id, command.LobbyId)));
         tracker.MarkChanged(command.LobbyId);
     }
 }

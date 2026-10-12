@@ -72,6 +72,9 @@ public sealed class InMemoryLobbyStore : ILobbyStore
     public Guid GetLobbyIdOfPlayerRequired(Guid playerId) =>
         GetLobbyIdOfPlayer(playerId) ?? throw new UserNotFoundException(playerId);
 
+    public bool TryClaimPlayer(Guid playerId, Guid lobbyId) =>
+        playerLobbies.GetOrAdd(playerId, lobbyId) == lobbyId;
+
     private Action<Lobby> MutateAndSyncPlayers(Guid lobbyId, Action<Lobby> mutate) => lobby =>
     {
         var before = lobby.GetPlayerIds().ToHashSet();
