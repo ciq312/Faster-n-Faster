@@ -105,6 +105,25 @@ public class RaceFinishedOrchestrationHandlerTests
         Assert.Contains(context.Registry.GetRacingLobbies(), e => e.LobbyId == context.LobbyId);
     }
 
+    [Fact]
+    public async Task LobbyRemovedDuringPostRaceFetch_DoesNotThrow()
+    {
+        var (finished, context, _) = await FinishedRace();
+        var provider = new GatedPassageProvider();
+        var handling = Record.ExceptionAsync(() => HandlerWith(context, provider)
+            .Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None));
+        await provider.WaitForRequest();
+
+        await context.Lobbies.Mutate(context.LobbyId, l =>
+        {
+            foreach (var id in l.GetPlayerIds().ToList()) l.Disconnect(id);
+        });
+        await LobbyFactory.Remover(context).TryRemove(context.LobbyId);
+        provider.Complete("fresh words");
+
+        Assert.Null(await handling);
+    }
+
     private static async Task<(RaceFinishedEvent Finished, LobbyTestContext Context, Guid HostId)> FinishedRace()
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
@@ -118,7 +137,7 @@ public class RaceFinishedOrchestrationHandlerTests
     private static RaceFinishedOrchestrationHandler HandlerWith(LobbyTestContext context, IPassageProvider provider) =>
         new(
             context.Lobbies,
-            new PassageRefresher(context.Lobbies, context.Races, provider, context.Tracker),
+            new PassageRefresher(context.Races, provider),
             context.Registry,
             LobbyFactory.StateScope(context, new FakeBroadcaster()));
 

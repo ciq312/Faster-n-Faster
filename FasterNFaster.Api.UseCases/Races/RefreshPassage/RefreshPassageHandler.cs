@@ -12,9 +12,10 @@ public class RefreshPassageHandler(
     {
         var lobbyId = lobbies.GetLobbyIdOfPlayerRequired(command.CallerId);
 
-        await lobbies.Mutate(lobbyId, l => l.EnsureCanRefreshPassage(command.CallerId));
+        var passage = await passageRefresher.FetchNext(lobbyId);
 
-        if (!await passageRefresher.TryRefresh(lobbyId))
+        await lobbies.Mutate(lobbyId, l => l.EnsureCanRefreshPassage(command.CallerId));
+        if (!await passageRefresher.TryApply(lobbyId, passage))
             throw new LobbyInRaceException("change the passage");
     }
 }

@@ -23,6 +23,9 @@ public class RaceFinishedOrchestrationHandler(
 
             await lobbies.Mutate(e.LobbyId, l => l.EndSession());
 
-            await passageRefresher.TryRefresh(e.LobbyId);
+            var passage = await passageRefresher.FetchNext(e.LobbyId);
+
+            if (await lobbies.TryRead(e.LobbyId, l => !l.IsSessionActive))
+                await passageRefresher.TryApply(e.LobbyId, passage);
         });
 }

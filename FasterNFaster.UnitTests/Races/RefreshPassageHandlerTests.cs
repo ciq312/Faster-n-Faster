@@ -39,7 +39,7 @@ public class RefreshPassageHandlerTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
         var passageBefore = await context.ReadRace(r => r.Passage);
         var provider = new GatedPassageProvider();
-        var handler = new RefreshPassageHandler(context.Lobbies, new PassageRefresher(context.Lobbies, context.Races, provider, context.Tracker));
+        var handler = new RefreshPassageHandler(context.Lobbies, new PassageRefresher(context.Races, provider));
 
         var refresh = handler.Handle(new RefreshPassageCommand(host.Id), CancellationToken.None);
         await provider.WaitForRequest();
