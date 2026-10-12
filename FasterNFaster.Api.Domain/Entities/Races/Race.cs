@@ -88,7 +88,7 @@ public sealed class Race : AggregateRoot<Guid>
 
     public bool TryChangePassage(string passage)
     {
-        if (HasStarted || participants.Count > 0) return false;
+        if (HasStarted) return false;
 
         Passage = passage;
         return true;

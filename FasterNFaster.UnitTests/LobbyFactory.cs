@@ -63,7 +63,7 @@ public static class LobbyFactory
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
-        var passageRefresher = new PassageRefresher(races, passageProvider, tracker);
+        var passageRefresher = new PassageRefresher(lobbies, races, passageProvider, tracker);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
@@ -93,7 +93,7 @@ public static class LobbyFactory
             userRepo.Seed(user);
 
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
-        var passageRefresher = new PassageRefresher(races, passageProvider, tracker);
+        var passageRefresher = new PassageRefresher(lobbies, races, passageProvider, tracker);
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 

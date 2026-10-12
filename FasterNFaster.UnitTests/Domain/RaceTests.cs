@@ -124,14 +124,14 @@ public class RaceTests
     }
 
     [Fact]
-    public void EnrolledParticipants_PassageChangeRefused()
+    public void EnrolledButNotStarted_PassageReplaced()
     {
         var (race, _, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
 
         var changed = race.TryChangePassage("another passage");
 
-        Assert.False(changed);
-        Assert.Equal(Passage, race.Passage);
+        Assert.True(changed);
+        Assert.Equal("another passage", race.Passage);
     }
 
     [Fact]

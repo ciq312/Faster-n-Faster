@@ -63,10 +63,16 @@ public class RaceFinishedOrchestrationHandlerTests
     [Fact]
     public async Task NextRaceAlreadyEnrolled_PassageKeptAndNoThrow()
     {
-        var (handler, context, _) = await Build();
+        var (finished, context, hostId) = await FinishedRace();
         var passageBefore = await context.ReadRace(r => r.Passage);
+        var provider = new GatedPassageProvider();
+        var handling = Record.ExceptionAsync(() => HandlerWith(context, provider)
+            .Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None));
+        await provider.WaitForRequest();
 
-        var exception = await Record.ExceptionAsync(() => handler.Handle(Notification(context.LobbyId), CancellationToken.None));
+        await LobbyFactory.StartRace(context, hostId);
+        provider.Complete("fresh words");
+        var exception = await handling;
 
         Assert.Null(exception);
         Assert.Equal(passageBefore, await context.ReadRace(r => r.Passage));
@@ -112,7 +118,7 @@ public class RaceFinishedOrchestrationHandlerTests
     private static RaceFinishedOrchestrationHandler HandlerWith(LobbyTestContext context, IPassageProvider provider) =>
         new(
             context.Lobbies,
-            new PassageRefresher(context.Races, provider, context.Tracker),
+            new PassageRefresher(context.Lobbies, context.Races, provider, context.Tracker),
             context.Registry,
             LobbyFactory.StateScope(context, new FakeBroadcaster()));
 
