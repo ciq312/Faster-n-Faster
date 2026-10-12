@@ -73,7 +73,7 @@ public class GameHubSessionTests
     }
 
     [Fact]
-    public async Task UpdateRaceState_InStartedRace_AdvancesParticipant()
+    public async Task StartedRace_UpdateAdvancesParticipant()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
@@ -88,7 +88,7 @@ public class GameHubSessionTests
     }
 
     [Fact]
-    public async Task UpdateRaceState_WhenRaceRemoved_DoesNotThrow()
+    public async Task RemovedRace_UpdateDoesNotThrow()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
@@ -101,7 +101,7 @@ public class GameHubSessionTests
     }
 
     [Fact]
-    public async Task UpdateRaceState_OutsideLobby_DoesNothing()
+    public async Task PlayerOutsideLobby_UpdateDoesNothing()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);

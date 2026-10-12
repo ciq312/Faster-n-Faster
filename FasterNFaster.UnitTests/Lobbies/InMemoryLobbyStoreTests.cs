@@ -7,7 +7,7 @@ namespace FasterNFaster.UnitTests.Lobbies;
 public class InMemoryLobbyStoreTests
 {
     [Fact]
-    public async Task Create_ReturnsIdAndInviteCode()
+    public async Task NewLobby_ReturnsIdAndInviteCode()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
 
@@ -46,7 +46,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task Mutate_WhenPlayerLeaves_KeepsMappingToOtherLobby()
+    public async Task PlayerLeavesWhileMappedToOtherLobby_KeepsMapping()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
@@ -59,7 +59,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task TryClaimPlayer_WhenInOtherLobby_ReturnsFalse()
+    public async Task PlayerInOtherLobby_ClaimRefused()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
@@ -69,7 +69,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task TryClaimPlayer_SameLobbyTwice_ReturnsTrue()
+    public async Task SameLobbyClaimedTwice_BothGranted()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var playerId = Guid.NewGuid();
@@ -106,7 +106,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task TryMutate_WhenLobbyMissing_ReturnsFalse()
+    public async Task MissingLobby_TryMutateReturnsFalse()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var mutateCalled = false;
@@ -150,7 +150,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task RemoveIfEmpty_ForgetsInviteCode()
+    public async Task RemovedEmptyLobby_InviteCodeForgotten()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var code = await context.ReadLobby(l => l.LobbySettings.InviteCode);
@@ -211,7 +211,7 @@ public class InMemoryLobbyStoreTests
     }
 
     [Fact]
-    public async Task FindIdByInviteCode_IgnoresCase()
+    public async Task AnyCaseInviteCode_FindsLobby()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var code = await context.ReadLobby(l => l.LobbySettings.InviteCode);

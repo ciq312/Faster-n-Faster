@@ -51,22 +51,22 @@ public class Lobby : AggregateRoot<Guid>
         if (IsSessionActive) throw new LobbyIsNotAcceptingPlayersException();
         if (Players.Count >= LobbySettings.MaxPlayers) throw new LobbyFullException();
 
+        var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
+        var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
+
         // Last check on purpose: a granted claim must never be followed by a throw.
         if (!tryClaimPlayer(userId)) throw new AlreadyInLobbyException();
 
-        AddPlayer(userId, nick);
+        AddPlayer(new LobbyPlayer(userId, nick, joinOrder, color));
     }
     private bool IsCodeCorrect(string? codeToCheck, string? actualCode) => string.Equals(codeToCheck, actualCode, StringComparison.OrdinalIgnoreCase);
 
-    private void AddPlayer(Guid userId, string nick)
+    private void AddPlayer(LobbyPlayer player)
     {
-        var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
-        var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
-        var player = new LobbyPlayer(userId, nick, joinOrder, color);
         players.Add(player);
-        ClaimHostIfVacant(userId);
+        ClaimHostIfVacant(player.Id);
         LobbySettings.UpdateTimestamp();
-        RaiseDomainEvent(new PlayerJoinedEvent(userId, Id, nick));
+        RaiseDomainEvent(new PlayerJoinedEvent(player.Id, Id, player.Nick));
     }
 
     public void AssignHost(Guid hostId)

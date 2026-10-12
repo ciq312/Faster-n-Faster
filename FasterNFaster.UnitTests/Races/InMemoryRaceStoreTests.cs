@@ -7,7 +7,7 @@ namespace FasterNFaster.UnitTests.Races;
 public class InMemoryRaceStoreTests
 {
     [Fact]
-    public async Task TryMutate_WhenRaceRemoved_ReturnsFalse()
+    public async Task RemovedRace_TryMutateReturnsFalse()
     {
         var context = await LobbyFactory.WithPlayers(new User("host"));
         context.Races.Remove(context.LobbyId);
@@ -18,7 +18,7 @@ public class InMemoryRaceStoreTests
     }
 
     [Fact]
-    public async Task TryMutate_WhenRaceExists_MutatesAndReturnsTrue()
+    public async Task ExistingRace_TryMutateMutatesAndReturnsTrue()
     {
         var context = await LobbyFactory.WithPlayers(new User("host"));
         var mutateCalled = false;
@@ -30,7 +30,7 @@ public class InMemoryRaceStoreTests
     }
 
     [Fact]
-    public async Task TryMutate_DispatchesDrainedEvents()
+    public async Task RaceFinishingMutation_DispatchesDrainedEvents()
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
@@ -42,7 +42,7 @@ public class InMemoryRaceStoreTests
     }
 
     [Fact]
-    public async Task TryRead_WhenRaceRemoved_ReturnsDefault()
+    public async Task RemovedRace_TryReadReturnsDefault()
     {
         var context = await LobbyFactory.WithPlayers(new User("host"));
         context.Races.Remove(context.LobbyId);
@@ -53,7 +53,7 @@ public class InMemoryRaceStoreTests
     }
 
     [Fact]
-    public async Task Read_WhenRaceMissing_ThrowsInvalidOperation()
+    public async Task MissingRace_ReadThrowsInvalidOperation()
     {
         var context = await LobbyFactory.WithPlayers(new User("host"));
         context.Races.Remove(context.LobbyId);
@@ -62,7 +62,7 @@ public class InMemoryRaceStoreTests
     }
 
     [Fact]
-    public async Task Exists_ReflectsAddAndRemove()
+    public async Task AddedAndRemovedRace_ExistsReflectsBoth()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         Assert.True(context.Races.Exists(context.LobbyId));

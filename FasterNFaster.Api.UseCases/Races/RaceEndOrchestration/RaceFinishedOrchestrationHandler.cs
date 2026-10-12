@@ -21,11 +21,11 @@ public class RaceFinishedOrchestrationHandler(
         {
             var e = notification.Event;
 
+            registry.DeregisterLobby(e.LobbyId);
+
             await lobbies.Mutate(e.LobbyId, l => l.EndSession());
             tracker.MarkChanged(e.LobbyId);
 
             await passageRefresher.TryRefresh(e.LobbyId);
-
-            registry.DeregisterLobby(e.LobbyId);
         });
 }

@@ -3,12 +3,12 @@ using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
-using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
@@ -300,9 +300,9 @@ public class LobbyConcurrencyTests
         return Task.WhenAll(first, second);
     }
 
-    private static async Task<Action> HoldGate(InMemoryLobbyStore lobbies, Guid lobbyId)
+    private static async Task<Action> HoldGate(ILobbyStore lobbies, Guid lobbyId)
     {
-        var held = new TaskCompletionSource();
+        var held = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new ManualResetEventSlim();
         _ = Task.Run(() => lobbies.Mutate(lobbyId, _ =>
         {

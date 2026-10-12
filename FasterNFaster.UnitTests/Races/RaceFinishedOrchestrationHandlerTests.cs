@@ -1,9 +1,10 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
 
@@ -47,7 +48,7 @@ public class RaceFinishedOrchestrationHandlerTests
     public async Task Handle_DefersToOuterScope_WhenAlreadyOpen()
     {
         var (handler, context, broadcaster) = await Build();
-        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
+        var scope = LobbyFactory.StateScope(context, broadcaster);
 
         await scope.Run(async () =>
         {
@@ -60,7 +61,7 @@ public class RaceFinishedOrchestrationHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenNextRaceAlreadyEnrolled_KeepsPassageAndDoesNotThrow()
+    public async Task NextRaceAlreadyEnrolled_PassageKeptAndNoThrow()
     {
         var (handler, context, _) = await Build();
         var passageBefore = await context.ReadRace(r => r.Passage);
@@ -70,6 +71,51 @@ public class RaceFinishedOrchestrationHandlerTests
         Assert.Null(exception);
         Assert.Equal(passageBefore, await context.ReadRace(r => r.Passage));
     }
+
+    [Fact]
+    public async Task FinishedRace_PassageReplacedForNextRace()
+    {
+        var (finished, context, _) = await FinishedRace();
+        var handler = HandlerWith(context, new FakePassageProvider("fresh words"));
+
+        await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None);
+
+        Assert.Equal("fresh words", await context.ReadRace(r => r.Passage));
+    }
+
+    [Fact]
+    public async Task StartRaceDuringPostRaceRefresh_KeepsNextRaceRegistered()
+    {
+        var (finished, context, hostId) = await FinishedRace();
+        var provider = new GatedPassageProvider();
+        var handling = HandlerWith(context, provider)
+            .Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None);
+        await provider.WaitForRequest();
+
+        await LobbyFactory.StartRace(context, hostId);
+        provider.Complete("fresh words");
+        await handling;
+
+        Assert.Contains(context.Registry.GetRacingLobbies(), e => e.LobbyId == context.LobbyId);
+    }
+
+    private static async Task<(RaceFinishedEvent Finished, LobbyTestContext Context, Guid HostId)> FinishedRace()
+    {
+        var (host, other, context) = await LobbyFactory.TwoUsersSetup();
+        await LobbyFactory.StartRace(context, host.Id);
+        foreach (var playerId in new[] { host.Id, other.Id })
+            await context.Races.Mutate(context.LobbyId, r => r.WithdrawParticipant(playerId));
+
+        return (Assert.Single(context.Dispatcher.Dispatched.OfType<RaceFinishedEvent>()), context, host.Id);
+    }
+
+    private static RaceFinishedOrchestrationHandler HandlerWith(LobbyTestContext context, IPassageProvider provider) =>
+        new(
+            context.Lobbies,
+            context.Tracker,
+            new PassageRefresher(context.Races, provider, context.Tracker),
+            context.Registry,
+            LobbyFactory.StateScope(context, new FakeBroadcaster()));
 
     private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
         new(new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>()));
@@ -82,7 +128,7 @@ public class RaceFinishedOrchestrationHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
 
         var broadcaster = new FakeBroadcaster();
-        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
+        var scope = LobbyFactory.StateScope(context, broadcaster);
 
         var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.Tracker, context.PassageRefresher, context.Registry, scope);
 

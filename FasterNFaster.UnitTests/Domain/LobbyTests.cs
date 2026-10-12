@@ -10,7 +10,7 @@ public class LobbyTests
     private static readonly Func<Guid, bool> Claim = _ => true;
 
     [Fact]
-    public void Join_WhenClaimRefused_ThrowsAlreadyInLobbyAndAddsNoPlayer()
+    public void ClaimRefused_JoinThrowsAlreadyInLobbyAndAddsNoPlayer()
     {
         var lobby = CreateLobby();
         var joiner = Guid.NewGuid();
@@ -22,7 +22,7 @@ public class LobbyTests
     }
 
     [Fact]
-    public void Join_WhenLobbyFull_DoesNotClaim()
+    public void FullLobby_JoinDoesNotClaim()
     {
         var lobby = CreateLobby();
         for (var i = 0; i < lobby.LobbySettings.MaxPlayers; i++)
@@ -39,7 +39,7 @@ public class LobbyTests
     }
 
     [Fact]
-    public void Join_WhenAlreadyIn_DoesNotClaim()
+    public void PlayerAlreadyIn_JoinDoesNotClaim()
     {
         var (lobby, first, _) = CreateLobbyWithTwoPlayers();
         var claimed = new List<Guid>();
@@ -54,7 +54,7 @@ public class LobbyTests
     }
 
     [Fact]
-    public void Disconnect_WhenPlayerAbsent_ReturnsFalseAndRaisesNothing()
+    public void AbsentPlayer_DisconnectReturnsFalseAndRaisesNothing()
     {
         var (lobby, _, _) = CreateLobbyWithTwoPlayers();
         lobby.DrainEvents();

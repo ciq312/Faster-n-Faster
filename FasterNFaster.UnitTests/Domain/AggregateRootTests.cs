@@ -6,7 +6,7 @@ namespace FasterNFaster.UnitTests.Domain;
 public class AggregateRootTests
 {
     [Fact]
-    public void DrainEvents_WhenNoEvents_ReturnsSameEmptyInstance()
+    public void NoEvents_DrainReturnsSharedEmpty()
     {
         var lobby = new Lobby("Test", isPrivate: false, inviteCodeExists: _ => false);
 
@@ -18,7 +18,7 @@ public class AggregateRootTests
     }
 
     [Fact]
-    public void DrainEvents_AfterEvents_ReturnsThemAndClears()
+    public void EventsRaised_DrainReturnsThemAndClears()
     {
         var lobby = new Lobby("Test", isPrivate: false, inviteCodeExists: _ => false);
         var playerId = Guid.NewGuid();

@@ -42,6 +42,8 @@ public class KickPlayerHandlerTests
         await Assert.ThrowsAsync<PlayerBannedInLobbyException>(() =>
             new JoinLobbyHandler(context.Lobbies, context.Tracker)
                 .Handle(new JoinLobbyCommand(other.Id, context.LobbyId, other.Nick), CancellationToken.None));
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(other.Id));
     }
 
     [Fact]

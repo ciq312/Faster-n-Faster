@@ -13,6 +13,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
+using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -125,6 +126,18 @@ public static class LobbyFactory
     public static EmptyLobbyRemover Remover(LobbyTestContext context) =>
         new(context.Lobbies, context.Races, context.Registry);
 
+    public static LobbyStateScope StateScope(LobbyTestContext context, IBroadcaster broadcaster) =>
+        new(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
+
+    public static async Task<int> LobbyStateBroadcasts(LobbyTestContext context, Func<Task> command)
+    {
+        var broadcaster = new FakeBroadcaster();
+
+        await StateScope(context, broadcaster).Run(command);
+
+        return broadcaster.Broadcasts.Count(b => b.EventName == GameEvents.LobbyState);
+    }
+
     public static EmptyLobbySweepService SweepService(LobbyTestContext context, TimeProvider time) =>
         new(
             context.Lobbies,
@@ -145,7 +158,7 @@ public static class LobbyFactory
 
     public static void WireRaceFinished(LobbyTestContext context)
     {
-        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, new FakeBroadcaster());
+        var scope = StateScope(context, new FakeBroadcaster());
         var orchestration = new RaceFinishedOrchestrationHandler(context.Lobbies, context.Tracker, context.PassageRefresher, context.Registry, scope);
         context.Dispatcher.OnDispatch = domainEvent => domainEvent is RaceFinishedEvent finished
             ? orchestration.Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None)

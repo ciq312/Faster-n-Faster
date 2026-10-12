@@ -16,13 +16,13 @@ public class RaceTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Constructor_WithNonPositiveWordCount_Throws(int wordCount) =>
+    public void NonPositiveWordCount_ConstructorThrows(int wordCount) =>
         Assert.Throws<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage));
 
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Constructor_WithEmptyPassage_Throws(string? passage) =>
+    public void EmptyPassage_ConstructorThrows(string? passage) =>
         Assert.ThrowsAny<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!));
 
     private static (Race Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
@@ -113,7 +113,7 @@ public class RaceTests
     }
 
     [Fact]
-    public void TryChangePassage_BeforeEnrolment_ReplacesPassage()
+    public void BeforeEnrolment_PassageReplaced()
     {
         var race = new Race(Guid.NewGuid(), 9, Passage);
 
@@ -124,7 +124,7 @@ public class RaceTests
     }
 
     [Fact]
-    public void TryChangePassage_AfterParticipantsEnrolled_ReturnsFalse()
+    public void EnrolledParticipants_PassageChangeRefused()
     {
         var (race, _, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
 
@@ -135,7 +135,7 @@ public class RaceTests
     }
 
     [Fact]
-    public void TryChangePassage_AfterStart_ReturnsFalse()
+    public void StartedRace_PassageChangeRefused()
     {
         var (race, _, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
 
@@ -146,7 +146,7 @@ public class RaceTests
     }
 
     [Fact]
-    public void TryChangePassage_AfterRaceFinished_ReplacesPassage()
+    public void FinishedRace_PassageReplaced()
     {
         var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
         Finish(race, participant);

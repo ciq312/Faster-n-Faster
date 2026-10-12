@@ -15,12 +15,12 @@ public class DisconnectHandler(ILobbyStore lobbies, IRaceStore races, ILobbyStat
         var wasRacing = false;
         var disconnected = false;
 
-        var found = await lobbies.TryMutate(lobbyId.Value, l =>
+        await lobbies.TryMutate(lobbyId.Value, l =>
         {
             wasRacing = l.IsSessionActive;
             disconnected = l.Disconnect(command.PlayerId);
         });
-        if (!found || !disconnected) return;
+        if (!disconnected) return;
 
         tracker.MarkChanged(lobbyId.Value);
 
