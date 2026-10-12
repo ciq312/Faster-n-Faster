@@ -18,7 +18,7 @@ public class RaceViolationHandlerTests
     [Fact]
     public async Task Handle_BelowRaceViolationThreshold_DoesNotWithdrawOrBroadcast()
     {
-        var (handler, lobby, broadcaster, _, _, playerId, _) = await Build();
+        var (handler, lobby, broadcaster, _, _, playerId, _, _) = await Build();
 
         await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
@@ -31,7 +31,7 @@ public class RaceViolationHandlerTests
     [Fact]
     public async Task Handle_AtRaceViolationThreshold_WithdrawsAndBroadcastsRaceWithdrawn()
     {
-        var (handler, lobby, broadcaster, _, _, playerId, _) = await Build();
+        var (handler, lobby, broadcaster, _, _, playerId, _, _) = await Build();
 
         for (var i = 0; i < RaceViolationThreshold; i++)
             await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
@@ -45,7 +45,7 @@ public class RaceViolationHandlerTests
     [Fact]
     public async Task RaceAlreadyRemoved_DoesNotBroadcastRaceWithdrawn()
     {
-        var (handler, lobby, broadcaster, _, _, playerId, _) = await Build();
+        var (handler, lobby, broadcaster, _, _, playerId, _, _) = await Build();
         lobby.Races.Remove(lobby.LobbyId);
 
         for (var i = 0; i < RaceViolationThreshold; i++)
@@ -57,7 +57,7 @@ public class RaceViolationHandlerTests
     [Fact]
     public async Task Handle_AtStrikeThreshold_SuspendsRegisteredUserAndBroadcastsSuspended()
     {
-        var (handler, lobby, broadcaster, bans, strikes, playerId, _) = await Build();
+        var (handler, lobby, broadcaster, bans, strikes, playerId, _, _) = await Build();
 
         for (var i = 0; i < SuspensionThreshold; i++)
             await WithdrawFromRace(handler, lobby, strikes, playerId);
@@ -69,7 +69,7 @@ public class RaceViolationHandlerTests
     [Fact]
     public async Task Handle_GuestAtStrikeThreshold_NeverSuspends()
     {
-        var (handler, lobby, broadcaster, bans, strikes, playerId, _) = await Build(registerPlayer: false);
+        var (handler, lobby, broadcaster, bans, strikes, playerId, _, _) = await Build(registerPlayer: false);
 
         for (var i = 0; i < SuspensionThreshold; i++)
             await WithdrawFromRace(handler, lobby, strikes, playerId);
@@ -79,9 +79,57 @@ public class RaceViolationHandlerTests
     }
 
     [Fact]
+    public async Task AtStrikeThreshold_PublishesPlayerSanctioned()
+    {
+        var (handler, lobby, _, _, strikes, playerId, _, publisher) = await Build();
+
+        for (var i = 0; i < SuspensionThreshold; i++)
+            await WithdrawFromRace(handler, lobby, strikes, playerId);
+
+        var sanctioned = Assert.IsType<PlayerSanctionedEvent>(Assert.Single(publisher.Published));
+        Assert.Equal(playerId, sanctioned.PlayerId);
+    }
+
+    [Fact]
+    public async Task FailingDisconnect_StillPublishesPlayerSanctioned()
+    {
+        var sender = new FakeSender { OnSend = _ => throw new InvalidOperationException() };
+        var (handler, lobby, _, _, strikes, playerId, _, publisher) = await Build(sender: sender);
+
+        for (var i = 0; i < SuspensionThreshold - 1; i++)
+            await WithdrawFromRace(handler, lobby, strikes, playerId);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => WithdrawFromRace(handler, lobby, strikes, playerId));
+
+        Assert.IsType<PlayerSanctionedEvent>(Assert.Single(publisher.Published));
+    }
+
+    [Fact]
+    public async Task BelowStrikeThreshold_DoesNotPublishPlayerSanctioned()
+    {
+        var (handler, lobby, _, _, strikes, playerId, _, publisher) = await Build();
+
+        for (var i = 0; i < SuspensionThreshold - 1; i++)
+            await WithdrawFromRace(handler, lobby, strikes, playerId);
+
+        Assert.Empty(publisher.Published);
+    }
+
+    [Fact]
+    public async Task GuestAtStrikeThreshold_DoesNotPublishPlayerSanctioned()
+    {
+        var (handler, lobby, _, _, strikes, playerId, _, publisher) = await Build(registerPlayer: false);
+
+        for (var i = 0; i < SuspensionThreshold; i++)
+            await WithdrawFromRace(handler, lobby, strikes, playerId);
+
+        Assert.Empty(publisher.Published);
+    }
+
+    [Fact]
     public async Task Handle_SecondSuspension_IncrementsSuspensionCountAndLogsForHumanReview()
     {
-        var (handler, lobby, _, bans, strikes, playerId, logger) = await Build();
+        var (handler, lobby, _, bans, strikes, playerId, logger, _) = await Build();
 
         for (var pass = 0; pass < 2; pass++)
         {
@@ -106,7 +154,7 @@ public class RaceViolationHandlerTests
         strikes.ClearRace(lobby.LobbyId);
     }
 
-    private static async Task<(RaceViolationHandler Handler, LobbyTestContext Lobby, FakeBroadcaster Broadcaster, FakeBanRepository Bans, StrikeRegistry Strikes, Guid PlayerId, FakeLogger<RaceViolationHandler> Logger)> Build(bool registerPlayer = true)
+    private static async Task<(RaceViolationHandler Handler, LobbyTestContext Lobby, FakeBroadcaster Broadcaster, FakeBanRepository Bans, StrikeRegistry Strikes, Guid PlayerId, FakeLogger<RaceViolationHandler> Logger, FakePublisher Publisher)> Build(bool registerPlayer = true, FakeSender? sender = null)
     {
         var host = new User("host");
         var lobby = await LobbyFactory.WithPlayers(host);
@@ -120,14 +168,15 @@ public class RaceViolationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var bans = new FakeBanRepository();
         var logger = new FakeLogger<RaceViolationHandler>();
+        var publisher = new FakePublisher();
         var options = Options.Create(new AntiCheatSanctionOptions
         {
             RaceViolationThreshold = RaceViolationThreshold,
             SuspensionThreshold = SuspensionThreshold,
         });
 
-        var handler = new RaceViolationHandler(strikes, lobby.Races, broadcaster, bans, lobby.UserRepo, new FakeSender(), options, logger);
+        var handler = new RaceViolationHandler(strikes, lobby.Races, broadcaster, bans, lobby.UserRepo, sender ?? new FakeSender(), publisher, options, logger);
 
-        return (handler, lobby, broadcaster, bans, strikes, playerId, logger);
+        return (handler, lobby, broadcaster, bans, strikes, playerId, logger, publisher);
     }
 }

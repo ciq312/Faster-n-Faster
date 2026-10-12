@@ -13,5 +13,10 @@ public class FakeHubCallerContext(ClaimsPrincipal? user) : HubCallerContext
     public override IFeatureCollection Features { get; } = new FeatureCollection();
     public override CancellationToken ConnectionAborted => CancellationToken.None;
 
-    public override void Abort() { }
+    public bool Aborted { get; private set; }
+
+    public override void Abort() => Aborted = true;
+
+    public static FakeHubCallerContext ForUser(Guid userId) =>
+        new(new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", userId.ToString())])));
 }
