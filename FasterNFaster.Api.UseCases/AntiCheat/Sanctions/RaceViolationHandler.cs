@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -13,7 +13,7 @@ namespace FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 
 public class RaceViolationHandler(
     IStrikeRegistry strikes,
-    IRaceAccess races,
+    IRaceStore races,
     IBroadcaster broadcaster,
     IBanRepository bans,
     IUserRepository users,

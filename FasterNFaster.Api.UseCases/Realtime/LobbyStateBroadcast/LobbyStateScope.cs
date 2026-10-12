@@ -1,3 +1,4 @@
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 
@@ -5,7 +6,7 @@ namespace FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 
 public class LobbyStateScope(
     ILobbyStateTracker tracker,
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     ILobbyQuery lobbyQuery,
     IBroadcaster broadcaster) : ILobbyStateScope
 {

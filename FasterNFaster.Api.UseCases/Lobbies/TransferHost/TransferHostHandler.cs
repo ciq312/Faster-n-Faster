@@ -1,9 +1,9 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 
-public class TransferHostHandler(ILobbyAccess lobbies) : IRequestHandler<TransferHostCommand>
+public class TransferHostHandler(ILobbyStore lobbies) : IRequestHandler<TransferHostCommand>
 {
     public async Task Handle(TransferHostCommand command, CancellationToken cancellationToken)
     {

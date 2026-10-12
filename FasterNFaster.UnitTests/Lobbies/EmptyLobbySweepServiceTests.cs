@@ -17,8 +17,8 @@ public class EmptyLobbySweepServiceTests
 
         await sweep.Sweep(CancellationToken.None);
 
-        Assert.Null(context.Store.Get(context.LobbyId));
-        Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.False(context.LobbyExists);
+        Assert.False(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]
@@ -31,8 +31,8 @@ public class EmptyLobbySweepServiceTests
 
         await sweep.Sweep(CancellationToken.None);
 
-        Assert.NotNull(context.Store.Get(context.LobbyId));
-        Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.True(context.LobbyExists);
+        Assert.True(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]
@@ -46,8 +46,8 @@ public class EmptyLobbySweepServiceTests
 
         await sweep.Sweep(CancellationToken.None);
 
-        Assert.NotNull(context.Store.Get(context.LobbyId));
-        Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.True(context.LobbyExists);
+        Assert.True(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]
@@ -62,6 +62,6 @@ public class EmptyLobbySweepServiceTests
 
         await sweep.Sweep(cts.Token);
 
-        Assert.NotNull(context.Store.Get(context.LobbyId));
+        Assert.True(context.LobbyExists);
     }
 }

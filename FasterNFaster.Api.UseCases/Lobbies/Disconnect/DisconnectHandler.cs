@@ -1,10 +1,10 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IRequestHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbyStore lobbies, IRaceStore races) : IRequestHandler<DisconnectCommand>
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
@@ -12,12 +12,14 @@ public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
         if (lobbyId is null) return;
 
         var wasRacing = false;
+        var disconnected = false;
 
-        await lobbies.Mutate(lobbyId.Value, l =>
+        await lobbies.TryMutate(lobbyId.Value, l =>
         {
             wasRacing = l.IsSessionActive;
-            l.Disconnect(command.PlayerId);
+            disconnected = l.Disconnect(command.PlayerId);
         });
+        if (!disconnected) return;
 
         if (wasRacing)
             await races.TryMutate(lobbyId.Value, r => r.WithdrawParticipant(command.PlayerId));

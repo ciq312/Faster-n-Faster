@@ -13,10 +13,10 @@ public class StartRaceHandlerTests
 
         await LobbyFactory.StartRace(context, host.Id);
 
-        var snapshot = await context.RaceAccess.GetSnapshotOrDefault(context.LobbyId);
+        var snapshot = await context.ReadRace(r => r.GetSnapshot());
         Assert.NotNull(snapshot);
         Assert.Equal(new[] { host.Id, other.Id }.ToHashSet(), snapshot.Select(p => p.PlayerId).ToHashSet());
-        Assert.True(context.Lobby.IsSessionActive);
+        Assert.True(await context.ReadLobby(l => l.IsSessionActive));
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class StartRaceHandlerTests
 
         await Assert.ThrowsAsync<NotHostException>(() => LobbyFactory.StartRace(context, other.Id));
 
-        Assert.False(context.Lobby.IsSessionActive);
+        Assert.False(await context.ReadLobby(l => l.IsSessionActive));
     }
 
     [Fact]

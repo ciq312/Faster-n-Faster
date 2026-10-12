@@ -70,13 +70,15 @@ FasterNFaster.Api.Domain/          — domain layer, zero external dependencies
 FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
 ├── <Area>/
 │   ├── <UseCase>/   — Command/Query + Handler (+ Result), e.g. Auth/LoginUser, Lobbies/JoinLobby
-│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation, plus the types in their signatures
-│   ├── Services/    — in-process orchestration next to its interfaces (lobby/race lifecycle)
+│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation (e.g. ILobbyStore, IRaceStore),
+│   │                  plus the types in their signatures
+│   ├── Services/    — application services shared by several use cases (LobbyState tracking/query,
+│   │                  confirm tokens, user profiles)
 │   ├── Exceptions/  — area-specific exceptions
 │   └── *.cs         — area-wide constants (Realtime/GameEvents, Races/RaceCountdown)
 └── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
 FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
-├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby store, race tick loop + conflator
+├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby/race stores, race tick loop + conflator
 └── Shared/          — Persistence (AppDbContext, Migrations), Caching, AppOptions
 FasterNFaster.Api.Presentation/
 ├── Web/<Area>/      — FastEndpoints, one folder per use case; Web/Realtime holds the SignalR hub,
@@ -96,15 +98,36 @@ The conflator keeps a single "latest frame" slot per lobby: if a broadcast is st
 ### Key design decisions
 
 - **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick and broadcasts one conflated frame per lobby (see [Race hot path](#race-hot-path)). This keeps bandwidth and CPU flat regardless of typing speed.
-- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Auth/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to the race service to avoid per-keystroke mediator allocations.
+- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Auth/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to `IRaceStore.TryMutate` to avoid per-keystroke mediator allocations.
 - **Domain events over direct coupling** — aggregates raise events (`PlayerJoinedEvent`, `RaceFinishedEvent`, ...) that are dispatched as MediatR notifications; broadcast handlers in `UseCases/Realtime/` subscribe and push the SignalR messages. The domain never references SignalR, and a new side effect is a new handler, not an edit to existing code.
-- **Decorator-pattern caching** — `CachedBanRepository`, `CachedLeaderboardRepository`, and `CachedStatisticsRepository` wrap the Postgres repositories with Redis cache-aside logic. Callers depend on the same interface either way; caching is composed in DI and can be removed without touching business code.
-- **Cross-cutting concerns as hub filters** — ban checks, cheat detection, and exception mapping live in dedicated SignalR hub filters (`HubBanFilter`, `HubCheatFilter`, `HubExceptionFilter`) instead of being repeated inside hub methods.
+- **Decorator-pattern caching** — `CachedLeaderboardRepository` wraps the Postgres leaderboard queries with Redis cache-aside logic. Callers depend on the same interface either way; caching is composed in DI and can be removed without touching business code.
+- **Cross-cutting concerns as hub filters** — ban checks, suspension checks, and exception mapping live in dedicated SignalR hub filters (`HubBanFilter`, `HubSuspensionFilter`, `HubExceptionFilter`) instead of being repeated inside hub methods.
 - **Keystroke throttling** — the client throttles how often it sends keystrokes to the server, preventing the hub from being flooded under fast typists or network bursts
-- **In-memory live state** — lobbies and race progress live in lock-protected in-memory stores inside the API, keeping the hot path free of network round-trips; Redis holds refresh/confirm tokens and read caches. The trade-off is a single API instance — scaling out would mean adding a Redis SignalR backplane and externalizing lobby state
+- **In-memory live state** — lobbies and race progress live in in-memory stores inside the API, keeping the hot path free of network round-trips; Redis holds refresh/confirm tokens and read caches. The trade-off is a single API instance — see [Scaling out (later)](#scaling-out-later).
+- **Stores are ports; state stays behind a gate** — `ILobbyStore` and `IRaceStore` live in `UseCases/<Area>/Ports` and are implemented by `InMemoryLobbyStore` / `InMemoryRaceStore`. Each owns its dictionary and an `AggregateGate<T>` (one async semaphore per aggregate): mutations run inside the gate and their domain events are dispatched after it is released; reads take a projection that runs inside the gate, so no live aggregate ever leaves a store. The lobby store also owns the player→lobby and invite-code indexes and keeps them in sync with the lobbies; "one lobby per player" is enforced by an atomic claim on that index from `Lobby.Join`.
+- **LobbyState flush** — `TrackingLobbyStore`, a decorator over `ILobbyStore`, marks every lobby a command mutates on `ILobbyStateTracker`; `LobbyStateFlushBehavior` broadcasts one `LobbyState` per changed lobby when the command finishes. The only explicit mark is `RefreshHandler` (a resend without a change); another store implementation gets the rest for free.
 - **Host promotion** — if the host disconnects, the next player in the lobby list is automatically promoted
 - **Disconnected player mid-race** — cursor freezes, race continues, player excluded from results
 - **JWT auth** — RS256 asymmetric signing; short-lived access tokens + sliding refresh tokens in HttpOnly cookies
+
+### Deferred: more race modes
+
+Today there is one sealed `Race` (fixed passage, word count). The split below waits for a second mode (TimerRace) or for changing the mode of an existing lobby — until then it is more moving parts than the feature justifies:
+
+- **`WordRaceBuilder` / `TimerRaceBuilder`** — one concrete class per mode that owns its construction (parameters + passage loading); no shared interface until something needs polymorphism.
+- **`LobbyCreator`** — generic lobby creation (name, privacy, host, invite code, store) that takes an already-built race.
+- **Per-mode create handlers** (`CreateWordLobbyHandler`, `CreateTimerLobbyHandler`) — call the matching builder and hand the race to `LobbyCreator`.
+- **Per-mode change handlers** (`ChangeToWordRaceHandler`, `ChangeToTimerRaceHandler`) — reuse the builders to swap the race of an existing lobby.
+- **Wire settings** stay a DTO in `UseCases` (a sealed, discriminated hierarchy once there are two modes), never a type on the domain entity.
+
+### Scaling out (later)
+
+The API runs as a single instance on purpose: lobby and race state live in its memory. Running several instances would need:
+
+- **A Redis SignalR backplane** so a broadcast reaches players connected to other instances.
+- **A `RedisLobbyStore` behind `ILobbyStore`** — lobbies serialized to Redis, a distributed lock or optimistic versioning in place of the in-process gate, and the player→lobby and invite-code indexes as Redis keys (the player claim becomes `SET NX`). Handlers only talk to the port and LobbyState marking sits in the decorator over it, so they don't change.
+- **Race state pinned to one instance** — the keystroke hot path stays in memory on the instance that owns the race; the lobby records the owner and that instance's tick loop broadcasts, instead of a Redis round-trip per keystroke.
+- **Per-instance registries made shared or sticky** — strikes (`StrikeRegistry`), pending reconnect removals (`PendingRemovalRegistry`), sessions (`InMemorySessionService`) and the race tick registry are in-process today.
 
 ---
 
@@ -242,9 +265,9 @@ Hosted on a Contabo VPS (8 GB RAM). All services run as Docker containers:
 
 ## Testing
 
-xUnit, no mocking framework — every dependency has a hand-rolled fake in `fasternfaster.tests/Fakes/`, which keeps test setup explicit and readable. A few worth noting:
+xUnit, no mocking framework — every dependency has a hand-rolled fake in `FasterNFaster.UnitTests/Fakes/`, which keeps test setup explicit and readable. A few worth noting:
 
-- **`GatedRaceBroadcaster`** — lets a test hold a broadcast "in flight" and assert the conflator's latest-frame behavior deterministically, without sleeps.
+- **`GatedBroadcaster`** — lets a test hold a broadcast "in flight" and assert the conflator's latest-frame behavior deterministically, without sleeps.
 - **`InMemoryCache` + fake repositories** — the cached repository decorators are tested against the real cache-aside logic over controlled backing stores.
 
 Coverage spans use-case handlers, the caching decorators, the race tick/conflation/result pipeline, entity invariants, and request validators.

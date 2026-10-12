@@ -6,7 +6,7 @@ namespace FasterNFaster.Api.UseCases.Lobbies.Refresh;
 
 public class RefreshHandler(
     IPendingRemovalsRegistry pendingRemovalsRegistry,
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     ILobbyStateTracker tracker) : IRequestHandler<RefreshCommand>
 {
     public Task Handle(RefreshCommand command, CancellationToken cancellationToken)

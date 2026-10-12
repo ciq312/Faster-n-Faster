@@ -11,24 +11,25 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
-        Assert.Single(context.Lobby.Players);
-        Assert.True(context.Lobby.Players.ToList()[0].Id == host.Id);
+        var playerIds = await context.ReadLobby(l => l.GetPlayerIds().ToList());
+        Assert.Equal(host.Id, Assert.Single(playerIds));
     }
+
     [Fact]
     public async Task HostDisconnectFromLobby_ShouldPromoteNextAndRemoveHost()
     {
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
-        Assert.Single(context.Lobby.Players);
-        Assert.True(context.Lobby.Players.ToList()[0].Id == context.Lobby.HostId);
+        var (playerIds, hostId) = await context.ReadLobby(l => (l.GetPlayerIds().ToList(), l.HostId));
+        Assert.Equal(hostId, Assert.Single(playerIds));
     }
 
     [Fact]
@@ -36,12 +37,12 @@ public class DisconnectHandlerTests
     {
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
-        Assert.Single(context.Lobby.Players);
+        Assert.Single(await context.ReadLobby(l => l.GetPlayerIds().ToList()));
     }
 
     [Fact]
@@ -52,12 +53,12 @@ public class DisconnectHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
         LobbyFactory.WireCleanup(context);
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
-        Assert.Null(context.Store.Get(context.LobbyId));
-        Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.False(context.LobbyExists);
+        Assert.False(context.Races.Exists(context.LobbyId));
         Assert.Empty(context.Registry.GetRacingLobbies());
     }
 
@@ -68,15 +69,15 @@ public class DisconnectHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
         LobbyFactory.WireCleanup(context);
 
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
-        var snapshot = await context.RaceAccess.GetSnapshotOrDefault(context.LobbyId);
+        var snapshot = await context.ReadRace(r => r.GetSnapshot());
         Assert.NotNull(snapshot);
         Assert.DoesNotContain(snapshot, p => p.PlayerId == other.Id);
         Assert.Contains(snapshot, p => p.PlayerId == host.Id);
-        Assert.NotNull(context.Store.Get(context.LobbyId));
+        Assert.True(context.LobbyExists);
     }
 
     [Fact]
@@ -84,8 +85,8 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
         await LobbyFactory.StartRace(context, host.Id);
-        await context.RaceAccess.Mutate(context.LobbyId, r => r.WithdrawParticipant(host.Id));
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        await context.Races.Mutate(context.LobbyId, r => r.WithdrawParticipant(host.Id));
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 

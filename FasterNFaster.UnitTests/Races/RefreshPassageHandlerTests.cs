@@ -1,5 +1,6 @@
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
+using FasterNFaster.UnitTests.Fakes;
 
 namespace FasterNFaster.UnitTests.Races;
 
@@ -32,7 +33,24 @@ public class RefreshPassageHandlerTests
         Assert.Null(exception);
     }
 
+    [Fact]
+    public async Task RaceStartsWhileFetchingPassage_ThrowsLobbyInRaceAndKeepsPassage()
+    {
+        var (host, _, context) = await LobbyFactory.TwoUsersSetup();
+        var passageBefore = await context.ReadRace(r => r.Passage);
+        var provider = new GatedPassageProvider();
+        var handler = new RefreshPassageHandler(context.Lobbies, new PassageRefresher(context.Races, provider));
+
+        var refresh = handler.Handle(new RefreshPassageCommand(host.Id), CancellationToken.None);
+        await provider.WaitForRequest();
+        await LobbyFactory.StartRace(context, host.Id);
+        provider.Complete("fresh words");
+
+        await Assert.ThrowsAsync<LobbyInRaceException>(() => refresh);
+        Assert.Equal(passageBefore, await context.ReadRace(r => r.Passage));
+    }
+
     private static Task Refresh(LobbyTestContext context, Guid callerId) =>
-        new RefreshPassageHandler(context.LobbyAccess, context.RaceAccess)
+        new RefreshPassageHandler(context.Lobbies, context.PassageRefresher)
             .Handle(new RefreshPassageCommand(callerId), CancellationToken.None);
 }

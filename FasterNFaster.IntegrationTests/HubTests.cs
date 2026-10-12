@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.Domain.Entities;
-using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
@@ -11,10 +10,9 @@ using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
@@ -164,11 +162,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         Assert.Equal(RaceCountdown.Duration.TotalSeconds, starting.CountdownSeconds);
         await Task.WhenAll(hostRaceStarted, guestRaceStarted).WaitAsync(RaceStartTimeout);
 
-        var settings = (WordRace.WordRaceSettings)await App.Services
-            .GetRequiredService<IRaceAccess>()
-            .GetRaceSettings(lobby.LobbyId);
-        await hostHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);
-        await guestHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);
+        var (passage, wordCount) = await App.Services
+            .GetRequiredService<IRaceStore>()
+            .Read(lobby.LobbyId, r => (r.Passage, r.WordCount));
+        await hostHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
+        await guestHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
 
         var ended = await hostRaceEnded.WaitAsync(EventTimeout);
         await guestRaceEnded.WaitAsync(EventTimeout);
@@ -182,12 +180,12 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         Assert.DoesNotContain(
             App.Services.GetRequiredService<IRaceTickRegistry>().GetRacingLobbies(),
             entry => entry.LobbyId == lobby.LobbyId);
-        Assert.False(await App.Services.GetRequiredService<ILobbyAccess>().Read(lobby.LobbyId, l => l.IsSessionActive));
+        Assert.False(await App.Services.GetRequiredService<ILobbyStore>().Read(lobby.LobbyId, l => l.IsSessionActive));
 
         var hostStatistics = await WaitForStatisticsAsync(host.UserId);
         Assert.Equal(1, hostStatistics.Wins);
         Assert.Equal(1, hostStatistics.RacesTyped);
-        Assert.Equal(settings.WordCount, hostStatistics.WordsTyped);
+        Assert.Equal(wordCount, hostStatistics.WordsTyped);
         Assert.Equal(100, hostStatistics.BestAccuracy);
 
         var guestStatistics = await WaitForStatisticsAsync(guest.UserId);

@@ -1,9 +1,9 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 
-public class KickPlayerHandler(ILobbyAccess lobbies) : IRequestHandler<KickPlayerCommand, KickPlayerResult>
+public class KickPlayerHandler(ILobbyStore lobbies) : IRequestHandler<KickPlayerCommand, KickPlayerResult>
 {
     public async Task<KickPlayerResult> Handle(KickPlayerCommand command, CancellationToken cancellationToken)
     {

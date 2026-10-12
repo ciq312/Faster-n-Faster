@@ -16,9 +16,9 @@ public class KickPlayerHandlerTests
         var result = await Kick(context, host.Id, other.Id);
 
         Assert.Equal(other.Id, result.TargetPlayerId);
-        Assert.False(context.Lobby.IsPlayerIn(other.Id));
-        Assert.True(context.Lobby.IsPlayerBanned(other.Id));
-        Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(other.Id));
+        Assert.False(await context.ReadLobby(l => l.IsPlayerIn(other.Id)));
+        Assert.True(await context.ReadLobby(l => l.IsPlayerBanned(other.Id)));
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(other.Id));
     }
 
     [Fact]
@@ -40,8 +40,10 @@ public class KickPlayerHandlerTests
         await Kick(context, host.Id, other.Id);
 
         await Assert.ThrowsAsync<PlayerBannedInLobbyException>(() =>
-            new JoinLobbyHandler(context.LobbyAccess)
+            new JoinLobbyHandler(context.Lobbies)
                 .Handle(new JoinLobbyCommand(other.Id, context.LobbyId, other.Nick), CancellationToken.None));
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(other.Id));
     }
 
     [Fact]
@@ -51,7 +53,7 @@ public class KickPlayerHandlerTests
 
         await Assert.ThrowsAsync<NotHostException>(() => Kick(context, other.Id, host.Id));
 
-        Assert.True(context.Lobby.IsPlayerIn(host.Id));
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(host.Id)));
     }
 
     [Fact]
@@ -62,7 +64,7 @@ public class KickPlayerHandlerTests
 
         await Assert.ThrowsAsync<LobbyInRaceException>(() => Kick(context, host.Id, other.Id));
 
-        Assert.True(context.Lobby.IsPlayerIn(other.Id));
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(other.Id)));
     }
 
     [Fact]
@@ -72,8 +74,8 @@ public class KickPlayerHandlerTests
 
         await Assert.ThrowsAsync<HostKickSelfException>(() => Kick(context, host.Id, host.Id));
 
-        Assert.True(context.Lobby.IsPlayerIn(host.Id));
-        Assert.Equal(host.Id, context.Lobby.HostId);
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(host.Id)));
+        Assert.Equal(host.Id, await context.ReadLobby(l => l.HostId));
     }
 
     [Fact]
@@ -85,6 +87,6 @@ public class KickPlayerHandlerTests
     }
 
     private static Task<KickPlayerResult> Kick(LobbyTestContext context, Guid callerId, Guid targetId) =>
-        new KickPlayerHandler(context.LobbyAccess)
+        new KickPlayerHandler(context.Lobbies)
             .Handle(new KickPlayerCommand(callerId, targetId), CancellationToken.None);
 }

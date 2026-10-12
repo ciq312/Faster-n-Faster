@@ -43,31 +43,30 @@ public class Lobby : AggregateRoot<Guid>
         IsSessionActive = false;
     }
 
-    public void Join(Guid userId, string nick, string? code)
+    public void Join(Guid userId, string nick, string? code, Func<Guid, bool> tryClaimPlayer)
     {
         if (IsPlayerIn(userId)) return;
         if (!IsCodeCorrect(code, LobbySettings.InviteCode) && LobbySettings.IsPrivate) throw new InvalidInviteCodeException();
         if (IsPlayerBanned(userId)) throw new PlayerBannedInLobbyException();
-
-        AddPlayer(userId, nick);
-    }
-    private bool IsCodeCorrect(string? codeToCheck, string? actualCode) => string.Equals(codeToCheck, actualCode, StringComparison.OrdinalIgnoreCase);
-
-    private void AddPlayer(Guid userId, string nick)
-    {
-        if (IsSessionActive)
-            throw new LobbyIsNotAcceptingPlayersException();
-
-        if (Players.Count >= LobbySettings.MaxPlayers)
-            throw new LobbyFullException();
+        if (IsSessionActive) throw new LobbyIsNotAcceptingPlayersException();
+        if (Players.Count >= LobbySettings.MaxPlayers) throw new LobbyFullException();
 
         var joinOrder = Players.Count != 0 ? Players.Max(p => p.JoinOrder) + 1 : 1;
         var color = PlayerColors.GetFirstAvailableFromPalette(Players.Select(p => p.Color));
-        var player = new LobbyPlayer(userId, nick, joinOrder, color);
+
+        // Last check on purpose: a granted claim must never be followed by a throw.
+        if (!tryClaimPlayer(userId)) throw new AlreadyInLobbyException();
+
+        AddPlayer(new LobbyPlayer(userId, nick, joinOrder, color));
+    }
+    private bool IsCodeCorrect(string? codeToCheck, string? actualCode) => string.Equals(codeToCheck, actualCode, StringComparison.OrdinalIgnoreCase);
+
+    private void AddPlayer(LobbyPlayer player)
+    {
         players.Add(player);
-        ClaimHostIfVacant(userId);
+        ClaimHostIfVacant(player.Id);
         LobbySettings.UpdateTimestamp();
-        RaiseDomainEvent(new PlayerJoinedEvent(userId, Id, nick));
+        RaiseDomainEvent(new PlayerJoinedEvent(player.Id, Id, player.Nick));
     }
 
     public void AssignHost(Guid hostId)
@@ -131,11 +130,13 @@ public class Lobby : AggregateRoot<Guid>
         return kickedPlayer;
     }
 
-    public LobbyPlayer Disconnect(Guid playerId)
+    public bool Disconnect(Guid playerId)
     {
+        if (!IsPlayerIn(playerId)) return false;
+
         var player = RemovePlayerInternal(playerId);
         RaiseDomainEvent(new PlayerDisconnectedEvent(playerId, Id, player.Nick));
-        return player;
+        return true;
     }
 
     private LobbyPlayer RemovePlayerInternal(Guid playerId)

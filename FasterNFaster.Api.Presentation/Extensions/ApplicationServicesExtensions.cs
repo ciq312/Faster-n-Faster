@@ -20,7 +20,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -35,7 +35,6 @@ public static class ApplicationServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<ILobbyRepository, InMemoryLobbyRepository>();
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
         services.AddSingleton<ICache, RedisCache>();
@@ -51,7 +50,6 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
         services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
         services.AddSingleton<IStrikeRegistry, StrikeRegistry>();
-        services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
         services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 
@@ -71,13 +69,15 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         services.AddSingleton<IBroadcaster, SignalRBroadcaster>();
-        services.AddSingleton<IRaceAccess, RaceAccess>();
+        services.AddSingleton<IRaceStore, InMemoryRaceStore>();
+        services.AddSingleton<PassageRefresher>();
         services.AddSingleton<RaceStateConflator>();
         services.AddSingleton<IRaceResultQueue, RaceResultQueue>();
         services.AddHostedService<RaceResultProcessor>();
 
-        services.AddSingleton<LobbyAccess>();
-        services.AddSingleton<ILobbyAccess>(sp => sp.GetRequiredService<LobbyAccess>());
+        services.AddSingleton<InMemoryLobbyStore>();
+        services.AddSingleton<ILobbyStore>(sp => new TrackingLobbyStore(
+            sp.GetRequiredService<InMemoryLobbyStore>(), sp.GetRequiredService<ILobbyStateTracker>()));
         services.AddSingleton<EmptyLobbyRemover>();
 
         services.AddSingleton<ILobbyQuery, LobbyQuery>();

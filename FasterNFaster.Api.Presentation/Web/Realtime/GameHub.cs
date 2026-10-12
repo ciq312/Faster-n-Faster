@@ -4,11 +4,11 @@ using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
-using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Races.StartRace;
 using FasterNFaster.Api.UseCases.Realtime;
 using MediatR;
@@ -20,9 +20,9 @@ namespace FasterNFaster.Api.Presentation.Web.Realtime;
 [Authorize]
 public partial class GameHub(
     ILogger<GameHub> logger,
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     ISessionService sessionService,
-    IRaceAccess races,
+    IRaceStore races,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick) GetCallerContext()
@@ -123,7 +123,7 @@ public partial class GameHub(
         var userId = GetCallerContext().UserId;
         //skip mediator to minimize the allocations
         if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return;
-        await races.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
+        await races.TryMutate(lobbyId, r => r.ProcessUpdate(userId, index, mistakes, typed));
     }
 
     public async Task LeaveLobby()

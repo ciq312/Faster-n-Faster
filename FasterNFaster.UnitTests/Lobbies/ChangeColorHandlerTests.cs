@@ -14,18 +14,18 @@ public class ChangeColorHandlerTests
 
         await ChangeColor(context, other.Id, PlayerColors.Palette[2]);
 
-        Assert.Equal(PlayerColors.Palette[2], ColorOf(context, other.Id));
+        Assert.Equal(PlayerColors.Palette[2], await ColorOf(context, other.Id));
     }
 
     [Fact]
     public async Task ColorTakenByOther_ThrowsColorIsAlreadyTaken()
     {
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
-        var colorBefore = ColorOf(context, other.Id);
+        var colorBefore = await ColorOf(context, other.Id);
 
         await Assert.ThrowsAsync<ColorIsAlreadyTakenException>(() => ChangeColor(context, other.Id, PlayerColors.Palette[0]));
 
-        Assert.Equal(colorBefore, ColorOf(context, other.Id));
+        Assert.Equal(colorBefore, await ColorOf(context, other.Id));
     }
 
     [Fact]
@@ -46,9 +46,9 @@ public class ChangeColorHandlerTests
     }
 
     private static Task ChangeColor(LobbyTestContext context, Guid callerId, string color) =>
-        new ChangeColorHandler(context.LobbyAccess)
+        new ChangeColorHandler(context.Lobbies)
             .Handle(new ChangeColorCommand(callerId, color), CancellationToken.None);
 
-    private static string ColorOf(LobbyTestContext context, Guid playerId) =>
-        context.Lobby.Players.Single(p => p.Id == playerId).Color;
+    private static Task<string> ColorOf(LobbyTestContext context, Guid playerId) =>
+        context.ReadLobby(l => l.Players.Single(p => p.Id == playerId).Color);
 }

@@ -15,19 +15,19 @@ public class JoinLobbyHandlerTests
 
         await Join(context, joiner.Id, context.LobbyId);
 
-        Assert.True(context.Lobby.IsPlayerIn(joiner.Id));
-        Assert.Equal(context.LobbyId, context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(joiner.Id)));
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
     }
 
     [Fact]
     public async Task PlayerInAnotherLobby_ThrowsAlreadyInLobby()
     {
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
-        var anotherLobby = await context.LobbyAccess.Create("Other", false, Guid.NewGuid());
+        var (anotherLobbyId, _) = await context.Lobbies.Create("Other", false, Guid.NewGuid());
 
-        await Assert.ThrowsAsync<AlreadyInLobbyException>(() => Join(context, other.Id, anotherLobby.Id));
+        await Assert.ThrowsAsync<AlreadyInLobbyException>(() => Join(context, other.Id, anotherLobbyId));
 
-        Assert.Equal(context.LobbyId, context.LobbyAccess.GetLobbyIdOfPlayer(other.Id));
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(other.Id));
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class JoinLobbyHandlerTests
         var exception = await Record.ExceptionAsync(() => Join(context, other.Id, context.LobbyId));
 
         Assert.Null(exception);
-        Assert.Equal(2, context.Lobby.Players.Count);
+        Assert.Equal(2, await context.ReadLobby(l => l.Players.Count));
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class JoinLobbyHandlerTests
 
         await Assert.ThrowsAsync<LobbyNotFoundException>(() => Join(context, joiner.Id, Guid.NewGuid()));
 
-        Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
     }
 
     [Fact]
@@ -61,22 +61,22 @@ public class JoinLobbyHandlerTests
 
         await Assert.ThrowsAsync<LobbyIsNotAcceptingPlayersException>(() => Join(context, joiner.Id, context.LobbyId));
 
-        Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
     }
 
     [Fact]
     public async Task PrivateLobbyWithWrongCode_ThrowsInvalidInviteCode_AndDoesNotTrack()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
-        var privateLobby = await context.LobbyAccess.Create("Private", true, Guid.NewGuid());
+        var (privateLobbyId, _) = await context.Lobbies.Create("Private", true, Guid.NewGuid());
         var joiner = new User("joiner");
 
-        await Assert.ThrowsAsync<InvalidInviteCodeException>(() => Join(context, joiner.Id, privateLobby.Id, "wrong"));
+        await Assert.ThrowsAsync<InvalidInviteCodeException>(() => Join(context, joiner.Id, privateLobbyId, "wrong"));
 
-        Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
     }
 
     private static Task Join(LobbyTestContext context, Guid playerId, Guid lobbyId, string? inviteCode = null) =>
-        new JoinLobbyHandler(context.LobbyAccess)
+        new JoinLobbyHandler(context.Lobbies)
             .Handle(new JoinLobbyCommand(playerId, lobbyId, "joiner", inviteCode), CancellationToken.None);
 }

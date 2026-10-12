@@ -1,8 +1,8 @@
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
-using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,42 +13,46 @@ public class CreateLobbyHandlerTests
     [Fact]
     public async Task CreateLobby_ShouldReturnLobbyIdAndName()
     {
-        var passageProvider = new RandomPassageProvider();
-        var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository();
-
-        var tracker = new LobbyStateTracker();
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
-
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
-
+        var (createLobbyHandler, lobbies) = Build();
         var hostId = Guid.NewGuid();
 
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, hostId), CancellationToken.None);
 
-        var storedLobby = lobbyStore.GetRequired(result.LobbyId);
+        var (name, storedHostId) = await lobbies.Read(result.LobbyId, l => (l.Name, l.HostId));
 
-        Assert.True(storedLobby.Name == "testLobby");
-        Assert.True(storedLobby.HostId == hostId);
+        Assert.Equal("testLobby", name);
+        Assert.Equal(hostId, storedHostId);
     }
 
     [Fact]
     public async Task CreateLobby_ShouldStoreTheLobby()
     {
-        var passageProvider = new RandomPassageProvider();
+        var (createLobbyHandler, lobbies) = Build();
+
+        await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, Guid.NewGuid()), CancellationToken.None);
+
+        Assert.Single(lobbies.GetAllIds());
+    }
+
+    [Fact]
+    public async Task CreatorAlreadyInLobby_ThrowsAlreadyInLobby()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+        var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races);
+
+        await Assert.ThrowsAsync<AlreadyInLobbyException>(() =>
+            handler.Handle(new CreateLobbyCommand("second", false, host.Id), CancellationToken.None));
+
+        Assert.Single(context.Lobbies.GetAllIds());
+    }
+
+    private static (CreateLobbyHandler Handler, InMemoryLobbyStore Lobbies) Build()
+    {
         var dispatcher = new FakeEventDispatcher();
-        var lobbyStore = new InMemoryLobbyRepository();
+        var lobbies = new InMemoryLobbyStore(dispatcher);
+        var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
 
-        var tracker = new LobbyStateTracker();
-        var lobbies = new LobbyAccess(lobbyStore, new InMemoryPlayerLocationRegistry(), dispatcher, tracker);
-        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
-
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
-        var lobbyId = Guid.NewGuid();
-
-        await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, lobbyId), CancellationToken.None);
-
-        Assert.Single(lobbyStore.GetAll());
+        return (new CreateLobbyHandler(new RandomPassageProvider(), lobbies, races), lobbies);
     }
 }

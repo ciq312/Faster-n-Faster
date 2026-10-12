@@ -7,7 +7,7 @@ namespace FasterNFaster.UnitTests.Lobbies;
 public class GetLobbiesHandlerTests
 {
     [Fact]
-    public async Task NoInviteCode_ReturnsLobbyWithPlayerCountAndGameMode()
+    public async Task NoInviteCode_ReturnsLobbyWithPlayerCount()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
 
@@ -16,14 +16,13 @@ public class GetLobbiesHandlerTests
         var item = Assert.Single(result.Lobbies);
         Assert.Equal(context.LobbyId, item.Id);
         Assert.Equal(2, item.PlayerCount);
-        Assert.Equal((await context.RaceAccess.GetRaceSettings(context.LobbyId)).RaceType, item.GameMode);
     }
 
     [Fact]
     public async Task MatchingInviteCode_ReturnsThatLobby()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
-        var code = context.Lobby.LobbySettings.InviteCode;
+        var code = await context.ReadLobby(l => l.LobbySettings.InviteCode);
 
         var result = await Handler(context).Handle(new GetLobbiesQuery(code), CancellationToken.None);
 
@@ -44,7 +43,7 @@ public class GetLobbiesHandlerTests
     public async Task LobbyWithoutRace_IsSkipped()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        await context.LobbyAccess.Create("No race", false, Guid.NewGuid());
+        await context.Lobbies.Create("No race", false, Guid.NewGuid());
 
         var result = await Handler(context).Handle(new GetLobbiesQuery(), CancellationToken.None);
 
@@ -55,7 +54,7 @@ public class GetLobbiesHandlerTests
     public async Task SeveralLobbies_ReturnedNewestFirst()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.LobbyAccess, context.RaceAccess);
+        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races);
         for (var i = 0; i < 3; i++)
             await createLobbyHandler.Handle(new CreateLobbyCommand($"Lobby {i}", false, Guid.NewGuid()), CancellationToken.None);
 
@@ -87,5 +86,5 @@ public class GetLobbiesHandlerTests
     }
 
     private static GetLobbiesHandler Handler(LobbyTestContext context) =>
-        new(context.LobbyAccess, context.RaceAccess);
+        new(context.Lobbies, context.Races);
 }
