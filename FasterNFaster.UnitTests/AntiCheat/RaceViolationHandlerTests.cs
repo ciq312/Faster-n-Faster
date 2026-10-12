@@ -67,6 +67,19 @@ public class RaceViolationHandlerTests
     }
 
     [Fact]
+    public async Task ThresholdReached_SuspensionExpiresDurationAfterNow()
+    {
+        var (handler, lobby, _, bans, strikes, playerId, _, _) = await Build();
+        lobby.Time.Advance(TimeSpan.FromMinutes(7));
+
+        for (var i = 0; i < SuspensionThreshold; i++)
+            await WithdrawFromRace(handler, lobby, strikes, playerId);
+
+        var suspension = Assert.Single(bans.Suspensions);
+        Assert.Equal(lobby.Time.GetUtcNow() + new AntiCheatSanctionOptions().SuspensionDuration, suspension.ExpiresAt);
+    }
+
+    [Fact]
     public async Task Handle_GuestAtStrikeThreshold_NeverSuspends()
     {
         var (handler, lobby, broadcaster, bans, strikes, playerId, _, _) = await Build(registerPlayer: false);
@@ -175,7 +188,7 @@ public class RaceViolationHandlerTests
             SuspensionThreshold = SuspensionThreshold,
         });
 
-        var handler = new RaceViolationHandler(strikes, lobby.Races, broadcaster, bans, lobby.UserRepo, sender ?? new FakeSender(), publisher, options, logger);
+        var handler = new RaceViolationHandler(strikes, lobby.Races, broadcaster, bans, lobby.UserRepo, sender ?? new FakeSender(), publisher, options, logger, lobby.Time);
 
         return (handler, lobby, broadcaster, bans, strikes, playerId, logger, publisher);
     }

@@ -5,18 +5,17 @@ namespace FasterNFaster.Api.Domain.Entities.Races;
 public class RaceParticipant
 {
     public const int MaxOverflow = 6;
-
-    private readonly Func<DateTime> now;
     private readonly ProgressBudget budget;
+    private readonly TimeProvider timeProvider;
     private (int Index, string Typed, int Mistakes)? pendingClaim;
 
-    public RaceParticipant(Guid id, string color, string nick, IAntiCheatPolicy policy, Func<DateTime>? now = null)
+    public RaceParticipant(Guid id, string color, string nick, IAntiCheatPolicy policy, TimeProvider timeProvider)
     {
-        this.now = now ?? (() => DateTime.UtcNow);
-        budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, this.now);
+        budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, timeProvider);
         Id = id;
         Color = color;
         Nick = nick;
+        this.timeProvider = timeProvider;
     }
 
     public string Nick { get; private set; }
@@ -27,7 +26,7 @@ public class RaceParticipant
         get;
         private set
         {
-            if (value < -1) throw new InvalidDataException("Invalid index");
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, -1);
             field = value;
         }
     } = -1;
@@ -38,16 +37,16 @@ public class RaceParticipant
         get;
         private set
         {
-            if (value < 0) throw new InvalidDataException("Invalid mistakes number");
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 0);
             field = value;
         }
     } = 0;
     public bool IsFinished { get; private set; }
     public int? FinishPosition { get; private set; }
-    public DateTime? FinishedAt { get; private set; }
-    public DateTime StartedAt { get; private set; }
+    public DateTimeOffset? FinishedAt { get; private set; }
+    public DateTimeOffset StartedAt { get; private set; }
 
-    public RaceParticipantResult? Result { get; private set; } = null!;
+    public RaceParticipantResult? Result { get; private set; }
 
     public ProgressOutcome UpdateProgress(int newIndex, string newTyped, int newMistakes, string passage)
     {
@@ -62,7 +61,7 @@ public class RaceParticipant
 
     public void Start()
     {
-        StartedAt = now();
+        StartedAt = timeProvider.GetUtcNow();
     }
 
     public ProgressOutcome RetryPendingClaim(string passage)
@@ -145,20 +144,21 @@ public class RaceParticipant
     {
         IsFinished = true;
         FinishPosition = position;
-        FinishedAt = now();
+        var now = timeProvider.GetUtcNow();
+        FinishedAt = now;
         Result = new RaceParticipantResult(
-            Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, WordsTyped, FinishPosition);
+            Guid.NewGuid(), Id, Nick, GetWPM(), GetAccuracy(), Mistakes, WordsTyped, FinishPosition, now);
     }
 
     public void MarkWithdrawn()
     {
         IsFinished = true;
-        FinishedAt = now();
+        FinishedAt = timeProvider.GetUtcNow();
     }
 
     public float GetWPM()
     {
-        var minutesElapsed = (float)((FinishedAt ?? now()) - StartedAt).TotalMinutes;
+        var minutesElapsed = (float)((FinishedAt ?? timeProvider.GetUtcNow()) - StartedAt).TotalMinutes;
         if (minutesElapsed <= 0) return 0;
         return WordsTyped / minutesElapsed;
     }

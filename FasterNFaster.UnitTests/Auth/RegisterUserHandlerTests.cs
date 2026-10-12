@@ -14,7 +14,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
         var tokenRepo = new FakeTokenRepo();
 
         repo.Seed(new User("Existing", "taken", "pass123"));
@@ -31,7 +31,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
         var tokenRepo = new FakeTokenRepo();
 
         var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
@@ -46,7 +46,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
         var tokenRepo = new FakeTokenRepo();
 
         var existing = new User("test1", "login1", "testpass");
@@ -62,7 +62,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
@@ -78,7 +78,7 @@ public class RegisterUserHandlerTests
     {
         var repo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
         var tokenRepo = new FakeTokenRepo();
         var handler = new RegisterUserHandler(repo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 

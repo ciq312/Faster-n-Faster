@@ -68,7 +68,7 @@ public partial class GameHub(
     {
         var (userId, nick) = GetCallerContext();
 
-        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, inviteCode!));
+        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, inviteCode));
 
         logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
     }

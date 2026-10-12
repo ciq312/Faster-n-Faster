@@ -25,7 +25,7 @@ public class RaceResultProcessorTests
 
         var results = new List<RaceParticipantResult>
         {
-            new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, 1)
+            new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, 1, DateTimeOffset.UnixEpoch)
         };
         queue.Enqueue(results);
 

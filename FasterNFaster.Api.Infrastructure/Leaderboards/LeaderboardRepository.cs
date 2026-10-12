@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FasterNFaster.Api.Infrastructure.Leaderboards;
 
-public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepository
+public class LeaderboardRepository(AppDbContext context, TimeProvider timeProvider) : ILeaderboardRepository
 {
     private static readonly Expression<Func<PlayerStatistics, float>> AvgWpm =
         s => s.RacesTyped == 0 ? 0 : s.SumWPM / s.RacesTyped;
@@ -16,8 +16,9 @@ public class LeaderboardRepository(AppDbContext context) : ILeaderboardRepositor
 
     public async Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
     {
+        var now = timeProvider.GetUtcNow();
         var query = context.Statistics.AsNoTracking()
-            .Where(s => !context.BannedPlayers.Any(b => b.UserId == s.Id && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow)));
+            .Where(s => !context.BannedPlayers.Any(b => b.UserId == s.Id && (b.ExpiresAt == null || b.ExpiresAt > now)));
 
         var total = await query.CountAsync();
 

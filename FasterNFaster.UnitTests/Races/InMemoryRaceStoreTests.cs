@@ -70,7 +70,7 @@ public class InMemoryRaceStoreTests
         context.Races.Remove(context.LobbyId);
         Assert.False(context.Races.Exists(context.LobbyId));
 
-        context.Races.Add(new Race(context.LobbyId, 5, "one two three four five"));
+        context.Races.Add(new Race(context.LobbyId, 5, "one two three four five", context.Time));
         Assert.True(context.Races.Exists(context.LobbyId));
     }
 }

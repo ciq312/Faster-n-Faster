@@ -5,6 +5,7 @@ using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -39,7 +40,7 @@ public class CreateLobbyHandlerTests
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
-        var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races);
+        var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time);
 
         await Assert.ThrowsAsync<AlreadyInLobbyException>(() =>
             handler.Handle(new CreateLobbyCommand("second", false, host.Id), CancellationToken.None));
@@ -50,9 +51,10 @@ public class CreateLobbyHandlerTests
     private static (CreateLobbyHandler Handler, InMemoryLobbyStore Lobbies) Build()
     {
         var dispatcher = new FakeEventDispatcher();
-        var lobbies = new InMemoryLobbyStore(dispatcher);
+        var time = new FakeTimeProvider();
+        var lobbies = new InMemoryLobbyStore(dispatcher, time);
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
 
-        return (new CreateLobbyHandler(new RandomPassageProvider(), lobbies, races), lobbies);
+        return (new CreateLobbyHandler(new RandomPassageProvider(), lobbies, races, time), lobbies);
     }
 }

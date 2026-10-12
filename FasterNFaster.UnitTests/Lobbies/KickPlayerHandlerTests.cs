@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
-using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 
@@ -79,11 +79,11 @@ public class KickPlayerHandlerTests
     }
 
     [Fact]
-    public async Task TargetNotInLobby_ThrowsUserNotFound()
+    public async Task TargetNotInLobby_ThrowsPlayerNotInLobby()
     {
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
-        await Assert.ThrowsAsync<UserNotFoundException>(() => Kick(context, host.Id, Guid.NewGuid()));
+        await Assert.ThrowsAsync<PlayerNotInLobbyException>(() => Kick(context, host.Id, Guid.NewGuid()));
     }
 
     private static Task<KickPlayerResult> Kick(LobbyTestContext context, Guid callerId, Guid targetId) =>

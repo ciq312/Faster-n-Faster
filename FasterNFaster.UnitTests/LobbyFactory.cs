@@ -56,16 +56,16 @@ public static class LobbyFactory
     {
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var tracker = new LobbyStateTracker();
-        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher), tracker);
         var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var tracker = new LobbyStateTracker();
+        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher, time), tracker);
         var registry = new RaceTickRegistry(time);
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
         var passageRefresher = new PassageRefresher(races, passageProvider);
 
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
@@ -83,9 +83,9 @@ public static class LobbyFactory
 
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
-        var tracker = new LobbyStateTracker();
-        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher), tracker);
         var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var tracker = new LobbyStateTracker();
+        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher, time), tracker);
         var registry = new RaceTickRegistry(time);
         var passageProvider = new RandomPassageProvider();
 
@@ -94,7 +94,7 @@ public static class LobbyFactory
 
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
         var passageRefresher = new PassageRefresher(races, passageProvider);
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
         var joinHandler = new JoinLobbyHandler(lobbies);
@@ -139,11 +139,11 @@ public static class LobbyFactory
         return broadcaster.Broadcasts.Count(b => b.EventName == GameEvents.LobbyState);
     }
 
-    public static EmptyLobbySweepService SweepService(LobbyTestContext context, TimeProvider time) =>
+    public static EmptyLobbySweepService SweepService(LobbyTestContext context) =>
         new(
             context.Lobbies,
             Remover(context),
-            time,
+            context.Time,
             Options.Create(new LobbyCleanupOptions { EmptyLobbyTtl = EmptyLobbyTtl }),
             NullLogger<EmptyLobbySweepService>.Instance);
 

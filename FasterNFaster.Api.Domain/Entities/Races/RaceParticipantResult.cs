@@ -12,7 +12,7 @@ public class RaceParticipantResult
     public int MistakeCount { get; private set; }
     public int WordsTyped { get; private set; }
     public int? FinishPosition { get; private set; }
-    public DateTime FinishedAt { get; private set; }
+    public DateTimeOffset FinishedAt { get; private set; }
 
     public RaceParticipantResult(
         Guid id,
@@ -22,7 +22,8 @@ public class RaceParticipantResult
         float accuracy,
         int mistakeCount,
         int wordsTyped,
-        int? finishPosition
+        int? finishPosition,
+        DateTimeOffset finishedAt
     )
     {
         if (accuracy is < 0 or > 100)
@@ -57,6 +58,6 @@ public class RaceParticipantResult
         WordsTyped = wordsTyped;
         MistakeCount = mistakeCount;
         FinishPosition = finishPosition;
-        FinishedAt = DateTime.UtcNow;
+        FinishedAt = finishedAt;
     }
 }

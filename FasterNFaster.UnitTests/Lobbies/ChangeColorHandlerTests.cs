@@ -1,7 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
-using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -38,11 +38,11 @@ public class ChangeColorHandlerTests
     }
 
     [Fact]
-    public async Task CallerNotInLobby_ThrowsUserNotFound()
+    public async Task CallerNotInLobby_ThrowsPlayerNotInLobby()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
 
-        await Assert.ThrowsAsync<UserNotFoundException>(() => ChangeColor(context, Guid.NewGuid(), PlayerColors.Palette[2]));
+        await Assert.ThrowsAsync<PlayerNotInLobbyException>(() => ChangeColor(context, Guid.NewGuid(), PlayerColors.Palette[2]));
     }
 
     private static Task ChangeColor(LobbyTestContext context, Guid callerId, string color) =>

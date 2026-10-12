@@ -12,7 +12,7 @@ public class LoginUserHandler(IUserRepository userRepo, IPasswordHelper password
         var user = await userRepo.GetUserByLoginAsync(command.Login)
             ?? throw new InvalidCredentialsException();
 
-        if (!passwordHelper.VerifyPassword(user, user.Password!, command.Password))
+        if (user.Password is null || !passwordHelper.VerifyPassword(user, user.Password, command.Password))
             throw new InvalidCredentialsException();
 
         if (!user.IsEmailVerified) throw new EmailNotVerifiedException(user.Email ?? string.Empty);

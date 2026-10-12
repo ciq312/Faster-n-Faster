@@ -5,7 +5,7 @@ using StackExchange.Redis;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class RedisConfirmTokenRepository(IConnectionMultiplexer redis) : IConfirmTokenRepository
+public class RedisConfirmTokenRepository(IConnectionMultiplexer redis, TimeProvider timeProvider) : IConfirmTokenRepository
 {
     private readonly IDatabase db = redis.GetDatabase();
 
@@ -14,7 +14,7 @@ public class RedisConfirmTokenRepository(IConnectionMultiplexer redis) : IConfir
 
     public async Task Add(Token token)
     {
-        var ttl = token.ExpiresAt - DateTime.UtcNow;
+        var ttl = token.ExpiresAt - timeProvider.GetUtcNow();
         if (ttl <= TimeSpan.Zero) return;
 
         var userKey = UserKey(token.UserId, token.Type);
@@ -66,5 +66,5 @@ public class RedisConfirmTokenRepository(IConnectionMultiplexer redis) : IConfir
         };
     }
 
-    private sealed record StoredToken(Guid UserId, string Value, TokenType Type, DateTime CreatedAt, DateTime ExpiresAt);
+    private sealed record StoredToken(Guid UserId, string Value, TokenType Type, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt);
 }

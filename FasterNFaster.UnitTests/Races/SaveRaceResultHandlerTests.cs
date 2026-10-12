@@ -15,7 +15,7 @@ public class SaveRaceResultHandlerTests
         var handler = new SaveRaceResultHandler(queue);
         var results = new List<RaceParticipantResult>
         {
-            new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, 1)
+            new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, 1, DateTimeOffset.UnixEpoch)
         };
         var e = new RaceFinishedEvent(Guid.NewGuid(), results);
 

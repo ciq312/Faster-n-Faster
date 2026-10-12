@@ -5,6 +5,7 @@ using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using FasterNFaster.Api.UseCases.Auth.RegisterUser;
 using FasterNFaster.Api.UseCases.Auth.ResetPassword;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Auth;
 
@@ -24,6 +25,7 @@ public class ResetPasswordHandlerTests
         public required ResetPasswordHandler Handler { get; init; }
         public required User User { get; init; }
         public required Token Token { get; init; }
+        public required FakeTimeProvider Time { get; init; }
     }
 
     private static async Task<TestContext> BuildWithValidResetToken()
@@ -42,7 +44,7 @@ public class ResetPasswordHandlerTests
         var sessions = new InMemorySessionService(tokenStore);
 
         var handler = new ResetPasswordHandler(
-            setup.repo, new FakeUnitOfWork(), setup.TokenRepo, PasswordHelperFactory.Create(), sessions);
+            setup.repo, new FakeUnitOfWork(), setup.TokenRepo, PasswordHelperFactory.Create(), sessions, setup.Time);
 
         return new TestContext
         {
@@ -52,7 +54,8 @@ public class ResetPasswordHandlerTests
             Sessions = sessions,
             Handler = handler,
             User = user,
-            Token = resetToken
+            Token = resetToken,
+            Time = setup.Time
         };
     }
 
@@ -98,7 +101,7 @@ public class ResetPasswordHandlerTests
     public async Task ExpiredToken_ThrowsAndLeavesPasswordUnchanged()
     {
         var ctx = await BuildWithValidResetToken();
-        ctx.Token.ExpiresAt = DateTime.UtcNow.AddMinutes(-1);
+        ctx.Time.Advance(ConfirmTokenFactoryHelper.DefaultOptions.Value.PasswordReset.ExpirationTime + TimeSpan.FromSeconds(1));
         var originalPassword = ctx.User.Password!;
 
         await Assert.ThrowsAsync<TokenNotFoundException>(() =>
@@ -118,8 +121,8 @@ public class ResetPasswordHandlerTests
             UserId = ctx.User.Id,
             Value = ctx.Token.Value,
             Type = TokenType.EmailVerification,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddHours(1)
+            CreatedAt = ctx.Time.GetUtcNow(),
+            ExpiresAt = ctx.Time.GetUtcNow().AddHours(1)
         };
         await ctx.TokenRepo.Add(wrongType);
         var originalPassword = ctx.User.Password!;

@@ -23,7 +23,7 @@ public class RegisterAnonymousEndpoint(ISender sender, IAuthTokenWriter auth) : 
     {
         var result = await sender.Send(new RegisterAnonymousCommand(req.Nick), ct);
 
-        auth.WriteGuestAuth(result.Tokens.AccessToken);
+        auth.WriteGuestAuth(result.AccessToken);
 
         await Send.CreatedAtAsync<RegisterAnonymousEndpoint>(
             routeValues: null,

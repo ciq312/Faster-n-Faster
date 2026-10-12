@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Domain.Entities.Auth;
 using FasterNFaster.Api.UseCases.Auth.Services;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Auth;
 
@@ -9,11 +10,12 @@ public class ConfirmTokenIssuerTests
     private static readonly TimeSpan Cooldown = ConfirmTokenFactoryHelper.DefaultOptions.Value.PasswordReset.Cooldown;
     private readonly Guid userId = Guid.NewGuid();
     private readonly FakeTokenRepo tokenRepo = new();
+    private readonly FakeTimeProvider time = new();
     private readonly ConfirmTokenIssuer issuer;
 
     public ConfirmTokenIssuerTests()
     {
-        issuer = new ConfirmTokenIssuer(tokenRepo, ConfirmTokenFactoryHelper.Create(), ConfirmTokenFactoryHelper.DefaultOptions);
+        issuer = new ConfirmTokenIssuer(tokenRepo, ConfirmTokenFactoryHelper.Create(time), ConfirmTokenFactoryHelper.DefaultOptions, time);
     }
 
     [Fact]
@@ -42,12 +44,12 @@ public class ConfirmTokenIssuerTests
     public async Task AfterCooldown_ReplacesPriorToken()
     {
         var first = await issuer.TryIssue(userId, TokenType.PasswordReset);
-        first!.CreatedAt = DateTime.UtcNow - Cooldown - TimeSpan.FromSeconds(1);
+        time.Advance(Cooldown + TimeSpan.FromSeconds(1));
 
         var second = await issuer.TryIssue(userId, TokenType.PasswordReset);
 
         Assert.NotNull(second);
-        Assert.NotEqual(first.Value, second.Value);
+        Assert.NotEqual(first!.Value, second.Value);
         Assert.Same(second, Assert.Single(tokenRepo.tokens));
     }
 

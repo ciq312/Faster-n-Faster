@@ -54,14 +54,18 @@ public class GetLobbiesHandlerTests
     public async Task SeveralLobbies_ReturnedNewestFirst()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races);
+        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time);
+        var created = new List<Guid>();
         for (var i = 0; i < 3; i++)
-            await createLobbyHandler.Handle(new CreateLobbyCommand($"Lobby {i}", false, Guid.NewGuid()), CancellationToken.None);
+        {
+            context.Time.Advance(TimeSpan.FromSeconds(1));
+            var lobby = await createLobbyHandler.Handle(new CreateLobbyCommand($"Lobby {i}", false, Guid.NewGuid()), CancellationToken.None);
+            created.Add(lobby.LobbyId);
+        }
 
         var result = await Handler(context).Handle(new GetLobbiesQuery(), CancellationToken.None);
 
-        Assert.Equal(4, result.Lobbies.Count);
-        Assert.Equal(result.Lobbies.OrderByDescending(l => l.CreatedAt), result.Lobbies);
+        Assert.Equal([created[2], created[1], created[0], context.LobbyId], result.Lobbies.Select(l => l.Id));
     }
 
     [Fact]

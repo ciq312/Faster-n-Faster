@@ -20,7 +20,8 @@ public class RaceViolationHandler(
     ISender sender,
     IPublisher publisher,
     IOptions<AntiCheatSanctionOptions> options,
-    ILogger<RaceViolationHandler> logger) : INotificationHandler<DomainEventNotification<RaceViolationEvent>>
+    ILogger<RaceViolationHandler> logger,
+    TimeProvider timeProvider) : INotificationHandler<DomainEventNotification<RaceViolationEvent>>
 {
     private readonly AntiCheatSanctionOptions opts = options.Value;
 
@@ -39,13 +40,13 @@ public class RaceViolationHandler(
 
         // A strike is one incident that reached the withdrawal threshold, not one rejected update,
         // and it counts even if the race is already gone, so leaving can't dodge it.
-        var strikeCount = strikes.RecordStrike(e.PlayerId, DateTime.UtcNow, opts.StrikeWindow);
+        var strikeCount = strikes.RecordStrike(e.PlayerId, timeProvider.GetUtcNow(), opts.StrikeWindow);
         if (strikeCount < opts.SuspensionThreshold) return;
 
         // Guests cap at race withdrawal: no durable identity to suspend against.
         if (!await users.IsUserRegistered(e.PlayerId)) return;
 
-        var expiresAt = DateTime.UtcNow.Add(opts.SuspensionDuration);
+        var expiresAt = timeProvider.GetUtcNow().Add(opts.SuspensionDuration);
         var suspensionCount = await bans.SuspendAsync(e.PlayerId, $"Repeated anti-cheat violations ({e.Rule})", expiresAt);
         strikes.ClearStrikes(e.PlayerId);
 

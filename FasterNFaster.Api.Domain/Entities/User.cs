@@ -7,7 +7,7 @@ public class User : Entity<Guid>
     public string? Login { get; private set; }
     public string? Password { get; private set; }
     public bool IsEmailVerified { get; private set; } = false;
-    public DateTime CreatedAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
     public PlayerStatistics? Statistics { get; private set; }
 
     /// <summary>Anonymous user with a chosen nick.</summary>
@@ -19,7 +19,6 @@ public class User : Entity<Guid>
         Nick = nick;
         Login = login is null ? null : NormalizeLogin(login);
         Password = password;
-        CreatedAt = DateTime.UtcNow;
     }
 
     public void SetPassword(string newPassword)

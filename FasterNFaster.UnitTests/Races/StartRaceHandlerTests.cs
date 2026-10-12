@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.UnitTests.Races;
@@ -55,11 +55,11 @@ public class StartRaceHandlerTests
     }
 
     [Fact]
-    public async Task CallerNotInLobby_ThrowsUserNotFound()
+    public async Task CallerNotInLobby_ThrowsPlayerNotInLobby()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
 
-        await Assert.ThrowsAsync<UserNotFoundException>(() => LobbyFactory.StartRace(context, Guid.NewGuid()));
+        await Assert.ThrowsAsync<PlayerNotInLobbyException>(() => LobbyFactory.StartRace(context, Guid.NewGuid()));
 
         Assert.Empty(context.Registry.GetRacingLobbies());
     }

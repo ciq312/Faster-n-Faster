@@ -7,11 +7,9 @@ public class CachedLeaderboardRepository(ILeaderboardRepository inner, ICache ca
 {
     private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(60);
 
-    public async Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
+    public Task<LeaderboardPage> GetTopPlayersAsync(LeaderboardSort sort, bool descending, int page, int pageSize)
     {
         var key = $"lb:{sort}:{descending}:{page}:{pageSize}";
-
-        return (await cache.GetOrSetAsync<LeaderboardPage>(
-            key, () => inner.GetTopPlayersAsync(sort, descending, page, pageSize)!, Ttl))!;
+        return cache.GetOrSetAsync(key, () => inner.GetTopPlayersAsync(sort, descending, page, pageSize), Ttl);
     }
 }

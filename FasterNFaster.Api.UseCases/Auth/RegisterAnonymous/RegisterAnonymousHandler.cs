@@ -8,8 +8,8 @@ public class RegisterAnonymousHandler(ITokenService tokenService) : IRequestHand
     public Task<RegisterAnonymousResult> Handle(RegisterAnonymousCommand command, CancellationToken cancellationToken)
     {
         var guestId = Guid.NewGuid();
-        var tokens = tokenService.IssueGuestTokens(guestId, command.Nick);
+        var accessToken = tokenService.IssueGuestTokens(guestId, command.Nick);
 
-        return Task.FromResult(new RegisterAnonymousResult(command.Nick, guestId, tokens));
+        return Task.FromResult(new RegisterAnonymousResult(command.Nick, guestId, accessToken));
     }
 }

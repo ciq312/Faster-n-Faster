@@ -30,12 +30,24 @@ public class VerifyEmailHandlerTests
         var tokenRepo = setup.TokenRepo;
         var token = tokenRepo.tokens[0].Value;
 
-        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork());
+        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork(), setup.Time);
 
         await Assert.ThrowsAsync<TokenNotFoundException>(async () =>
         {
             await handler.Handle(new VerifyEmailCommand("wrongTokenIHope"), CancellationToken.None);
         });
+    }
+
+    [Fact]
+    public async Task ExpiredToken_ShouldThrow()
+    {
+        var setup = await RegisteredUsersSetup.Setup(new RegisterUserCommand("test", "testlogin", "test@gmail.com", "testpass"));
+        var tokenVal = setup.TokenRepo.tokens[0].Value;
+        setup.Time.Advance(ConfirmTokenFactoryHelper.DefaultOptions.Value.EmailVerification.ExpirationTime + TimeSpan.FromSeconds(1));
+        var handler = new VerifyEmailHandler(setup.repo, setup.TokenRepo, new FakeUnitOfWork(), setup.Time);
+
+        await Assert.ThrowsAsync<TokenNotFoundException>(() =>
+            handler.Handle(new VerifyEmailCommand(tokenVal), CancellationToken.None));
     }
 
     private async Task<(User user, SetupResult setup)> PerformVerification()
@@ -48,7 +60,7 @@ public class VerifyEmailHandlerTests
         var tokenRepo = setup.TokenRepo;
         var tokenVal = tokenRepo.tokens[0].Value;
 
-        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork());
+        var handler = new VerifyEmailHandler(userRepo, tokenRepo, new FakeUnitOfWork(), setup.Time);
 
         await handler.Handle(new VerifyEmailCommand(tokenVal), CancellationToken.None);
 

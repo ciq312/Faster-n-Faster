@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Domain.Entities.Lobbies;
-using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Interfaces.Events;
 using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
@@ -15,16 +14,18 @@ public sealed class InMemoryLobbyStore : ILobbyStore
     private readonly ConcurrentDictionary<Guid, Guid> playerLobbies = new();
     private readonly AggregateGate<Lobby> gate;
     private readonly Func<Guid, Lobby?> tryGet;
+    private readonly TimeProvider timeProvider;
 
-    public InMemoryLobbyStore(IEventDispatcher dispatcher)
+    public InMemoryLobbyStore(IEventDispatcher dispatcher, TimeProvider timeProvider)
     {
+        this.timeProvider = timeProvider;
         gate = new AggregateGate<Lobby>(dispatcher, GetRequired);
         tryGet = lobbies.GetValueOrDefault;
     }
 
     public async Task<(Guid Id, string InviteCode)> Create(string name, bool isPrivate, Guid hostId)
     {
-        Lobby lobby = new(name, isPrivate, inviteCodes.ContainsKey);
+        Lobby lobby = new(name, isPrivate, inviteCodes.ContainsKey, timeProvider);
         lobby.AssignHost(hostId);
 
         var inviteCode = lobby.LobbySettings.InviteCode;
@@ -70,7 +71,7 @@ public sealed class InMemoryLobbyStore : ILobbyStore
         playerLobbies.TryGetValue(playerId, out var id) ? id : null;
 
     public Guid GetLobbyIdOfPlayerRequired(Guid playerId) =>
-        GetLobbyIdOfPlayer(playerId) ?? throw new UserNotFoundException(playerId);
+        GetLobbyIdOfPlayer(playerId) ?? throw new PlayerNotInLobbyException(playerId);
 
     public bool TryClaimPlayer(Guid playerId, Guid lobbyId) =>
         playerLobbies.GetOrAdd(playerId, lobbyId) == lobbyId;

@@ -6,27 +6,27 @@ namespace FasterNFaster.UnitTests.Leaderboards;
 
 public class CachedLeaderboardRepositoryTests
 {
-    private readonly FakeLeaderboardRepository _inner = new();
-    private readonly InMemoryCache _cache = new();
-    private readonly CachedLeaderboardRepository _sut;
+    private readonly FakeLeaderboardRepository inner = new();
+    private readonly InMemoryCache cache = new();
+    private readonly CachedLeaderboardRepository sut;
 
-    public CachedLeaderboardRepositoryTests() => _sut = new CachedLeaderboardRepository(_inner, _cache);
+    public CachedLeaderboardRepositoryTests() => sut = new CachedLeaderboardRepository(inner, cache);
 
     [Fact]
     public async Task GetTopPlayersAsync_SecondCall_ServedFromCache()
     {
-        await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
-        await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
+        await sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
+        await sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
 
-        Assert.Equal(1, _inner.Calls);
+        Assert.Equal(1, inner.Calls);
     }
 
     [Fact]
     public async Task GetTopPlayersAsync_DifferentQuery_CachedSeparately()
     {
-        await _sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
-        await _sut.GetTopPlayersAsync(LeaderboardSort.Wins, true, 1, 20);
+        await sut.GetTopPlayersAsync(LeaderboardSort.BestWpm, true, 1, 20);
+        await sut.GetTopPlayersAsync(LeaderboardSort.Wins, true, 1, 20);
 
-        Assert.Equal(2, _inner.Calls);
+        Assert.Equal(2, inner.Calls);
     }
 }

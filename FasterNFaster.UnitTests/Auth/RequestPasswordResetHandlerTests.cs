@@ -20,7 +20,7 @@ public class RequestPasswordResetHandlerTests
         setup.TokenRepo.tokens.Clear();
 
         var handler = new RequestPasswordResetHandler(
-            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), setup.EmailSender);
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions, setup.Time), setup.EmailSender);
         return (handler, setup);
     }
 
@@ -56,13 +56,13 @@ public class RequestPasswordResetHandlerTests
         var userRepo = new FakeUserRepository();
         var tokenRepo = new FakeTokenRepo();
         var emailSender = new FakeEmailSender();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(TimeProvider.System);
 
         var googleUser = new User("googleNick");
         googleUser.SetEmail("google@user.com");
         userRepo.Seed(googleUser);
 
-        var handler = new RequestPasswordResetHandler(userRepo, new ConfirmTokenIssuer(tokenRepo, tokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), emailSender);
+        var handler = new RequestPasswordResetHandler(userRepo, new ConfirmTokenIssuer(tokenRepo, tokenFactory, ConfirmTokenFactoryHelper.DefaultOptions, TimeProvider.System), emailSender);
 
         await handler.Handle(new RequestPasswordResetCommand("google@user.com"), CancellationToken.None);
 
@@ -88,7 +88,7 @@ public class RequestPasswordResetHandlerTests
         var (handler, setup) = await Build();
 
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
-        setup.TokenRepo.tokens[0].CreatedAt = DateTime.UtcNow.AddSeconds(-30);
+        setup.Time.Advance(ConfirmTokenFactoryHelper.DefaultOptions.Value.PasswordReset.Cooldown + TimeSpan.FromSeconds(1));
 
         await handler.Handle(new RequestPasswordResetCommand(KnownEmail), CancellationToken.None);
 

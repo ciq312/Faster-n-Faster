@@ -16,12 +16,14 @@ public class Lobby : AggregateRoot<Guid>
     public IReadOnlyList<LobbyPlayer> Players => players;
 
     private readonly List<Guid> bannedPlayerIds = new List<Guid>();
+    private readonly TimeProvider timeProvider;
 
-    public Lobby(string name, bool isPrivate, Func<string, bool> inviteCodeExists)
+    public Lobby(string name, bool isPrivate, Func<string, bool> inviteCodeExists, TimeProvider timeProvider)
     {
+        this.timeProvider = timeProvider;
         Id = Guid.NewGuid();
         Name = name;
-        LobbySettings = new LobbySettings(isPrivate, inviteCodeExists);
+        LobbySettings = new LobbySettings(isPrivate, inviteCodeExists, timeProvider);
     }
     public void StartSession(Guid initiatorId)
     {
@@ -34,7 +36,7 @@ public class Lobby : AggregateRoot<Guid>
     }
 
     public List<RaceParticipant> GetRaceParticipants(IAntiCheatPolicy policy) =>
-        Players.Select(x => new RaceParticipant(x.Id, x.Color, x.Nick, policy)).ToList();
+        Players.Select(x => new RaceParticipant(x.Id, x.Color, x.Nick, policy, timeProvider)).ToList();
 
     public void EndSession()
     {
@@ -185,7 +187,7 @@ public class Lobby : AggregateRoot<Guid>
 
     public bool IsEmpty() => Players.Count == 0;
 
-    public bool IsAbandoned(DateTime now, TimeSpan emptyLobbyTtl) =>
+    public bool IsAbandoned(DateTimeOffset now, TimeSpan emptyLobbyTtl) =>
         IsEmpty() && now - LobbySettings.CreatedAt >= emptyLobbyTtl;
 
     public IReadOnlyList<ColorStatus> GetColors()

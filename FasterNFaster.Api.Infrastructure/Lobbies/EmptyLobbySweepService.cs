@@ -24,7 +24,7 @@ public class EmptyLobbySweepService(
 
     public async Task Sweep(CancellationToken cancellationToken)
     {
-        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var now = timeProvider.GetUtcNow();
         var removed = 0;
 
         foreach (var lobbyId in lobbies.GetAllIds())

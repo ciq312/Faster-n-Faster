@@ -13,14 +13,15 @@ public class ResetPasswordHandler(
     IUnitOfWork unitOfWork,
     IConfirmTokenRepository tokenRepo,
     IPasswordHelper passwordHelper,
-    ISessionService sessionService) : IRequestHandler<ResetPasswordCommand>
+    ISessionService sessionService,
+    TimeProvider timeProvider) : IRequestHandler<ResetPasswordCommand>
 {
     public async Task Handle(ResetPasswordCommand command, CancellationToken cancellationToken)
     {
         var token = await tokenRepo.GetByValueAsync(command.Token);
         if (token is null) throw new TokenNotFoundException();
         if (token.Type != TokenType.PasswordReset) throw new TokenNotFoundException();
-        if (!token.IsValid()) throw new TokenNotFoundException();
+        if (!token.IsValid(timeProvider.GetUtcNow())) throw new TokenNotFoundException();
 
         var user = await userRepo.GetByIdAsync(token.UserId)
             ?? throw new UserNotFoundException(token.UserId);

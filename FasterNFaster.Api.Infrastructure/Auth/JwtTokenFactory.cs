@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class JwtTokenFactory(IOptions<JwtOptions> options) : IJwtTokenFactory
+public class JwtTokenFactory(IOptions<JwtOptions> options, TimeProvider timeProvider) : IJwtTokenFactory
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
 
@@ -21,22 +21,22 @@ public class JwtTokenFactory(IOptions<JwtOptions> options) : IJwtTokenFactory
 
     public IssuedToken CreateRefreshToken()
     {
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow();
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         return new IssuedToken(token, now.Add(jwtOptions.RefreshTokenLifetime), now);
     }
 
     private IssuedToken CreateToken(string subjectId, string name, string role, TimeSpan lifetime)
     {
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow();
         var expiresAt = now.Add(lifetime);
         var token = TokenHandler.CreateToken(new SecurityTokenDescriptor
         {
             Issuer = jwtOptions.Issuer,
             Audience = jwtOptions.Audience,
-            IssuedAt = now,
-            NotBefore = now,
-            Expires = expiresAt,
+            IssuedAt = now.UtcDateTime,
+            NotBefore = now.UtcDateTime,
+            Expires = expiresAt.UtcDateTime,
             SigningCredentials = signingCredentials,
             Claims = new Dictionary<string, object>
             {

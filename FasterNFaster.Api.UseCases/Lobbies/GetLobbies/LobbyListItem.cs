@@ -7,5 +7,5 @@ public record LobbyListItem(
     bool IsSessionActive,
     int PlayerCount,
     int MaxPlayers,
-    DateTime CreatedAt
+    DateTimeOffset CreatedAt
 );

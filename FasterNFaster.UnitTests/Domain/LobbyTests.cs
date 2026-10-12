@@ -2,6 +2,8 @@ using FasterNFaster.Api.Domain.Entities.Lobbies;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Domain;
 
@@ -348,6 +350,45 @@ public class LobbyTests
     }
 
     [Fact]
+    public void NewLobby_CreatedAtComesFromClock()
+    {
+        var time = new FakeTimeProvider(new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero));
+
+        var lobby = CreateLobby(time);
+
+        Assert.Equal(time.GetUtcNow(), lobby.LobbySettings.CreatedAt);
+        Assert.Equal(time.GetUtcNow(), lobby.LobbySettings.UpdatedAt);
+    }
+
+    [Fact]
+    public void Join_UpdatedAtComesFromClock()
+    {
+        var time = new FakeTimeProvider();
+        var lobby = CreateLobby(time);
+        var createdAt = lobby.LobbySettings.CreatedAt;
+        time.Advance(TimeSpan.FromMinutes(5));
+
+        lobby.Join(Guid.NewGuid(), "joiner", null, Claim);
+
+        Assert.Equal(createdAt, lobby.LobbySettings.CreatedAt);
+        Assert.Equal(time.GetUtcNow(), lobby.LobbySettings.UpdatedAt);
+    }
+
+    [Fact]
+    public void RaceParticipants_ReadLobbyClock()
+    {
+        var time = new FakeTimeProvider();
+        var lobby = CreateLobby(time);
+        lobby.Join(Guid.NewGuid(), "joiner", null, Claim);
+        var participant = Assert.Single(lobby.GetRaceParticipants(new FakeAntiCheatPolicy(maxCharsPerSecond: 1000, budgetSlack: 1000)));
+        time.Advance(TimeSpan.FromSeconds(30));
+
+        participant.Start();
+
+        Assert.Equal(time.GetUtcNow(), participant.StartedAt);
+    }
+
+    [Fact]
     public void InviteCodesTaken_NewLobbyGetsFirstFreeCode()
     {
         List<string> tried = [];
@@ -356,7 +397,7 @@ public class LobbyTests
         {
             tried.Add(code);
             return tried.Count < 3;
-        });
+        }, new FakeTimeProvider());
 
         Assert.Equal(3, tried.Count);
         Assert.Equal(tried[^1], lobby.LobbySettings.InviteCode);
@@ -618,9 +659,11 @@ public class LobbyTests
         Assert.False(lobby.IsSessionActive);
     }
 
-    private static Lobby CreateLobby() => new("Test", isPrivate: false, inviteCodeExists: _ => false);
+    private static Lobby CreateLobby(TimeProvider? time = null) =>
+        new("Test", isPrivate: false, inviteCodeExists: _ => false, time ?? new FakeTimeProvider());
 
-    private static Lobby CreatePrivateLobby() => new("Test", isPrivate: true, inviteCodeExists: _ => false);
+    private static Lobby CreatePrivateLobby() =>
+        new("Test", isPrivate: true, inviteCodeExists: _ => false, new FakeTimeProvider());
 
     private static (Lobby Lobby, Guid Creator) CreateLobbyWithUnjoinedHost()
     {
