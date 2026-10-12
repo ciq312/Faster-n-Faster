@@ -1,4 +1,4 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
@@ -9,7 +9,7 @@ namespace FasterNFaster.Api.Infrastructure.Races;
 
 public class RaceTickService(
     IRaceTickRegistry registry,
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     IBroadcaster broadcaster,
     IRaceStore races,
     RaceStateConflator conflator,

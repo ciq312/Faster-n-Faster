@@ -101,7 +101,7 @@ public class LobbyConcurrencyTests
             Assert.False(context.LobbyExists);
             Assert.False(context.Races.Exists(context.LobbyId));
             Assert.Empty(context.Registry.GetRacingLobbies());
-            Assert.All(players, u => Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(u.Id)));
+            Assert.All(players, u => Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(u.Id)));
         }
     }
 
@@ -125,7 +125,7 @@ public class LobbyConcurrencyTests
             if (!context.LobbyExists)
             {
                 Assert.False(context.Races.Exists(context.LobbyId));
-                Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
+                Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
             }
             else
             {
@@ -193,9 +193,9 @@ public class LobbyConcurrencyTests
         const int readersPerKind = 5;
         const int readsPerReader = 20;
 
-        var joinHandler = new JoinLobbyHandler(context.LobbyAccess);
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.Races);
-        var lobbiesHandler = new GetLobbiesHandler(context.LobbyAccess, context.Races);
+        var joinHandler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var lobbiesHandler = new GetLobbiesHandler(context.Lobbies, context.Races);
 
         List<Func<Task>> actions = [];
         actions.AddRange(joiners.Select<User, Func<Task>>(u =>
@@ -210,10 +210,10 @@ public class LobbyConcurrencyTests
             actions.Add(() => Repeat(readsPerReader, () =>
                 lobbiesHandler.Handle(new GetLobbiesQuery(), CancellationToken.None)));
             actions.Add(() => Repeat(readsPerReader, () =>
-                context.LobbyAccess.TryRead(context.LobbyId, l => l.GetPlayerIds())));
+                context.Lobbies.TryRead(context.LobbyId, l => l.GetPlayerIds())));
             actions.Add(() =>
             {
-                var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, new FakeBroadcaster());
+                var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, new FakeBroadcaster());
                 return Repeat(readsPerReader, () => scope.Run(() =>
                 {
                     context.Tracker.MarkChanged(context.LobbyId);
@@ -236,7 +236,7 @@ public class LobbyConcurrencyTests
 
     private static Task JoinTogether(LobbyTestContext context, IEnumerable<User> joiners)
     {
-        var handler = new JoinLobbyHandler(context.LobbyAccess);
+        var handler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
         return ConcurrentRunner.RunTogether(joiners.Select<User, Func<Task>>(u =>
             () => handler.Handle(new JoinLobbyCommand(u.Id, context.LobbyId, u.Nick), CancellationToken.None)));
     }
@@ -245,7 +245,7 @@ public class LobbyConcurrencyTests
     {
         try
         {
-            await new JoinLobbyHandler(context.LobbyAccess)
+            await new JoinLobbyHandler(context.Lobbies, context.Tracker)
                 .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None);
         }
         catch (LobbyNotFoundException)
@@ -255,7 +255,7 @@ public class LobbyConcurrencyTests
 
     private static Task DisconnectTogether(LobbyTestContext context, IEnumerable<User> leavers)
     {
-        var handler = new DisconnectHandler(context.LobbyAccess, context.Races);
+        var handler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
         return ConcurrentRunner.RunTogether(leavers.Select<User, Func<Task>>(u =>
             () => handler.Handle(new DisconnectCommand(u.Id), CancellationToken.None)));
     }
@@ -263,9 +263,9 @@ public class LobbyConcurrencyTests
     private static async Task AssertRegistryMatchesLobby(LobbyTestContext context, IEnumerable<User> gone)
     {
         foreach (var playerId in await context.ReadLobby(l => l.GetPlayerIds().ToList()))
-            Assert.Equal(context.LobbyId, context.LobbyAccess.GetLobbyIdOfPlayer(playerId));
+            Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(playerId));
 
         foreach (var user in gone)
-            Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(user.Id));
+            Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(user.Id));
     }
 }

@@ -81,11 +81,11 @@ public class RaceTickServiceTests
     {
         var (context, broadcaster, _, tick) = await StartedRace();
         context.Time.Advance(CountdownEnd);
-        await context.LobbyAccess.Mutate(context.LobbyId, l =>
+        await context.Lobbies.Mutate(context.LobbyId, l =>
         {
             foreach (var id in l.GetPlayerIds().ToList()) l.Disconnect(id);
         });
-        await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
+        await context.Lobbies.RemoveIfEmpty(context.LobbyId);
 
         await tick.Tick();
 

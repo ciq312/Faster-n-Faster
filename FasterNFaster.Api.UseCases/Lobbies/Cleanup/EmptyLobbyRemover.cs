@@ -1,10 +1,10 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 
 public class EmptyLobbyRemover(
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     IRaceStore races,
     IRaceTickRegistry raceTickRegistry)
 {

@@ -32,7 +32,7 @@ public class LobbyQueryTests
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
         var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
 
-        await context.LobbyAccess.Mutate(context.LobbyId, l => l.Join(Guid.NewGuid(), "late", null));
+        await context.Lobbies.Mutate(context.LobbyId, l => l.Join(Guid.NewGuid(), "late", null));
 
         Assert.Equal(2, state.Players.Count);
         Assert.Equal(2, state.Colors.Count(c => !c.IsAvailable));
@@ -42,7 +42,7 @@ public class LobbyQueryTests
     public async Task LobbyGoneButRaceRegistered_ThrowsLobbyNotFound()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
+        await context.Lobbies.RemoveIfEmpty(context.LobbyId);
 
         await Assert.ThrowsAsync<LobbyNotFoundException>(() => context.LobbyQuery.GetLobbyState(context.LobbyId));
     }

@@ -1,12 +1,12 @@
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Lobbies;
 
 public class EmptyLobbySweepService(
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     EmptyLobbyRemover remover,
     TimeProvider timeProvider,
     IOptions<LobbyCleanupOptions> options,

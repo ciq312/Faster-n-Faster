@@ -4,8 +4,8 @@ using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
@@ -20,7 +20,7 @@ namespace FasterNFaster.Api.Presentation.Web.Realtime;
 [Authorize]
 public partial class GameHub(
     ILogger<GameHub> logger,
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     ISessionService sessionService,
     IRaceStore races,
     ISender sender) : Hub

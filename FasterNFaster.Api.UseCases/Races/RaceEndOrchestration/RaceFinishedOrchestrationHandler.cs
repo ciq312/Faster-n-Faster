@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Domain.Entities.Races.Events;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
@@ -9,7 +10,8 @@ using MediatR;
 namespace FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 
 public class RaceFinishedOrchestrationHandler(
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
+    ILobbyStateTracker tracker,
     PassageRefresher passageRefresher,
     IRaceTickRegistry registry,
     ILobbyStateScope lobbyStateScope) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
@@ -20,6 +22,7 @@ public class RaceFinishedOrchestrationHandler(
             var e = notification.Event;
 
             await lobbies.Mutate(e.LobbyId, l => l.EndSession());
+            tracker.MarkChanged(e.LobbyId);
 
             await passageRefresher.Refresh(e.LobbyId);
 

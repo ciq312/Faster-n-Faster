@@ -47,7 +47,7 @@ public class RaceFinishedOrchestrationHandlerTests
     public async Task Handle_DefersToOuterScope_WhenAlreadyOpen()
     {
         var (handler, context, broadcaster) = await Build();
-        var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
+        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
 
         await scope.Run(async () =>
         {
@@ -70,9 +70,9 @@ public class RaceFinishedOrchestrationHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
 
         var broadcaster = new FakeBroadcaster();
-        var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
+        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.PassageRefresher, context.Registry, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.Tracker, context.PassageRefresher, context.Registry, scope);
 
         return (handler, context, broadcaster);
     }

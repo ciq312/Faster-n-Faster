@@ -1,10 +1,10 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Races.RefreshPassage;
 
 public class RefreshPassageHandler(
-    ILobbyAccess lobbies,
+    ILobbyStore lobbies,
     PassageRefresher passageRefresher) : IRequestHandler<RefreshPassageCommand>
 {
     public async Task Handle(RefreshPassageCommand command, CancellationToken cancellationToken)

@@ -1,5 +1,5 @@
 using FasterNFaster.Api.UseCases.Auth.Ports;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,7 +8,7 @@ namespace FasterNFaster.Api.Presentation.Web.Realtime;
 public class SignalRBroadcaster(
     IHubContext<GameHub> hub,
     ISessionService sessionService,
-    ILobbyAccess lobbies) : IBroadcaster
+    ILobbyStore lobbies) : IBroadcaster
 {
     public async Task Broadcast<T>(IAudience audience, string eventName, T payload)
     {

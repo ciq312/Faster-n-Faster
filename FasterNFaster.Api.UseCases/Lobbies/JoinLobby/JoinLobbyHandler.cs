@@ -1,10 +1,11 @@
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 
-public class JoinLobbyHandler(ILobbyAccess lobbies) : IRequestHandler<JoinLobbyCommand>
+public class JoinLobbyHandler(ILobbyStore lobbies, ILobbyStateTracker tracker) : IRequestHandler<JoinLobbyCommand>
 {
     public async Task Handle(JoinLobbyCommand command, CancellationToken cancellationToken)
     {
@@ -12,5 +13,6 @@ public class JoinLobbyHandler(ILobbyAccess lobbies) : IRequestHandler<JoinLobbyC
             throw new AlreadyInLobbyException();
 
         await lobbies.Mutate(command.LobbyId, l => l.Join(command.PlayerId, command.Nick, command.InviteCode));
+        tracker.MarkChanged(command.LobbyId);
     }
 }

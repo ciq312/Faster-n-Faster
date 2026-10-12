@@ -1,9 +1,10 @@
 using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Services;
 
-public class LobbyQuery(ILobbyAccess lobbies, IRaceStore races) : ILobbyQuery
+public class LobbyQuery(ILobbyStore lobbies, IRaceStore races) : ILobbyQuery
 {
     public async Task<LobbyStateDTO> GetLobbyState(Guid lobbyId)
     {

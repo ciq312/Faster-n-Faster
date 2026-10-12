@@ -35,7 +35,6 @@ public static class ApplicationServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<ILobbyRepository, InMemoryLobbyRepository>();
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
         services.AddSingleton<ICache, RedisCache>();
@@ -51,7 +50,6 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IRaceTickRegistry, RaceTickRegistry>();
         services.AddSingleton<IPendingRemovalsRegistry, PendingRemovalRegistry>();
         services.AddSingleton<IStrikeRegistry, StrikeRegistry>();
-        services.AddSingleton<IPlayerLocationRegistry, InMemoryPlayerLocationRegistry>();
         services.AddSingleton<IEventDispatcher, MediatREventDispatcher>();
         services.AddSingleton<IAntiCheatPolicy, ConfiguredAntiCheatPolicy>();
 
@@ -77,8 +75,7 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IRaceResultQueue, RaceResultQueue>();
         services.AddHostedService<RaceResultProcessor>();
 
-        services.AddSingleton<LobbyAccess>();
-        services.AddSingleton<ILobbyAccess>(sp => sp.GetRequiredService<LobbyAccess>());
+        services.AddSingleton<ILobbyStore, InMemoryLobbyStore>();
         services.AddSingleton<EmptyLobbyRemover>();
 
         services.AddSingleton<ILobbyQuery, LobbyQuery>();

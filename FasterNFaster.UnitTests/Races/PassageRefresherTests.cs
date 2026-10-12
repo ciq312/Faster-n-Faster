@@ -24,7 +24,7 @@ public class PassageRefresherTests
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var broadcaster = new FakeBroadcaster();
-        var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
+        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
 
         await scope.Run(() => context.PassageRefresher.Refresh(context.LobbyId));
 

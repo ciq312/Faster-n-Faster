@@ -43,7 +43,7 @@ public class GetLobbiesHandlerTests
     public async Task LobbyWithoutRace_IsSkipped()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        await context.LobbyAccess.Create("No race", false, Guid.NewGuid());
+        await context.Lobbies.Create("No race", false, Guid.NewGuid());
 
         var result = await Handler(context).Handle(new GetLobbiesQuery(), CancellationToken.None);
 
@@ -54,7 +54,7 @@ public class GetLobbiesHandlerTests
     public async Task SeveralLobbies_ReturnedNewestFirst()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.LobbyAccess, context.Races);
+        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races);
         for (var i = 0; i < 3; i++)
             await createLobbyHandler.Handle(new CreateLobbyCommand($"Lobby {i}", false, Guid.NewGuid()), CancellationToken.None);
 
@@ -86,5 +86,5 @@ public class GetLobbiesHandlerTests
     }
 
     private static GetLobbiesHandler Handler(LobbyTestContext context) =>
-        new(context.LobbyAccess, context.Races);
+        new(context.Lobbies, context.Races);
 }

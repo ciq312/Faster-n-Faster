@@ -1,10 +1,10 @@
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
-public class GetLobbiesHandler(ILobbyAccess lobbies, IRaceStore races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyStore lobbies, IRaceStore races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {
     public async Task<GetLobbiesResult> Handle(GetLobbiesQuery query, CancellationToken cancellationToken)
     {

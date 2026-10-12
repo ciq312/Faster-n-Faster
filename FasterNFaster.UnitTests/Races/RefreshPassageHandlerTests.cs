@@ -33,6 +33,6 @@ public class RefreshPassageHandlerTests
     }
 
     private static Task Refresh(LobbyTestContext context, Guid callerId) =>
-        new RefreshPassageHandler(context.LobbyAccess, context.PassageRefresher)
+        new RefreshPassageHandler(context.Lobbies, context.PassageRefresher)
             .Handle(new RefreshPassageCommand(callerId), CancellationToken.None);
 }

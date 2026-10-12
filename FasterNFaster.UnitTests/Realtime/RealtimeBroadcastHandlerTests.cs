@@ -57,7 +57,7 @@ public class RealtimeBroadcastHandlerTests
         var context = await LobbyFactory.WithPlayers(user);
         var lobbyId = context.LobbyId;
         var broadcaster = new FakeBroadcaster();
-        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.LobbyAccess);
+        var handler = new BroadcastPlayerDisconnectedHandler(broadcaster, context.Lobbies);
 
         await handler.Handle(
             new DomainEventNotification<PlayerDisconnectedEvent>(new PlayerDisconnectedEvent(userId, lobbyId, "nick")),

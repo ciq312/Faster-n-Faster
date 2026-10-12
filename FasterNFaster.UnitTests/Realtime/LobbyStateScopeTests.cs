@@ -12,7 +12,7 @@ public class LobbyStateScopeTests
     private static (LobbyStateScope Scope, FakeBroadcaster Broadcaster, LobbyStateTracker Tracker) Build(LobbyTestContext context)
     {
         var broadcaster = new FakeBroadcaster();
-        var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
+        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
 
         return (scope, broadcaster, context.Tracker);
     }
@@ -79,7 +79,7 @@ public class LobbyStateScopeTests
         await scope.Run(async () =>
         {
             tracker.MarkChanged(context.LobbyId);
-            await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
+            await context.Lobbies.RemoveIfEmpty(context.LobbyId);
         });
 
         Assert.Empty(broadcaster.Broadcasts);

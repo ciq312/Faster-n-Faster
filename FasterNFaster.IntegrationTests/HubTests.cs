@@ -10,7 +10,7 @@ using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
@@ -180,7 +180,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         Assert.DoesNotContain(
             App.Services.GetRequiredService<IRaceTickRegistry>().GetRacingLobbies(),
             entry => entry.LobbyId == lobby.LobbyId);
-        Assert.False(await App.Services.GetRequiredService<ILobbyAccess>().Read(lobby.LobbyId, l => l.IsSessionActive));
+        Assert.False(await App.Services.GetRequiredService<ILobbyStore>().Read(lobby.LobbyId, l => l.IsSessionActive));
 
         var hostStatistics = await WaitForStatisticsAsync(host.UserId);
         Assert.Equal(1, hostStatistics.Wins);

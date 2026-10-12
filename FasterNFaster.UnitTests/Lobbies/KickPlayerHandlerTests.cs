@@ -18,7 +18,7 @@ public class KickPlayerHandlerTests
         Assert.Equal(other.Id, result.TargetPlayerId);
         Assert.False(await context.ReadLobby(l => l.IsPlayerIn(other.Id)));
         Assert.True(await context.ReadLobby(l => l.IsPlayerBanned(other.Id)));
-        Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(other.Id));
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(other.Id));
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class KickPlayerHandlerTests
         await Kick(context, host.Id, other.Id);
 
         await Assert.ThrowsAsync<PlayerBannedInLobbyException>(() =>
-            new JoinLobbyHandler(context.LobbyAccess)
+            new JoinLobbyHandler(context.Lobbies, context.Tracker)
                 .Handle(new JoinLobbyCommand(other.Id, context.LobbyId, other.Nick), CancellationToken.None));
     }
 
@@ -85,6 +85,6 @@ public class KickPlayerHandlerTests
     }
 
     private static Task<KickPlayerResult> Kick(LobbyTestContext context, Guid callerId, Guid targetId) =>
-        new KickPlayerHandler(context.LobbyAccess)
+        new KickPlayerHandler(context.Lobbies, context.Tracker)
             .Handle(new KickPlayerCommand(callerId, targetId), CancellationToken.None);
 }

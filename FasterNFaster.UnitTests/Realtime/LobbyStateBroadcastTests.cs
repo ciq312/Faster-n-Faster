@@ -24,7 +24,7 @@ public class LobbyStateBroadcastTests
         var joiner = new User("joiner");
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new JoinLobbyHandler(context.LobbyAccess)
+            new JoinLobbyHandler(context.Lobbies, context.Tracker)
                 .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -46,7 +46,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new KickPlayerHandler(context.LobbyAccess)
+            new KickPlayerHandler(context.Lobbies, context.Tracker)
                 .Handle(new KickPlayerCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -58,7 +58,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new TransferHostHandler(context.LobbyAccess)
+            new TransferHostHandler(context.Lobbies, context.Tracker)
                 .Handle(new TransferHostCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -70,7 +70,7 @@ public class LobbyStateBroadcastTests
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new DisconnectHandler(context.LobbyAccess, context.Races)
+            new DisconnectHandler(context.Lobbies, context.Races, context.Tracker)
                 .Handle(new DisconnectCommand(other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -92,7 +92,7 @@ public class LobbyStateBroadcastTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new RefreshPassageHandler(context.LobbyAccess, context.PassageRefresher)
+            new RefreshPassageHandler(context.Lobbies, context.PassageRefresher)
                 .Handle(new RefreshPassageCommand(host.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -104,7 +104,7 @@ public class LobbyStateBroadcastTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new RefreshHandler(new PendingRemovalRegistry(), context.LobbyAccess, context.Tracker)
+            new RefreshHandler(new PendingRemovalRegistry(), context.Lobbies, context.Tracker)
                 .Handle(new RefreshCommand(host.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -124,13 +124,13 @@ public class LobbyStateBroadcastTests
     }
 
     private static Task ChangeColor(LobbyTestContext context, Guid callerId, string color) =>
-        new ChangeColorHandler(context.LobbyAccess)
+        new ChangeColorHandler(context.Lobbies, context.Tracker)
             .Handle(new ChangeColorCommand(callerId, color), CancellationToken.None);
 
     private static async Task<int> LobbyStateBroadcasts(LobbyTestContext context, Func<Task> command)
     {
         var broadcaster = new FakeBroadcaster();
-        var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
+        var scope = new LobbyStateScope(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);
 
         await scope.Run(command);
 

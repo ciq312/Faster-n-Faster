@@ -58,6 +58,6 @@ public class TransferHostHandlerTests
     }
 
     private static Task Transfer(LobbyTestContext context, Guid hostId, Guid targetId) =>
-        new TransferHostHandler(context.LobbyAccess)
+        new TransferHostHandler(context.Lobbies, context.Tracker)
             .Handle(new TransferHostCommand(hostId, targetId), CancellationToken.None);
 }
