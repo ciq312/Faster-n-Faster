@@ -118,6 +118,40 @@ public class LobbyConcurrencyTests
     }
 
     [Fact]
+    public async Task DisconnectTwiceTogether_SecondIsNoOp()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var (_, other, context) = await LobbyFactory.TwoUsersSetup();
+            var release = await HoldGate(context.Lobbies, context.LobbyId);
+
+            var disconnects = DisconnectBoth(context, other, release);
+            var exceptions = await disconnects;
+
+            Assert.All(exceptions, Assert.Null);
+            Assert.Equal(1, context.Dispatcher.Dispatched.OfType<PlayerRemovedEvent>().Count(e => e.UserId == other.Id));
+            Assert.Single(await context.ReadLobby(l => l.GetPlayerIds().ToList()));
+        }
+    }
+
+    [Fact]
+    public async Task LastPlayerDisconnectsTwiceTogether_RemovesLobbyWithoutThrowing()
+    {
+        for (var round = 0; round < Rounds; round++)
+        {
+            var host = new User("host");
+            var context = await LobbyFactory.WithPlayers(host);
+            LobbyFactory.WireCleanup(context);
+            var release = await HoldGate(context.Lobbies, context.LobbyId);
+
+            var exceptions = await DisconnectBoth(context, host, release);
+
+            Assert.All(exceptions, Assert.Null);
+            Assert.False(context.LobbyExists);
+        }
+    }
+
+    [Fact]
     public async Task EveryoneDisconnectsTogether_RemovesLobbyWithoutThrowing()
     {
         for (var round = 0; round < Rounds; round++)
@@ -254,6 +288,16 @@ public class LobbyConcurrencyTests
         }
 
         return actions;
+    }
+
+    private static Task<Exception?[]> DisconnectBoth(LobbyTestContext context, User player, Action releaseGate)
+    {
+        var handler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var first = Record.ExceptionAsync(() => handler.Handle(new DisconnectCommand(player.Id), CancellationToken.None));
+        var second = Record.ExceptionAsync(() => handler.Handle(new DisconnectCommand(player.Id), CancellationToken.None));
+        releaseGate();
+
+        return Task.WhenAll(first, second);
     }
 
     private static async Task<Action> HoldGate(InMemoryLobbyStore lobbies, Guid lobbyId)

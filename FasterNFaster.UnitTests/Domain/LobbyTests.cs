@@ -54,6 +54,19 @@ public class LobbyTests
     }
 
     [Fact]
+    public void Disconnect_WhenPlayerAbsent_ReturnsFalseAndRaisesNothing()
+    {
+        var (lobby, _, _) = CreateLobbyWithTwoPlayers();
+        lobby.DrainEvents();
+
+        var disconnected = lobby.Disconnect(Guid.NewGuid());
+
+        Assert.False(disconnected);
+        Assert.Equal(2, lobby.Players.Count);
+        Assert.Empty(lobby.DrainEvents());
+    }
+
+    [Fact]
     public void ChangePlayerColor_PaletteColorInAnyCase_StoresPaletteEntry()
     {
         var (lobby, first, _) = CreateLobbyWithTwoPlayers();

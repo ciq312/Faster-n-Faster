@@ -130,11 +130,13 @@ public class Lobby : AggregateRoot<Guid>
         return kickedPlayer;
     }
 
-    public LobbyPlayer Disconnect(Guid playerId)
+    public bool Disconnect(Guid playerId)
     {
+        if (!IsPlayerIn(playerId)) return false;
+
         var player = RemovePlayerInternal(playerId);
         RaiseDomainEvent(new PlayerDisconnectedEvent(playerId, Id, player.Nick));
-        return player;
+        return true;
     }
 
     private LobbyPlayer RemovePlayerInternal(Guid playerId)
