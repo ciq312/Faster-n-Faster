@@ -5,14 +5,16 @@ namespace FasterNFaster.Api.UseCases.Races.RefreshPassage;
 
 public class PassageRefresher(IRaceStore races, IPassageProvider passageProvider, ILobbyStateTracker tracker)
 {
-    public async Task Refresh(Guid lobbyId)
+    public async Task<bool> TryRefresh(Guid lobbyId)
     {
         var wordCount = await races.Read(lobbyId, race => race.WordCount);
 
         var passage = await passageProvider.GetPassageAsync(wordCount);
 
-        await races.Mutate(lobbyId, race => race.ApplyPassage(passage));
+        var changed = false;
+        await races.Mutate(lobbyId, race => changed = race.TryChangePassage(passage));
+        if (changed) tracker.MarkChanged(lobbyId);
 
-        tracker.MarkChanged(lobbyId);
+        return changed;
     }
 }

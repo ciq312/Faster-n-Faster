@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
@@ -13,6 +14,7 @@ public class RefreshPassageHandler(
 
         await lobbies.Mutate(lobbyId, l => l.EnsureCanRefreshPassage(command.CallerId));
 
-        await passageRefresher.Refresh(lobbyId);
+        if (!await passageRefresher.TryRefresh(lobbyId))
+            throw new LobbyInRaceException("change the passage");
     }
 }

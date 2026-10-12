@@ -24,7 +24,7 @@ public class RaceFinishedOrchestrationHandler(
             await lobbies.Mutate(e.LobbyId, l => l.EndSession());
             tracker.MarkChanged(e.LobbyId);
 
-            await passageRefresher.Refresh(e.LobbyId);
+            await passageRefresher.TryRefresh(e.LobbyId);
 
             registry.DeregisterLobby(e.LobbyId);
         });

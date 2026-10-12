@@ -59,6 +59,18 @@ public class RaceFinishedOrchestrationHandlerTests
         Assert.Single(broadcaster.Broadcasts);
     }
 
+    [Fact]
+    public async Task Handle_WhenNextRaceAlreadyEnrolled_KeepsPassageAndDoesNotThrow()
+    {
+        var (handler, context, _) = await Build();
+        var passageBefore = await context.ReadRace(r => r.Passage);
+
+        var exception = await Record.ExceptionAsync(() => handler.Handle(Notification(context.LobbyId), CancellationToken.None));
+
+        Assert.Null(exception);
+        Assert.Equal(passageBefore, await context.ReadRace(r => r.Passage));
+    }
+
     private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
         new(new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>()));
 

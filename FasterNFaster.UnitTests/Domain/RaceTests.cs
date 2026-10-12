@@ -113,11 +113,48 @@ public class RaceTests
     }
 
     [Fact]
-    public void ApplyPassageAfterStart_Throws()
+    public void TryChangePassage_BeforeEnrolment_ReplacesPassage()
+    {
+        var race = new Race(Guid.NewGuid(), 9, Passage);
+
+        var changed = race.TryChangePassage("another passage");
+
+        Assert.True(changed);
+        Assert.Equal("another passage", race.Passage);
+    }
+
+    [Fact]
+    public void TryChangePassage_AfterParticipantsEnrolled_ReturnsFalse()
+    {
+        var (race, _, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+
+        var changed = race.TryChangePassage("another passage");
+
+        Assert.False(changed);
+        Assert.Equal(Passage, race.Passage);
+    }
+
+    [Fact]
+    public void TryChangePassage_AfterStart_ReturnsFalse()
     {
         var (race, _, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
 
-        Assert.Throws<InvalidOperationException>(() => race.ApplyPassage("another passage"));
+        var changed = race.TryChangePassage("another passage");
+
+        Assert.False(changed);
+        Assert.Equal(Passage, race.Passage);
+    }
+
+    [Fact]
+    public void TryChangePassage_AfterRaceFinished_ReplacesPassage()
+    {
+        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+        Finish(race, participant);
+
+        var changed = race.TryChangePassage("another passage");
+
+        Assert.True(changed);
+        Assert.Equal("another passage", race.Passage);
     }
 
     [Fact]

@@ -86,11 +86,12 @@ public sealed class Race : AggregateRoot<Guid>
             RaceFinished();
     }
 
-    public void ApplyPassage(string passage)
+    public bool TryChangePassage(string passage)
     {
-        if (HasStarted)
-            throw new InvalidOperationException("Cannot change passage after race start.");
+        if (HasStarted || participants.Count > 0) return false;
+
         Passage = passage;
+        return true;
     }
 
     public void RetryPendingClaims()
