@@ -18,6 +18,7 @@ public class RaceViolationHandler(
     IBanRepository bans,
     IUserRepository users,
     ISender sender,
+    IPublisher publisher,
     IOptions<AntiCheatSanctionOptions> options,
     ILogger<RaceViolationHandler> logger) : INotificationHandler<DomainEventNotification<RaceViolationEvent>>
 {
@@ -48,8 +49,17 @@ public class RaceViolationHandler(
         var suspensionCount = await bans.SuspendAsync(e.PlayerId, $"Repeated anti-cheat violations ({e.Rule})", expiresAt);
         strikes.ClearStrikes(e.PlayerId);
 
-        await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.Suspended, new SuspendedDTO(expiresAt));
-        await sender.Send(new DisconnectCommand(e.PlayerId), cancellationToken);
+        // Termination is the only thing that closes a suspended player's live connection,
+        // so a failed broadcast or disconnect must not skip it.
+        try
+        {
+            await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.Suspended, new SuspendedDTO(expiresAt));
+            await sender.Send(new DisconnectCommand(e.PlayerId), cancellationToken);
+        }
+        finally
+        {
+            await publisher.Publish(new PlayerSanctionedEvent(e.PlayerId), cancellationToken);
+        }
 
         if (suspensionCount > 1)
             logger.LogError("Player {PlayerId} suspended again (suspension #{SuspensionCount}) - flagged for human review", e.PlayerId, suspensionCount);

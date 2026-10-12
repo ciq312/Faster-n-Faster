@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Presentation.Web.Realtime.Filters;
 using FasterNFaster.UnitTests.Fakes;
@@ -20,7 +19,7 @@ public class HubExceptionFilterTests
     [Fact]
     public async Task Success_DoesNotLog()
     {
-        var context = BuildContext(WithUserId(Guid.NewGuid()));
+        var context = BuildContext(FakeHubCallerContext.ForUser(Guid.NewGuid()));
 
         var result = await filter.InvokeMethodAsync(context, _ => ValueTask.FromResult<object?>(42));
 
@@ -31,7 +30,7 @@ public class HubExceptionFilterTests
     [Fact]
     public async Task StatusException_BecomesHubException_AndDoesNotLog()
     {
-        var context = BuildContext(WithUserId(Guid.NewGuid()));
+        var context = BuildContext(FakeHubCallerContext.ForUser(Guid.NewGuid()));
 
         var ex = await Assert.ThrowsAsync<HubException>(
             () => filter.InvokeMethodAsync(context, _ => throw new NotHostException("start the race")).AsTask());
@@ -43,7 +42,7 @@ public class HubExceptionFilterTests
     [Fact]
     public async Task ExistingHubException_PropagatesUnchanged_AndDoesNotLog()
     {
-        var context = BuildContext(WithUserId(Guid.NewGuid()));
+        var context = BuildContext(FakeHubCallerContext.ForUser(Guid.NewGuid()));
         var thrown = new HubException("Not authenticated.");
 
         var ex = await Assert.ThrowsAsync<HubException>(
@@ -57,7 +56,7 @@ public class HubExceptionFilterTests
     public async Task UnexpectedException_RethrowsUnchanged_AndLogsWithHubMethodAndUserId()
     {
         var userId = Guid.NewGuid();
-        var context = BuildContext(WithUserId(userId));
+        var context = BuildContext(FakeHubCallerContext.ForUser(userId));
         var thrown = new InvalidOperationException("boom");
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -74,7 +73,7 @@ public class HubExceptionFilterTests
     [Fact]
     public async Task UnexpectedException_NoResolvableUserId_StillLogs()
     {
-        var context = BuildContext(user: null);
+        var context = BuildContext(new FakeHubCallerContext(null));
         var thrown = new InvalidOperationException("boom");
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -86,12 +85,8 @@ public class HubExceptionFilterTests
         Assert.Contains(nameof(TestHub.TestMethod), message);
     }
 
-    private static ClaimsPrincipal WithUserId(Guid userId) =>
-        new(new ClaimsIdentity([new Claim("sub", userId.ToString())]));
-
-    private static HubInvocationContext BuildContext(ClaimsPrincipal? user)
+    private static HubInvocationContext BuildContext(FakeHubCallerContext callerContext)
     {
-        var callerContext = new FakeHubCallerContext(user);
         var hubMethod = typeof(TestHub).GetMethod(nameof(TestHub.TestMethod))!;
         return new HubInvocationContext(callerContext, serviceProvider: null!, new TestHub(), hubMethod, []);
     }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
@@ -14,7 +15,6 @@ using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
-using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
 using FasterNFaster.Api.UseCases.Users.Ports;
@@ -30,9 +30,20 @@ namespace FasterNFaster.IntegrationTests;
 public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
     // FullRace sends each whole passage in one update; lift the typing budget so anti-cheat doesn't clamp it.
+    // One race violation then suspends the player, so a single bad update drives the real sanction path.
     protected override void ConfigureApp(IWebHostBuilder builder) =>
         builder.ConfigureTestServices(services =>
-            services.PostConfigure<AntiCheatOptions>(options => options.BudgetSlack = 100_000));
+        {
+            services.PostConfigure<AntiCheatOptions>(options => options.BudgetSlack = 100_000);
+            services.PostConfigure<AntiCheatSanctionOptions>(options =>
+            {
+                options.RaceViolationThreshold = 1;
+                options.SuspensionThreshold = 1;
+            });
+            services.AddSingleton<DbCommandCounter>();
+            services.ConfigureDbContext<AppDbContext>((sp, options) =>
+                options.AddInterceptors(sp.GetRequiredService<DbCommandCounter>()));
+        });
 
     private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan RaceStartTimeout = RaceCountdown.Duration + RaceCountdown.StartDelay + EventTimeout;
@@ -44,56 +55,47 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (client, cookies, loginResult) = await RegisterAndLoginAsync();
         await using var hub = BuildHubConnection(client, cookies);
 
-        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        hub.Closed += _ =>
-        {
-            connectionClosed.TrySetResult();
-            return Task.CompletedTask;
-        };
+        var connectionClosed = CloseSignal(hub);
 
         await App.ExecuteScopedAsync<IBanRepository>(repo => repo.BanAsync(loginResult.UserId, "no reason"));
 
         await hub.StartAsync();
 
-        await connectionClosed.Task.WaitAsync(EventTimeout);
+        await connectionClosed.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
     }
 
     [Fact]
-    public async Task SuspendedWhileConnected_ClosesConnectionOnNextInvocation()
+    public async Task SuspendedUserConnect_ShouldAbort()
     {
         var (client, cookies, loginResult) = await RegisterAndLoginAsync();
         await using var hub = BuildHubConnection(client, cookies);
+        var connectionClosed = CloseSignal(hub);
 
-        var connectionClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        hub.Closed += _ =>
-        {
-            connectionClosed.TrySetResult();
-            return Task.CompletedTask;
-        };
+        await App.ExecuteScopedAsync<IBanRepository>(repo =>
+            repo.SuspendAsync(loginResult.UserId, "test suspension", DateTime.UtcNow.AddHours(1)));
 
         await hub.StartAsync();
-        await hub.InvokeAsync<long>("Ping", 0);
 
-        var expiresAt = DateTime.UtcNow.AddHours(1);
-        await App.ExecuteScopedAsync<IBanRepository>(repo =>
-            repo.SuspendAsync(loginResult.UserId, "test suspension", expiresAt));
-        await App.ExecuteScopedAsync<IBroadcaster>(broadcaster =>
-            broadcaster.Broadcast(Audience.Player(loginResult.UserId), GameEvents.Suspended, new SuspendedDTO(expiresAt)));
-
-        // HubSuspensionFilter only catches the ban on this connection's next call, and
-        // Abort() can race with delivering this call's own response, so the invoke itself
-        // may legitimately fault - only the resulting close matters here.
-        try
-        {
-            await hub.InvokeAsync<long>("Ping", 0);
-        }
-        catch (Exception)
-        {
-        }
-
-        await connectionClosed.Task.WaitAsync(EventTimeout);
+        await connectionClosed.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
+    }
+
+    [Fact]
+    public async Task RaceViolation_SuspendsAndClosesConnectionWithoutFurtherCalls()
+    {
+        var (hub, userId, _) = await StartSoloRaceAsync();
+        await using var _ = hub;
+        var connectionClosed = CloseSignal(hub);
+        const int indexBeyondTyped = 5;
+
+        // Abort() can race with delivering this call's own response, so the invoke itself
+        // may legitimately fault - only the resulting close and suspension matter here.
+        await Record.ExceptionAsync(() => hub.InvokeAsync("UpdateRaceState", indexBeyondTyped, 0, ""));
+
+        await connectionClosed.WaitAsync(EventTimeout);
+        Assert.Equal(HubConnectionState.Disconnected, hub.State);
+        Assert.True(await App.ExecuteScopedAsync<IBanRepository, bool>(repo => repo.IsBannedAsync(userId)));
     }
 
     [Fact]
@@ -191,6 +193,38 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var guestStatistics = await WaitForStatisticsAsync(guest.UserId);
         Assert.Equal(0, guestStatistics.Wins);
         Assert.Equal(1, guestStatistics.RacesTyped);
+    }
+
+    private static Task CloseSignal(HubConnection hub)
+    {
+        var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        hub.Closed += _ =>
+        {
+            closed.TrySetResult();
+            return Task.CompletedTask;
+        };
+        return closed.Task;
+    }
+
+    private async Task<(HubConnection Hub, Guid UserId, Guid LobbyId)> StartSoloRaceAsync()
+    {
+        var (client, cookies, loginResult) = await RegisterAndLoginAsync();
+        var lobby = await CreateLobbyAsync(client);
+        var hub = await JoinLobbyAsync(client, cookies, lobby);
+
+        var raceStarted = NextEventAsync(hub, GameEvents.RaceStarted);
+        await hub.InvokeAsync("StartRace");
+        await raceStarted.WaitAsync(RaceStartTimeout);
+
+        return (hub, loginResult.UserId, lobby.LobbyId);
+    }
+
+    private static async Task TypeWithoutFinishingAsync(HubConnection hub, string passage)
+    {
+        const int maxUpdates = 20;
+        var updates = Math.Min(maxUpdates, passage.Length - 1);
+        for (var i = 0; i < updates; i++)
+            await hub.InvokeAsync("UpdateRaceState", i, 0, passage[..(i + 1)]);
     }
 
     private static Task<T> NextEventAsync<T>(HubConnection hub, string eventName)

@@ -1,5 +1,7 @@
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
+using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.Presentation.Web.Realtime.Filters;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -20,13 +22,15 @@ public static class InfrastructureExtensions
         services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
 
         services.AddSingleton<HubExceptionFilter>();
+        services.AddSingleton<SignalRConnectionTerminator>();
+        services.AddSingleton<IConnectionTerminator>(sp => sp.GetRequiredService<SignalRConnectionTerminator>());
         services.AddSingleton<HubBanFilter>();
-        services.AddSingleton<HubSuspensionFilter>();
         services.AddSignalR(options =>
         {
             options.AddFilter<HubExceptionFilter>();
+            // Must come before HubBanFilter so no sanction falls between the connect-time check and tracking.
+            options.AddFilter<SignalRConnectionTerminator>();
             options.AddFilter<HubBanFilter>();
-            options.AddFilter<HubSuspensionFilter>();
         });
 
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConn));
