@@ -99,7 +99,7 @@ public class LobbyConcurrencyTests
 
             Assert.Null(exception);
             Assert.False(context.LobbyExists);
-            Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+            Assert.False(context.Races.Exists(context.LobbyId));
             Assert.Empty(context.Registry.GetRacingLobbies());
             Assert.All(players, u => Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(u.Id)));
         }
@@ -124,7 +124,7 @@ public class LobbyConcurrencyTests
 
             if (!context.LobbyExists)
             {
-                Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+                Assert.False(context.Races.Exists(context.LobbyId));
                 Assert.Null(context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
             }
             else
@@ -132,7 +132,7 @@ public class LobbyConcurrencyTests
                 var (playerIds, hostId) = await context.ReadLobby(l => (l.GetPlayerIds().ToList(), l.HostId));
                 Assert.Equal(joiner.Id, Assert.Single(playerIds));
                 Assert.Equal(joiner.Id, hostId);
-                Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+                Assert.True(context.Races.Exists(context.LobbyId));
             }
         }
     }
@@ -194,8 +194,8 @@ public class LobbyConcurrencyTests
         const int readsPerReader = 20;
 
         var joinHandler = new JoinLobbyHandler(context.LobbyAccess);
-        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
-        var lobbiesHandler = new GetLobbiesHandler(context.LobbyAccess, context.RaceAccess);
+        var disconnectHandler = new DisconnectHandler(context.LobbyAccess, context.Races);
+        var lobbiesHandler = new GetLobbiesHandler(context.LobbyAccess, context.Races);
 
         List<Func<Task>> actions = [];
         actions.AddRange(joiners.Select<User, Func<Task>>(u =>
@@ -255,7 +255,7 @@ public class LobbyConcurrencyTests
 
     private static Task DisconnectTogether(LobbyTestContext context, IEnumerable<User> leavers)
     {
-        var handler = new DisconnectHandler(context.LobbyAccess, context.RaceAccess);
+        var handler = new DisconnectHandler(context.LobbyAccess, context.Races);
         return ConcurrentRunner.RunTogether(leavers.Select<User, Func<Task>>(u =>
             () => handler.Handle(new DisconnectCommand(u.Id), CancellationToken.None)));
     }

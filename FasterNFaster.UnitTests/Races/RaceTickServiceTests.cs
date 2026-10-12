@@ -99,7 +99,7 @@ public class RaceTickServiceTests
         var (context, broadcaster, _, tick) = await RacingRace();
         LobbyFactory.WireRaceFinished(context);
         foreach (var playerId in await context.ReadLobby(l => l.GetPlayerIds().ToList()))
-            await context.RaceAccess.Mutate(context.LobbyId, r => r.WithdrawParticipant(playerId));
+            await context.Races.Mutate(context.LobbyId, r => r.WithdrawParticipant(playerId));
 
         await tick.Tick();
 
@@ -143,7 +143,7 @@ public class RaceTickServiceTests
     private static async Task<bool> HasStarted(LobbyTestContext context)
     {
         var started = false;
-        await context.RaceAccess.TryMutate(context.LobbyId, r => started = r.HasStarted);
+        await context.Races.TryMutate(context.LobbyId, r => started = r.HasStarted);
         return started;
     }
 }

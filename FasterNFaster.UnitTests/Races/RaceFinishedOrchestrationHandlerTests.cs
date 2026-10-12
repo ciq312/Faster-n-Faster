@@ -72,7 +72,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.RaceAccess, context.Registry, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.PassageRefresher, context.Registry, scope);
 
         return (handler, context, broadcaster);
     }

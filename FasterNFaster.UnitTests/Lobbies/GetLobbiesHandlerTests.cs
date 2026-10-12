@@ -54,7 +54,7 @@ public class GetLobbiesHandlerTests
     public async Task SeveralLobbies_ReturnedNewestFirst()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.LobbyAccess, context.RaceAccess);
+        var createLobbyHandler = new CreateLobbyHandler(new RandomPassageProvider(), context.LobbyAccess, context.Races);
         for (var i = 0; i < 3; i++)
             await createLobbyHandler.Handle(new CreateLobbyCommand($"Lobby {i}", false, Guid.NewGuid()), CancellationToken.None);
 
@@ -86,5 +86,5 @@ public class GetLobbiesHandlerTests
     }
 
     private static GetLobbiesHandler Handler(LobbyTestContext context) =>
-        new(context.LobbyAccess, context.RaceAccess);
+        new(context.LobbyAccess, context.Races);
 }

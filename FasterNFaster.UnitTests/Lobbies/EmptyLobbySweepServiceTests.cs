@@ -18,7 +18,7 @@ public class EmptyLobbySweepServiceTests
         await sweep.Sweep(CancellationToken.None);
 
         Assert.False(context.LobbyExists);
-        Assert.Null(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.False(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class EmptyLobbySweepServiceTests
         await sweep.Sweep(CancellationToken.None);
 
         Assert.True(context.LobbyExists);
-        Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.True(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class EmptyLobbySweepServiceTests
         await sweep.Sweep(CancellationToken.None);
 
         Assert.True(context.LobbyExists);
-        Assert.NotNull(await context.RaceAccess.GetRaceSettingsOrDefault(context.LobbyId));
+        Assert.True(context.Races.Exists(context.LobbyId));
     }
 
     [Fact]

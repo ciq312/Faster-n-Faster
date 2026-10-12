@@ -22,7 +22,7 @@ public class RaceViolationHandlerTests
 
         await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
-        var race = await lobby.RaceAccess.GetSnapshotOrDefault(lobby.LobbyId);
+        var race = await lobby.ReadRace(r => r.GetSnapshot());
         Assert.NotNull(race);
         Assert.Contains(race, p => p.PlayerId == playerId);
         Assert.Empty(broadcaster.Broadcasts);
@@ -36,7 +36,7 @@ public class RaceViolationHandlerTests
         for (var i = 0; i < RaceViolationThreshold; i++)
             await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
-        var race = await lobby.RaceAccess.GetSnapshotOrDefault(lobby.LobbyId);
+        var race = await lobby.ReadRace(r => r.GetSnapshot());
         Assert.NotNull(race);
         Assert.DoesNotContain(race, p => p.PlayerId == playerId);
         Assert.Contains(broadcaster.Broadcasts, s => s.EventName == GameEvents.RaceWithdrawn);
@@ -46,7 +46,7 @@ public class RaceViolationHandlerTests
     public async Task RaceAlreadyRemoved_DoesNotBroadcastRaceWithdrawn()
     {
         var (handler, lobby, broadcaster, _, _, playerId, _) = await Build();
-        lobby.RaceAccess.Remove(lobby.LobbyId);
+        lobby.Races.Remove(lobby.LobbyId);
 
         for (var i = 0; i < RaceViolationThreshold; i++)
             await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
@@ -126,7 +126,7 @@ public class RaceViolationHandlerTests
             SuspensionThreshold = SuspensionThreshold,
         });
 
-        var handler = new RaceViolationHandler(strikes, lobby.RaceAccess, broadcaster, bans, lobby.UserRepo, new FakeSender(), options, logger);
+        var handler = new RaceViolationHandler(strikes, lobby.Races, broadcaster, bans, lobby.UserRepo, new FakeSender(), options, logger);
 
         return (handler, lobby, broadcaster, bans, strikes, playerId, logger);
     }

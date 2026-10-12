@@ -20,7 +20,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -71,7 +71,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
         services.AddSingleton<IBroadcaster, SignalRBroadcaster>();
-        services.AddSingleton<IRaceAccess, RaceAccess>();
+        services.AddSingleton<IRaceStore, InMemoryRaceStore>();
+        services.AddSingleton<PassageRefresher>();
         services.AddSingleton<RaceStateConflator>();
         services.AddSingleton<IRaceResultQueue, RaceResultQueue>();
         services.AddHostedService<RaceResultProcessor>();

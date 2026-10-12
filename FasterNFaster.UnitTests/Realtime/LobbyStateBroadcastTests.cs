@@ -70,7 +70,7 @@ public class LobbyStateBroadcastTests
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new DisconnectHandler(context.LobbyAccess, context.RaceAccess)
+            new DisconnectHandler(context.LobbyAccess, context.Races)
                 .Handle(new DisconnectCommand(other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -92,7 +92,7 @@ public class LobbyStateBroadcastTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyStateBroadcasts(context, () =>
-            new RefreshPassageHandler(context.LobbyAccess, context.RaceAccess)
+            new RefreshPassageHandler(context.LobbyAccess, context.PassageRefresher)
                 .Handle(new RefreshPassageCommand(host.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);

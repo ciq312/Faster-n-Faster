@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Races;
@@ -10,7 +11,7 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
@@ -25,7 +26,8 @@ namespace FasterNFaster.UnitTests;
 public record LobbyTestContext(
     LobbyAccess LobbyAccess,
     LobbyQuery LobbyQuery,
-    RaceAccess RaceAccess,
+    InMemoryRaceStore Races,
+    PassageRefresher PassageRefresher,
     LobbyStateTracker Tracker,
     RaceTickRegistry Registry,
     FakeUserRepository UserRepo,
@@ -37,6 +39,8 @@ public record LobbyTestContext(
     public Task<T> ReadLobby<T>(Func<Lobby, T> read) => LobbyAccess.Read(LobbyId, read);
 
     public bool LobbyExists => LobbyAccess.Exists(LobbyId);
+
+    public Task<T> ReadRace<T>(Func<Race, T> read) => Races.Read(LobbyId, read);
 }
 
 public static class LobbyFactory
@@ -58,14 +62,15 @@ public static class LobbyFactory
         var registry = new RaceTickRegistry(time);
         var userRepo = new FakeUserRepository();
         var passageProvider = new RandomPassageProvider();
-        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
+        var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
+        var passageRefresher = new PassageRefresher(races, passageProvider, tracker);
 
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
 
-        return new LobbyTestContext(lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
+        return new LobbyTestContext(lobbies, lobbyQuery, races, passageRefresher, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
     }
 
     /// <summary>
@@ -89,7 +94,8 @@ public static class LobbyFactory
         foreach (var user in users)
             userRepo.Seed(user);
 
-        var races = new RaceAccess(dispatcher, passageProvider, tracker, NullLogger<RaceAccess>.Instance);
+        var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
+        var passageRefresher = new PassageRefresher(races, passageProvider, tracker);
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
@@ -100,7 +106,7 @@ public static class LobbyFactory
         }
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
-        return new LobbyTestContext(lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
+        return new LobbyTestContext(lobbies, lobbyQuery, races, passageRefresher, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
     }
 
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()
@@ -116,12 +122,12 @@ public static class LobbyFactory
     public static Task StartRace(LobbyTestContext context, Guid hostId)
     {
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.RaceAccess, context.Registry, antiCheatPolicy);
+        var startRaceHandler = new StartRaceHandler(context.LobbyAccess, context.Races, context.Registry, antiCheatPolicy);
         return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
     }
 
     public static EmptyLobbyRemover Remover(LobbyTestContext context) =>
-        new(context.LobbyAccess, context.RaceAccess, context.Registry);
+        new(context.LobbyAccess, context.Races, context.Registry);
 
     public static EmptyLobbySweepService SweepService(LobbyTestContext context, TimeProvider time) =>
         new(
@@ -136,7 +142,7 @@ public static class LobbyFactory
             context.Registry,
             context.LobbyAccess,
             broadcaster,
-            context.RaceAccess,
+            context.Races,
             conflator,
             context.Time,
             NullLogger<RaceTickService>.Instance);
@@ -144,7 +150,7 @@ public static class LobbyFactory
     public static void WireRaceFinished(LobbyTestContext context)
     {
         var scope = new LobbyStateScope(context.Tracker, context.LobbyAccess, context.LobbyQuery, new FakeBroadcaster());
-        var orchestration = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.RaceAccess, context.Registry, scope);
+        var orchestration = new RaceFinishedOrchestrationHandler(context.LobbyAccess, context.PassageRefresher, context.Registry, scope);
         context.Dispatcher.OnDispatch = domainEvent => domainEvent is RaceFinishedEvent finished
             ? orchestration.Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None)
             : Task.CompletedTask;

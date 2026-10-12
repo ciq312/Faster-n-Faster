@@ -7,7 +7,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
@@ -22,7 +22,7 @@ public class GameHubSessionTests
     private readonly FakeTimeProvider time = new(DateTimeOffset.UtcNow);
     private readonly PendingRemovalRegistry pendingRemovals = new();
 
-    private GameHub NewTab(Guid userId, ILobbyAccess lobbies, IRaceAccess races)
+    private GameHub NewTab(Guid userId, ILobbyAccess lobbies, IRaceStore races)
     {
         var claims = new ClaimsPrincipal(new ClaimsIdentity(
         [
@@ -41,7 +41,7 @@ public class GameHubSessionTests
         sender.OnSend = request => request switch
         {
             FastReconnectCommand command => new FastReconnectHandler(pendingRemovals, time).Handle(command, CancellationToken.None),
-            DisconnectCommand command => new DisconnectHandler(context.LobbyAccess, context.RaceAccess).Handle(command, CancellationToken.None),
+            DisconnectCommand command => new DisconnectHandler(context.LobbyAccess, context.Races).Handle(command, CancellationToken.None),
             RefreshCommand command => new RefreshHandler(pendingRemovals, context.LobbyAccess, context.Tracker).Handle(command, CancellationToken.None),
             _ => Task.CompletedTask,
         };
@@ -52,7 +52,7 @@ public class GameHubSessionTests
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var guestId = Guid.NewGuid();
 
-        var tab = NewTab(guestId, context.LobbyAccess, context.RaceAccess);
+        var tab = NewTab(guestId, context.LobbyAccess, context.Races);
         await tab.OnConnectedAsync();
         await tab.OnDisconnectedAsync(null);
 
@@ -65,11 +65,54 @@ public class GameHubSessionTests
         var member = new User("member");
         var context = await LobbyFactory.WithPlayers(member);
 
-        var tab = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tab = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tab.OnConnectedAsync();
         await tab.OnDisconnectedAsync(null);
 
         Assert.Null(sessions.GetActiveSession(member.Id));
+    }
+
+    [Fact]
+    public async Task UpdateRaceState_InStartedRace_AdvancesParticipant()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+        await LobbyFactory.StartRace(context, host.Id);
+        await context.Races.Mutate(context.LobbyId, r => r.Start());
+        var passage = await context.ReadRace(r => r.Passage);
+
+        await NewTab(host.Id, context.LobbyAccess, context.Races).UpdateRaceState(0, 0, passage[..1]);
+
+        var index = await context.ReadRace(r => r.Participants[host.Id].Index);
+        Assert.Equal(0, index);
+    }
+
+    [Fact]
+    public async Task UpdateRaceState_WhenRaceRemoved_DoesNotThrow()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+        context.Races.Remove(context.LobbyId);
+
+        var exception = await Record.ExceptionAsync(() =>
+            NewTab(host.Id, context.LobbyAccess, context.Races).UpdateRaceState(0, 0, "a"));
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task UpdateRaceState_OutsideLobby_DoesNothing()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+        await LobbyFactory.StartRace(context, host.Id);
+        await context.Races.Mutate(context.LobbyId, r => r.Start());
+
+        var exception = await Record.ExceptionAsync(() =>
+            NewTab(Guid.NewGuid(), context.LobbyAccess, context.Races).UpdateRaceState(0, 0, "a"));
+
+        Assert.Null(exception);
+        Assert.Equal(-1, await context.ReadRace(r => r.Participants[host.Id].Index));
     }
 
     [Fact]
@@ -78,10 +121,10 @@ public class GameHubSessionTests
         var member = new User("member");
         var context = await LobbyFactory.WithPlayers(member);
 
-        var tabA = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabA = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabA.OnConnectedAsync();
 
-        var tabB = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabB = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabB.OnConnectedAsync();
 
         await tabA.OnDisconnectedAsync(null);
@@ -95,10 +138,10 @@ public class GameHubSessionTests
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var guestId = Guid.NewGuid();
 
-        var tabA = NewTab(guestId, context.LobbyAccess, context.RaceAccess);
+        var tabA = NewTab(guestId, context.LobbyAccess, context.Races);
         await tabA.OnConnectedAsync();
 
-        var tabB = NewTab(guestId, context.LobbyAccess, context.RaceAccess);
+        var tabB = NewTab(guestId, context.LobbyAccess, context.Races);
         await tabB.OnConnectedAsync();
 
         await tabA.OnDisconnectedAsync(null);
@@ -112,10 +155,10 @@ public class GameHubSessionTests
         var context = await LobbyFactory.Empty(Guid.NewGuid());
         var guestId = Guid.NewGuid();
 
-        var tabA = NewTab(guestId, context.LobbyAccess, context.RaceAccess);
+        var tabA = NewTab(guestId, context.LobbyAccess, context.Races);
         await tabA.OnConnectedAsync();
 
-        var tabB = NewTab(guestId, context.LobbyAccess, context.RaceAccess);
+        var tabB = NewTab(guestId, context.LobbyAccess, context.Races);
         await tabB.OnConnectedAsync();
 
         Assert.Contains((tabA.Context.ConnectionId, GameEvents.AnotherSessionStarted), clients.Sent);
@@ -129,16 +172,16 @@ public class GameHubSessionTests
         var context = await LobbyFactory.WithPlayers(member);
         RouteToLobbyHandlers(context);
 
-        var tabA = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabA = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabA.OnConnectedAsync();
         var disconnectA = tabA.OnDisconnectedAsync(null);
 
-        var tabB = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabB = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabB.OnConnectedAsync();
         await tabB.RefreshLobby();
         var disconnectB = tabB.OnDisconnectedAsync(null);
 
-        var tabC = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabC = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabC.OnConnectedAsync();
         await tabC.RefreshLobby();
 
@@ -155,15 +198,15 @@ public class GameHubSessionTests
         var context = await LobbyFactory.WithPlayers(member);
         RouteToLobbyHandlers(context);
 
-        var tabA = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabA = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabA.OnConnectedAsync();
         var disconnectA = tabA.OnDisconnectedAsync(null);
 
-        var tabB = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabB = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabB.OnConnectedAsync();
         var disconnectB = tabB.OnDisconnectedAsync(null);
 
-        var tabC = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tabC = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tabC.OnConnectedAsync();
         await tabC.RefreshLobby();
 
@@ -180,7 +223,7 @@ public class GameHubSessionTests
         var context = await LobbyFactory.WithPlayers(member);
         RouteToLobbyHandlers(context);
 
-        var tab = NewTab(member.Id, context.LobbyAccess, context.RaceAccess);
+        var tab = NewTab(member.Id, context.LobbyAccess, context.Races);
         await tab.OnConnectedAsync();
         var disconnect = tab.OnDisconnectedAsync(null);
 

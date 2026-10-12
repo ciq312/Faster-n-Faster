@@ -1,7 +1,6 @@
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +11,7 @@ public class RaceTickService(
     IRaceTickRegistry registry,
     ILobbyAccess lobbies,
     IBroadcaster broadcaster,
-    IRaceAccess races,
+    IRaceStore races,
     RaceStateConflator conflator,
     TimeProvider timeProvider,
     ILogger<RaceTickService> logger) : BackgroundService
@@ -74,7 +73,7 @@ public class RaceTickService(
     {
         if (!await races.TryMutate(entry.LobbyId, r => r.RetryPendingClaims())) return;
 
-        var snapshot = await races.GetSnapshotOrDefault(entry.LobbyId);
+        var snapshot = await races.TryRead(entry.LobbyId, r => r.GetSnapshot());
         if (snapshot is null) return;
 
         var connectedPlayerIds = await lobbies.TryRead(entry.LobbyId, l => l.GetPlayerIds());

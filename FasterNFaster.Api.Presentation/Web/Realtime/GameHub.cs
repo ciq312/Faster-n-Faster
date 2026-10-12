@@ -7,8 +7,8 @@ using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
-using FasterNFaster.Api.UseCases.Races.Services;
 using FasterNFaster.Api.UseCases.Races.StartRace;
 using FasterNFaster.Api.UseCases.Realtime;
 using MediatR;
@@ -22,7 +22,7 @@ public partial class GameHub(
     ILogger<GameHub> logger,
     ILobbyAccess lobbies,
     ISessionService sessionService,
-    IRaceAccess races,
+    IRaceStore races,
     ISender sender) : Hub
 {
     private (Guid UserId, string Nick) GetCallerContext()
@@ -123,7 +123,7 @@ public partial class GameHub(
         var userId = GetCallerContext().UserId;
         //skip mediator to minimize the allocations
         if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return;
-        await races.ProcessUpdate(lobbyId, userId, index, mistakes, typed);
+        await races.TryMutate(lobbyId, r => r.ProcessUpdate(userId, index, mistakes, typed));
     }
 
     public async Task LeaveLobby()

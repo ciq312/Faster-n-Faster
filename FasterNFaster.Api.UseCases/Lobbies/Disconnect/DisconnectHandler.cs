@@ -1,10 +1,10 @@
 using FasterNFaster.Api.UseCases.Lobbies.Services;
-using FasterNFaster.Api.UseCases.Races.Services;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IRequestHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbyAccess lobbies, IRaceStore races) : IRequestHandler<DisconnectCommand>
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
