@@ -9,22 +9,33 @@ using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.UnitTests.Domain;
 
-public class WordRaceTests
+public class RaceTests
 {
     private const string Passage = "the quick brown fox jumps over the lazy dog";
 
-    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Constructor_WithNonPositiveWordCount_Throws(int wordCount) =>
+        Assert.Throws<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Constructor_WithEmptyPassage_Throws(string? passage) =>
+        Assert.ThrowsAny<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!));
+
+    private static (Race Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
     {
         var (race, participant, clock) = CreateRace(policy, passage);
         race.Start();
         return (race, participant, clock);
     }
 
-    private static (WordRace Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
+    private static (Race Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
     {
         var clock = new FakeClock();
-        var race = new WordRace(Guid.NewGuid(), 9);
-        race.ApplyPassage(passage);
+        var race = new Race(Guid.NewGuid(), 9, passage);
         var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock.Func);
         race.AddParticipant(participant);
         return (race, participant, clock);
@@ -283,7 +294,7 @@ public class WordRaceTests
         Assert.True(race.HasStarted);
     }
 
-    private static (WordRace Race, RaceParticipant Alice, RaceParticipant Bob, FakeClock Clock) CreateStartedRaceWithTwoRacers()
+    private static (Race Race, RaceParticipant Alice, RaceParticipant Bob, FakeClock Clock) CreateStartedRaceWithTwoRacers()
     {
         var policy = new FakeAntiCheatPolicy(1000, 1000);
         var (race, alice, clock) = CreateRace(policy);
@@ -293,6 +304,6 @@ public class WordRaceTests
         return (race, alice, bob, clock);
     }
 
-    private static void Finish(WordRace race, RaceParticipant racer) =>
+    private static void Finish(Race race, RaceParticipant racer) =>
         race.ProcessUpdate(racer.Id, Passage.Length - 1, 0, Passage);
 }

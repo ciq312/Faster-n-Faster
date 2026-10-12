@@ -21,7 +21,6 @@ public class GetLobbiesHandler(ILobbyAccess lobbies, IRaceAccess races) : IReque
             var item = await lobbies.TryRead(lobbyId, l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                raceSettings.RaceType,
                 l.LobbySettings.IsPrivate,
                 l.IsSessionActive,
                 l.Players.Count,

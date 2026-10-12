@@ -1,25 +1,35 @@
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
+using FasterNFaster.Api.Domain.Exceptions;
 
 namespace FasterNFaster.Api.Domain.Entities.Races;
 
 public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
 
-public abstract class Race : AggregateRoot<Guid>
+public sealed class Race : AggregateRoot<Guid>
 {
     public Guid LobbyId { get; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public bool HasStarted { get; private set; }
+    public int WordCount { get; }
+    public string Passage { get; private set; }
 
     private readonly Dictionary<Guid, RaceParticipant> participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => participants;
 
-    protected int nextFinishPosition = 1;
+    private int nextFinishPosition = 1;
 
-    public Race(Guid lobbyId)
+    public Race(Guid lobbyId, int wordCount, string passage)
     {
+        if (wordCount <= 0)
+            throw new ArgumentException("Word count must be greater than 0.");
+        ArgumentException.ThrowIfNullOrEmpty(passage);
+
         Id = Guid.NewGuid();
         LobbyId = lobbyId;
+        WordCount = wordCount;
+        Passage = passage;
     }
 
     public void AddParticipant(RaceParticipant participant)
@@ -45,16 +55,22 @@ public abstract class Race : AggregateRoot<Guid>
         }
     }
 
-    public void Reset()
+    public List<ParticipantSnapshot> GetSnapshot() =>
+        Participants.Values
+            .Where(p => !p.IsFinished)
+            .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick, p.Mistakes))
+            .ToList();
+
+    public void ProcessUpdate(Guid playerId, int index, int mistakes, string typed)
     {
-        participants.Clear();
-        nextFinishPosition = 1;
-        HasStarted = false;
+        if (!HasStarted) return;
+
+        var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
+        if (racer.IsFinished) return;
+
+        var outcome = racer.UpdateProgress(index, typed, mistakes, Passage);
+        HandleOutcome(racer, outcome);
     }
-
-    public abstract void ProcessUpdate(Guid playerId, int index, int mistakes, string typed);
-
-    public abstract List<ParticipantSnapshot> GetSnapshot();
 
     public IEnumerable<RaceParticipantResult> GetRaceResults() =>
         participants.Values
@@ -70,23 +86,56 @@ public abstract class Race : AggregateRoot<Guid>
             RaceFinished();
     }
 
-    public abstract IRaceSettings GetRaceSettings();
+    public void ApplyPassage(string passage)
+    {
+        if (HasStarted)
+            throw new InvalidOperationException("Cannot change passage after race start.");
+        Passage = passage;
+    }
 
-    // Returns word count if this race type uses a fixed passage, null otherwise.
-    public virtual int? GetPassageWordCount() => null;
+    public void RetryPendingClaims()
+    {
+        if (!HasStarted) return;
 
-    // Applies a freshly fetched passage. No-op for race types without passages.
-    public virtual void ApplyPassage(string passage) { }
+        foreach (var racer in Participants.Values.ToList())
+        {
+            if (racer.IsFinished) continue;
+            HandleOutcome(racer, racer.RetryPendingClaim(Passage));
+        }
+    }
 
-    // Retries any claim a participant's budget couldn't fully grant last tick. No-op for race types without a budget.
-    public virtual void RetryPendingClaims() { }
+    public bool IsRaceFinished() => participants.Values.All(p => p.IsFinished);
 
-    protected void RaceFinished()
+    private void HandleOutcome(RaceParticipant racer, ProgressOutcome outcome)
+    {
+        if (outcome.Status == ProgressStatus.Rejected)
+        {
+            RaiseDomainEvent(new RaceViolationEvent(LobbyId, racer.Id, racer.Nick, outcome.Rule!));
+            return;
+        }
+
+        if (IsRacerFinished(racer))
+        {
+            racer.MarkFinished(nextFinishPosition++);
+            RaiseDomainEvent(new PlayerFinishedEvent(LobbyId, racer.Nick, racer.Id, racer.FinishPosition, racer.Result!.WPM, racer.Result.Accuracy));
+            if (IsRaceFinished())
+                RaceFinished();
+        }
+    }
+
+    private void RaceFinished()
     {
         RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
         EndTime = DateTime.UtcNow;
         Reset();
     }
 
-    public bool IsRaceFinished() => participants.Values.All(p => p.IsFinished);
+    private void Reset()
+    {
+        participants.Clear();
+        nextFinishPosition = 1;
+        HasStarted = false;
+    }
+
+    private bool IsRacerFinished(RaceParticipant racer) => racer.Index >= Passage.Length - 1;
 }

@@ -50,6 +50,18 @@ public class LobbyStateContractTests
         Assert.False(string.IsNullOrEmpty(hostJson["color"]!.GetValue<string>()));
     }
 
+    [Fact]
+    public async Task LobbyState_OmitsRaceTypeDiscriminators()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+
+        var json = await SerializedLobbyState(context);
+
+        Assert.False(json.ContainsKey("raceType"));
+        var settings = json["settings"]!.AsObject();
+        Assert.Equal(["passage", "wordCount"], settings.Select(p => p.Key).Order());
+    }
+
     private static async Task<JsonObject> SerializedLobbyState(LobbyTestContext context)
     {
         var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);

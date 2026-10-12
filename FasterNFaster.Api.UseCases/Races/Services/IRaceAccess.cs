@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
 namespace FasterNFaster.Api.UseCases.Races.Services;
 
@@ -10,8 +11,8 @@ public interface IRaceAccess
     Task RefreshPassage(Guid lobbyId);
 
     Task<List<ParticipantSnapshot>?> GetSnapshotOrDefault(Guid lobbyId);
-    Task<IRaceSettings> GetRaceSettings(Guid lobbyId);
-    Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId);
+    Task<RaceSettingsDTO> GetRaceSettings(Guid lobbyId);
+    Task<RaceSettingsDTO?> GetRaceSettingsOrDefault(Guid lobbyId);
 
     void Register(Race race);
     void Remove(Guid lobbyId);

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces.Events;
+using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -36,11 +37,9 @@ public class RaceAccess : IRaceAccess
 
     public async Task RefreshPassage(Guid lobbyId)
     {
-        var wordCount = await gate.Read(lobbyId, race => race.GetPassageWordCount());
-        if (wordCount is null)
-            throw new InvalidOperationException("Race type does not support passage refresh");
+        var wordCount = await gate.Read(lobbyId, race => race.WordCount);
 
-        var passage = await passageProvider.GetPassageAsync(wordCount.Value);
+        var passage = await passageProvider.GetPassageAsync(wordCount);
 
         await Mutate(lobbyId, race => race.ApplyPassage(passage));
 
@@ -50,11 +49,11 @@ public class RaceAccess : IRaceAccess
     public Task<List<ParticipantSnapshot>?> GetSnapshotOrDefault(Guid lobbyId) =>
         gate.TryRead(lobbyId, TryGet, race => race.GetSnapshot());
 
-    public Task<IRaceSettings> GetRaceSettings(Guid lobbyId) =>
-        gate.Read(lobbyId, race => race.GetRaceSettings());
+    public Task<RaceSettingsDTO> GetRaceSettings(Guid lobbyId) =>
+        gate.Read(lobbyId, race => new RaceSettingsDTO(race.Passage, race.WordCount));
 
-    public Task<IRaceSettings?> GetRaceSettingsOrDefault(Guid lobbyId) =>
-        gate.TryRead(lobbyId, TryGet, race => race.GetRaceSettings());
+    public Task<RaceSettingsDTO?> GetRaceSettingsOrDefault(Guid lobbyId) =>
+        gate.TryRead(lobbyId, TryGet, race => new RaceSettingsDTO(race.Passage, race.WordCount));
 
     public void Register(Race race)
     {

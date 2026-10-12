@@ -7,7 +7,7 @@ namespace FasterNFaster.UnitTests.Lobbies;
 public class GetLobbiesHandlerTests
 {
     [Fact]
-    public async Task NoInviteCode_ReturnsLobbyWithPlayerCountAndGameMode()
+    public async Task NoInviteCode_ReturnsLobbyWithPlayerCount()
     {
         var (_, _, context) = await LobbyFactory.TwoUsersSetup();
 
@@ -16,7 +16,6 @@ public class GetLobbiesHandlerTests
         var item = Assert.Single(result.Lobbies);
         Assert.Equal(context.LobbyId, item.Id);
         Assert.Equal(2, item.PlayerCount);
-        Assert.Equal((await context.RaceAccess.GetRaceSettings(context.LobbyId)).RaceType, item.GameMode);
     }
 
     [Fact]

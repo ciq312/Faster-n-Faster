@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using FasterNFaster.Api.Domain.Entities;
-using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
@@ -164,7 +163,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         Assert.Equal(RaceCountdown.Duration.TotalSeconds, starting.CountdownSeconds);
         await Task.WhenAll(hostRaceStarted, guestRaceStarted).WaitAsync(RaceStartTimeout);
 
-        var settings = (WordRace.WordRaceSettings)await App.Services
+        var settings = await App.Services
             .GetRequiredService<IRaceAccess>()
             .GetRaceSettings(lobby.LobbyId);
         await hostHub.InvokeAsync("UpdateRaceState", settings.Passage.Length - 1, 0, settings.Passage);

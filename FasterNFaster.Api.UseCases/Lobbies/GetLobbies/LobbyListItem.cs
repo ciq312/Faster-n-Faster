@@ -3,7 +3,6 @@ namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 public record LobbyListItem(
     Guid Id,
     string Name,
-    string? GameMode,
     bool IsPrivate,
     bool IsSessionActive,
     int PlayerCount,
