@@ -75,7 +75,9 @@ public static class ApplicationServicesExtensions
         services.AddSingleton<IRaceResultQueue, RaceResultQueue>();
         services.AddHostedService<RaceResultProcessor>();
 
-        services.AddSingleton<ILobbyStore, InMemoryLobbyStore>();
+        services.AddSingleton<InMemoryLobbyStore>();
+        services.AddSingleton<ILobbyStore>(sp => new TrackingLobbyStore(
+            sp.GetRequiredService<InMemoryLobbyStore>(), sp.GetRequiredService<ILobbyStateTracker>()));
         services.AddSingleton<EmptyLobbyRemover>();
 
         services.AddSingleton<ILobbyQuery, LobbyQuery>();

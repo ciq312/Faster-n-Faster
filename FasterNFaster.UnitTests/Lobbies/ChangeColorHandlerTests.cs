@@ -46,7 +46,7 @@ public class ChangeColorHandlerTests
     }
 
     private static Task ChangeColor(LobbyTestContext context, Guid callerId, string color) =>
-        new ChangeColorHandler(context.Lobbies, context.Tracker)
+        new ChangeColorHandler(context.Lobbies)
             .Handle(new ChangeColorCommand(callerId, color), CancellationToken.None);
 
     private static Task<string> ColorOf(LobbyTestContext context, Guid playerId) =>

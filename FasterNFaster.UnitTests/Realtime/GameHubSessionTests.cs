@@ -41,7 +41,7 @@ public class GameHubSessionTests
         sender.OnSend = request => request switch
         {
             FastReconnectCommand command => new FastReconnectHandler(pendingRemovals, time).Handle(command, CancellationToken.None),
-            DisconnectCommand command => new DisconnectHandler(context.Lobbies, context.Races, context.Tracker).Handle(command, CancellationToken.None),
+            DisconnectCommand command => new DisconnectHandler(context.Lobbies, context.Races).Handle(command, CancellationToken.None),
             RefreshCommand command => new RefreshHandler(pendingRemovals, context.Lobbies, context.Tracker).Handle(command, CancellationToken.None),
             _ => Task.CompletedTask,
         };

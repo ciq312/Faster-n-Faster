@@ -21,7 +21,7 @@ public class LobbyStateBroadcastTests
         var joiner = new User("joiner");
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new JoinLobbyHandler(context.Lobbies, context.Tracker)
+            new JoinLobbyHandler(context.Lobbies)
                 .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -43,7 +43,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new KickPlayerHandler(context.Lobbies, context.Tracker)
+            new KickPlayerHandler(context.Lobbies)
                 .Handle(new KickPlayerCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -55,7 +55,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new TransferHostHandler(context.Lobbies, context.Tracker)
+            new TransferHostHandler(context.Lobbies)
                 .Handle(new TransferHostCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -67,7 +67,7 @@ public class LobbyStateBroadcastTests
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new DisconnectHandler(context.Lobbies, context.Races, context.Tracker)
+            new DisconnectHandler(context.Lobbies, context.Races)
                 .Handle(new DisconnectCommand(other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -121,6 +121,6 @@ public class LobbyStateBroadcastTests
     }
 
     private static Task ChangeColor(LobbyTestContext context, Guid callerId, string color) =>
-        new ChangeColorHandler(context.Lobbies, context.Tracker)
+        new ChangeColorHandler(context.Lobbies)
             .Handle(new ChangeColorCommand(callerId, color), CancellationToken.None);
 }

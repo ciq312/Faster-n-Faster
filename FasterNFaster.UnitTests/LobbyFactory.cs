@@ -9,6 +9,7 @@ using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
@@ -25,7 +26,7 @@ using Microsoft.Extensions.Time.Testing;
 namespace FasterNFaster.UnitTests;
 
 public record LobbyTestContext(
-    InMemoryLobbyStore Lobbies,
+    ILobbyStore Lobbies,
     LobbyQuery LobbyQuery,
     InMemoryRaceStore Races,
     PassageRefresher PassageRefresher,
@@ -56,7 +57,7 @@ public static class LobbyFactory
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
         var tracker = new LobbyStateTracker();
-        var lobbies = new InMemoryLobbyStore(dispatcher);
+        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher), tracker);
         var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
         var registry = new RaceTickRegistry(time);
         var userRepo = new FakeUserRepository();
@@ -83,7 +84,7 @@ public static class LobbyFactory
         var publisher = new FakePublisher();
         var dispatcher = new FakeEventDispatcher();
         var tracker = new LobbyStateTracker();
-        var lobbies = new InMemoryLobbyStore(dispatcher);
+        var lobbies = new TrackingLobbyStore(new InMemoryLobbyStore(dispatcher), tracker);
         var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
         var registry = new RaceTickRegistry(time);
         var passageProvider = new RandomPassageProvider();
@@ -96,7 +97,7 @@ public static class LobbyFactory
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
-        var joinHandler = new JoinLobbyHandler(lobbies, tracker);
+        var joinHandler = new JoinLobbyHandler(lobbies);
         for (var i = 0; i < users.Length; i++)
         {
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, users[i].Nick), CancellationToken.None);
@@ -119,7 +120,7 @@ public static class LobbyFactory
     public static Task StartRace(LobbyTestContext context, Guid hostId)
     {
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var startRaceHandler = new StartRaceHandler(context.Lobbies, context.Races, context.Tracker, context.Registry, antiCheatPolicy);
+        var startRaceHandler = new StartRaceHandler(context.Lobbies, context.Races, context.Registry, antiCheatPolicy);
         return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
     }
 
@@ -159,7 +160,7 @@ public static class LobbyFactory
     public static void WireRaceFinished(LobbyTestContext context)
     {
         var scope = StateScope(context, new FakeBroadcaster());
-        var orchestration = new RaceFinishedOrchestrationHandler(context.Lobbies, context.Tracker, context.PassageRefresher, context.Registry, scope);
+        var orchestration = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope);
         context.Dispatcher.OnDispatch = domainEvent => domainEvent is RaceFinishedEvent finished
             ? orchestration.Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None)
             : Task.CompletedTask;

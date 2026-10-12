@@ -73,7 +73,7 @@ public class LobbyConcurrencyTests
             var context = await LobbyFactory.WithPlayers(new User("host"));
             var (otherLobbyId, _) = await context.Lobbies.Create("Other", false, Guid.NewGuid());
             var joiner = new User("joiner");
-            var handler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
+            var handler = new JoinLobbyHandler(context.Lobbies);
             var releaseFirst = await HoldGate(context.Lobbies, context.LobbyId);
             var releaseSecond = await HoldGate(context.Lobbies, otherLobbyId);
 
@@ -258,8 +258,8 @@ public class LobbyConcurrencyTests
         const int readersPerKind = 5;
         const int readsPerReader = 20;
 
-        var joinHandler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var joinHandler = new JoinLobbyHandler(context.Lobbies);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
         var lobbiesHandler = new GetLobbiesHandler(context.Lobbies, context.Races);
 
         List<Func<Task>> actions = [];
@@ -292,7 +292,7 @@ public class LobbyConcurrencyTests
 
     private static Task<Exception?[]> DisconnectBoth(LobbyTestContext context, User player, Action releaseGate)
     {
-        var handler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var handler = new DisconnectHandler(context.Lobbies, context.Races);
         var first = Record.ExceptionAsync(() => handler.Handle(new DisconnectCommand(player.Id), CancellationToken.None));
         var second = Record.ExceptionAsync(() => handler.Handle(new DisconnectCommand(player.Id), CancellationToken.None));
         releaseGate();
@@ -325,7 +325,7 @@ public class LobbyConcurrencyTests
 
     private static Task JoinTogether(LobbyTestContext context, IEnumerable<User> joiners)
     {
-        var handler = new JoinLobbyHandler(context.Lobbies, context.Tracker);
+        var handler = new JoinLobbyHandler(context.Lobbies);
         return ConcurrentRunner.RunTogether(joiners.Select<User, Func<Task>>(u =>
             () => handler.Handle(new JoinLobbyCommand(u.Id, context.LobbyId, u.Nick), CancellationToken.None)));
     }
@@ -334,7 +334,7 @@ public class LobbyConcurrencyTests
     {
         try
         {
-            await new JoinLobbyHandler(context.Lobbies, context.Tracker)
+            await new JoinLobbyHandler(context.Lobbies)
                 .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None);
         }
         catch (LobbyNotFoundException)
@@ -344,7 +344,7 @@ public class LobbyConcurrencyTests
 
     private static Task DisconnectTogether(LobbyTestContext context, IEnumerable<User> leavers)
     {
-        var handler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var handler = new DisconnectHandler(context.Lobbies, context.Races);
         return ConcurrentRunner.RunTogether(leavers.Select<User, Func<Task>>(u =>
             () => handler.Handle(new DisconnectCommand(u.Id), CancellationToken.None)));
     }

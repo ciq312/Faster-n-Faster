@@ -11,7 +11,7 @@ public class DisconnectHandlerTests
     {
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
@@ -24,7 +24,7 @@ public class DisconnectHandlerTests
     {
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
@@ -37,7 +37,7 @@ public class DisconnectHandlerTests
     {
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
@@ -53,7 +53,7 @@ public class DisconnectHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
         LobbyFactory.WireCleanup(context);
 
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(host.Id), CancellationToken.None);
 
@@ -69,7 +69,7 @@ public class DisconnectHandlerTests
         await LobbyFactory.StartRace(context, host.Id);
         LobbyFactory.WireCleanup(context);
 
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 
@@ -86,7 +86,7 @@ public class DisconnectHandlerTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
         await LobbyFactory.StartRace(context, host.Id);
         await context.Races.Mutate(context.LobbyId, r => r.WithdrawParticipant(host.Id));
-        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races, context.Tracker);
+        var disconnectHandler = new DisconnectHandler(context.Lobbies, context.Races);
 
         await disconnectHandler.Handle(new DisconnectCommand(other.Id), CancellationToken.None);
 

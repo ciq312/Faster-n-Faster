@@ -112,7 +112,6 @@ public class RaceFinishedOrchestrationHandlerTests
     private static RaceFinishedOrchestrationHandler HandlerWith(LobbyTestContext context, IPassageProvider provider) =>
         new(
             context.Lobbies,
-            context.Tracker,
             new PassageRefresher(context.Races, provider, context.Tracker),
             context.Registry,
             LobbyFactory.StateScope(context, new FakeBroadcaster()));
@@ -130,7 +129,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = LobbyFactory.StateScope(context, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.Tracker, context.PassageRefresher, context.Registry, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope);
 
         return (handler, context, broadcaster);
     }

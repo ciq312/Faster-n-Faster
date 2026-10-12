@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
-using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
@@ -10,7 +9,6 @@ namespace FasterNFaster.Api.UseCases.Races.StartRace;
 public class StartRaceHandler(
     ILobbyStore lobbies,
     IRaceStore races,
-    ILobbyStateTracker tracker,
     IRaceTickRegistry raceTickRegistry,
     IAntiCheatPolicy antiCheatPolicy) : IRequestHandler<StartRaceCommand, Guid>
 {
@@ -24,7 +22,6 @@ public class StartRaceHandler(
             l.StartSession(command.UserId);
             participants = l.GetRaceParticipants(antiCheatPolicy);
         });
-        tracker.MarkChanged(lobbyId);
 
         await races.Mutate(lobbyId, r => r.AddParticipants(participants));
 
