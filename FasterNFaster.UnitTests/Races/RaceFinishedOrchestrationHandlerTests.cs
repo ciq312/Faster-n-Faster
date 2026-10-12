@@ -16,10 +16,10 @@ public class RaceFinishedOrchestrationHandlerTests
     {
         var (handler, context, _) = await Build();
 
-        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
+        await handler.Handle(Notification(context.LobbyId), CancellationToken.None);
 
-        Assert.False(context.Lobby.IsSessionActive);
-        Assert.NotNull(context.Store.Get(context.LobbyId));
+        Assert.False(await context.ReadLobby(l => l.IsSessionActive));
+        Assert.True(context.LobbyExists);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class RaceFinishedOrchestrationHandlerTests
     {
         var (handler, context, _) = await Build();
 
-        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
+        await handler.Handle(Notification(context.LobbyId), CancellationToken.None);
 
         Assert.Empty(context.Registry.GetRacingLobbies());
     }
@@ -37,7 +37,7 @@ public class RaceFinishedOrchestrationHandlerTests
     {
         var (handler, context, broadcaster) = await Build();
 
-        await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
+        await handler.Handle(Notification(context.LobbyId), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
         Assert.Equal(GameEvents.LobbyState, sent.EventName);
@@ -51,7 +51,7 @@ public class RaceFinishedOrchestrationHandlerTests
 
         await scope.Run(async () =>
         {
-            await handler.Handle(Notification(context.Lobby.Id), CancellationToken.None);
+            await handler.Handle(Notification(context.LobbyId), CancellationToken.None);
 
             Assert.Empty(broadcaster.Broadcasts);
         });

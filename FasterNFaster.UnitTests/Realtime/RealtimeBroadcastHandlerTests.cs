@@ -137,14 +137,14 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastRaceFinishedHandler(broadcaster);
 
-        var e = new RaceFinishedEvent(context.Lobby.Id, results);
+        var e = new RaceFinishedEvent(context.LobbyId, results);
 
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
         Assert.Equal(GameEvents.RaceEnded, sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
-        Assert.Equal(context.Lobby.Id, audience.LobbyId);
+        Assert.Equal(context.LobbyId, audience.LobbyId);
         var payload = Assert.IsType<RaceEndedDTO>(sent.Payload);
         var result = Assert.Single(payload.Results);
         Assert.Equal(new RaceResultDTO(playerId, "nick", 1, 80f, 95f, 3), result);

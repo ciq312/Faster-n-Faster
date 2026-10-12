@@ -15,7 +15,7 @@ public class LobbyAccessTests
 
         await context.LobbyAccess.Mutate(context.LobbyId, l => l.TransferHost(host.Id, other.Id));
 
-        Assert.True(context.Lobby.HostId == other.Id);
+        Assert.Equal(other.Id, await context.ReadLobby(l => l.HostId));
         Assert.Single(context.Dispatcher.Dispatched.OfType<HostChangedEvent>());
     }
 
@@ -42,7 +42,7 @@ public class LobbyAccessTests
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => context.LobbyAccess.Mutate(context.LobbyId, l => l.EndSession()));
 
-        Assert.False(context.Lobby.IsSessionActive);
+        Assert.False(await context.ReadLobby(l => l.IsSessionActive));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class LobbyAccessTests
 
         await context.LobbyAccess.Mutate(context.LobbyId, l => l.TransferHost(host.Id, other.Id));
 
-        Assert.Equal(other.Id, context.Lobby.HostId);
+        Assert.Equal(other.Id, await context.ReadLobby(l => l.HostId));
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class LobbyAccessTests
     public async Task FindIdByInviteCode_LowercaseCode_ReturnsLobbyId()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var code = context.Lobby.LobbySettings.InviteCode;
+        var code = await context.ReadLobby(l => l.LobbySettings.InviteCode);
 
         Assert.Equal(context.LobbyId, context.LobbyAccess.FindIdByInviteCode(code.ToLowerInvariant()));
     }

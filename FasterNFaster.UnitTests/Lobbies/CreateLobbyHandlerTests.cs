@@ -27,10 +27,10 @@ public class CreateLobbyHandlerTests
 
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, hostId), CancellationToken.None);
 
-        var storedLobby = lobbyStore.GetRequired(result.LobbyId);
+        var (name, storedHostId) = await lobbies.Read(result.LobbyId, l => (l.Name, l.HostId));
 
-        Assert.True(storedLobby.Name == "testLobby");
-        Assert.True(storedLobby.HostId == hostId);
+        Assert.Equal("testLobby", name);
+        Assert.Equal(hostId, storedHostId);
     }
 
     [Fact]
@@ -49,6 +49,6 @@ public class CreateLobbyHandlerTests
 
         await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, lobbyId), CancellationToken.None);
 
-        Assert.Single(lobbyStore.GetAll());
+        Assert.Single(lobbies.GetAllIds());
     }
 }

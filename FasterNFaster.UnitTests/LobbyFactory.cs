@@ -23,7 +23,6 @@ using Microsoft.Extensions.Time.Testing;
 namespace FasterNFaster.UnitTests;
 
 public record LobbyTestContext(
-    InMemoryLobbyRepository Store,
     LobbyAccess LobbyAccess,
     LobbyQuery LobbyQuery,
     RaceAccess RaceAccess,
@@ -35,7 +34,9 @@ public record LobbyTestContext(
     FakePublisher Publisher,
     FakeTimeProvider Time)
 {
-    public Lobby Lobby => Store.Get(LobbyId)!;
+    public Task<T> ReadLobby<T>(Func<Lobby, T> read) => LobbyAccess.Read(LobbyId, read);
+
+    public bool LobbyExists => LobbyAccess.Exists(LobbyId);
 }
 
 public static class LobbyFactory
@@ -64,7 +65,7 @@ public static class LobbyFactory
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
 
-        return new LobbyTestContext(lobbyStore, lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
+        return new LobbyTestContext(lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
     }
 
     /// <summary>
@@ -99,7 +100,7 @@ public static class LobbyFactory
         }
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
-        return new LobbyTestContext(lobbyStore, lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
+        return new LobbyTestContext(lobbies, lobbyQuery, races, tracker, registry, userRepo, result.LobbyId, dispatcher, publisher, time);
     }
 
     public static async Task<(User host, User other, LobbyTestContext context)> TwoUsersSetup()

@@ -15,7 +15,7 @@ public class JoinLobbyHandlerTests
 
         await Join(context, joiner.Id, context.LobbyId);
 
-        Assert.True(context.Lobby.IsPlayerIn(joiner.Id));
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(joiner.Id)));
         Assert.Equal(context.LobbyId, context.LobbyAccess.GetLobbyIdOfPlayer(joiner.Id));
     }
 
@@ -38,7 +38,7 @@ public class JoinLobbyHandlerTests
         var exception = await Record.ExceptionAsync(() => Join(context, other.Id, context.LobbyId));
 
         Assert.Null(exception);
-        Assert.Equal(2, context.Lobby.Players.Count);
+        Assert.Equal(2, await context.ReadLobby(l => l.Players.Count));
     }
 
     [Fact]

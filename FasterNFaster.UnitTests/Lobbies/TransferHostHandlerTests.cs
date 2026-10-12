@@ -14,7 +14,7 @@ public class TransferHostHandlerTests
 
         await Transfer(context, host.Id, other.Id);
 
-        Assert.Equal(other.Id, context.Lobby.HostId);
+        Assert.Equal(other.Id, await context.ReadLobby(l => l.HostId));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class TransferHostHandlerTests
 
         await Assert.ThrowsAsync<NotHostException>(() => Transfer(context, other.Id, other.Id));
 
-        Assert.Equal(host.Id, context.Lobby.HostId);
+        Assert.Equal(host.Id, await context.ReadLobby(l => l.HostId));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class TransferHostHandlerTests
 
         await Assert.ThrowsAsync<UserNotFoundException>(() => Transfer(context, host.Id, Guid.NewGuid()));
 
-        Assert.Equal(host.Id, context.Lobby.HostId);
+        Assert.Equal(host.Id, await context.ReadLobby(l => l.HostId));
     }
 
     private static Task Transfer(LobbyTestContext context, Guid hostId, Guid targetId) =>

@@ -71,7 +71,7 @@ public class RaceTickServiceTests
         var sent = Assert.Single(broadcaster.Broadcasts);
         Assert.Equal(GameEvents.RaceState, sent.EventName);
         var audience = Assert.IsType<PlayersAudience>(sent.Audience);
-        Assert.Equal(context.Lobby.GetPlayerIds().ToHashSet(), audience.PlayerIds.ToHashSet());
+        Assert.Equal((await context.ReadLobby(l => l.GetPlayerIds().ToList())).ToHashSet(), audience.PlayerIds.ToHashSet());
         var snapshot = Assert.IsAssignableFrom<IReadOnlyList<ParticipantSnapshot>>(sent.Payload);
         Assert.Equal(2, snapshot.Count);
     }
@@ -81,7 +81,11 @@ public class RaceTickServiceTests
     {
         var (context, broadcaster, _, tick) = await StartedRace();
         context.Time.Advance(CountdownEnd);
-        context.Store.Remove(context.LobbyId);
+        await context.LobbyAccess.Mutate(context.LobbyId, l =>
+        {
+            foreach (var id in l.GetPlayerIds().ToList()) l.Disconnect(id);
+        });
+        await context.LobbyAccess.RemoveIfEmpty(context.LobbyId);
 
         await tick.Tick();
 
@@ -94,7 +98,7 @@ public class RaceTickServiceTests
     {
         var (context, broadcaster, _, tick) = await RacingRace();
         LobbyFactory.WireRaceFinished(context);
-        foreach (var playerId in context.Lobby.GetPlayerIds())
+        foreach (var playerId in await context.ReadLobby(l => l.GetPlayerIds().ToList()))
             await context.RaceAccess.Mutate(context.LobbyId, r => r.WithdrawParticipant(playerId));
 
         await tick.Tick();
