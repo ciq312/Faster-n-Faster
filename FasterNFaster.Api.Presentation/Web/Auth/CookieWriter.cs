@@ -14,7 +14,7 @@ public class CookieWriter(IHttpContextAccessor httpContextAccessor, IOptions<Aut
     public void WriteAuth(TokenPair tokens)
     {
         WriteAccessTokenCookie(tokens.AccessToken);
-        WriteRefreshTokenCookie(tokens.RefreshToken!);
+        WriteRefreshTokenCookie(tokens.RefreshToken);
     }
 
     public void WriteGuestAuth(IssuedToken accessToken)

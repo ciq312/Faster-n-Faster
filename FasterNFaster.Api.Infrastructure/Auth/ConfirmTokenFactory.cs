@@ -7,18 +7,19 @@ using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.Api.Infrastructure.Auth;
 
-public class ConfirmTokenFactory(IOptions<ConfirmTokenOptions> options) : IConfirmTokenFactory
+public class ConfirmTokenFactory(IOptions<ConfirmTokenOptions> options, TimeProvider timeProvider) : IConfirmTokenFactory
 {
     public Token GetToken(Guid userId, TokenType type)
     {
         var expirationTime = options.Value.For(type).ExpirationTime;
+        var now = timeProvider.GetUtcNow();
         return new Token()
         {
             UserId = userId,
             Value = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32)),
             Type = type,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.Add(expirationTime),
+            CreatedAt = now,
+            ExpiresAt = now.Add(expirationTime),
         };
     }
 }

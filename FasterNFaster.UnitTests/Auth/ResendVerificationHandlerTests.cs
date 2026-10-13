@@ -20,7 +20,7 @@ public class ResendVerificationHandlerTests
         setup.TokenRepo.tokens.Clear();
 
         var handler = new ResendVerificationHandler(
-            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions), setup.EmailSender);
+            setup.repo, new ConfirmTokenIssuer(setup.TokenRepo, setup.TokenFactory, ConfirmTokenFactoryHelper.DefaultOptions, setup.Time), setup.EmailSender);
         return (handler, setup);
     }
 
@@ -81,7 +81,7 @@ public class ResendVerificationHandlerTests
         var (handler, setup) = await Build();
 
         await handler.Handle(new ResendVerificationCommand(KnownEmail), CancellationToken.None);
-        setup.TokenRepo.tokens[0].CreatedAt = DateTime.UtcNow.AddSeconds(-30);
+        setup.Time.Advance(ConfirmTokenFactoryHelper.DefaultOptions.Value.EmailVerification.Cooldown + TimeSpan.FromSeconds(1));
 
         await handler.Handle(new ResendVerificationCommand(KnownEmail), CancellationToken.None);
 

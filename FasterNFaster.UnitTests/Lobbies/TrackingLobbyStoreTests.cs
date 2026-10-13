@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -69,7 +70,7 @@ public class TrackingLobbyStoreTests
     private static async Task<(TrackingLobbyStore Store, Guid LobbyId, LobbyStateTracker Tracker)> StoreWithLobby()
     {
         var tracker = new LobbyStateTracker();
-        var store = new TrackingLobbyStore(new InMemoryLobbyStore(new FakeEventDispatcher()), tracker);
+        var store = new TrackingLobbyStore(new InMemoryLobbyStore(new FakeEventDispatcher(), new FakeTimeProvider()), tracker);
         var (lobbyId, _) = await store.Create("Test", false, Guid.NewGuid());
 
         return (store, lobbyId, tracker);

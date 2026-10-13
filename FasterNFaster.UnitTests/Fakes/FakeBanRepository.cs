@@ -9,7 +9,7 @@ public class FakeBanRepository : IBanRepository
 
     public int IsBannedCalls { get; private set; }
     public int BanCalls { get; private set; }
-    public List<(Guid UserId, string Reason, DateTime ExpiresAt)> Suspensions { get; } = new();
+    public List<(Guid UserId, string Reason, DateTimeOffset ExpiresAt)> Suspensions { get; } = new();
 
     public void Seed(Guid userId) => banned.Add(userId);
 
@@ -26,7 +26,7 @@ public class FakeBanRepository : IBanRepository
         return Task.CompletedTask;
     }
 
-    public Task<int> SuspendAsync(Guid userId, string reason, DateTime expiresAt)
+    public Task<int> SuspendAsync(Guid userId, string reason, DateTimeOffset expiresAt)
     {
         Suspensions.Add((userId, reason, expiresAt));
         var count = suspensionCounts[userId] = suspensionCounts.GetValueOrDefault(userId) + 1;

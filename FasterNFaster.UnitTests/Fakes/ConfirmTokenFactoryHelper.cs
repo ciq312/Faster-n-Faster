@@ -8,5 +8,5 @@ public static class ConfirmTokenFactoryHelper
 {
     public static readonly IOptions<ConfirmTokenOptions> DefaultOptions = Options.Create(new ConfirmTokenOptions());
 
-    public static ConfirmTokenFactory Create() => new(DefaultOptions);
+    public static ConfirmTokenFactory Create(TimeProvider time) => new(DefaultOptions, time);
 }

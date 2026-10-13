@@ -1,11 +1,12 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions.Races;
 using FasterNFaster.Api.Domain.Interfaces;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Domain;
 
@@ -17,26 +18,26 @@ public class RaceTests
     [InlineData(0)]
     [InlineData(-1)]
     public void NonPositiveWordCount_ConstructorThrows(int wordCount) =>
-        Assert.Throws<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage));
+        Assert.Throws<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage, new FakeTimeProvider()));
 
     [Theory]
     [InlineData("")]
     [InlineData(null)]
     public void EmptyPassage_ConstructorThrows(string? passage) =>
-        Assert.ThrowsAny<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!));
+        Assert.ThrowsAny<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!, new FakeTimeProvider()));
 
-    private static (Race Race, RaceParticipant Participant, FakeClock Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
+    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
     {
         var (race, participant, clock) = CreateRace(policy, passage);
         race.Start();
         return (race, participant, clock);
     }
 
-    private static (Race Race, RaceParticipant Participant, FakeClock Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
+    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
     {
-        var clock = new FakeClock();
-        var race = new Race(Guid.NewGuid(), 9, passage);
-        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock.Func);
+        var clock = new FakeTimeProvider();
+        var race = new Race(Guid.NewGuid(), 9, passage, clock);
+        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock);
         race.AddParticipant(participant);
         return (race, participant, clock);
     }
@@ -113,9 +114,32 @@ public class RaceTests
     }
 
     [Fact]
+    public void Start_StampsStartTimeFromClock()
+    {
+        var (race, _, clock) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+        clock.Advance(TimeSpan.FromSeconds(42));
+
+        race.Start();
+
+        Assert.Equal(clock.GetUtcNow(), race.StartTime);
+    }
+
+    [Fact]
+    public void LastRacerFinishes_StampsEndTimeFromClock()
+    {
+        var (race, alice, bob, clock) = CreateStartedRaceWithTwoRacers();
+        Finish(race, alice);
+        clock.Advance(TimeSpan.FromSeconds(10));
+
+        Finish(race, bob);
+
+        Assert.Equal(clock.GetUtcNow(), race.EndTime);
+    }
+
+    [Fact]
     public void BeforeEnrolment_PassageReplaced()
     {
-        var race = new Race(Guid.NewGuid(), 9, Passage);
+        var race = new Race(Guid.NewGuid(), 9, Passage, new FakeTimeProvider());
 
         var changed = race.TryChangePassage("another passage");
 
@@ -264,11 +288,11 @@ public class RaceTests
     }
 
     [Fact]
-    public void UnknownPlayerUpdates_ThrowsUserNotFound()
+    public void UnknownPlayerUpdates_ThrowsPlayerNotInRace()
     {
         var (race, _, _, _) = CreateStartedRaceWithTwoRacers();
 
-        Assert.Throws<UserNotFoundException>(() => race.ProcessUpdate(Guid.NewGuid(), 2, 0, "the"));
+        Assert.Throws<PlayerNotInRaceException>(() => race.ProcessUpdate(Guid.NewGuid(), 2, 0, "the"));
     }
 
     [Fact]
@@ -331,11 +355,11 @@ public class RaceTests
         Assert.True(race.HasStarted);
     }
 
-    private static (Race Race, RaceParticipant Alice, RaceParticipant Bob, FakeClock Clock) CreateStartedRaceWithTwoRacers()
+    private static (Race Race, RaceParticipant Alice, RaceParticipant Bob, FakeTimeProvider Clock) CreateStartedRaceWithTwoRacers()
     {
         var policy = new FakeAntiCheatPolicy(1000, 1000);
         var (race, alice, clock) = CreateRace(policy);
-        var bob = new RaceParticipant(Guid.NewGuid(), "#000", "bob", policy, clock.Func);
+        var bob = new RaceParticipant(Guid.NewGuid(), "#000", "bob", policy, clock);
         race.AddParticipant(bob);
         race.Start();
         return (race, alice, bob, clock);

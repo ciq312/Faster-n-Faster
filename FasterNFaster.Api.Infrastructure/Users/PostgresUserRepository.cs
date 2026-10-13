@@ -34,10 +34,5 @@ public class PostgresUserRepository(AppDbContext appDbContext) : IUserRepository
         return await appDbContext.Users.FirstOrDefaultAsync(x => x.Login == normalizedLogin);
     }
 
-    public async Task<bool> IsUserRegistered(Guid userId)
-    {
-        if (await GetByIdAsync(userId) == null) return false;
-        return true;
-    }
-
+    public Task<bool> IsUserRegistered(Guid userId) => appDbContext.Users.AnyAsync(u => u.Id == userId);
 }

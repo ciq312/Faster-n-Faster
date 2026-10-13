@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -83,6 +84,41 @@ public class StatusExceptionHandlerTests
         using var body = ReadBody(context);
         Assert.Equal("message", body.RootElement.GetProperty("error").GetString());
         Assert.Equal("SOME_CODE", body.RootElement.GetProperty("code").GetString());
+    }
+
+    public static TheoryData<StatusException, int> MappedExceptions => new()
+    {
+        { new BadRequestException("x"), StatusCodes.Status400BadRequest },
+        { new UnauthorizedException("x"), StatusCodes.Status401Unauthorized },
+        { new ForbiddenException("x"), StatusCodes.Status403Forbidden },
+        { new NotFoundException("x"), StatusCodes.Status404NotFound },
+        { new ConflictException("x"), StatusCodes.Status409Conflict },
+        { new LobbyFullException(), StatusCodes.Status409Conflict },
+        { new InvalidCredentialsException(), StatusCodes.Status401Unauthorized },
+        { new NotHostException("kick"), StatusCodes.Status403Forbidden },
+        { new InvalidInviteCodeException(), StatusCodes.Status404NotFound },
+        { new HostKickSelfException(), StatusCodes.Status400BadRequest },
+    };
+
+    [Theory]
+    [MemberData(nameof(MappedExceptions))]
+    public async Task MappedException_ReturnsItsStatusCode(StatusException exception, int expectedStatusCode)
+    {
+        var context = CreateContext();
+
+        await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.Equal(expectedStatusCode, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UnmappedStatusException_Returns500()
+    {
+        var context = CreateContext();
+
+        await handler.TryHandleAsync(context, new CustomStatusException("message", null, null), CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
     }
 
     private class CustomStatusException(string message, string? code, IReadOnlyDictionary<string, object?>? extensions)

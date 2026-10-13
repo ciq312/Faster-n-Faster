@@ -1,6 +1,6 @@
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Domain.Exceptions.Races;
 
 namespace FasterNFaster.Api.Domain.Entities.Races;
 
@@ -9,8 +9,8 @@ public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed,
 public sealed class Race : AggregateRoot<Guid>
 {
     public Guid LobbyId { get; }
-    public DateTime StartTime { get; private set; }
-    public DateTime EndTime { get; private set; }
+    public DateTimeOffset StartTime { get; private set; }
+    public DateTimeOffset EndTime { get; private set; }
     public bool HasStarted { get; private set; }
     public int WordCount { get; }
     public string Passage { get; private set; }
@@ -18,9 +18,10 @@ public sealed class Race : AggregateRoot<Guid>
     private readonly Dictionary<Guid, RaceParticipant> participants = new();
     public IReadOnlyDictionary<Guid, RaceParticipant> Participants => participants;
 
+    private readonly TimeProvider timeProvider;
     private int nextFinishPosition = 1;
 
-    public Race(Guid lobbyId, int wordCount, string passage)
+    public Race(Guid lobbyId, int wordCount, string passage, TimeProvider timeProvider)
     {
         if (wordCount <= 0)
             throw new ArgumentException("Word count must be greater than 0.");
@@ -30,6 +31,7 @@ public sealed class Race : AggregateRoot<Guid>
         LobbyId = lobbyId;
         WordCount = wordCount;
         Passage = passage;
+        this.timeProvider = timeProvider;
     }
 
     public void AddParticipant(RaceParticipant participant)
@@ -47,7 +49,7 @@ public sealed class Race : AggregateRoot<Guid>
     public void Start()
     {
         if (HasStarted) throw new InvalidOperationException("Race already started.");
-        StartTime = DateTime.UtcNow;
+        StartTime = timeProvider.GetUtcNow();
         HasStarted = true;
         foreach (var participant in participants.Values)
         {
@@ -65,7 +67,7 @@ public sealed class Race : AggregateRoot<Guid>
     {
         if (!HasStarted) return;
 
-        var racer = Participants.GetValueOrDefault(playerId) ?? throw new UserNotFoundException(playerId);
+        var racer = Participants.GetValueOrDefault(playerId) ?? throw new PlayerNotInRaceException(playerId);
         if (racer.IsFinished) return;
 
         var outcome = racer.UpdateProgress(index, typed, mistakes, Passage);
@@ -127,7 +129,7 @@ public sealed class Race : AggregateRoot<Guid>
     private void RaceFinished()
     {
         RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
-        EndTime = DateTime.UtcNow;
+        EndTime = timeProvider.GetUtcNow();
         Reset();
     }
 

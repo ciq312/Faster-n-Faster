@@ -21,7 +21,7 @@ public class GetUserProfileEndpoint(IUserProfileService profileService) : Endpoi
         if (stats == null) throw new NotFoundException("No statistics for this player");
 
         await Send.OkAsync(new GetUserProfileResult(
-            new UserStatisticsDTO(stats!.User.Nick, stats.Wins, stats.RacesTyped, stats.BestWPM, stats.AvgWPM, stats.BestAccuracy, stats.AvgAccuracy, stats.WordsTyped)), ct);
+            new UserStatisticsDTO(stats.User.Nick, stats.Wins, stats.RacesTyped, stats.BestWPM, stats.AvgWPM, stats.BestAccuracy, stats.AvgAccuracy, stats.WordsTyped)), ct);
     }
 }
 

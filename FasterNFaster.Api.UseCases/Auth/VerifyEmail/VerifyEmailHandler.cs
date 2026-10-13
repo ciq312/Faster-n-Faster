@@ -11,13 +11,14 @@ namespace FasterNFaster.Api.UseCases.Auth.VerifyEmail;
 public class VerifyEmailHandler(
     IUserRepository repo,
     IConfirmTokenRepository tokenRepository,
-    IUnitOfWork unitOfWork) : IRequestHandler<VerifyEmailCommand>
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider) : IRequestHandler<VerifyEmailCommand>
 {
     public async Task Handle(VerifyEmailCommand command, CancellationToken cancellationToken)
     {
         var token = await tokenRepository.GetByValueAsync(command.Token) ?? throw new TokenNotFoundException();
 
-        if (!token.IsValid() || token.Type != TokenType.EmailVerification) throw new TokenNotFoundException();
+        if (!token.IsValid(timeProvider.GetUtcNow()) || token.Type != TokenType.EmailVerification) throw new TokenNotFoundException();
 
         var user = await repo.GetByIdAsync(token.UserId) ?? throw new UserNotFoundException(token.UserId);
         user.SetEmailVerified();

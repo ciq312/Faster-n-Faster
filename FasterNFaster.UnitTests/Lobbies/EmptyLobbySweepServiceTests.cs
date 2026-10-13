@@ -1,5 +1,4 @@
 using FasterNFaster.Api.Domain.Entities;
-using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -11,9 +10,8 @@ public class EmptyLobbySweepServiceTests
     public async Task EmptyLobbyPastTtl_SweepRemovesLobbyAndRace()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        var sweep = LobbyFactory.SweepService(context, time);
-        time.Advance(Ttl);
+        var sweep = LobbyFactory.SweepService(context);
+        context.Time.Advance(Ttl + TimeSpan.FromSeconds(1));
 
         await sweep.Sweep(CancellationToken.None);
 
@@ -22,12 +20,23 @@ public class EmptyLobbySweepServiceTests
     }
 
     [Fact]
+    public async Task EmptyLobbyExactlyAtTtl_SweepRemovesLobby()
+    {
+        var context = await LobbyFactory.Empty(Guid.NewGuid());
+        var sweep = LobbyFactory.SweepService(context);
+        context.Time.Advance(Ttl);
+
+        await sweep.Sweep(CancellationToken.None);
+
+        Assert.False(context.LobbyExists);
+    }
+
+    [Fact]
     public async Task EmptyLobbyYoungerThanTtl_SweepKeepsLobby()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        var sweep = LobbyFactory.SweepService(context, time);
-        time.Advance(Ttl - TimeSpan.FromSeconds(5));
+        var sweep = LobbyFactory.SweepService(context);
+        context.Time.Advance(Ttl - TimeSpan.FromTicks(1));
 
         await sweep.Sweep(CancellationToken.None);
 
@@ -40,9 +49,8 @@ public class EmptyLobbySweepServiceTests
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
-        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        var sweep = LobbyFactory.SweepService(context, time);
-        time.Advance(Ttl * 10);
+        var sweep = LobbyFactory.SweepService(context);
+        context.Time.Advance(Ttl * 10);
 
         await sweep.Sweep(CancellationToken.None);
 
@@ -54,9 +62,8 @@ public class EmptyLobbySweepServiceTests
     public async Task CancelledSweep_RemovesNothing()
     {
         var context = await LobbyFactory.Empty(Guid.NewGuid());
-        var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
-        var sweep = LobbyFactory.SweepService(context, time);
-        time.Advance(Ttl);
+        var sweep = LobbyFactory.SweepService(context);
+        context.Time.Advance(Ttl);
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 

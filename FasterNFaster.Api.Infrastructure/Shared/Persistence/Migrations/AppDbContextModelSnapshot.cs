@@ -22,7 +22,7 @@ namespace FasterNFaster.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Auth.ExternalLogin", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.Auth.ExternalLogin", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -55,16 +55,16 @@ namespace FasterNFaster.Api.Migrations
                     b.ToTable("ExternalLogins");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.BannedPlayer", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.BannedPlayer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("BannedAt")
+                    b.Property<DateTimeOffset>("BannedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("ExpiresAt")
+                    b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Reason")
@@ -85,7 +85,7 @@ namespace FasterNFaster.Api.Migrations
                     b.ToTable("BannedPlayers");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.PlayerStatistics", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.PlayerStatistics", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -116,13 +116,13 @@ namespace FasterNFaster.Api.Migrations
                     b.ToTable("Statistics");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.User", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
@@ -156,27 +156,27 @@ namespace FasterNFaster.Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.Auth.ExternalLogin", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.Auth.ExternalLogin", b =>
                 {
-                    b.HasOne("FasterNFaster.Api.Core.Entities.User", null)
+                    b.HasOne("FasterNFaster.Api.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.PlayerStatistics", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.PlayerStatistics", b =>
                 {
-                    b.HasOne("FasterNFaster.Api.Core.Entities.User", "User")
+                    b.HasOne("FasterNFaster.Api.Domain.Entities.User", "User")
                         .WithOne("Statistics")
-                        .HasForeignKey("FasterNFaster.Api.Core.Entities.PlayerStatistics", "Id")
+                        .HasForeignKey("FasterNFaster.Api.Domain.Entities.PlayerStatistics", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FasterNFaster.Api.Core.Entities.User", b =>
+            modelBuilder.Entity("FasterNFaster.Api.Domain.Entities.User", b =>
                 {
                     b.Navigation("Statistics");
                 });

@@ -18,11 +18,8 @@ public class JwtTokenService(
         return new TokenPair(accessToken, refreshToken);
     }
 
-    public TokenPair IssueGuestTokens(Guid guestId, string guestName)
-    {
-        var guestAccessToken = jwtTokenFactory.CreateGuestAccessToken(guestId.ToString(), guestName);
-        return new TokenPair(guestAccessToken, null);
-    }
+    public IssuedToken IssueGuestTokens(Guid guestId, string guestName) =>
+        jwtTokenFactory.CreateGuestAccessToken(guestId.ToString(), guestName);
 
     public async Task<TokenPair?> TryRefreshTokens(string oldRefreshToken)
     {

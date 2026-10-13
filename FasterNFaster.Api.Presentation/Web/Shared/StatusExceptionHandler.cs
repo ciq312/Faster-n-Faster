@@ -9,7 +9,7 @@ public class StatusExceptionHandler : IExceptionHandler
     {
         if (exception is not StatusException ex) return false;
 
-        httpContext.Response.StatusCode = ex.StatusCode;
+        httpContext.Response.StatusCode = MapStatusCode(ex);
         await httpContext.Response.WriteAsJsonAsync(ToResponseBody(ex), cancellationToken);
         return true;
     }
@@ -33,4 +33,15 @@ public class StatusExceptionHandler : IExceptionHandler
 
         return body;
     }
+
+    private static int MapStatusCode(StatusException ex) =>
+        ex switch
+        {
+            ForbiddenException => StatusCodes.Status403Forbidden,
+            BadRequestException => StatusCodes.Status400BadRequest,
+            NotFoundException => StatusCodes.Status404NotFound,
+            ConflictException => StatusCodes.Status409Conflict,
+            UnauthorizedException => StatusCodes.Status401Unauthorized,
+            _ => StatusCodes.Status500InternalServerError,
+        };
 }

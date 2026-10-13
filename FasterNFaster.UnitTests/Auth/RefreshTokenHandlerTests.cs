@@ -19,7 +19,7 @@ public class RefreshTokenHandlerTests
         var result = await handler.Handle(new RefreshTokenCommand("old-refresh"), CancellationToken.None);
 
         Assert.Equal("new-access", result.Tokens.AccessToken.Value);
-        Assert.Equal("new-refresh", result.Tokens.RefreshToken?.Value);
+        Assert.Equal("new-refresh", result.Tokens.RefreshToken.Value);
     }
 
     [Fact]

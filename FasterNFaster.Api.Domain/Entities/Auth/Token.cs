@@ -6,11 +6,11 @@ public class Token
     public Guid UserId { get; set; }
     public required string Value { get; set; }
     public TokenType Type { get; set; }
-    public DateTime ExpiresAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
-    public bool IsValid()
+    public bool IsValid(DateTimeOffset now)
     {
-        return DateTime.UtcNow < ExpiresAt;
+        return now < ExpiresAt;
     }
 }

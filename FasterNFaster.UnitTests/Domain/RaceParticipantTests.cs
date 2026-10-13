@@ -3,6 +3,7 @@ using FasterNFaster.Api.Domain.Interfaces;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Domain;
 
@@ -10,10 +11,10 @@ public class RaceParticipantTests
 {
     private const string Passage = "the quick brown fox jumps over the lazy dog pepe lolo gege roro gsgs asdge eergwegro oiwernoiewnviown weoriweoieoif woerignwoeig";
 
-    private static (RaceParticipant Participant, FakeClock Clock) CreateParticipant(IAntiCheatPolicy? policy = null)
+    private static (RaceParticipant Participant, FakeTimeProvider Clock) CreateParticipant(IAntiCheatPolicy? policy = null)
     {
-        var clock = new FakeClock();
-        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? Unlimited(), clock.Func);
+        var clock = new FakeTimeProvider();
+        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? Unlimited(), clock);
         return (participant, clock);
     }
 
@@ -332,6 +333,20 @@ public class RaceParticipantTests
 
         Assert.Equal(2, participant.WordsTyped);
         Assert.Equal(participant.WordsTyped, participant.Result!.WordsTyped);
+    }
+
+    [Fact]
+    public void MarkFinished_ResultFinishedAtMatchesParticipant()
+    {
+        var (participant, clock) = CreateParticipant();
+        participant.Start();
+        participant.UpdateProgress(2, "the", 0, Passage);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        participant.MarkFinished(1);
+
+        Assert.Equal(clock.GetUtcNow(), participant.FinishedAt);
+        Assert.Equal(participant.FinishedAt, participant.Result!.FinishedAt);
     }
 
     [Fact]

@@ -34,6 +34,18 @@ public class LoginUserHandlerTests
     }
 
     [Fact]
+    public async Task UserWithoutPassword_ShouldThrowInvalidCredentials()
+    {
+        var repo = new FakeUserRepository();
+        repo.Seed(new User("Player1", "mylogin", null));
+        var handler = CreateHandler(repo);
+
+        await Assert.ThrowsAsync<InvalidCredentialsException>(
+            () => handler.Handle(new LoginUserCommand("mylogin", "pass123"), CancellationToken.None)
+        );
+    }
+
+    [Fact]
     public async Task UnverifiedEmail_ShouldThrowEmailNotVerified()
     {
         var repo = new FakeUserRepository();

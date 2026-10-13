@@ -6,7 +6,7 @@ namespace FasterNFaster.UnitTests.Races;
 public class RaceResultQueueTests
 {
     private static RaceParticipantResult Result(int finishPosition) =>
-        new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, finishPosition);
+        new(Guid.NewGuid(), Guid.NewGuid(), "nick", 80f, 95f, 1, 10, finishPosition, DateTimeOffset.UnixEpoch);
 
     [Fact]
     public async Task Enqueue_ThenDequeue_YieldsSameBatch()

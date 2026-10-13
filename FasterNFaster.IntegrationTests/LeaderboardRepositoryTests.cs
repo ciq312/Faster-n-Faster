@@ -114,11 +114,11 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     }
 
     private static RaceParticipantResult Race(float wpm = 30, float accuracy = 60, int wordsTyped = 10, int? finishPosition = 2) =>
-        new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition);
+        new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition, DateTimeOffset.UnixEpoch);
 
     private Task<LeaderboardPage> GetPageAsync(LeaderboardSort sort, bool descending, int page, int pageSize) =>
         App.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
-            new LeaderboardRepository(context).GetTopPlayersAsync(sort, descending, page, pageSize));
+            new LeaderboardRepository(context, TimeProvider.System).GetTopPlayersAsync(sort, descending, page, pageSize));
 
     private async Task SeedRankedPlayersAsync()
     {

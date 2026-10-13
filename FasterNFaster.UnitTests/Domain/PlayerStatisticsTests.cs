@@ -6,7 +6,7 @@ namespace FasterNFaster.UnitTests.Domain;
 public class PlayerStatisticsTests
 {
     private static RaceParticipantResult Result(float wpm, float accuracy) =>
-        new(Guid.NewGuid(), Guid.NewGuid(), "alice", wpm, accuracy, 0, 10, 1);
+        new(Guid.NewGuid(), Guid.NewGuid(), "alice", wpm, accuracy, 0, 10, 1, DateTimeOffset.UnixEpoch);
 
     [Fact]
     public void NoRacesRegistered_AveragesAreZero()

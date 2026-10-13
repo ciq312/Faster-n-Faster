@@ -6,7 +6,7 @@ namespace FasterNFaster.Api.Infrastructure.AntiCheat;
 public class StrikeRegistry : IStrikeRegistry
 {
     private readonly ConcurrentDictionary<(Guid LobbyId, Guid UserId), int> raceViolations = new();
-    private readonly ConcurrentDictionary<Guid, List<DateTime>> strikes = new();
+    private readonly ConcurrentDictionary<Guid, List<DateTimeOffset>> strikes = new();
 
     public int RecordRaceViolation(Guid lobbyId, Guid userId) =>
         raceViolations.AddOrUpdate((lobbyId, userId), 1, (_, count) => count + 1);
@@ -17,9 +17,9 @@ public class StrikeRegistry : IStrikeRegistry
             raceViolations.TryRemove(key, out _);
     }
 
-    public int RecordStrike(Guid userId, DateTime now, TimeSpan window)
+    public int RecordStrike(Guid userId, DateTimeOffset now, TimeSpan window)
     {
-        var timestamps = strikes.GetOrAdd(userId, _ => new List<DateTime>());
+        var timestamps = strikes.GetOrAdd(userId, _ => new List<DateTimeOffset>());
         lock (timestamps)
         {
             timestamps.Add(now);

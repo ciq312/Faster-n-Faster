@@ -11,7 +11,6 @@ using FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.UnitTests.Fakes;
-using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -178,9 +177,8 @@ public class LobbyConcurrencyTests
             var creator = Guid.NewGuid();
             var joiner = new User("joiner");
             var context = await LobbyFactory.Empty(creator);
-            var time = new FakeTimeProvider(DateTimeOffset.UtcNow);
-            var sweep = LobbyFactory.SweepService(context, time);
-            time.Advance(LobbyFactory.EmptyLobbyTtl);
+            var sweep = LobbyFactory.SweepService(context);
+            context.Time.Advance(LobbyFactory.EmptyLobbyTtl);
 
             await ConcurrentRunner.RunTogether([
                 () => sweep.Sweep(CancellationToken.None),

@@ -132,7 +132,7 @@ public class RealtimeBroadcastHandlerTests
         var playerId = Guid.NewGuid();
         var results = new List<RaceParticipantResult>
         {
-            new(Guid.NewGuid(), playerId, "nick", 80f, 95f, 3, 50, 1)
+            new(Guid.NewGuid(), playerId, "nick", 80f, 95f, 3, 50, 1, DateTimeOffset.UnixEpoch)
         };
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastRaceFinishedHandler(broadcaster);

@@ -24,11 +24,7 @@ public class UserProfileService(
         {
             if (!await userRepo.IsUserRegistered(result.LobbyPlayerId)) continue;
 
-            var stats = await statsRepo.FindAsync(result.LobbyPlayerId);
-            if (stats == null)
-            {
-                CreateRaceParticipantStatistics(result, out stats);
-            }
+            var stats = await statsRepo.FindAsync(result.LobbyPlayerId) ?? AddStatisticsFor(result);
 
             logger.LogDebug("Registering race result for {PlayerId}", result.LobbyPlayerId);
             stats.RegisterRace(result);
@@ -37,10 +33,11 @@ public class UserProfileService(
         await statsRepo.SaveAsync();
     }
 
-    private void CreateRaceParticipantStatistics(RaceParticipantResult result, out PlayerStatistics stats)
+    private PlayerStatistics AddStatisticsFor(RaceParticipantResult result)
     {
         logger.LogDebug("Creating player statistics for {PlayerId}", result.LobbyPlayerId);
-        stats = new PlayerStatistics(result.LobbyPlayerId);
+        var stats = new PlayerStatistics(result.LobbyPlayerId);
         statsRepo.Add(stats);
+        return stats;
     }
 }
