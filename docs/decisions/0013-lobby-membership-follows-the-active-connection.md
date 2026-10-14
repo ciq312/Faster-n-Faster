@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-14
-- **Sources:** [#28](https://github.com/ciq312/Faster-n-Faster/pull/28) (session entry guarded by `ClearSessionIfActive`), #TBD (keep players with a live connection)
+- **Sources:** [#28](https://github.com/ciq312/Faster-n-Faster/pull/28) (session entry guarded by `ClearSessionIfActive`), [#44](https://github.com/ciq312/Faster-n-Faster/pull/44) (keep players with a live connection)
 
 ## Context
 
