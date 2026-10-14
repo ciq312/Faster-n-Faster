@@ -24,6 +24,7 @@ Records 0001–0012 were written on 2026-10-14 from the commit history, pull req
 | [0007](0007-race-tick-with-latest-frame-conflation.md) | 200 ms race tick with latest-frame conflation | Accepted | 2026-05-18 |
 | [0008](0008-one-lobbystate-broadcast-per-changed-lobby.md) | One `LobbyState` broadcast per changed lobby | Accepted | 2026-09-20 |
 | [0009](0009-broadcast-to-tracked-connections-not-groups.md) | Broadcast to tracked connections, not SignalR groups | Accepted | 2026-07-01 |
+| [0013](0013-lobby-membership-follows-the-active-connection.md) | Lobby membership follows the active connection | Accepted | 2026-10-14 |
 
 ### Cross-cutting
 

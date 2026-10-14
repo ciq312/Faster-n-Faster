@@ -1,7 +1,6 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
-using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
@@ -101,7 +100,7 @@ public class LobbyStateBroadcastTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new RefreshHandler(new PendingRemovalRegistry(), context.Lobbies, context.Tracker)
+            new RefreshHandler(context.Lobbies, context.Tracker)
                 .Handle(new RefreshCommand(host.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);

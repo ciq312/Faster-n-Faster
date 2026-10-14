@@ -5,6 +5,7 @@ using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
 using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Races.Ports;
@@ -45,6 +46,7 @@ public partial class GameHub(
 
         var userId = GetCallerContext().UserId;
         await StoreSession(userId, Context.ConnectionId);
+        await sender.Send(new ReconnectCommand(userId));
     }
 
     private async Task StoreSession(Guid userId, string callerConnectionId)
@@ -151,9 +153,17 @@ public partial class GameHub(
         try
         {
             await sender.Send(new FastReconnectCommand(lobbyId, userId));
-            await sender.Send(new DisconnectCommand(userId));
 
-            logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", userId, lobbyId);
+            if (sessionService.GetActiveSession(userId) is null)
+            {
+                await sender.Send(new DisconnectCommand(userId));
+
+                logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", userId, lobbyId);
+            }
+            else
+            {
+                logger.LogDebug("Player {PlayerId} kept in lobby {LobbyId}: another connection is active", userId, lobbyId);
+            }
 
             await base.OnDisconnectedAsync(exception);
         }

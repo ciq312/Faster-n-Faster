@@ -88,11 +88,12 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 
 ### Disconnects and reconnects
 
-- `OnDisconnectedAsync` starts a 15 s grace period (`FastReconnectHandler`). If the player reconnects within it, the pending removal is cancelled and they keep their place; otherwise `DisconnectCommand` removes them from the lobby.
+- A player stays in their lobby while they have an active hub connection anywhere in the app, not only on the lobby page ([0013](decisions/0013-lobby-membership-follows-the-active-connection.md)).
+- `OnDisconnectedAsync` starts a 15 s grace period (`FastReconnectHandler`). Any new hub connection cancels it (`ReconnectCommand` from `OnConnectedAsync`). When it ends, `DisconnectCommand` removes the player only if they have no active connection (`ISessionService.GetActiveSession`), so a stale connection that is detected late can't remove a player who is already back.
 - A disconnected racer's cursor freezes; the race goes on without them and they're left out of the results.
 - If the host leaves, the next player in the lobby is promoted.
 - Empty lobbies are removed atomically under their gate. Lobbies that were created but never joined are swept by `EmptyLobbySweepService` (TTL 2 min, sweep every minute).
-- Each user has one active connection. A second connection takes over and the first receives `AnotherSessionStarted`.
+- Each user has one active connection. A second connection takes over and the first receives `AnotherSessionStarted`. The old tab navigates to the start page, which closes its connection.
 
 ### Authentication
 
