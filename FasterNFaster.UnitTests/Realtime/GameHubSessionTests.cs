@@ -6,6 +6,7 @@ using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime;
@@ -37,14 +38,45 @@ public class GameHubSessionTests
         };
     }
 
-    private void RouteToLobbyHandlers(LobbyTestContext context) =>
-        sender.OnSend = request => request switch
+    private Func<object, Task> LobbyHandlers(LobbyTestContext context) =>
+        request => request switch
         {
             FastReconnectCommand command => new FastReconnectHandler(pendingRemovals, time).Handle(command, CancellationToken.None),
             DisconnectCommand command => new DisconnectHandler(context.Lobbies, context.Races).Handle(command, CancellationToken.None),
-            RefreshCommand command => new RefreshHandler(pendingRemovals, context.Lobbies, context.Tracker).Handle(command, CancellationToken.None),
+            RefreshCommand command => new RefreshHandler(context.Lobbies, context.Tracker).Handle(command, CancellationToken.None),
+            ReconnectCommand command => new ReconnectHandler(pendingRemovals).Handle(command, CancellationToken.None),
             _ => Task.CompletedTask,
         };
+
+    private void RouteToLobbyHandlers(LobbyTestContext context) =>
+        sender.OnSend = LobbyHandlers(context);
+
+    private void ConnectWhenGraceStarts(LobbyTestContext context, GameHub tab)
+    {
+        var route = LobbyHandlers(context);
+
+        sender.OnSend = async request =>
+        {
+            if (request is FastReconnectCommand)
+                await tab.OnConnectedAsync();
+
+            await route(request);
+        };
+    }
+
+    private async Task<GameHub> ConnectedTab(Guid userId, LobbyTestContext context)
+    {
+        var tab = NewTab(userId, context.Lobbies, context.Races);
+        await tab.OnConnectedAsync();
+        return tab;
+    }
+
+    private async Task DisconnectAfterGracePeriod(GameHub tab)
+    {
+        var disconnect = tab.OnDisconnectedAsync(null);
+        time.Advance(FastReconnectHandler.ReconnectGracePeriod);
+        await disconnect;
+    }
 
     [Fact]
     public async Task Disconnect_OutsideLobby_ClearsSession()
@@ -166,49 +198,19 @@ public class GameHubSessionTests
     }
 
     [Fact]
-    public async Task RefreshDisconnectRefresh_KeepsPlayerInLobby()
+    public async Task DisconnectTwiceThenReconnect_KeepsPlayerInLobby()
     {
         var member = new User("member");
         var context = await LobbyFactory.WithPlayers(member);
         RouteToLobbyHandlers(context);
 
-        var tabA = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabA.OnConnectedAsync();
+        var tabA = await ConnectedTab(member.Id, context);
         var disconnectA = tabA.OnDisconnectedAsync(null);
 
-        var tabB = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabB.OnConnectedAsync();
-        await tabB.RefreshLobby();
+        var tabB = await ConnectedTab(member.Id, context);
         var disconnectB = tabB.OnDisconnectedAsync(null);
 
-        var tabC = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabC.OnConnectedAsync();
-        await tabC.RefreshLobby();
-
-        time.Advance(FastReconnectHandler.ReconnectGracePeriod);
-        await Task.WhenAll(disconnectA, disconnectB);
-
-        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(member.Id));
-    }
-
-    [Fact]
-    public async Task DisconnectTwiceThenRefresh_KeepsPlayerInLobby()
-    {
-        var member = new User("member");
-        var context = await LobbyFactory.WithPlayers(member);
-        RouteToLobbyHandlers(context);
-
-        var tabA = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabA.OnConnectedAsync();
-        var disconnectA = tabA.OnDisconnectedAsync(null);
-
-        var tabB = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabB.OnConnectedAsync();
-        var disconnectB = tabB.OnDisconnectedAsync(null);
-
-        var tabC = NewTab(member.Id, context.Lobbies, context.Races);
-        await tabC.OnConnectedAsync();
-        await tabC.RefreshLobby();
+        await ConnectedTab(member.Id, context);
 
         time.Advance(FastReconnectHandler.ReconnectGracePeriod);
         await Task.WhenAll(disconnectA, disconnectB);
@@ -223,12 +225,104 @@ public class GameHubSessionTests
         var context = await LobbyFactory.WithPlayers(member);
         RouteToLobbyHandlers(context);
 
-        var tab = NewTab(member.Id, context.Lobbies, context.Races);
-        await tab.OnConnectedAsync();
-        var disconnect = tab.OnDisconnectedAsync(null);
+        var tab = await ConnectedTab(member.Id, context);
+        await DisconnectAfterGracePeriod(tab);
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task StaleDisconnect_AfterNewTabConnected_KeepsPlayerInLobby()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+        RouteToLobbyHandlers(context);
+
+        var tabA = await ConnectedTab(member.Id, context);
+        await ConnectedTab(member.Id, context);
+
+        await DisconnectAfterGracePeriod(tabA);
+
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task StaleDisconnect_AfterNewTabRefreshedLobby_KeepsPlayerInLobby()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+        RouteToLobbyHandlers(context);
+
+        var tabA = await ConnectedTab(member.Id, context);
+        var tabB = await ConnectedTab(member.Id, context);
+        await tabB.RefreshLobby();
+
+        await DisconnectAfterGracePeriod(tabA);
+
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task ReconnectWithinGracePeriod_CancelsPendingRemoval()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+        RouteToLobbyHandlers(context);
+
+        var tabA = await ConnectedTab(member.Id, context);
+        var disconnectA = tabA.OnDisconnectedAsync(null);
+
+        await ConnectedTab(member.Id, context);
+
+        Assert.False(pendingRemovals.TryCancelPendingRemoval(member.Id));
+        await disconnectA;
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task ReconnectBeforeGraceStarts_KeepsPlayerInLobby()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+
+        var tabA = await ConnectedTab(member.Id, context);
+        var tabB = NewTab(member.Id, context.Lobbies, context.Races);
+        ConnectWhenGraceStarts(context, tabB);
+
+        await DisconnectAfterGracePeriod(tabA);
+
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task BothTabsDisconnect_RemovesPlayer()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+        RouteToLobbyHandlers(context);
+
+        var tabA = await ConnectedTab(member.Id, context);
+        var tabB = await ConnectedTab(member.Id, context);
+        var disconnectA = tabA.OnDisconnectedAsync(null);
+        var disconnectB = tabB.OnDisconnectedAsync(null);
 
         time.Advance(FastReconnectHandler.ReconnectGracePeriod);
-        await disconnect;
+        await Task.WhenAll(disconnectA, disconnectB);
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(member.Id));
+    }
+
+    [Fact]
+    public async Task DisconnectAfterRevokeAllSessions_RemovesPlayer()
+    {
+        var member = new User("member");
+        var context = await LobbyFactory.WithPlayers(member);
+        RouteToLobbyHandlers(context);
+
+        var tab = await ConnectedTab(member.Id, context);
+        await sessions.RevokeAllSessions(member.Id);
+
+        await DisconnectAfterGracePeriod(tab);
 
         Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(member.Id));
     }

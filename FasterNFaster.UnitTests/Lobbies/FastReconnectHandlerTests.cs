@@ -36,7 +36,7 @@ public class FastReconnectHandlerTests
     }
 
     [Fact]
-    public async Task CancelledByRefresh_ThrowsOperationCanceled()
+    public async Task Cancelled_ThrowsOperationCanceled()
     {
         var playerId = Guid.NewGuid();
         var handler = StartHandler(playerId);
