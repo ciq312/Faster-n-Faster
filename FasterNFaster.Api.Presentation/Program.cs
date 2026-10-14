@@ -11,8 +11,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("log.txt")
     .CreateLogger();
 
-if (File.Exists(".env"))
-    Env.Load();
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
