@@ -155,12 +155,17 @@ Load-test orchestration and profiling live in a separate repo: [Faster-n-Faster-
 ```bash
 cp .env.example .env   # fill in values
 
-cd fasternfasterapp 
+# API in Docker (starts Postgres and Redis with it)
+docker compose up api --build
+
+# or: Postgres and Redis in Docker, API on the host with hot reload
+docker compose up postgres redis
+cd FasterNFaster.Api.Presentation && dotnet watch run
+
+# frontend: Vite on :3000, proxies /api and /gameHub to the API on :8080
+cd fasternfasterapp
 npm install
 npm run dev
-
-cd fasternfaster.api
-docker compose up --build
 ```
 
 ---

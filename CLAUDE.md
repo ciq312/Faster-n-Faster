@@ -16,8 +16,10 @@ dotnet format FasterNFaster.Api.sln           # CI runs it with --verify-no-chan
 
 cd fasternfasterapp && npm run lint && npm run format:check && npm run build   # what CI runs; no test runner yet
 
-cp .env.example .env                          # once, then fill in the values; compose reads it
-docker compose up api --build                 # API on :8080, starts Postgres and Redis with it
+cp .env.example .env                          # once, then fill in the values; compose and the API read it
+docker compose up api --build                 # API in Docker on :8080, starts Postgres and Redis with it
+docker compose up postgres redis              # or: only the databases in Docker, and the API on the host:
+cd FasterNFaster.Api.Presentation && dotnet watch run   # :8080 via Properties/launchSettings.json; stop the api container first
 cd fasternfasterapp && npm run dev            # Vite on :3000, proxies /api and /gameHub to :8080
 
 dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
@@ -45,7 +47,7 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 - `AggregateGate` isn't re-entrant: code inside `Mutate`/`Read` must not call the same store for the same id ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
 - A new business error subclasses one of the five `StatusException` categories; add a `code` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md)).
 - EF migrations run at API startup and a rollback doesn't undo them, so a schema change must also work with the previous release.
-- The API only runs in Docker for now: its connection strings are set only in `docker-compose.yml` (`environment:`), not in appsettings, and `Program.cs` loads `.env` only from the current directory. `dotnet watch run` fails with "Redis connection string not found".
+- On the host the API takes its connection strings from `ConnectionStrings__*` lines in `.env`, found by searching up from the working directory. They interpolate `${POSTGRES_*}`, so they must come after those lines, or the values come out empty. In Docker, compose's `environment:` overrides them.
 
 ## Git flow
 
