@@ -4,11 +4,59 @@
 - Cover new code with tests
 - If something is unclear before implementing, ask first
 
+## Commands
+
+Repo root unless noted.
+
+```bash
+dotnet build FasterNFaster.Api.sln
+dotnet test FasterNFaster.UnitTests           # no Docker needed
+dotnet test FasterNFaster.IntegrationTests    # needs Docker running (Testcontainers: Postgres + Redis)
+dotnet format FasterNFaster.Api.sln           # CI runs it with --verify-no-changes
+
+cd fasternfasterapp && npm run lint && npm run format:check && npm run build   # what CI runs; no test runner yet
+
+cp .env.example .env                          # once, then fill in the values; compose reads it
+docker compose up api --build                 # API on :8080, starts Postgres and Redis with it
+cd fasternfasterapp && npm run dev            # Vite on :3000, proxies /api and /gameHub to :8080
+
+dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
+  --startup-project FasterNFaster.Api.Presentation --output-dir Shared/Persistence/Migrations
+```
+
+## Layout
+
+- `FasterNFaster.Api.{Domain,UseCases,Infrastructure,Presentation}`: the backend, Clean Architecture ([0003](docs/decisions/0003-clean-architecture-over-layered.md)); folders inside each follow feature areas.
+- `FasterNFaster.UnitTests`, `FasterNFaster.IntegrationTests`: xUnit with hand-rolled fakes; integration tests use Testcontainers.
+- `fasternfasterapp/`: React + Vite frontend, JavaScript (TypeScript planned, [0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
+- `loadtest/`: SignalR load-test bot.
+
+## Architecture docs
+
+- **Where:** `docs/architecture.md` explains how the system runs: where state lives, the main flows, the concurrency model. `docs/decisions/` holds one record per design decision, indexed in `docs/decisions/README.md`. Read the relevant record before changing the mechanism it describes.
+- **Keep them true:** a change that alters documented behaviour updates the doc in the same change. A new architectural decision gets a new record from the template in `docs/decisions/README.md`; an accepted record isn't rewritten, it's superseded by a new one.
+- **How records are written:** name the principle the decision applies (open-closed, dependency inversion, …) and show the mechanism (the flow, the loop, a short code sketch), not only what the library does.
+- **Public repo:** docs cite PRs and commits, never Jira keys.
+
+## Gotchas
+
+- `GameHub.UpdateRaceState` skips MediatR, so pipeline behaviors never run for progress updates. Rules for them live in `RaceParticipant` ([0004](docs/decisions/0004-cqrs-with-mediatr-bypassed-on-the-hot-path.md)).
+- A command that changes a lobby must implement `ILobbyStateRequest`, or clients get no `LobbyState` ([0008](docs/decisions/0008-one-lobbystate-broadcast-per-changed-lobby.md)).
+- `AggregateGate` isn't re-entrant: code inside `Mutate`/`Read` must not call the same store for the same id ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
+- A new business error subclasses one of the five `StatusException` categories; add a `code` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md)).
+- EF migrations run at API startup and a rollback doesn't undo them, so a schema change must also work with the previous release.
+- The API only runs in Docker for now: its connection strings are set only in `docker-compose.yml` (`environment:`), not in appsettings, and `Program.cs` loads `.env` only from the current directory. `dotnet watch run` fails with "Redis connection string not found".
+
+## Git flow
+
+- **Gitflow:** work happens on `feature/<short-meaning>` (no ticket key) branched from an up-to-date `dev`, and goes back by a squash PR into `dev`. `main` only takes release PRs from `dev`. Nothing is edited or committed directly on `dev` or `main`.
+- **Conventional Commits** for commit messages and PR titles (`fix(lobby): …`); CI checks PR titles.
+
 ## Code style
 
 Single convention, backend and frontend. Check a neighbouring file before adding anything new; if it conflicts with a rule below, the rule below wins — it exists because the codebase had drifted.
 
-- **Private fields (C#):** plain `camelCase`, no leading underscore (`logger`, `budget`, not `_logger`/`_budget`). This is the dominant existing style; a few older files use `_camelCase` for an injected clock — don't copy that, and feel free to fix one in passing if you're already touching that file.
+- **Private fields (C#):** plain `camelCase`, no leading underscore (`logger`, `budget`, not `_logger`/`_budget`). This is the dominant existing style; a few test files still use `_camelCase` (`_sut`, `_repo`, `_users`) — don't copy that, and fix one in passing if you're already touching that file.
 - **Comments:** default to none. Add one only when the code can't explain itself without it — a non-obvious business rule, a reason a design choice must stay a certain way, a trick in a test. Never add a comment that just restates a well-named method or the next line. No section-banner comments (`// -------- happy path --------`).
 - **Namespaces:** file-scoped (`namespace X;`), not block-scoped. Already consistent; keep it that way.
 - **Blank lines:** single blank line between members at most; no double blank lines.
