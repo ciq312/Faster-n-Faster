@@ -5,7 +5,8 @@ namespace FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 public record LobbyStateDTO(
     Guid LobbyId,
     string LobbyName,
-    bool IsSessionActive,
+    bool IsRaceStarting,
+    bool IsRaceStarted,
     RaceSettingsDTO Settings,
     bool IsPrivate,
     string? InviteCode,

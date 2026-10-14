@@ -46,4 +46,71 @@ public class LobbyQueryTests
 
         await Assert.ThrowsAsync<LobbyNotFoundException>(() => context.LobbyQuery.GetLobbyState(context.LobbyId));
     }
+
+    [Fact]
+    public async Task BeforeStart_ReportsNeitherStartingNorStarted()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+
+        var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
+
+        Assert.False(state.IsRaceStarting);
+        Assert.False(state.IsRaceStarted);
+    }
+
+    [Fact]
+    public async Task Countdown_ReportsRaceStartingOnly()
+    {
+        var context = await InCountdown();
+
+        var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
+
+        Assert.True(state.IsRaceStarting);
+        Assert.False(state.IsRaceStarted);
+    }
+
+    [Fact]
+    public async Task RaceStarted_ReportsRaceStartedOnly()
+    {
+        var context = await InCountdown();
+        await context.Races.Mutate(context.LobbyId, r => r.Start());
+
+        var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
+
+        Assert.False(state.IsRaceStarting);
+        Assert.True(state.IsRaceStarted);
+    }
+
+    [Fact]
+    public async Task SessionEndedDuringCountdown_ReportsNeitherStartingNorStarted()
+    {
+        var context = await InCountdown();
+        await context.Lobbies.Mutate(context.LobbyId, l => l.EndSession());
+
+        var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
+
+        Assert.False(state.IsRaceStarting);
+        Assert.False(state.IsRaceStarted);
+    }
+
+    [Fact]
+    public async Task SessionEndedBeforeRaceReset_ReportsNeitherStartingNorStarted()
+    {
+        var context = await InCountdown();
+        // The race and lobby reads aren't atomic: the race can be read before the finish and the lobby after EndSession.
+        await context.Races.Mutate(context.LobbyId, r => r.Start());
+        await context.Lobbies.Mutate(context.LobbyId, l => l.EndSession());
+
+        var state = await context.LobbyQuery.GetLobbyState(context.LobbyId);
+
+        Assert.False(state.IsRaceStarting);
+        Assert.False(state.IsRaceStarted);
+    }
+
+    private static async Task<LobbyTestContext> InCountdown()
+    {
+        var (host, _, context) = await LobbyFactory.TwoUsersSetup();
+        await LobbyFactory.StartRace(context, host.Id);
+        return context;
+    }
 }
