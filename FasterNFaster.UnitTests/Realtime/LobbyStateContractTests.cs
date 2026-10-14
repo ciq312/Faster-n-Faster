@@ -27,7 +27,9 @@ public class LobbyStateContractTests
 
         Assert.Equal(context.LobbyId, json["lobbyId"]!.GetValue<Guid>());
         Assert.Equal("Test", json["lobbyName"]!.GetValue<string>());
-        Assert.False(json["isSessionActive"]!.GetValue<bool>());
+        Assert.False(json["isRaceStarting"]!.GetValue<bool>());
+        Assert.False(json["isRaceStarted"]!.GetValue<bool>());
+        Assert.False(json.ContainsKey("isSessionActive"));
         Assert.False(json["isPrivate"]!.GetValue<bool>());
         Assert.False(string.IsNullOrEmpty(json["inviteCode"]!.GetValue<string>()));
         Assert.True(json["maxPlayers"]!.GetValue<int>() > 0);

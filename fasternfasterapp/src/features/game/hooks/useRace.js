@@ -22,7 +22,8 @@ export function useRace() {
 
       subscribe("LobbyState", (state) => {
         setRaceSettings(state.settings);
-        setIsRacing(state.isSessionActive);
+        setIsRaceStarting(state.isRaceStarting);
+        setIsRacing(state.isRaceStarted);
       }),
 
       subscribe("RaceStarting", ({ countdownSeconds }) => {

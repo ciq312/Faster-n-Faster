@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
@@ -193,6 +194,35 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var guestStatistics = await WaitForStatisticsAsync(guest.UserId);
         Assert.Equal(0, guestStatistics.Wins);
         Assert.Equal(1, guestStatistics.RacesTyped);
+    }
+
+    [Fact]
+    public async Task StartRace_SendsLobbyStateWithRaceStartingOnly()
+    {
+        var (client, cookies, _) = await RegisterAndLoginAsync();
+        var lobby = await CreateLobbyAsync(client);
+        await using var hub = await JoinLobbyAsync(client, cookies, lobby);
+        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+
+        await hub.InvokeAsync("StartRace");
+
+        var state = await lobbyState.WaitAsync(EventTimeout);
+        Assert.True(state.GetProperty("isRaceStarting").GetBoolean());
+        Assert.False(state.GetProperty("isRaceStarted").GetBoolean());
+    }
+
+    [Fact]
+    public async Task RefreshLobbyMidRace_SendsLobbyStateWithRaceStartedOnly()
+    {
+        var (hub, _, _) = await StartSoloRaceAsync();
+        await using var _ = hub;
+        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+
+        await hub.InvokeAsync("RefreshLobby");
+
+        var state = await lobbyState.WaitAsync(EventTimeout);
+        Assert.False(state.GetProperty("isRaceStarting").GetBoolean());
+        Assert.True(state.GetProperty("isRaceStarted").GetBoolean());
     }
 
     private static Task CloseSignal(HubConnection hub)
