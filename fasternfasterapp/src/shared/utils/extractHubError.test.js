@@ -18,5 +18,5 @@ describe("extractHubError", () => {
     expect(msgToShow, msg);
   });
 
-  it 
+  it;
 });
