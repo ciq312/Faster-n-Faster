@@ -3,6 +3,9 @@ import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  test: {
+    environment: "jsdom",
+  },
   server: {
     port: 3000,
     host: true,

@@ -114,7 +114,7 @@ public class LeaderboardRepositoryTests(NoRateLimitApplicationFactory<Program> f
     }
 
     private static RaceParticipantResult Race(float wpm = 30, float accuracy = 60, int wordsTyped = 10, int? finishPosition = 2) =>
-        new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition, DateTimeOffset.UnixEpoch);
+        new(Guid.NewGuid(), Guid.Empty, "racer", wpm, accuracy, 0, wordsTyped, finishPosition, TimeProvider.System.GetUtcNow());
 
     private Task<LeaderboardPage> GetPageAsync(LeaderboardSort sort, bool descending, int page, int pageSize) =>
         App.ExecuteScopedAsync<AppDbContext, LeaderboardPage>(context =>
