@@ -278,4 +278,8 @@ describe("useTyping", () => {
       final: false,
     });
   });
+
+  it("fails", () => {
+    expect(false).toBe(true);
+  });
 });
