@@ -39,7 +39,7 @@ export function useTyping({
     }
   }, [isConnected]);
   useEffect(() => {
-    if (!needResyncRef.current) return;
+    if (!isConnected || !needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
     needResyncRef.current = false;
     if (selfTyped.length <= typed.length) {
@@ -50,7 +50,15 @@ export function useTyping({
     lastCorrectIndexRef.current = selfCorrectIndex;
     nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
     mistakesRef.current = selfMistakes ?? 0;
-  }, [selfTyped, passage, selfCorrectIndex, selfMistakes, typed, sendProgress]);
+  }, [
+    isConnected,
+    selfTyped,
+    passage,
+    selfCorrectIndex,
+    selfMistakes,
+    typed,
+    sendProgress,
+  ]);
   const handleTyping = useCallback(
     (e) => {
       if (disabled) return;

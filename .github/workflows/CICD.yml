@@ -10,7 +10,7 @@ jobs:
   backend-build:
 
     runs-on: ubuntu-latest
-    
+
     env:
       Solution_name: FasterNFaster.Api.sln
       Test_project_path: FasterNFaster.UnitTests/FasterNFaster.UnitTests.csproj
@@ -63,6 +63,7 @@ jobs:
     - run: npm ci
     - run: npm run lint
     - run: npm run format:check
+    - run: npm run test:run
     - run: npm run build
 
   publish-api:
