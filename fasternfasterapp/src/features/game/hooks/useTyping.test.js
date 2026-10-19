@@ -255,4 +255,27 @@ describe("useTyping", () => {
       final: false,
     });
   });
+
+  it("keeps a backspace made while disconnected after reconnecting", () => {
+    const { result, rerender } = renderTyping({ passage: "abc" });
+    typeText(result, "ab");
+    const props = typingProps({
+      passage: "abc",
+      selfTyped: "ab",
+      selfCorrectIndex: 1,
+    });
+    rerender(props);
+    setConnected(rerender, props, false);
+    backspace(result);
+
+    setConnected(rerender, props, true);
+
+    expect(result.current.typed).toBe("a");
+    expect(onProgress).toHaveBeenLastCalledWith({
+      index: 0,
+      mistakes: 0,
+      typed: "a",
+      final: false,
+    });
+  });
 });
