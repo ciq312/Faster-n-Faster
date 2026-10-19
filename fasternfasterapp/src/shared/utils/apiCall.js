@@ -1,5 +1,5 @@
 import { refreshOnce } from "./refreshOnce.js";
-import { API_BASE } from "../../config.js";
+import { API_BASE } from "../../config";
 
 export async function apiCall(url, options = {}) {
   const request = () =>
