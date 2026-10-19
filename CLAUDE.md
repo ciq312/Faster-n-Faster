@@ -14,7 +14,8 @@ dotnet test FasterNFaster.UnitTests           # no Docker needed
 dotnet test FasterNFaster.IntegrationTests    # needs Docker running (Testcontainers: Postgres + Redis)
 dotnet format FasterNFaster.Api.sln           # CI runs it with --verify-no-changes
 
-cd fasternfasterapp && npm run lint && npm run format:check && npm run build   # what CI runs; no test runner yet
+cd fasternfasterapp && npm run lint && npm run format:check && npm run test:run && npm run build   # what CI runs
+cd fasternfasterapp && npm test               # Vitest in watch mode
 
 cp .env.example .env                          # once, then fill in the values; compose and the API read it
 docker compose up api --build                 # API in Docker on :8080, starts Postgres and Redis with it
@@ -62,6 +63,6 @@ Single convention, backend and frontend. Check a neighbouring file before adding
 - **Comments:** default to none. Add one only when the code can't explain itself without it — a non-obvious business rule, a reason a design choice must stay a certain way, a trick in a test. Never add a comment that just restates a well-named method or the next line. No section-banner comments (`// -------- happy path --------`).
 - **Namespaces:** file-scoped (`namespace X;`), not block-scoped. Already consistent; keep it that way.
 - **Blank lines:** single blank line between members at most; no double blank lines.
-- **Tests:** `Scenario_Expected` naming. Extract a named helper for a repeated multi-step setup instead of commenting each call site.
+- **Tests:** backend tests use `Scenario_Expected` naming; frontend `it()` names are sentences without "should" (e.g. `it("rejects a space after a wrong word")`). Extract a named helper for a repeated multi-step setup instead of commenting each call site.
 - **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; nothing does in C#, so follow it by hand.
 - **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. Fix locally with `dotnet format FasterNFaster.Api.sln` and `npm run format` before pushing.
