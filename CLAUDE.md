@@ -14,7 +14,7 @@ dotnet test FasterNFaster.UnitTests           # no Docker needed
 dotnet test FasterNFaster.IntegrationTests    # needs Docker running (Testcontainers: Postgres + Redis)
 dotnet format FasterNFaster.Api.sln           # CI runs it with --verify-no-changes
 
-cd fasternfasterapp && npm run lint && npm run format:check && npm run test:run && npm run build   # what CI runs
+cd fasternfasterapp && npm run lint && npm run typecheck && npm run format:check && npm run test:run && npm run build   # what CI runs
 cd fasternfasterapp && npm test               # Vitest in watch mode
 
 cp .env.example .env                          # once, then fill in the values; compose and the API read it
@@ -31,7 +31,7 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 
 - `FasterNFaster.Api.{Domain,UseCases,Infrastructure,Presentation}`: the backend, Clean Architecture ([0003](docs/decisions/0003-clean-architecture-over-layered.md)); folders inside each follow feature areas.
 - `FasterNFaster.UnitTests`, `FasterNFaster.IntegrationTests`: xUnit with hand-rolled fakes; integration tests use Testcontainers.
-- `fasternfasterapp/`: React + Vite frontend, JavaScript (TypeScript planned, [0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
+- `fasternfasterapp/`: React + Vite frontend, moving from JavaScript to TypeScript ([0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)): new code is `.ts`/`.tsx`, existing JS stays until converted (`allowJs`).
 - `loadtest/`: SignalR load-test bot.
 
 ## Architecture docs
