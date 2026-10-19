@@ -2,7 +2,7 @@
 
 React SPA for [Faster'n'Faster](https://faster-n-faster.com), a real-time multiplayer typing game. Talks to the ASP.NET Core backend over REST (auth, lobbies, leaderboards) and a single SignalR WebSocket connection (live races).
 
-**Stack:** React 19, Vite, react-router 7, `@microsoft/signalr`. Plain JSX, CSS per component — no UI framework.
+**Stack:** React 19, Vite, react-router 7, `@microsoft/signalr`. JavaScript moving to TypeScript (strict `tsconfig.json`, `allowJs` until the rest is converted). Plain JSX, CSS per component — no UI framework.
 
 ---
 
@@ -60,4 +60,4 @@ npm run build      # outputs dist/
 
 The `Dockerfile` is a two-stage build: `node:22-alpine` builds `dist/`, `nginx:alpine` serves it with an SPA fallback (`try_files ... /index.html`). In production, Caddy routes `/api/*` and `/gameHub` to the backend container and everything else here.
 
-Production builds strip `console.log/debug/info/warn` calls and `debugger` statements (see `esbuild.pure` in `vite.config.js`).
+Production builds strip `console.log/debug/info/warn` calls and `debugger` statements (see `esbuild.pure` in `vite.config.ts`).

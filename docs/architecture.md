@@ -112,11 +112,11 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 
 ## Frontend
 
-- React 19 + Vite SPA with react-router, JavaScript today. Code is grouped by feature: `features/{auth, connection, game, lobbies, leaderboard}`, routed screens in `pages/`, shared components and utilities in `shared/`.
+- React 19 + Vite SPA with react-router, JavaScript moving to TypeScript (strict `tsconfig.json` with `allowJs`; `tsc` checks the `.ts`/`.tsx` files in CI, the remaining JS is unchecked). Code is grouped by feature: `features/{auth, connection, game, lobbies, leaderboard}`, routed screens in `pages/`, shared components and utilities in `shared/`.
 - `ConnectionProvider` owns one SignalR connection for the app, with automatic reconnect.
 - REST calls go through `apiCall`, which handles the refresh-and-retry above.
 - `useTyping` applies the typing rules locally for instant feedback; the server re-checks them ([0001](decisions/0001-server-authoritative-race-progress.md)).
-- Planned: TypeScript, Redux Toolkit and RTK Query ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
+- Planned: Redux Toolkit and RTK Query, and converting the remaining JavaScript to TypeScript ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
 
 ## Testing
 
