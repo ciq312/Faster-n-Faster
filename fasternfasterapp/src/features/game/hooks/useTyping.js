@@ -17,6 +17,7 @@ export function useTyping({
   const lastCorrectIndexRef = useRef(-1);
   const nextSep = useRef(-1);
   const needResyncRef = useRef(true);
+  const hasSyncedRef = useRef(false);
   const { isConnected } = useConnection();
 
   const sendProgress = useCallback(
@@ -42,7 +43,10 @@ export function useTyping({
     if (!isConnected || !needResyncRef.current) return;
     if (selfTyped === undefined || selfCorrectIndex === undefined) return;
     needResyncRef.current = false;
-    if (selfTyped.length <= typed.length) {
+    const isReconnect = hasSyncedRef.current;
+    hasSyncedRef.current = true;
+    // A longer server text wins only after a reload; after a reconnect the local text is fresher.
+    if (isReconnect || selfTyped.length <= typed.length) {
       if (typed) sendProgress(typed);
       return;
     }
