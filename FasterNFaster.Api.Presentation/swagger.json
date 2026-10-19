@@ -1,0 +1,789 @@
+{
+  "x-generator": "NSwag v14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))",
+  "openapi": "3.0.0",
+  "info": {
+    "title": "My Title",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/users/me/profile": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebUsersGetUserProfileGetUserProfileEndpoint",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserProfileResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebSharedHealthEndpoint",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lobbies": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebLobbiesGetLobbiesGetLobbiesEndpoint",
+        "requestBody": {
+          "x-name": "GetLobbiesRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetLobbiesRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetLobbiesResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebLobbiesCreateLobbyCreateLobbyEndpoint",
+        "requestBody": {
+          "x-name": "CreateLobbyRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLobbyRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateLobbyResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": ""
+          },
+          "403": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/leaderboards": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebLeaderboardsGetLeaderboardsGetLeaderboardsEndpoint",
+        "requestBody": {
+          "x-name": "GetLeaderboardsRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetLeaderboardsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetLeaderboardResults"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthVerifyEmailVerifyEmailEndpoint",
+        "requestBody": {
+          "x-name": "VerifyEmailRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthResetPasswordResetPasswordEndpoint",
+        "requestBody": {
+          "x-name": "ResetPasswordRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/resend-verification": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthResendVerificationResendVerificationEndpoint",
+        "requestBody": {
+          "x-name": "ResendVerificationRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthRequestPasswordResetRequestPasswordResetEndpoint",
+        "requestBody": {
+          "x-name": "RequestPasswordResetRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPasswordResetRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthRegisterUserRegisterUserEndpoint",
+        "requestBody": {
+          "x-name": "RegisterUserRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterUserResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/guest": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthRegisterAnonymousRegisterAnonymousEndpoint",
+        "requestBody": {
+          "x-name": "RegisterAnonymousRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAnonymousRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterAnonymousResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthRefreshTokenRefreshTokenEndpoint",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebAuthMeMeEndpoint",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthLogoutLogoutEndpoint",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "FasterNFasterApiPresentationWebAuthLoginUserLoginUserEndpoint",
+        "requestBody": {
+          "x-name": "LoginUserRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUserRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebAuthGoogleAuthGoogleCallbackEndpoint",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "operationId": "FasterNFasterApiPresentationWebAuthGoogleAuthGoogleChallengeEndpoint",
+        "requestBody": {
+          "x-name": "GoogleChallengeRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleChallengeRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetUserProfileResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dto": {
+            "$ref": "#/components/schemas/UserStatisticsDTO"
+          }
+        }
+      },
+      "UserStatisticsDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nick": {
+            "type": "string"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "racesTyped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bestWPM": {
+            "type": "number",
+            "format": "float"
+          },
+          "avgWPM": {
+            "type": "number",
+            "format": "float"
+          },
+          "bestAccuracy": {
+            "type": "number",
+            "format": "float"
+          },
+          "avgAccuracy": {
+            "type": "number",
+            "format": "float"
+          },
+          "wordsTyped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "GetLobbiesResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lobbies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LobbyListItem"
+            }
+          }
+        }
+      },
+      "LobbyListItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "isSessionActive": {
+            "type": "boolean"
+          },
+          "playerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxPlayers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GetLobbiesRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "inviteCode": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateLobbyResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lobbyId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "inviteCode": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateLobbyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lobbyName": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GetLeaderboardResults": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardResultDTO"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPlayers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "LeaderboardResultDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "bestWPM": {
+            "type": "number",
+            "format": "double"
+          },
+          "bestAccuracy": {
+            "type": "number",
+            "format": "double"
+          },
+          "avgWPM": {
+            "type": "number",
+            "format": "double"
+          },
+          "avgAccuracy": {
+            "type": "number",
+            "format": "double"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wordsTyped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "racesTyped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetLeaderboardsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sort": {
+            "$ref": "#/components/schemas/LeaderboardSort"
+          },
+          "descending": {
+            "type": "boolean"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "LeaderboardSort": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "BestWpm",
+          "AvgWpm",
+          "BestAccuracy",
+          "AvgAccuracy",
+          "Wins",
+          "WordsTyped",
+          "RacesTyped"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "VerifyEmailRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "ResendVerificationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "RequestPasswordResetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterUserResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "userName": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nick": {
+            "type": "string"
+          },
+          "login": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterAnonymousResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "guestId": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
+      "RegisterAnonymousRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nick": {
+            "type": "string"
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginUserResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "nick": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "GoogleChallengeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "returnUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}
