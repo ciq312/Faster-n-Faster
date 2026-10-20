@@ -9,6 +9,7 @@ public class GetUserProfileEndpoint(IUserProfileService profileService) : Endpoi
     public override void Configure()
     {
         Get("/api/users/me/profile");
+        Description(x => x.Produces<ErrorResponse>(500));
     }
 
     public override async Task HandleAsync(CancellationToken ct)

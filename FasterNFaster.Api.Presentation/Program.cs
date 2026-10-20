@@ -3,6 +3,7 @@ using FastEndpoints;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.Presentation.Web.Realtime;
+using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,7 +52,23 @@ if (app.Environment.IsDevelopment())
     app.UseOpenApi();
     app.UseSwaggerUi();
 }
-app.UseFastEndpoints();
+app.UseFastEndpoints(c =>
+{
+    c.Errors.ResponseBuilder = (failures, ctx, statusCode) =>
+    {
+        var errors = failures
+            .GroupBy(f => f.PropertyName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(f => f.ErrorMessage).ToArray());
+
+        return new ApiErrorResponse(
+            reason: "One or more validation errors occurred.",
+            statusCode: statusCode,
+            code: "validation_failed",
+            errors: errors);
+    };
+});
 app.MapHub<GameHub>("/gameHub");
 
 app.Run();

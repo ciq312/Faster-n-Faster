@@ -10,28 +10,8 @@ public class StatusExceptionHandler : IExceptionHandler
         if (exception is not StatusException ex) return false;
 
         httpContext.Response.StatusCode = MapStatusCode(ex);
-        await httpContext.Response.WriteAsJsonAsync(ToResponseBody(ex), cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(new ApiErrorResponse(ex.Message, ex.Code ?? "error", ex.Extensions?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)), cancellationToken);
         return true;
-    }
-
-    private static Dictionary<string, object?> ToResponseBody(StatusException ex)
-    {
-        var body = new Dictionary<string, object?> { ["error"] = ex.Message };
-
-        if (ex.Code is not null)
-        {
-            body["code"] = ex.Code;
-        }
-
-        if (ex.Extensions is not null)
-        {
-            foreach (var (key, value) in ex.Extensions)
-            {
-                body.TryAdd(key, value);
-            }
-        }
-
-        return body;
     }
 
     private static int MapStatusCode(StatusException ex) =>
