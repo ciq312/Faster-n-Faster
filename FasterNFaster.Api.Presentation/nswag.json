@@ -8,5 +8,15 @@
       "noBuild": true,
       "output": "swagger.json"
     }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "className": "ApiClient",
+      "template": "Fetch",
+      "typeScriptVersion": 6,
+      "generateClientClasses": true,
+      "generateDtoTypes": true,
+      "output": "../Shared/generated.ts"
+    }
   }
 }

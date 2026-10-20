@@ -1,8 +1,9 @@
 # CLAUDE.md
 
-- Write clean, testable code following SOLID, YAGNI, DRY, and KISS principles
-- Cover new code with tests
-- If something is unclear before implementing, ask first
+- Code in this repo is clean code: each function does one thing and does it well.
+- It is object-oriented and follows the SOLID principles.
+- It stays simple: YAGNI and KISS.
+- Design patterns appear where the problem calls for one, not by default.
 
 ## Commands
 
@@ -20,7 +21,7 @@ cd fasternfasterapp && npm test               # Vitest in watch mode
 cp .env.example .env                          # once, then fill in the values; compose and the API read it
 docker compose up api --build                 # API in Docker on :8080, starts Postgres and Redis with it
 docker compose up postgres redis              # or: only the databases in Docker, and the API on the host:
-cd FasterNFaster.Api.Presentation && dotnet watch run   # :8080 via Properties/launchSettings.json; stop the api container first
+cd FasterNFaster.Api.Presentation && dotnet watch run   # :8080 via Properties/launchSettings.json; the api container must be stopped
 cd fasternfasterapp && npm run dev            # Vite on :3000, proxies /api and /gameHub to :8080
 
 dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
@@ -36,19 +37,19 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 
 ## Architecture docs
 
-- **Where:** `docs/architecture.md` explains how the system runs: where state lives, the main flows, the concurrency model. `docs/decisions/` holds one record per design decision, indexed in `docs/decisions/README.md`. Read the relevant record before changing the mechanism it describes.
-- **Keep them true:** a change that alters documented behaviour updates the doc in the same change. A new architectural decision gets a new record from the template in `docs/decisions/README.md`; an accepted record isn't rewritten, it's superseded by a new one.
-- **How records are written:** name the principle the decision applies (open-closed, dependency inversion, …) and show the mechanism (the flow, the loop, a short code sketch), not only what the library does.
+- **Where:** `docs/architecture.md` explains how the system runs: where state lives, the main flows, the concurrency model. `docs/decisions/` holds one record per design decision, indexed in `docs/decisions/README.md`; each record is the reference for the mechanism it describes.
+- **Kept true:** docs change in the same change as the behaviour they describe. A new architectural decision gets a new record from the template in `docs/decisions/README.md`; an accepted record is never rewritten, only superseded by a new one.
+- **How records are written:** they name the principle the decision applies (open-closed, dependency inversion, …) and show the mechanism (the flow, the loop, a short code sketch), not only what the library does.
 - **Public repo:** docs cite PRs and commits, never Jira keys.
 
 ## Gotchas
 
 - `GameHub.UpdateRaceState` skips MediatR, so pipeline behaviors never run for progress updates. Rules for them live in `RaceParticipant` ([0004](docs/decisions/0004-cqrs-with-mediatr-bypassed-on-the-hot-path.md)).
-- A command that changes a lobby must implement `ILobbyStateRequest`, or clients get no `LobbyState` ([0008](docs/decisions/0008-one-lobbystate-broadcast-per-changed-lobby.md)).
-- `AggregateGate` isn't re-entrant: code inside `Mutate`/`Read` must not call the same store for the same id ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
-- A new business error subclasses one of the five `StatusException` categories; add a `code` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md)).
-- EF migrations run at API startup and a rollback doesn't undo them, so a schema change must also work with the previous release.
-- On the host the API takes its connection strings from `ConnectionStrings__*` lines in `.env`, found by searching up from the working directory. They interpolate `${POSTGRES_*}`, so they must come after those lines, or the values come out empty. In Docker, compose's `environment:` overrides them.
+- Only commands that implement `ILobbyStateRequest` trigger a `LobbyState` broadcast; a lobby-changing command without it leaves clients on stale state ([0008](docs/decisions/0008-one-lobbystate-broadcast-per-changed-lobby.md)).
+- `AggregateGate` isn't re-entrant: calling the same store for the same id from inside `Mutate`/`Read` deadlocks ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
+- Business errors subclass one of the five `StatusException` categories; an error has a `code` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md)).
+- EF migrations run at API startup and a rollback doesn't undo them, so every schema change also works with the previous release.
+- On the host the API takes its connection strings from `ConnectionStrings__*` lines in `.env`, found by searching up from the working directory. They interpolate `${POSTGRES_*}`, so they come after those lines, or the values come out empty. In Docker, compose's `environment:` overrides them.
 
 ## Git flow
 
@@ -57,12 +58,12 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 
 ## Code style
 
-Single convention, backend and frontend. Check a neighbouring file before adding anything new; if it conflicts with a rule below, the rule below wins — it exists because the codebase had drifted.
+Backend and frontend share one convention. Neighbouring files show it; where they disagree with the list below, the list wins, because the codebase had drifted.
 
-- **Private fields (C#):** plain `camelCase`, no leading underscore (`logger`, `budget`, not `_logger`/`_budget`). This is the dominant existing style; a few test files still use `_camelCase` (`_sut`, `_repo`, `_users`) — don't copy that, and fix one in passing if you're already touching that file.
-- **Comments:** default to none. Add one only when the code can't explain itself without it — a non-obvious business rule, a reason a design choice must stay a certain way, a trick in a test. Never add a comment that just restates a well-named method or the next line. No section-banner comments (`// -------- happy path --------`).
-- **Namespaces:** file-scoped (`namespace X;`), not block-scoped. Already consistent; keep it that way.
-- **Blank lines:** single blank line between members at most; no double blank lines.
-- **Tests:** backend tests use `Scenario_Expected` naming; frontend `it()` names are sentences without "should" (e.g. `it("rejects a space after a wrong word")`). Extract a named helper for a repeated multi-step setup instead of commenting each call site.
-- **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; nothing does in C#, so follow it by hand.
-- **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. Fix locally with `dotnet format FasterNFaster.Api.sln` and `npm run format` before pushing.
+- **Private fields (C#):** plain `camelCase`, no leading underscore (`logger`, `budget`, not `_logger`/`_budget`). A few test files still use `_camelCase` (`_sut`, `_repo`, `_users`); those are leftovers, fixed in passing when the file is touched.
+- **Comments:** almost none. A comment appears only where the code can't explain itself: a non-obvious business rule, a reason a design choice must stay a certain way, a trick in a test. No comments that restate a well-named method or the next line, and no section-banner comments (`// -------- happy path --------`).
+- **Namespaces:** file-scoped (`namespace X;`) everywhere, never block-scoped.
+- **Blank lines:** at most one between members; no double blank lines.
+- **Tests:** backend tests are named `Scenario_Expected`; frontend `it()` names are sentences without "should" (e.g. `it("rejects a space after a wrong word")`). A repeated multi-step setup lives in a named helper, not in comments at each call site.
+- **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; in C# nothing does, so it's kept by hand.
+- **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. `dotnet format FasterNFaster.Api.sln` and `npm run format` fix it locally.
