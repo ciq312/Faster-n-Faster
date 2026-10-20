@@ -16,7 +16,7 @@
       "typeScriptVersion": 6,
       "generateClientClasses": true,
       "generateDtoTypes": true,
-      "output": "../Shared/generated.ts"
+      "output": "../fasternfasterapp/types.ts"
     }
   }
 }
