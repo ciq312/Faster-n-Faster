@@ -1,7 +1,6 @@
-using System.Data.Common;
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities.Races;
 
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public class PlayerStatistics : Entity<Guid>
 {
@@ -15,11 +14,11 @@ public class PlayerStatistics : Entity<Guid>
     public int RacesTyped { get; private set; }
     public float BestWPM { get; private set; }
     public float SumWPM { get; private set; }
-    public float AvgWPM { get; private set; }
+    public float AvgWPM => RacesTyped == 0 ? 0 : SumWPM / RacesTyped;
 
     public float BestAccuracy { get; private set; }
     public float SumAccuracy { get; private set; }
-    public float AvgAccuracy { get; private set; }
+    public float AvgAccuracy => RacesTyped == 0 ? 0 : SumAccuracy / RacesTyped;
 
     public int WordsTyped { get; private set; }
 
@@ -31,11 +30,9 @@ public class PlayerStatistics : Entity<Guid>
 
         BestWPM = Math.Max(BestWPM, result.WPM);
         SumWPM += result.WPM;
-        AvgWPM = SumWPM / RacesTyped;
 
         BestAccuracy = Math.Max(BestAccuracy, result.Accuracy);
         SumAccuracy += result.Accuracy;
-        AvgAccuracy = SumAccuracy / RacesTyped;
 
         WordsTyped += result.WordsTyped;
     }

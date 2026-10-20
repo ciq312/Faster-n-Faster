@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using FastEndpoints;
+using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using MediatR;
 
-namespace FasterNFaster.Api.Web.Lobbies.CreateLobby;
+namespace FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 
 public record CreateLobbyRequest(string LobbyName, bool IsPrivate);
-
 
 public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, CreateLobbyResult>
 {
@@ -14,6 +14,7 @@ public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, 
     {
         Post("/api/lobbies");
         Roles("Player", "Guest");
+        Options(x => x.RequireRateLimiting(RateLimitPolicies.LobbyCreate));
     }
 
     public override async Task HandleAsync(CreateLobbyRequest req, CancellationToken ct)

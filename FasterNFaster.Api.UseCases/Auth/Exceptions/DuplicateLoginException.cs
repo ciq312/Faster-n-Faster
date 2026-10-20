@@ -1,0 +1,14 @@
+using FasterNFaster.Api.Domain.Exceptions;
+
+namespace FasterNFaster.Api.UseCases.Auth.Exceptions;
+
+public class DuplicateLoginException : ConflictException
+{
+    public string Login { get; }
+
+    public DuplicateLoginException(string login)
+        : base($"User with login '{login}' already exists")
+    {
+        Login = login;
+    }
+}

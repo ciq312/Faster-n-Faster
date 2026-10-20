@@ -1,6 +1,6 @@
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeBroadcaster : IBroadcaster
 {

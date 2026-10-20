@@ -1,9 +1,9 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 
-public class ChangeColorHandler(ILobbyAccess lobbies) : IRequestHandler<ChangeColorCommand>
+public class ChangeColorHandler(ILobbyStore lobbies) : IRequestHandler<ChangeColorCommand>
 {
     public async Task Handle(ChangeColorCommand command, CancellationToken cancellationToken)
     {

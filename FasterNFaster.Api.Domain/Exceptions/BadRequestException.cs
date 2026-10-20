@@ -1,6 +1,3 @@
-namespace FasterNFaster.Api.Core.Exceptions;
+namespace FasterNFaster.Api.Domain.Exceptions;
 
-public class BadRequestException(string message) : StatusException(message)
-{
-    public override int StatusCode => 400;
-}
+public class BadRequestException(string message) : StatusException(message);

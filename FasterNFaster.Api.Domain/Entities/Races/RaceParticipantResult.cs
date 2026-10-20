@@ -1,9 +1,8 @@
-namespace FasterNFaster.Api.Core.Entities.Races;
+namespace FasterNFaster.Api.Domain.Entities.Races;
 
 public class RaceParticipantResult
 {
     public Guid Id { get; private set; }
-    public Guid LobbyId { get; private set; }
     public Guid LobbyPlayerId { get; private set; }
     public string Nick { get; private set; }
     public float WPM { get; private set; }
@@ -13,8 +12,7 @@ public class RaceParticipantResult
     public int MistakeCount { get; private set; }
     public int WordsTyped { get; private set; }
     public int? FinishPosition { get; private set; }
-    public DateTime FinishedAt { get; private set; }
-
+    public DateTimeOffset FinishedAt { get; private set; }
 
     public RaceParticipantResult(
         Guid id,
@@ -24,26 +22,34 @@ public class RaceParticipantResult
         float accuracy,
         int mistakeCount,
         int wordsTyped,
-        int? finishPosition
+        int? finishPosition,
+        DateTimeOffset finishedAt
     )
     {
         if (accuracy is < 0 or > 100)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(accuracy),
                 "Accuracy must be between 0 and 100."
             );
+        }
 
         if (mistakeCount < 0)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(mistakeCount),
                 "Mistake count cannot be negative."
             );
+        }
 
         if (finishPosition < 1)
+        {
             throw new ArgumentOutOfRangeException(
                 nameof(finishPosition),
                 "Finish position must be at least 1."
             );
+        }
+
         Id = id;
         LobbyPlayerId = lobbyPlayerId;
         Nick = nick;
@@ -52,6 +58,6 @@ public class RaceParticipantResult
         WordsTyped = wordsTyped;
         MistakeCount = mistakeCount;
         FinishPosition = finishPosition;
-        FinishedAt = DateTime.UtcNow;
+        FinishedAt = finishedAt;
     }
 }

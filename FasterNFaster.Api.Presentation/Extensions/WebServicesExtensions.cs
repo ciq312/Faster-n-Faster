@@ -1,15 +1,14 @@
 using FastEndpoints;
-using FasterNFaster.Api.Web.Exceptions;
-using FasterNFaster.Api.Web.Options.AntiCheat;
-using FasterNFaster.Api.Web.Options.App;
-using FasterNFaster.Api.Web.Options.AuthCookiesOptions;
-using FasterNFaster.Api.Web.Options.Smtp;
-using FasterNFaster.Api.UseCases.Services.Users;
 using FasterNFaster.Api.Infrastructure.Auth;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using FasterNFaster.Api.Infrastructure.Lobbies;
+using FasterNFaster.Api.Infrastructure.Shared;
+using FasterNFaster.Api.Presentation.Web.AntiCheat;
+using FasterNFaster.Api.Presentation.Web.Auth;
+using FasterNFaster.Api.Presentation.Web.Shared;
+using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
+using FasterNFaster.Api.UseCases.Auth.Services;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class WebServicesExtensions
 {
@@ -41,7 +40,9 @@ public static class WebServicesExtensions
         services.Configure<AppOptions>(config.GetSection("AppUrls"));
         services.Configure<SmtpOptions>(config.GetSection("Smtp"));
         services.Configure<AntiCheatOptions>(config.GetSection("AntiCheat"));
+        services.Configure<AntiCheatSanctionOptions>(config.GetSection("AntiCheatSanctions"));
         services.Configure<ConfirmTokenOptions>(config.GetSection("ConfirmTokens"));
+        services.Configure<LobbyCleanupOptions>(config.GetSection("LobbyCleanup"));
 
         return services;
     }

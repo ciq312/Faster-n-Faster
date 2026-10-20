@@ -1,31 +1,35 @@
-namespace FasterNFaster.Api.Core.Entities.Lobbies;
+namespace FasterNFaster.Api.Domain.Entities.Lobbies;
 
 public class LobbySettings
 {
-    const int CODE_LENGTH = 6;
+    private const int CODE_LENGTH = 6;
 
     private static readonly char[] AlphanumericChars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 
     public int MaxPlayers { get; private set; } = 10;
     public bool IsPrivate { get; private set; }
-    public string? InviteCode { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
+    public string InviteCode { get; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+    private readonly TimeProvider timeProvider;
 
-    public LobbySettings(bool isPrivate)
+    public LobbySettings(bool isPrivate, Func<string, bool> inviteCodeExists, TimeProvider timeProvider)
     {
+        this.timeProvider = timeProvider;
         IsPrivate = isPrivate;
-        CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        InviteCode = CreateUniqueInviteCode(inviteCodeExists);
+        var now = timeProvider.GetUtcNow();
+        CreatedAt = now;
+        UpdatedAt = now;
     }
 
     public void UpdateTimestamp()
     {
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = timeProvider.GetUtcNow();
     }
 
-    public string CreateUniqueInviteCode(Func<string, bool> codeExists)
+    private string CreateUniqueInviteCode(Func<string, bool> codeExists)
     {
 
         while (true)
@@ -46,10 +50,4 @@ public class LobbySettings
                         span[i] = AlphanumericChars[rng.Next(AlphanumericChars.Length)];
                 }
             );
-
-    public void SetInviteCode(string code)
-    {
-        InviteCode = code;
-        UpdateTimestamp();
-    }
 }

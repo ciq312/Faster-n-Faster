@@ -1,9 +1,8 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Infrastructure.Helpers;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public static class PasswordHelperFactory
 {

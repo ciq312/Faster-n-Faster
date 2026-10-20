@@ -1,13 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
-using FasterNFaster.Api.Core.Entities.Auth;
-using FasterNFaster.Api.Core.Exceptions;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
-using FasterNFaster.Api.Web.Users.RegisterUser;
-using FasterNFaster.Api.Web.Users.RegisterUser.EndPoints;
-using FasterNFaster.IntegrationTests;
+using FasterNFaster.Api.Domain.Entities.Auth;
+using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
+using FasterNFaster.Api.Presentation.Web.Auth.VerifyEmail;
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Auth.RegisterUser;
 using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace FasterNFaster.IntegrationTests;
 
 public static class AuthHelper
 {
@@ -35,7 +36,6 @@ public static class AuthHelper
         return userId;
     }
 
-
     public static void SetCookies(CookieContainer cookies, HttpResponseMessage loginResponse, HttpClient client)
     {
         if (!loginResponse.Headers.TryGetValues("Set-Cookie", out var headerCookies)) throw new NotFoundException("cookies were not found");
@@ -45,10 +45,12 @@ public static class AuthHelper
             cookies.SetCookies(client.BaseAddress!, cookie);
         }
     }
-    
+
     public static string RegisterUri => "api/auth/register";
     public static string LoginUri => "api/auth/login";
     public static string VerifyEmailUri => "api/auth/verify-email";
     public static string RefreshUri => "api/auth/refresh";
+    public static string LogoutUri => "api/auth/logout";
+    public static string GuestUri => "api/auth/guest";
 
 }

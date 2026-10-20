@@ -1,3 +1,3 @@
-namespace FasterNFaster.Api.UseCases.Realtime.HostChanged;
+namespace FasterNFaster.Api.UseCases.Realtime.PlayerPromoted;
 
 public record HostChangedDTO(Guid UserId, string NewHostNick);

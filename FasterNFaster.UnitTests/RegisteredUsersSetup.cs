@@ -1,10 +1,9 @@
-using FasterNFaster.Api.Core.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
-using FasterNFaster.Api.UseCases.Users.RegisterUsers;
-using FasterNFaster.Tests.Fakes;
-using Org.BouncyCastle.Crypto.Operators;
+using FasterNFaster.Api.UseCases.Auth.RegisterUser;
+using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Time.Testing;
 
-namespace FasterNFaster.Tests;
+namespace FasterNFaster.UnitTests;
 
 public static class RegisteredUsersSetup
 {
@@ -13,16 +12,15 @@ public static class RegisteredUsersSetup
         var userRepo = new FakeUserRepository();
         var emailSender = new FakeEmailSender();
         var tokenRepo = new FakeTokenRepo();
-        var tokenFactory = ConfirmTokenFactoryHelper.Create();
+        var time = new FakeTimeProvider();
+        var tokenFactory = ConfirmTokenFactoryHelper.Create(time);
 
         var handler = new RegisterUserHandler(userRepo, new FakeUnitOfWork(), PasswordHelperFactory.Create(), emailSender, tokenRepo, tokenFactory);
 
         foreach (var command in commands) await handler.Handle(command, CancellationToken.None);
 
-        return new SetupResult(userRepo, emailSender, tokenRepo, tokenFactory);
-
+        return new SetupResult(userRepo, emailSender, tokenRepo, tokenFactory, time);
     }
-    public record SetupResult(FakeUserRepository repo, FakeEmailSender EmailSender, FakeTokenRepo TokenRepo, ConfirmTokenFactory TokenFactory);
 
-
+    public record SetupResult(FakeUserRepository repo, FakeEmailSender EmailSender, FakeTokenRepo TokenRepo, ConfirmTokenFactory TokenFactory, FakeTimeProvider Time);
 }

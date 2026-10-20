@@ -1,14 +1,13 @@
-using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Infrastructure.Db;
-using FasterNFaster.Api.UseCases.Interfaces.Db;
-using FasterNFaster.Api.Web.Hubs.Filters;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
+using FasterNFaster.Api.Presentation.Web.Realtime;
+using FasterNFaster.Api.Presentation.Web.Realtime.Filters;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class InfrastructureExtensions
 {
@@ -23,12 +22,14 @@ public static class InfrastructureExtensions
         services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
 
         services.AddSingleton<HubExceptionFilter>();
-        services.AddSingleton<HubCheatFilter>();
+        services.AddSingleton<SignalRConnectionTerminator>();
+        services.AddSingleton<IConnectionTerminator>(sp => sp.GetRequiredService<SignalRConnectionTerminator>());
         services.AddSingleton<HubBanFilter>();
         services.AddSignalR(options =>
         {
             options.AddFilter<HubExceptionFilter>();
-            options.AddFilter<HubCheatFilter>();
+            // Must come before HubBanFilter so no sanction falls between the connect-time check and tracking.
+            options.AddFilter<SignalRConnectionTerminator>();
             options.AddFilter<HubBanFilter>();
         });
 

@@ -1,0 +1,175 @@
+using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
+using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
+using FasterNFaster.Api.UseCases.Lobbies.FastReconnect;
+using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+using FasterNFaster.Api.UseCases.Lobbies.KickPlayer;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
+using FasterNFaster.Api.UseCases.Lobbies.Refresh;
+using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Races.RefreshPassage;
+using FasterNFaster.Api.UseCases.Races.StartRace;
+using FasterNFaster.Api.UseCases.Realtime;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+
+namespace FasterNFaster.Api.Presentation.Web.Realtime;
+
+[Authorize]
+public partial class GameHub(
+    ILogger<GameHub> logger,
+    ILobbyStore lobbies,
+    ISessionService sessionService,
+    IRaceStore races,
+    ISender sender) : Hub
+{
+    private (Guid UserId, string Nick) GetCallerContext()
+    {
+        var userIdClaim = Context.User?.FindFirst("sub")?.Value
+            ?? throw new HubException("Not authenticated.");
+
+        var nick = Context.User?.FindFirst("name")?.Value
+            ?? throw new HubException("Not authenticated.");
+
+        var userId = Guid.Parse(userIdClaim);
+
+        return (userId, nick);
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        logger.LogDebug("Connection established: {ConnectionId}", Context.ConnectionId);
+        await base.OnConnectedAsync();
+
+        var userId = GetCallerContext().UserId;
+        await StoreSession(userId, Context.ConnectionId);
+        await sender.Send(new ReconnectCommand(userId));
+    }
+
+    private async Task StoreSession(Guid userId, string callerConnectionId)
+    {
+        var previousSessionId = sessionService.GetActiveSession(userId);
+        sessionService.SetUserSession(userId, callerConnectionId);
+
+        logger.LogDebug("Previous sessionId: {PreviousSession}, callerId: {CallerId}", previousSessionId, callerConnectionId);
+
+        if (previousSessionId != null && previousSessionId != callerConnectionId)
+        {
+            logger.LogDebug("Handling another session for user {UserId}", userId);
+            await HandleSessionRestart(previousSessionId);
+        }
+    }
+
+    private async Task HandleSessionRestart(string previousSession) =>
+        await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);
+
+    public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
+    {
+        var (userId, nick) = GetCallerContext();
+
+        await sender.Send(new JoinLobbyCommand(userId, lobbyId, nick, inviteCode));
+
+        logger.LogDebug("Player {PlayerId} connected to lobby {LobbyId}", userId, lobbyId);
+    }
+
+    public async Task RefreshLobby()
+    {
+        await sender.Send(new RefreshCommand(GetCallerContext().UserId));
+    }
+
+    public async Task StartRace()
+    {
+        var userId = GetCallerContext().UserId;
+        var lobbyId = await sender.Send(new StartRaceCommand(userId));
+
+        logger.LogDebug("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
+    }
+
+    public async Task RefreshPassage()
+    {
+        await sender.Send(new RefreshPassageCommand(GetCallerContext().UserId));
+    }
+
+    public async Task TransferHost(Guid targetPlayerId)
+    {
+        var userId = GetCallerContext().UserId;
+
+        await sender.Send(new TransferHostCommand(userId, targetPlayerId));
+
+        logger.LogDebug("Host transferred from {OldHost} to {NewHost}", userId, targetPlayerId);
+    }
+
+    public async Task KickPlayer(Guid targetPlayerId)
+    {
+        var userId = GetCallerContext().UserId;
+
+        await sender.Send(new KickPlayerCommand(userId, targetPlayerId));
+
+        logger.LogDebug("Player {TargetId} kicked by {UserId}", targetPlayerId, userId);
+    }
+
+    public async Task ChangeColor(string color)
+    {
+        var userId = GetCallerContext().UserId;
+
+        logger.LogDebug("Changing color to {Color} for user {UserId}", color, userId);
+
+        await sender.Send(new ChangeColorCommand(userId, color));
+    }
+
+    public async Task UpdateRaceState(int index, int mistakes, string typed)
+    {
+        var userId = GetCallerContext().UserId;
+        //skip mediator to minimize the allocations
+        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return;
+        await races.TryMutate(lobbyId, r => r.ProcessUpdate(userId, index, mistakes, typed));
+    }
+
+    public async Task LeaveLobby()
+    {
+        var (playerId, _) = GetCallerContext();
+
+        await sender.Send(new DisconnectCommand(playerId));
+
+        logger.LogDebug("Player {PlayerId} left lobby", playerId);
+    }
+
+    public Task<long> Ping(long clientSentMs) => Task.FromResult(clientSentMs);
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = GetCallerContext().UserId;
+        sessionService.ClearSessionIfActive(userId, Context.ConnectionId);
+
+        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId)
+        {
+            await base.OnDisconnectedAsync(exception);
+            return;
+        }
+
+        try
+        {
+            await sender.Send(new FastReconnectCommand(lobbyId, userId));
+
+            if (sessionService.GetActiveSession(userId) is null)
+            {
+                await sender.Send(new DisconnectCommand(userId));
+
+                logger.LogDebug("Player {PlayerId} disconnected from lobby {LobbyId}", userId, lobbyId);
+            }
+            else
+            {
+                logger.LogDebug("Player {PlayerId} kept in lobby {LobbyId}: another connection is active", userId, lobbyId);
+            }
+
+            await base.OnDisconnectedAsync(exception);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Fast reconnect for player {PlayerId}", userId);
+        }
+    }
+}

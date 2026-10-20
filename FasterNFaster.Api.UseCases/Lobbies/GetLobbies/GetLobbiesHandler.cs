@@ -1,39 +1,39 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
-public class GetLobbiesHandler(ILobbyRepository lobbyStore, IRaceAccess races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
+public class GetLobbiesHandler(ILobbyStore lobbies, IRaceStore races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {
     public async Task<GetLobbiesResult> Handle(GetLobbiesQuery query, CancellationToken cancellationToken)
     {
-        var lobbies = query.InviteCode is null
-            ? lobbyStore.GetAll()
+        var lobbyIds = query.InviteCode is null
+            ? lobbies.GetAllIds()
             : FindByInviteCode(query.InviteCode);
 
         var items = new List<LobbyListItem>();
-        foreach (var l in lobbies.OrderByDescending(l => l.LobbySettings.CreatedAt))
+        foreach (var lobbyId in lobbyIds)
         {
-            var raceSettings = await races.GetRaceSettingsOrDefault(l.Id);
-            if (raceSettings is null) continue;
+            if (!races.Exists(lobbyId)) continue;
 
-            items.Add(new LobbyListItem(
+            var item = await lobbies.TryRead(lobbyId, l => new LobbyListItem(
                 l.Id,
                 l.Name,
-                raceSettings.RaceType,
                 l.LobbySettings.IsPrivate,
-                l.IsSessionActive.ToString(),
+                l.IsSessionActive,
                 l.Players.Count,
                 l.LobbySettings.MaxPlayers,
                 l.LobbySettings.CreatedAt
             ));
+            if (item is null) continue;
+
+            items.Add(item);
         }
 
-        return new GetLobbiesResult(items);
+        return new GetLobbiesResult([.. items.OrderByDescending(i => i.CreatedAt)]);
     }
 
-    private IReadOnlyCollection<Lobby> FindByInviteCode(string code) =>
-        lobbyStore.GetByInviteCode(code) is { } lobby ? [lobby] : [];
+    private IReadOnlyCollection<Guid> FindByInviteCode(string code) =>
+        lobbies.FindIdByInviteCode(code) is { } id ? [id] : [];
 }

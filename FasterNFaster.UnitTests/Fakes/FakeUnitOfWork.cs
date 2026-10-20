@@ -1,6 +1,6 @@
-using FasterNFaster.Api.UseCases.Interfaces.Db;
+using FasterNFaster.Api.UseCases.Shared;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeUnitOfWork : IUnitOfWork
 {

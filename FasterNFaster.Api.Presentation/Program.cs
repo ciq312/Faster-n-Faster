@@ -1,24 +1,17 @@
 using DotNetEnv;
 using FastEndpoints;
-using FasterNFaster.Api.Extensions;
-using FasterNFaster.Api.Infrastructure;
-using FasterNFaster.Api.Infrastructure.Db;
-using FasterNFaster.Api.Web.Hubs;
-using Microsoft.AspNetCore.Builder;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
+using FasterNFaster.Api.Presentation.Extensions;
+using FasterNFaster.Api.Presentation.Web.Realtime;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-
-ThreadPool.SetMinThreads(200, 200);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("log.txt")
     .CreateLogger();
 
-if (File.Exists(".env"))
-    Env.Load();
-
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

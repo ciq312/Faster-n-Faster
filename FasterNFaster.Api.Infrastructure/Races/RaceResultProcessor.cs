@@ -1,8 +1,7 @@
-using FasterNFaster.Api.UseCases.Interfaces.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Users.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
 

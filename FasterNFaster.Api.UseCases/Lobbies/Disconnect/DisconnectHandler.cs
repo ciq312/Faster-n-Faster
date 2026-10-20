@@ -1,19 +1,27 @@
-using FasterNFaster.Api.Core.Entities.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Races.Ports;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 
-public class DisconnectHandler(ILobbyAccess lobbies, IRaceAccess races) : IRequestHandler<DisconnectCommand>
+public class DisconnectHandler(ILobbyStore lobbies, IRaceStore races) : IRequestHandler<DisconnectCommand>
 {
     public async Task Handle(DisconnectCommand command, CancellationToken cancellationToken)
     {
-        Lobby lobby = lobbies.GetOfPlayerRequired(command.PlayerId);
+        var lobbyId = lobbies.GetLobbyIdOfPlayer(command.PlayerId);
+        if (lobbyId is null) return;
 
-        await lobbies.Mutate(lobby.Id, l => l.Disconnect(command.PlayerId));
+        var wasRacing = false;
+        var disconnected = false;
 
-        if (lobby.IsSessionActive)
-            await races.Mutate(lobby.Id, r => r.WithdrawParticipant(command.PlayerId));
+        await lobbies.TryMutate(lobbyId.Value, l =>
+        {
+            wasRacing = l.IsSessionActive;
+            disconnected = l.Disconnect(command.PlayerId);
+        });
+        if (!disconnected) return;
+
+        if (wasRacing)
+            await races.TryMutate(lobbyId.Value, r => r.WithdrawParticipant(command.PlayerId));
     }
 }

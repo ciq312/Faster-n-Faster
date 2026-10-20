@@ -17,8 +17,10 @@ function CheckYourEmail() {
       <div className="check-email__card">
         <p className="check-email__body">
           we sent a verification link to{" "}
-          <strong className="check-email__address">{email || "your inbox"}</strong>.
-          click it to activate your account, then log in.
+          <strong className="check-email__address">
+            {email || "your inbox"}
+          </strong>
+          . click it to activate your account, then log in.
         </p>
 
         <button

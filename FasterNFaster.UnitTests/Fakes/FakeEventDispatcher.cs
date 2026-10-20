@@ -1,14 +1,18 @@
-using FasterNFaster.Api.Core.Interfaces.Events;
+using System.Collections.Concurrent;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeEventDispatcher : IEventDispatcher
 {
-    public List<IDomainEvent> Dispatched { get; } = new();
+    public ConcurrentQueue<IDomainEvent> Dispatched { get; } = new();
 
-    public Task Dispatch(IDomainEvent domainEvent, CancellationToken ct)
+    public Func<IDomainEvent, Task>? OnDispatch { get; set; }
+
+    public async Task Dispatch(IDomainEvent domainEvent, CancellationToken ct)
     {
-        Dispatched.Add(domainEvent);
-        return Task.CompletedTask;
+        Dispatched.Enqueue(domainEvent);
+        if (OnDispatch is not null)
+            await OnDispatch(domainEvent);
     }
 }

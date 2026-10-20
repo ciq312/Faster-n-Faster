@@ -10,7 +10,6 @@ obj/
 .vs/
 *.pubxml
 *.publishproj
-appsettings.Development.json
 
 # ========================
 # Node / React
@@ -32,7 +31,7 @@ yarn-error.log*
 .env.*.local
 *.pem
 *.local.*
-
+/.claude/hooks/
 # ========================
 # OS
 # ========================
@@ -52,7 +51,6 @@ desktop.ini
 # Obsidian
 #=========================
 .obsidian/
-
 #=========================
 # Test
 #=========================

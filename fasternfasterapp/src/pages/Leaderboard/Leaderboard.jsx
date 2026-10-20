@@ -25,7 +25,6 @@ function formatStat(value, suffix, precision = 1) {
 }
 
 function Leaderboard() {
-
   const {
     players,
     loading,

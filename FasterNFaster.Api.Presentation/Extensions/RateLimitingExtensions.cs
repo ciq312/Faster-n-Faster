@@ -1,19 +1,16 @@
 using System.Threading.RateLimiting;
-using FasterNFaster.Api.Web.Options.RateLimiting;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using static FasterNFaster.Api.Web.Options.RateLimiting.RateLimitOptions;
+using static FasterNFaster.Api.Presentation.Web.Shared.RateLimitOptions;
 
-namespace FasterNFaster.Api.Extensions;
+namespace FasterNFaster.Api.Presentation.Extensions;
 
 public static class RateLimitPolicies
 {
     public const string AuthStrict = "auth-strict";
     public const string AuthModerate = "auth-moderate";
     public const string Lookup = "lookup";
+    public const string LobbyCreate = "lobby-create";
 }
 
 public static class RateLimitingExtensions
@@ -36,6 +33,8 @@ public static class RateLimitingExtensions
                 context => IpPartition(context, options.AuthModerate, options.Enabled));
             limiter.AddPolicy(RateLimitPolicies.Lookup,
                 context => IpPartition(context, options.Lookup, options.Enabled));
+            limiter.AddPolicy(RateLimitPolicies.LobbyCreate,
+                context => IpPartition(context, options.LobbyCreate, options.Enabled));
         });
 
         return services;
@@ -60,8 +59,10 @@ public static class RateLimitingExtensions
     private static async ValueTask OnRejected(OnRejectedContext context, CancellationToken ct)
     {
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
             context.HttpContext.Response.Headers.RetryAfter =
                 ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+        }
 
         await context.HttpContext.Response.WriteAsJsonAsync(
             new { message = "Too many requests, try again shortly." }, ct);

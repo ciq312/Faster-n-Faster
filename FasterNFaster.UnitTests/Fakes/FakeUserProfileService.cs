@@ -1,8 +1,8 @@
-using FasterNFaster.Api.Core.Entities;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.UseCases.Users.Services;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeUserProfileService : IUserProfileService
 {

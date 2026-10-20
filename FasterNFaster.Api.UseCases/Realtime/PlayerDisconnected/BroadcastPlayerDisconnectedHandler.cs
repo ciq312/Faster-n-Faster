@@ -1,14 +1,14 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
 
 public class BroadcastPlayerDisconnectedHandler(
     IBroadcaster broadcaster,
-    ILobbyAccess lobbies) : INotificationHandler<DomainEventNotification<PlayerDisconnectedEvent>>
+    ILobbyStore lobbies) : INotificationHandler<DomainEventNotification<PlayerDisconnectedEvent>>
 {
     public async Task Handle(DomainEventNotification<PlayerDisconnectedEvent> notification, CancellationToken cancellationToken)
     {

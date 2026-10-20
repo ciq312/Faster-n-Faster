@@ -1,6 +1,6 @@
 using System.Threading.Channels;
-using FasterNFaster.Api.Core.Entities.Races;
-using FasterNFaster.Api.UseCases.Interfaces.Races;
+using FasterNFaster.Api.Domain.Entities.Races;
+using FasterNFaster.Api.UseCases.Races.Ports;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
 

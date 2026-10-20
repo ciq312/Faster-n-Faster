@@ -1,4 +1,4 @@
-namespace FasterNFaster.Api.Core.Entities.Lobbies.Colors;
+namespace FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 
 public static class PlayerColors
 {
@@ -16,4 +16,7 @@ public static class PlayerColors
         var taken = new HashSet<string>(takenColors);
         return Palette.First(c => !taken.Contains(c));
     }
+
+    public static string? FindInPalette(string? color) =>
+        Array.Find(Palette, c => string.Equals(c, color, StringComparison.OrdinalIgnoreCase));
 }

@@ -1,0 +1,16 @@
+using FasterNFaster.Api.Domain.Entities.Races.Events;
+using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Shared;
+using MediatR;
+
+namespace FasterNFaster.Api.UseCases.Races.SaveRaceResults;
+
+public class SaveRaceResultHandler(IRaceResultQueue queue)
+    : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
+{
+    public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken)
+    {
+        queue.Enqueue(notification.Event.Results);
+        return Task.CompletedTask;
+    }
+}

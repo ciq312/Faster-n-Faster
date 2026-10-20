@@ -1,7 +1,6 @@
-using FasterNFaster.Api.UseCases.Interfaces.Users;
-using FasterNFaster.Api.UseCases.Leaderboards;
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeLeaderboardRepository : ILeaderboardRepository
 {

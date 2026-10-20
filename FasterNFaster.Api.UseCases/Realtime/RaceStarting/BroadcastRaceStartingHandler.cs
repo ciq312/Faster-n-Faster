@@ -1,7 +1,7 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Events;
-using FasterNFaster.Api.UseCases.Events;
-using FasterNFaster.Api.UseCases.Interfaces.Realtime;
-using FasterNFaster.Api.UseCases.Services.Races;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
+using FasterNFaster.Api.UseCases.Races;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Realtime.RaceStarting;

@@ -10,28 +10,22 @@ function TypingArea({
   opponents: players = [],
   selfId,
 }) {
-
   const [self, setSelf] = useState(null);
-  
+
   useEffect(() => {
     setSelf(players.filter((p) => p.playerId === selfId).pop());
   }, [players, selfId]);
-  
 
-  const {
-    typed,
-    inputRef,
-    handleTyping,
-    focusInput,
-    nextSepIndex,
-  } = useTyping({
-    passage,
-    disabled,
-    onProgress,
-    selfTyped: self?.typed,
-    selfCorrectIndex: self?.index,
-    selfMistakes: self?.mistakes,
-  });
+  const { typed, inputRef, handleTyping, focusInput, nextSepIndex } = useTyping(
+    {
+      passage,
+      disabled,
+      onProgress,
+      selfTyped: self?.typed,
+      selfCorrectIndex: self?.index,
+      selfMistakes: self?.mistakes,
+    },
+  );
   const { charsRef, containerRef, caretPos } = useCharPositions(
     passage,
     typed.length,
@@ -67,7 +61,7 @@ function TypingArea({
         disabled={disabled}
       />
 
-      <div className={`typing-area`} onClick={focusInput}>
+      <div className="typing-area" onClick={focusInput}>
         <div className="typing-area__words" ref={containerRef}>
           {passage.split("").flatMap((char, i) => {
             if (i === nextSepIndex && typed.length > i) {

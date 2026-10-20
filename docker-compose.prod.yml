@@ -2,7 +2,6 @@ services:
   postgres:
     ports: !reset []
     restart: unless-stopped
-    command: ["postgres", "-c", "max_connections=500"]
   redis:
     ports: !reset []
     restart: unless-stopped

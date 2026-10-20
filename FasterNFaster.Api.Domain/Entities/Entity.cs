@@ -1,8 +1,8 @@
-namespace FasterNFaster.Api.Core;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public abstract class Entity<TId> where TId : notnull
 {
-    public TId Id { get; protected set; } 
+    public TId Id { get; protected set; } = default!;
 
     public override bool Equals(object? obj) => obj is Entity<TId> entity && GetType() == entity.GetType() && Id is not null && Id.Equals(entity.Id);
 

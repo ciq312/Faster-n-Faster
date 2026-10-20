@@ -1,7 +1,6 @@
-using FasterNFaster.Api.UseCases.Interfaces;
-using FasterNFaster.Api.UseCases.Interfaces.Auth;
+using FasterNFaster.Api.UseCases.Auth.Ports;
 
-namespace FasterNFaster.Tests.Fakes;
+namespace FasterNFaster.UnitTests.Fakes;
 
 public class FakeEmailSender : IEmailSender
 {

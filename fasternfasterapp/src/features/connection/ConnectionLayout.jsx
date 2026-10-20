@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import ConnectionProvider from "./ConnectionProvider";
 import { LobbyProvider } from "../game/hooks/LobbyProvider";
-import { API_BASE } from "../../shared/utils/apiCall";
+import { API_BASE } from "../../config";
 
 function ConnectionLayout() {
   return (

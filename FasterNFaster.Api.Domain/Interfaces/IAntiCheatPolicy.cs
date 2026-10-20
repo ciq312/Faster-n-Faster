@@ -1,11 +1,7 @@
-namespace FasterNFaster.Api.Core.Interfaces;
+namespace FasterNFaster.Api.Domain.Interfaces;
 
 public interface IAntiCheatPolicy
 {
-    double SustainedMaxWpm { get; }
-    double BurstMaxWpm { get; }
-    int AverageWordLength { get; }
-    int BurstMinIndexDelta { get; }
-    int SustainedCheckMinIndex { get; }
-    double BurstMaxCharsPerSecond { get; }
+    double MaxCharsPerSecond { get; }
+    int BudgetSlack { get; }
 }

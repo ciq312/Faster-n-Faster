@@ -1,21 +1,14 @@
-using FasterNFaster.Api.UseCases.Interfaces.Lobbies;
-using FasterNFaster.Api.UseCases.Interfaces.Users;
+using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.UseCases.Lobbies.Services;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.Refresh;
 
-public class RefreshHandler(
-    IPendingRemovalsRegistry pendingRemovalsRegistry,
-    ILobbyAccess lobbies,
-    ILobbyStateTracker tracker) : IRequestHandler<RefreshCommand>
+public class RefreshHandler(ILobbyStore lobbies, ILobbyStateTracker tracker) : IRequestHandler<RefreshCommand>
 {
     public Task Handle(RefreshCommand command, CancellationToken cancellationToken)
     {
-        pendingRemovalsRegistry.TryCancelPendingRemoval(command.UserId);
-
-        var lobby = lobbies.GetOfPlayerRequired(command.UserId);
-
-        tracker.MarkChanged(lobby.Id);
+        tracker.MarkChanged(lobbies.GetLobbyIdOfPlayerRequired(command.UserId));
         return Task.CompletedTask;
     }
 }

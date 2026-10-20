@@ -1,6 +1,6 @@
-using FasterNFaster.Api.Core.Interfaces.Events;
+using FasterNFaster.Api.Domain.Interfaces.Events;
 
-namespace FasterNFaster.Api.Core.Entities;
+namespace FasterNFaster.Api.Domain.Entities;
 
 public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
 {
@@ -12,7 +12,9 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
 
     public IReadOnlyList<IDomainEvent> DrainEvents()
     {
-        var drained = domainEvents.ToList();
+        if (domainEvents.Count == 0) return [];
+
+        var drained = domainEvents.ToArray();
         domainEvents.Clear();
         return drained;
     }

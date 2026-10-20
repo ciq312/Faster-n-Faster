@@ -1,0 +1,82 @@
+using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Exceptions.Lobbies;
+using FasterNFaster.Api.UseCases.Lobbies.Exceptions;
+using FasterNFaster.Api.UseCases.Lobbies.JoinLobby;
+
+namespace FasterNFaster.UnitTests.Lobbies;
+
+public class JoinLobbyHandlerTests
+{
+    [Fact]
+    public async Task OpenLobby_AddsAndTracksPlayer()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+        var joiner = new User("joiner");
+
+        await Join(context, joiner.Id, context.LobbyId);
+
+        Assert.True(await context.ReadLobby(l => l.IsPlayerIn(joiner.Id)));
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
+    }
+
+    [Fact]
+    public async Task PlayerInAnotherLobby_ThrowsAlreadyInLobby()
+    {
+        var (_, other, context) = await LobbyFactory.TwoUsersSetup();
+        var (anotherLobbyId, _) = await context.Lobbies.Create("Other", false, Guid.NewGuid());
+
+        await Assert.ThrowsAsync<AlreadyInLobbyException>(() => Join(context, other.Id, anotherLobbyId));
+
+        Assert.Equal(context.LobbyId, context.Lobbies.GetLobbyIdOfPlayer(other.Id));
+    }
+
+    [Fact]
+    public async Task SameLobbyAgain_IsNoOp()
+    {
+        var (_, other, context) = await LobbyFactory.TwoUsersSetup();
+
+        var exception = await Record.ExceptionAsync(() => Join(context, other.Id, context.LobbyId));
+
+        Assert.Null(exception);
+        Assert.Equal(2, await context.ReadLobby(l => l.Players.Count));
+    }
+
+    [Fact]
+    public async Task UnknownLobby_ThrowsLobbyNotFound()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+        var joiner = new User("joiner");
+
+        await Assert.ThrowsAsync<LobbyNotFoundException>(() => Join(context, joiner.Id, Guid.NewGuid()));
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
+    }
+
+    [Fact]
+    public async Task DuringRace_ThrowsLobbyIsNotAcceptingPlayers_AndDoesNotTrack()
+    {
+        var (host, _, context) = await LobbyFactory.TwoUsersSetup();
+        await LobbyFactory.StartRace(context, host.Id);
+        var joiner = new User("joiner");
+
+        await Assert.ThrowsAsync<LobbyIsNotAcceptingPlayersException>(() => Join(context, joiner.Id, context.LobbyId));
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
+    }
+
+    [Fact]
+    public async Task PrivateLobbyWithWrongCode_ThrowsInvalidInviteCode_AndDoesNotTrack()
+    {
+        var (_, _, context) = await LobbyFactory.TwoUsersSetup();
+        var (privateLobbyId, _) = await context.Lobbies.Create("Private", true, Guid.NewGuid());
+        var joiner = new User("joiner");
+
+        await Assert.ThrowsAsync<InvalidInviteCodeException>(() => Join(context, joiner.Id, privateLobbyId, "wrong"));
+
+        Assert.Null(context.Lobbies.GetLobbyIdOfPlayer(joiner.Id));
+    }
+
+    private static Task Join(LobbyTestContext context, Guid playerId, Guid lobbyId, string? inviteCode = null) =>
+        new JoinLobbyHandler(context.Lobbies)
+            .Handle(new JoinLobbyCommand(playerId, lobbyId, "joiner", inviteCode), CancellationToken.None);
+}

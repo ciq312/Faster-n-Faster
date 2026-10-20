@@ -50,7 +50,7 @@ Caddy  (:80/:443, automatic Let's Encrypt TLS)
   │                    PostgreSQL 15      Redis 7
   │                 (users, statistics,  (refresh/confirm
   │                  race results,        tokens, leaderboard
-  │                  bans)                + ban caches)
+  │                  bans)                cache)
   │
   │          live lobby & race state is held in-memory
   │          inside the API (single instance by design)
@@ -60,47 +60,70 @@ Caddy  (:80/:443, automatic Let's Encrypt TLS)
 
 ### Backend layers
 
+Every layer below Domain is split into the same feature areas: `Auth`, `Users`, `Lobbies`, `Races`, `AntiCheat`, `Realtime`, `Leaderboards`, plus a `Shared` folder for cross-cutting code. A layer only has an area folder when it has code for that area.
+
 ```
-fasternfaster.api/
-├── Core/                — domain layer, zero external dependencies
-│   ├── Entities/        — aggregates that enforce their own invariants and raise domain events
-│   ├── Exceptions/      — domain exceptions (LobbyFullException, CheaterDetectedException, ...)
-│   └── Interfaces/      — domain contracts (IDomainEvent, IEventDispatcher, IAntiCheatPolicy)
-├── UseCases/            — application layer, feature-sliced CQRS
-│   ├── Users/           — RegisterUser, LoginUser, VerifyEmail, ... (Command + Handler pairs)
-│   ├── Lobbies/         — CreateLobby, JoinLobby, StartRace, KickPlayer, Disconnect, ...
-│   ├── Leaderboards/    — leaderboard query
-│   ├── Realtime/        — Broadcast* handlers that react to domain events
-│   ├── Interfaces/      — ports implemented by Infrastructure and Web
-│   └── Services/        — hot-path orchestration (lobby/race lifecycle)
-├── Infrastructure/      — adapters: EF Core/Postgres repositories, Redis cache + token stores,
-│                          SMTP, in-memory lobby store, race tick loop + conflator
-└── Web/
-    ├── Hubs/            — SignalR hub (thin: resolve context → call facade) + hub filters
-    ├── <feature>/       — FastEndpoints, one folder per use case (Users/, Lobbies/, ...)
-    └── Options/         — strongly-typed config (JWT, SMTP, cookies, rate limits, anti-cheat)
+FasterNFaster.Api.Domain/          — domain layer, zero external dependencies
+├── Entities/        — aggregates that enforce their own invariants and raise domain events
+├── Exceptions/      — domain exceptions (LobbyFullException, ColorIsAlreadyTakenException, ...)
+└── Interfaces/      — domain contracts (IDomainEvent, IEventDispatcher, IAntiCheatPolicy)
+FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
+├── <Area>/
+│   ├── <UseCase>/   — Command/Query + Handler (+ Result), e.g. Auth/LoginUser, Lobbies/JoinLobby
+│   ├── Ports/       — interfaces implemented by Infrastructure or Presentation (e.g. ILobbyStore, IRaceStore),
+│   │                  plus the types in their signatures
+│   ├── Services/    — application services shared by several use cases (LobbyState tracking/query,
+│   │                  confirm tokens, user profiles)
+│   ├── Exceptions/  — area-specific exceptions
+│   └── *.cs         — area-wide constants (Realtime/GameEvents, Races/RaceCountdown)
+└── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
+FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
+├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby/race stores, race tick loop + conflator
+└── Shared/          — Persistence (AppDbContext, Migrations), Caching, AppOptions
+FasterNFaster.Api.Presentation/
+├── Web/<Area>/      — FastEndpoints, one folder per use case; Web/Realtime holds the SignalR hub,
+│                      hub filters and broadcaster
+├── Web/Shared/      — exception handler, health endpoint, rate-limit options
+└── Extensions/      — DI composition root
 ```
 
-Dependencies flow inward: `Web → UseCases → Core`. Infrastructure implements interfaces defined in `UseCases/Interfaces/` — nothing in the core references EF Core, Redis, or SignalR.
+Dependencies flow inward: `Presentation → Infrastructure → UseCases → Domain`. Infrastructure implements the `Ports/` interfaces of each UseCases area — nothing in Domain or UseCases references EF Core, Redis, or SignalR.
 
-### Race hot path
+### Design decisions
 
-Every keystroke batch is validated server-side, but broadcasting is decoupled from typing speed — progress lands in in-memory state, and a 200 ms tick loop conflates it into one slim broadcast per lobby.
+How the system runs — where state lives, the race hot path, the concurrency model and what scaling out would take — is in [docs/architecture.md](docs/architecture.md). Each design decision, with its context, the alternatives and the trade-offs, has a record in [docs/decisions/](docs/decisions/README.md).
 
-The conflator keeps a single "latest frame" slot per lobby: if a broadcast is still in flight when the next tick lands, the old frame is replaced rather than queued, so a slow connection can never build a backlog of stale race state.
+---
 
-### Key design decisions
+## API
 
-- **Race tick broadcaster** — instead of broadcasting full lobby state on every keystroke (which would be O(N²) messages per second), a background service runs on a 200 ms tick and broadcasts one conflated frame per lobby (see [Race hot path](#race-hot-path)). This keeps bandwidth and CPU flat regardless of typing speed.
-- **CQRS with a deliberate hot-path bypass** — every use case is a MediatR `Command` + `Handler` pair (`UseCases/Users/RegisterUser/`, `UseCases/Lobbies/JoinLobby/`, ...), keeping handlers small and independently testable. The one exception is race progress: keystrokes go straight from the hub to the race service to avoid per-keystroke mediator allocations.
-- **Domain events over direct coupling** — aggregates raise events (`PlayerJoinedEvent`, `RaceFinishedEvent`, ...) that are dispatched as MediatR notifications; broadcast handlers in `UseCases/Realtime/` subscribe and push the SignalR messages. The domain never references SignalR, and a new side effect is a new handler, not an edit to existing code.
-- **Decorator-pattern caching** — `CachedBanRepository`, `CachedLeaderboardRepository`, and `CachedStatisticsRepository` wrap the Postgres repositories with Redis cache-aside logic. Callers depend on the same interface either way; caching is composed in DI and can be removed without touching business code.
-- **Cross-cutting concerns as hub filters** — ban checks, cheat detection, and exception mapping live in dedicated SignalR hub filters (`HubBanFilter`, `HubCheatFilter`, `HubExceptionFilter`) instead of being repeated inside hub methods.
-- **Keystroke throttling** — the client throttles how often it sends keystrokes to the server, preventing the hub from being flooded under fast typists or network bursts
-- **In-memory live state** — lobbies and race progress live in lock-protected in-memory stores inside the API, keeping the hot path free of network round-trips; Redis holds refresh/confirm tokens and read caches. The trade-off is a single API instance — scaling out would mean adding a Redis SignalR backplane and externalizing lobby state
-- **Host promotion** — if the host disconnects, the next player in the lobby list is automatically promoted
-- **Disconnected player mid-race** — cursor freezes, race continues, player excluded from results
-- **JWT auth** — RS256 asymmetric signing; short-lived access tokens + sliding refresh tokens in HttpOnly cookies
+### Error responses
+
+The shape of an error body depends on where the error comes from:
+
+| Source | Status | Body |
+|---|---|---|
+| Business rule (`StatusException`) | 400, 401, 403, 404, 409 | `{ "error": "<message>" }`, plus `code` and any extra fields the exception sets (see below) |
+| Request validation (FastEndpoints) | 400 | `{ "statusCode": 400, "message": "One or more errors occurred!", "errors": { "<field>": ["<message>"] } }`, served as `application/problem+json` |
+| Rate limit | 429 | `{ "message": "Too many requests, try again shortly." }` and a `Retry-After` header in seconds |
+| Missing or invalid access/refresh token, missing role | 401 / 403 | empty body |
+| Unhandled server error | 500 | ProblemDetails, `application/problem+json` (`type`, `title`, `status`, `traceId`) |
+
+Show `error` / `errors` / `message` to the user; branch only on `code`, never on message text.
+
+#### Error codes
+
+| Code | Status | Endpoint | Extra fields | Meaning |
+|---|---|---|---|---|
+| `EMAIL_NOT_VERIFIED` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
+
+```json
+{ "error": "Email verification required", "code": "EMAIL_NOT_VERIFIED", "email": "player@example.com" }
+```
+
+Add a code only when a client branches on it. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and are written flat next to `error`, never overwriting `error` or `code`. Exceptions that set neither keep the plain `{ "error" }` body.
+
+SignalR hub method errors carry only a message (`HubException`) and have no codes.
 
 ---
 
@@ -132,12 +155,17 @@ Load-test orchestration and profiling live in a separate repo: [Faster-n-Faster-
 ```bash
 cp .env.example .env   # fill in values
 
-cd fasternfasterapp 
+# API in Docker (starts Postgres and Redis with it)
+docker compose up api --build
+
+# or: Postgres and Redis in Docker, API on the host with hot reload
+docker compose up postgres redis
+cd FasterNFaster.Api.Presentation && dotnet watch run
+
+# frontend: Vite on :3000, proxies /api and /gameHub to the API on :8080
+cd fasternfasterapp
 npm install
 npm run dev
-
-cd fasternfaster.api
-docker compose up --build
 ```
 
 ---
@@ -158,7 +186,7 @@ On every PR into `dev` or `main` (all must pass to merge):
 
 1. **backend-build** — `dotnet restore → build → unit tests`
 2. **integration-tests** — integration test project
-3. **frontend-build** — `npm ci → npm run lint -> npm run build`
+3. **frontend-build** — `npm ci → lint → typecheck → format:check → test:run → build`
 4. **pr-title** — Conventional Commits check; **release-source** — PRs into `main` come from `dev`
 
 On push to `main` (a merged release PR), after the builds pass again:
@@ -192,7 +220,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml images
 
 ## Production
 
-Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
+Hosted on a Contabo VPS (8 GB RAM). All services run as Docker containers:
 
 | Container | Image | Role |
 |---|---|---|
@@ -206,12 +234,14 @@ Hosted on a Time4VPS VPS (4 GB RAM). All services run as Docker containers:
 
 ## Testing
 
-xUnit, no mocking framework — every dependency has a hand-rolled fake in `fasternfaster.tests/Fakes/`, which keeps test setup explicit and readable. A few worth noting:
+xUnit, no mocking framework — every dependency has a hand-rolled fake in `FasterNFaster.UnitTests/Fakes/`, which keeps test setup explicit and readable. A few worth noting:
 
-- **`GatedRaceBroadcaster`** — lets a test hold a broadcast "in flight" and assert the conflator's latest-frame behavior deterministically, without sleeps.
+- **`GatedBroadcaster`** — lets a test hold a broadcast "in flight" and assert the conflator's latest-frame behavior deterministically, without sleeps.
 - **`InMemoryCache` + fake repositories** — the cached repository decorators are tested against the real cache-aside logic over controlled backing stores.
 
 Coverage spans use-case handlers, the caching decorators, the race tick/conflation/result pipeline, entity invariants, and request validators.
+
+Frontend tests use Vitest + Testing Library on jsdom: `npm test` (watch) or `npm run test:run` (once, what CI runs), from `fasternfasterapp/`.
 
 ---
 
@@ -219,7 +249,7 @@ Coverage spans use-case handlers, the caching decorators, the race tick/conflati
 
 - **CI-triggered profiling** — the load-test → profile → graph pipeline is already one command ([`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling)); next step is triggering runs from CI so every deploy gets a performance baseline.
 - **Dependency cleanup** — packages pulled in early are being evaluated and removed where they add weight without value.
-- **Frontend switch to typescript** — currently the frontend is javascript and I'm considering switching to Typescript 
+- **Frontend switch to TypeScript** — in progress: strict tooling and a CI typecheck are in place, and files are converted as each migration step touches them ([decision record](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
 
 ---
 

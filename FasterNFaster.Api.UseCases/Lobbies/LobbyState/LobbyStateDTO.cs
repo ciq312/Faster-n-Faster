@@ -1,17 +1,15 @@
-using FasterNFaster.Api.Core.Entities.Lobbies.Colors;
-using FasterNFaster.Api.Core.Entities.Races;
+using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 
-namespace FasterNFaster.Api.UseCases.LobbyState;
+namespace FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
 public record LobbyStateDTO(
     Guid LobbyId,
     string LobbyName,
-    string RaceType,
-    bool IsSessionActive,
-    IRaceSettings Settings,
+    bool IsRaceStarting,
+    bool IsRaceStarted,
+    RaceSettingsDTO Settings,
     bool IsPrivate,
     string? InviteCode,
     int MaxPlayers,
-    IEnumerable<ColorStatus> Colors,
+    IReadOnlyList<ColorStatus> Colors,
     IReadOnlyList<LobbyPlayerDTO> Players);
-

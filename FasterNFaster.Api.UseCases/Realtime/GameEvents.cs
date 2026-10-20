@@ -15,5 +15,7 @@ public static class GameEvents
     public const string LobbyState = "LobbyState";
     public const string Banned = "Banned";
     public const string AnotherSessionStarted = "AnotherSessionStarted";
+    public const string RaceWithdrawn = "RaceWithdrawn";
+    public const string Suspended = "Suspended";
 
 }
