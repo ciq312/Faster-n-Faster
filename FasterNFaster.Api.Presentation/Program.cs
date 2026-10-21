@@ -62,11 +62,12 @@ app.UseFastEndpoints(c =>
                 g => g.Key,
                 g => g.Select(f => f.ErrorMessage).ToArray());
 
-        return new ApiErrorResponse(
-            reason: "One or more validation errors occurred.",
-            statusCode: statusCode,
-            code: "validation_failed",
-            errors: errors);
+        return new ApiErrorResponse()
+        {
+            Reason = "One or more validation errors occurred.",
+            Code = "validation_failed",
+            Errors = errors
+        };
     };
 });
 app.MapHub<GameHub>("/gameHub");

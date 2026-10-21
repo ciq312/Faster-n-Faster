@@ -77,7 +77,7 @@ public class StatusExceptionHandlerTests
     public async Task ExtensionNamedLikeReservedField_DoesNotOverwriteIt()
     {
         var context = CreateContext();
-        var extensions = new Dictionary<string, object?> { ["error"] = "overwritten", ["code"] = "OVERWRITTEN" };
+        var extensions = new Dictionary<string, string[]> { ["error"] = new[] { "overwritten" }, ["code"] = new[] { "OVERWRITTEN" } };
 
         await handler.TryHandleAsync(context, new CustomStatusException("message", "SOME_CODE", extensions), CancellationToken.None);
 
@@ -121,11 +121,11 @@ public class StatusExceptionHandlerTests
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
     }
 
-    private class CustomStatusException(string message, string? code, IReadOnlyDictionary<string, object?>? extensions)
+    private class CustomStatusException(string message, string? code, IReadOnlyDictionary<string, string[]>? extensions)
         : StatusException(message)
     {
         public override string? Code => code;
 
-        public override IReadOnlyDictionary<string, object?>? Extensions => extensions;
+        public override IReadOnlyDictionary<string, string[]>? Extensions => extensions;
     }
 }

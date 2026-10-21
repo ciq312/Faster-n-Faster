@@ -2,23 +2,8 @@ namespace FasterNFaster.Api.Presentation.Web.Shared;
 
 public class ApiErrorResponse
 {
-    public string Reason { get; private set; }
-    public string? Code { get; private set; }
+    public string? Reason { get; set; }
+    public string? Code { get; set; }
 
-    private readonly Dictionary<string, string[]>? errors;
-
-    public IReadOnlyDictionary<string, string[]>? Errors => errors;
-
-    public ApiErrorResponse(string reason, string code, Dictionary<string, string[]>? errors = null)
-    {
-        Reason = reason;
-        Code = code;
-        this.errors = errors;
-    }
-
-    public ApiErrorResponse(string reason, string code)
-    {
-        Reason = reason;
-        Code = code;
-    }
+    public Dictionary<string, string[]>? Errors { get; set; }
 }

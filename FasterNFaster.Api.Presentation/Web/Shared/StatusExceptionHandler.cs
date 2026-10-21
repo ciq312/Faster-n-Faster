@@ -10,7 +10,12 @@ public class StatusExceptionHandler : IExceptionHandler
         if (exception is not StatusException ex) return false;
 
         httpContext.Response.StatusCode = MapStatusCode(ex);
-        await httpContext.Response.WriteAsJsonAsync(new ApiErrorResponse(ex.Message, ex.Code ?? "error", ex.Extensions?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)), cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(new ApiErrorResponse()
+        {
+            Reason = ex.Message,
+            Code = ex.Code ?? "error",
+            Errors = ex.Extensions?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+        }, cancellationToken);
         return true;
     }
 
