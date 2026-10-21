@@ -14,7 +14,6 @@ using FasterNFaster.Api.UseCases.Lobbies.Services;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
@@ -136,7 +135,7 @@ public static class LobbyFactory
 
         await StateScope(context, broadcaster).Run(command);
 
-        return broadcaster.Broadcasts.Count(b => b.EventName == GameEvents.LobbyState);
+        return broadcaster.Broadcasts.Count(b => b.EventName == nameof(IGameClient.LobbyState));
     }
 
     public static EmptyLobbySweepService SweepService(LobbyTestContext context) =>

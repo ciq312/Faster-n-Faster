@@ -9,8 +9,9 @@ using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Realtime;
@@ -31,11 +32,13 @@ public class GameHubSessionTests
             new Claim("name", "player"),
         ]));
 
-        return new GameHub(new FakeLogger<GameHub>(), lobbies, sessions, races, sender)
+        var hub = new GameHub(new FakeLogger<GameHub>(), lobbies, sessions, races, sender)
         {
             Context = new FakeHubCallerContext(claims),
-            Clients = clients,
         };
+        // Hub<IGameClient> wraps the untyped clients in a typed proxy that sends each method by its name.
+        ((Hub)hub).Clients = clients;
+        return hub;
     }
 
     private Func<object, Task> LobbyHandlers(LobbyTestContext context) =>
@@ -193,7 +196,7 @@ public class GameHubSessionTests
         var tabB = NewTab(guestId, context.Lobbies, context.Races);
         await tabB.OnConnectedAsync();
 
-        Assert.Contains((tabA.Context.ConnectionId, GameEvents.AnotherSessionStarted), clients.Sent);
+        Assert.Contains((tabA.Context.ConnectionId, nameof(IGameClient.AnotherSessionStarted)), clients.Sent);
         Assert.Equal(tabB.Context.ConnectionId, sessions.GetActiveSession(guestId));
     }
 

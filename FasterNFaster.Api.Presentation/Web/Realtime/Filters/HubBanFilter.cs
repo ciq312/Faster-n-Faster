@@ -1,5 +1,5 @@
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using Microsoft.AspNetCore.SignalR;
 
 namespace FasterNFaster.Api.Presentation.Web.Realtime.Filters;
@@ -13,7 +13,8 @@ public class HubBanFilter : IHubFilter
             var banService = context.ServiceProvider.GetRequiredService<IBanRepository>();
             if (await banService.IsBannedAsync(userId))
             {
-                await context.Hub.Clients.Caller.SendAsync(GameEvents.Banned, "You are banned");
+                var hub = context.ServiceProvider.GetRequiredService<IHubContext<GameHub, IGameClient>>();
+                await hub.Clients.Client(context.Context.ConnectionId).Banned("You are banned");
                 context.Context.Abort();
                 return;
             }

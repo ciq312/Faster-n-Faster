@@ -15,7 +15,7 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
 using FasterNFaster.Api.UseCases.Users.Ports;
@@ -153,11 +153,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
         await using var guestHub = await JoinLobbyAsync(guestClient, guestCookies, lobby);
 
-        var raceStarting = NextEventAsync<RaceStartingDTO>(guestHub, GameEvents.RaceStarting);
-        var hostRaceStarted = NextEventAsync(hostHub, GameEvents.RaceStarted);
-        var guestRaceStarted = NextEventAsync(guestHub, GameEvents.RaceStarted);
-        var hostRaceEnded = NextEventAsync<RaceEndedDTO>(hostHub, GameEvents.RaceEnded);
-        var guestRaceEnded = NextEventAsync<RaceEndedDTO>(guestHub, GameEvents.RaceEnded);
+        var raceStarting = NextEventAsync<RaceStartingDTO>(guestHub, nameof(IGameClient.RaceStarting));
+        var hostRaceStarted = NextEventAsync(hostHub, nameof(IGameClient.RaceStarted));
+        var guestRaceStarted = NextEventAsync(guestHub, nameof(IGameClient.RaceStarted));
+        var hostRaceEnded = NextEventAsync<RaceEndedDTO>(hostHub, nameof(IGameClient.RaceEnded));
+        var guestRaceEnded = NextEventAsync<RaceEndedDTO>(guestHub, nameof(IGameClient.RaceEnded));
 
         await hostHub.InvokeAsync("StartRace");
 
@@ -202,7 +202,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (client, cookies, _) = await RegisterAndLoginAsync();
         var lobby = await CreateLobbyAsync(client);
         await using var hub = await JoinLobbyAsync(client, cookies, lobby);
-        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+        var lobbyState = NextEventAsync<JsonElement>(hub, nameof(IGameClient.LobbyState));
 
         await hub.InvokeAsync("StartRace");
 
@@ -216,7 +216,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     {
         var (hub, _, _) = await StartSoloRaceAsync();
         await using var _ = hub;
-        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+        var lobbyState = NextEventAsync<JsonElement>(hub, nameof(IGameClient.LobbyState));
 
         await hub.InvokeAsync("RefreshLobby");
 
@@ -242,7 +242,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var lobby = await CreateLobbyAsync(client);
         var hub = await JoinLobbyAsync(client, cookies, lobby);
 
-        var raceStarted = NextEventAsync(hub, GameEvents.RaceStarted);
+        var raceStarted = NextEventAsync(hub, nameof(IGameClient.RaceStarted));
         await hub.InvokeAsync("StartRace");
         await raceStarted.WaitAsync(RaceStartTimeout);
 

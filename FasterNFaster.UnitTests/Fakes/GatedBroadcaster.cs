@@ -9,14 +9,12 @@ public class GatedBroadcaster : IBroadcaster
 
     public List<object?> Sent { get; } = new();
 
-    public async Task Broadcast<T>(IAudience audience, string eventName, T payload)
+    public async Task Broadcast(IAudience audience, Func<IGameClient, Task> send)
     {
-        Sent.Add(payload);
+        await send(new RecordingGameClient((_, payload) => Sent.Add(payload)));
         sendStarted.Release();
         await releaseGate.WaitAsync();
     }
-
-    public Task Broadcast(IAudience audience, string eventName) => Task.CompletedTask;
 
     public Task WaitForSendStarted() => sendStarted.WaitAsync();
 

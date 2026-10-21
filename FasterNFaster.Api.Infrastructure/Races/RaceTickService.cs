@@ -1,8 +1,8 @@
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Realtime.RaceState;
 using Microsoft.Extensions.Hosting;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
@@ -64,7 +64,7 @@ public class RaceTickService(
         {
             if (!await races.TryMutate(entry.LobbyId, r => r.Start())) return;
 
-            await broadcaster.Broadcast(Audience.Lobby(entry.LobbyId), GameEvents.RaceStarted);
+            await broadcaster.Broadcast(Audience.Lobby(entry.LobbyId), c => c.RaceStarted());
             registry.TransitionToRacing(entry.LobbyId);
         }
     }
@@ -79,6 +79,7 @@ public class RaceTickService(
         var connectedPlayerIds = await lobbies.TryRead(entry.LobbyId, l => l.GetPlayerIds());
         if (connectedPlayerIds is null) return;
 
-        conflator.Publish(entry.LobbyId, connectedPlayerIds, snapshot);
+        conflator.Publish(entry.LobbyId, connectedPlayerIds,
+            [.. snapshot.Select(p => new RaceParticipantDTO(p.PlayerId, p.Index, p.Typed, p.Wpm, p.Color, p.Nick, p.Mistakes))]);
     }
 }

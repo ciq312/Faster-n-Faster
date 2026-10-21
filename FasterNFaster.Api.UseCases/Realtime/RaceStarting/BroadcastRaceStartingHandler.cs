@@ -10,5 +10,5 @@ public class BroadcastRaceStartingHandler(IBroadcaster broadcaster)
     : INotificationHandler<DomainEventNotification<SessionStartedEvent>>
 {
     public Task Handle(DomainEventNotification<SessionStartedEvent> notification, CancellationToken cancellationToken) =>
-        broadcaster.Broadcast(Audience.Lobby(notification.Event.LobbyId), GameEvents.RaceStarting, new RaceStartingDTO((int)RaceCountdown.Duration.TotalSeconds));
+        broadcaster.Broadcast(Audience.Lobby(notification.Event.LobbyId), c => c.RaceStarting(new RaceStartingDTO((int)RaceCountdown.Duration.TotalSeconds)));
 }

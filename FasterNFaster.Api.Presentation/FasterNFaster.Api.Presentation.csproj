@@ -41,5 +41,10 @@
   <RemoveDir Directories="$(OutDir)References" />
 </Target>
 
+  <!-- CI and Docker don't restore the dotnet tool, so the SignalR client is generated on local Debug builds only. -->
+  <Target Name="TypedSignalR" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And '$(CI)' != 'true'">
+    <RemoveDir Directories="../fasternfasterapp/generated/signalr" />
+    <Exec Command="dotnet tool run dotnet-tsrts --project $(MSBuildProjectFullPath) --output ../fasternfasterapp/generated/signalr --asm" />
+  </Target>
 
 </Project>

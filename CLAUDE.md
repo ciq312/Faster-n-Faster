@@ -10,6 +10,7 @@
 Repo root unless noted.
 
 ```bash
+dotnet tool restore                           # once; a Debug build runs the SignalR TypeScript generator from dotnet-tools.json
 dotnet build FasterNFaster.Api.sln
 dotnet test FasterNFaster.UnitTests           # no Docker needed
 dotnet test FasterNFaster.IntegrationTests    # needs Docker running (Testcontainers: Postgres + Redis)
@@ -67,4 +68,5 @@ Backend and frontend share one convention. Neighbouring files show it; where the
 - **Tests:** backend tests are named `Scenario_Expected`; frontend `it()` names are sentences without "should" (e.g. `it("rejects a space after a wrong word")`). A repeated multi-step setup lives in a named helper, not in comments at each call site.
 - **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; in C# nothing does, so it's kept by hand.
 - **Endpoint OpenAPI docs:** each endpoint is described in a `<Name>Summary : ApiSummary<TEndpoint>` next to it (summary, description, examples, every status code it actually returns, errors as `ApiErrorResponse`), never in `Configure()`. `ApiSummary` already adds the 500; `ValidationFailed()` and `RateLimited()` add the 400 and 429. The only exception is `Description(x => x.ClearDefaultProduces(…))`, which a summary can't do. Building the API regenerates `swagger.json` and `fasternfasterapp/types.ts`; neither is edited by hand.
+- **SignalR contract:** server-to-client events are the methods of `IGameClient` (`UseCases/Realtime/Ports`), sent through `IBroadcaster.Broadcast(audience, c => c.Event(dto))`; client-to-server methods are `IGameHub`, which `GameHub` implements. A new event is a new `IGameClient` method, and its payload DTO gets `[TranspilationSource]`; Domain types never go on the wire directly. A local Debug build regenerates `fasternfasterapp/generated/signalr/` (TypedSignalR), not edited by hand.
 - **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. `dotnet format FasterNFaster.Api.sln` and `npm run format` fix it locally.

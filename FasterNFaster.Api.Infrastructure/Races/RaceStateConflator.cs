@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Domain.Entities.Races;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Realtime.RaceState;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
 
@@ -11,7 +10,7 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
 
     public int TrackedLobbies => broadcasts.Count;
 
-    public void Publish(Guid lobbyId, IReadOnlyList<Guid> playerIds, IReadOnlyList<ParticipantSnapshot> snapshot)
+    public void Publish(Guid lobbyId, IReadOnlyList<Guid> playerIds, IReadOnlyList<RaceParticipantDTO> snapshot)
     {
         var state = broadcasts.GetOrAdd(lobbyId, _ => new LobbyBroadcast());
         Interlocked.Exchange(ref state.Latest, new RaceFrame(playerIds, snapshot));
@@ -38,7 +37,7 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
             {
                 try
                 {
-                    await broadcaster.Broadcast(Audience.Players(frame.PlayerIds), GameEvents.RaceState, frame.Snapshot);
+                    await broadcaster.Broadcast(Audience.Players(frame.PlayerIds), c => c.RaceState(frame.Snapshot));
                 }
                 catch (Exception ex)
                 {
@@ -57,5 +56,5 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
         public int Running;
     }
 
-    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<ParticipantSnapshot> Snapshot);
+    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<RaceParticipantDTO> Snapshot);
 }

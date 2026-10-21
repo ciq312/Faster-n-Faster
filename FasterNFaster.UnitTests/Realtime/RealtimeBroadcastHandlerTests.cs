@@ -2,7 +2,6 @@ using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.PlayerDisconnected;
 using FasterNFaster.Api.UseCases.Realtime.PlayerFinished;
 using FasterNFaster.Api.UseCases.Realtime.PlayerJoined;
@@ -35,7 +34,7 @@ public class RealtimeBroadcastHandlerTests
         Assert.Equal(2, broadcaster.Broadcasts.Count);
 
         var notice = broadcaster.Broadcasts[0];
-        Assert.Equal(GameEvents.PlayerKicked, notice.EventName);
+        Assert.Equal(nameof(IGameClient.PlayerKicked), notice.EventName);
         var noticeAudience = Assert.IsType<LobbyAudience>(notice.Audience);
         Assert.Equal(lobbyId, noticeAudience.LobbyId);
         var payload = Assert.IsType<PlayerKickedDTO>(notice.Payload);
@@ -43,7 +42,7 @@ public class RealtimeBroadcastHandlerTests
         Assert.Equal("nick", payload.Nick);
 
         var personal = broadcaster.Broadcasts[1];
-        Assert.Equal(GameEvents.Kicked, personal.EventName);
+        Assert.Equal(nameof(IGameClient.Kicked), personal.EventName);
         var personalAudience = Assert.IsType<PlayerAudience>(personal.Audience);
         Assert.Equal(userId, personalAudience.UserId);
         Assert.Null(personal.Payload);
@@ -64,7 +63,7 @@ public class RealtimeBroadcastHandlerTests
             CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.PlayerDisconnected, sent.EventName);
+        Assert.Equal(nameof(IGameClient.PlayerDisconnected), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
         var payload = Assert.IsType<PlayerDisconnectedDTO>(sent.Payload);
@@ -89,7 +88,7 @@ public class RealtimeBroadcastHandlerTests
             CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.HostChanged, sent.EventName);
+        Assert.Equal(nameof(IGameClient.HostChanged), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
         var payload = Assert.IsType<HostChangedDTO>(sent.Payload);
@@ -112,7 +111,7 @@ public class RealtimeBroadcastHandlerTests
         await handler.Handle(new DomainEventNotification<PlayerFinishedEvent>(e), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.PlayerFinished, sent.EventName);
+        Assert.Equal(nameof(IGameClient.PlayerFinished), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
         var payload = Assert.IsType<PlayerFinishedDTO>(sent.Payload);
@@ -142,7 +141,7 @@ public class RealtimeBroadcastHandlerTests
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.RaceEnded, sent.EventName);
+        Assert.Equal(nameof(IGameClient.RaceEnded), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(context.LobbyId, audience.LobbyId);
         var payload = Assert.IsType<RaceEndedDTO>(sent.Payload);
@@ -165,7 +164,7 @@ public class RealtimeBroadcastHandlerTests
             CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.PlayerJoined, sent.EventName);
+        Assert.Equal(nameof(IGameClient.PlayerJoined), sent.EventName);
         var audience = Assert.IsType<LobbyExceptAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
         Assert.Equal(userId, audience.UserId);
@@ -188,7 +187,7 @@ public class RealtimeBroadcastHandlerTests
             CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.RaceStarting, sent.EventName);
+        Assert.Equal(nameof(IGameClient.RaceStarting), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(lobbyId, audience.LobbyId);
         var payload = Assert.IsType<RaceStartingDTO>(sent.Payload);

@@ -75,7 +75,7 @@ FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
 │   ├── Services/    — application services shared by several use cases (LobbyState tracking/query,
 │   │                  confirm tokens, user profiles)
 │   ├── Exceptions/  — area-specific exceptions
-│   └── *.cs         — area-wide constants (Realtime/GameEvents, Races/RaceCountdown)
+│   └── *.cs         — area-wide constants (Races/RaceCountdown)
 └── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
 FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
 ├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby/race stores, race tick loop + conflator
