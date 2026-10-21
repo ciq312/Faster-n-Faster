@@ -16,24 +16,27 @@ describe("extractHttpError", () => {
     expect(await extractHttpError(res)).toBe("Email is invalid");
   });
 
-  it("prefers errors over error and message", async () => {
+  it("prefers errors over reason and message", async () => {
     const res = response(400, {
       errors: { Name: ["Name is required"] },
-      error: "error text",
+      reason: "reason text",
       message: "message text",
     });
 
     expect(await extractHttpError(res)).toBe("Name is required");
   });
 
-  it("uses error when there are no errors", async () => {
-    const res = response(400, { error: "error text", message: "message text" });
+  it("uses reason when there are no errors", async () => {
+    const res = response(400, {
+      reason: "reason text",
+      message: "message text",
+    });
 
-    expect(await extractHttpError(res)).toBe("error text");
+    expect(await extractHttpError(res)).toBe("reason text");
   });
 
-  it("skips an empty error string and uses message", async () => {
-    const res = response(400, { error: "", message: "message text" });
+  it("skips an empty reason string and uses message", async () => {
+    const res = response(400, { reason: "", message: "message text" });
 
     expect(await extractHttpError(res)).toBe("message text");
   });

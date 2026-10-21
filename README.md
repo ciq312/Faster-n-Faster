@@ -99,29 +99,40 @@ How the system runs — where state lives, the race hot path, the concurrency mo
 
 ### Error responses
 
-The shape of an error body depends on where the error comes from:
+Errors the API writes itself share one body, `ApiErrorResponse`:
+
+```json
+{ "reason": "<message for the user>", "code": "<machine code>", "errors": { "<key>": ["<value>"] } }
+```
+
+`reason` and `code` are always present; `errors` is `null` when there is nothing to put in it.
+
+| Source | Status | `reason` | `code` | `errors` |
+|---|---|---|---|---|
+| Business rule (`StatusException`) | 400, 401, 403, 404, 409 | the exception's message | `error`, or a specific code (see below) | the exception's extra fields, or `null` |
+| Request validation (FastEndpoints) | 400 | `One or more validation errors occurred.` | `validation_failed` | `{ "<field>": ["<message>"] }` |
+| Unhandled server error | 500 | `An unexpected error occurred` | `error` | `null` |
+
+Two responses don't use this body yet:
 
 | Source | Status | Body |
 |---|---|---|
-| Business rule (`StatusException`) | 400, 401, 403, 404, 409 | `{ "error": "<message>" }`, plus `code` and any extra fields the exception sets (see below) |
-| Request validation (FastEndpoints) | 400 | `{ "statusCode": 400, "message": "One or more errors occurred!", "errors": { "<field>": ["<message>"] } }`, served as `application/problem+json` |
 | Rate limit | 429 | `{ "message": "Too many requests, try again shortly." }` and a `Retry-After` header in seconds |
 | Missing or invalid access/refresh token, missing role | 401 / 403 | empty body |
-| Unhandled server error | 500 | ProblemDetails, `application/problem+json` (`type`, `title`, `status`, `traceId`) |
 
-Show `error` / `errors` / `message` to the user; branch only on `code`, never on message text.
+Show `errors` for a validation failure and `reason` otherwise; branch only on `code`, never on message text.
 
 #### Error codes
 
-| Code | Status | Endpoint | Extra fields | Meaning |
+| Code | Status | Endpoint | `errors` | Meaning |
 |---|---|---|---|---|
-| `EMAIL_NOT_VERIFIED` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
+| `email_not_verified` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
 
 ```json
-{ "error": "Email verification required", "code": "EMAIL_NOT_VERIFIED", "email": "player@example.com" }
+{ "reason": "Email verification required", "code": "email_not_verified", "errors": { "email": ["player@example.com"] } }
 ```
 
-Add a code only when a client branches on it. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and are written flat next to `error`, never overwriting `error` or `code`. Exceptions that set neither keep the plain `{ "error" }` body.
+Add a specific code only when a client branches on it; every other error gets `error`. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and go into `errors`.
 
 SignalR hub method errors carry only a message (`HubException`) and have no codes.
 

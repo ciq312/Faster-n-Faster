@@ -60,7 +60,7 @@ Most actions — create/join/leave a lobby, start a race, kick, change color, lo
 4. After the gate is released, the aggregate's domain events are published as MediatR notifications ([0005](decisions/0005-domain-events-dispatched-after-the-gate.md)). Handlers in `UseCases/Realtime/` turn them into targeted SignalR messages (`PlayerJoined`, `PlayerKicked`, …) through the `IBroadcaster` port, which resolves players to their connections ([0009](decisions/0009-broadcast-to-tracked-connections-not-groups.md)).
 5. When the command finishes, one `LobbyState` is broadcast per changed lobby.
 
-Errors: a `StatusException` from the domain or a handler becomes a status code and `{ "error", "code"? }` body over HTTP, or a `HubException` with the message over the hub ([0010](decisions/0010-http-status-codes-mapped-in-presentation.md)).
+Errors: a `StatusException` from the domain or a handler becomes a status code over HTTP, or a `HubException` with the message over the hub ([0010](decisions/0010-http-status-codes-mapped-in-presentation.md)). Every HTTP error body, including validation failures and unexpected 500s, is `{ "reason", "code", "errors" }` (see the README's API section).
 
 ### Keystroke progress (the hot path)
 

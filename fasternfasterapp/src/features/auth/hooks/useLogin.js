@@ -25,9 +25,9 @@ export function useLogin() {
           .clone()
           .json()
           .catch(() => null);
-        if (body?.code === "EMAIL_NOT_VERIFIED") {
+        if (body?.code === "email_not_verified") {
           navigate(
-            `/check-your-email?email=${encodeURIComponent(body.email ?? "")}`,
+            `/check-your-email?email=${encodeURIComponent(body.errors?.email?.[0] ?? "")}`,
           );
           return;
         }

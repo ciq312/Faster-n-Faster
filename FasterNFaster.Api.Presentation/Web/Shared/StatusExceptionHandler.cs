@@ -3,24 +3,34 @@ using Microsoft.AspNetCore.Diagnostics;
 
 namespace FasterNFaster.Api.Presentation.Web.Shared;
 
-public class StatusExceptionHandler : IExceptionHandler
+public class StatusExceptionHandler(ILogger<StatusExceptionHandler> logger) : IExceptionHandler
 {
+    private const string FallbackReason = "An unexpected error occurred";
+    private const string FallbackCode = "error";
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is not StatusException ex) return false;
+        // Since .NET 10 the exception handler middleware stays silent once a handler returns true, so unexpected errors are logged here.
+        if (exception is not StatusException)
+            logger.LogError(exception, "Unhandled exception in {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
 
-        httpContext.Response.StatusCode = MapStatusCode(ex);
-        await httpContext.Response.WriteAsJsonAsync(new ApiErrorResponse()
-        {
-            Reason = ex.Message,
-            Code = ex.Code ?? "error",
-            Errors = ex.Extensions?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-        }, cancellationToken);
+        httpContext.Response.StatusCode = MapStatusCode(exception);
+        await httpContext.Response.WriteAsJsonAsync(ToResponse(exception), cancellationToken);
         return true;
     }
 
-    private static int MapStatusCode(StatusException ex) =>
-        ex switch
+    private static ApiErrorResponse ToResponse(Exception exception) =>
+        exception is StatusException ex
+            ? new ApiErrorResponse
+            {
+                Reason = ex.Message,
+                Code = ex.Code ?? FallbackCode,
+                Errors = ex.Extensions?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            }
+            : new ApiErrorResponse { Reason = FallbackReason, Code = FallbackCode };
+
+    private static int MapStatusCode(Exception exception) =>
+        exception switch
         {
             ForbiddenException => StatusCodes.Status403Forbidden,
             BadRequestException => StatusCodes.Status400BadRequest,

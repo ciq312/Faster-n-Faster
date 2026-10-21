@@ -17,6 +17,10 @@ export class ApiClient {
         this.baseUrl = baseUrl ?? "";
     }
 
+    /**
+     * Get the current player's statistics
+     * @return The statistics
+     */
     fasterNFasterApiPresentationWebUsersGetUserProfileGetUserProfileEndpoint(): Promise<GetUserProfileResult> {
         let url_ = this.baseUrl + "/api/users/me/profile";
         url_ = url_.replace(/[?&]$/, "");
@@ -45,7 +49,24 @@ export class ApiClient {
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiErrorResponse.fromJS(resultData401);
+            return throwException("Not logged in; the body is empty when the access token is missing or invalid", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiErrorResponse.fromJS(resultData404);
+            return throwException("The player has no statistics yet", status, _responseText, _headers, result404);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -55,6 +76,10 @@ export class ApiClient {
         return Promise.resolve<GetUserProfileResult>(null as any);
     }
 
+    /**
+     * Check that the API is up
+     * @return The API is up
+     */
     fasterNFasterApiPresentationWebSharedHealthEndpoint(): Promise<HealthResponse> {
         let url_ = this.baseUrl + "/api/health";
         url_ = url_.replace(/[?&]$/, "");
@@ -81,6 +106,13 @@ export class ApiClient {
             result200 = HealthResponse.fromJS(resultData200);
             return result200;
             });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -89,17 +121,20 @@ export class ApiClient {
         return Promise.resolve<HealthResponse>(null as any);
     }
 
-    fasterNFasterApiPresentationWebLobbiesGetLobbiesGetLobbiesEndpoint(getLobbiesRequest: GetLobbiesRequest): Promise<GetLobbiesResult> {
-        let url_ = this.baseUrl + "/api/lobbies";
+    /**
+     * List lobbies
+     * @param inviteCode (optional) 
+     * @return The lobbies
+     */
+    fasterNFasterApiPresentationWebLobbiesGetLobbiesGetLobbiesEndpoint(inviteCode: string | null | undefined): Promise<GetLobbiesResult> {
+        let url_ = this.baseUrl + "/api/lobbies?";
+        if (inviteCode !== undefined && inviteCode !== null)
+            url_ += "inviteCode=" + encodeURIComponent("" + inviteCode) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(getLobbiesRequest);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -119,6 +154,17 @@ export class ApiClient {
             result200 = GetLobbiesResult.fromJS(resultData200);
             return result200;
             });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -127,6 +173,10 @@ export class ApiClient {
         return Promise.resolve<GetLobbiesResult>(null as any);
     }
 
+    /**
+     * Create a lobby
+     * @return Lobby created
+     */
     fasterNFasterApiPresentationWebLobbiesCreateLobbyCreateLobbyEndpoint(createLobbyRequest: CreateLobbyRequest): Promise<CreateLobbyResult> {
         let url_ = this.baseUrl + "/api/lobbies";
         url_ = url_.replace(/[?&]$/, "");
@@ -150,20 +200,45 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebLobbiesCreateLobbyCreateLobbyEndpoint(response: Response): Promise<CreateLobbyResult> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CreateLobbyResult.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = CreateLobbyResult.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiErrorResponse.fromJS(resultData400);
+            return throwException("Validation failed; `errors` maps each field to its messages", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
+            return throwException("Not logged in; empty body", status, _responseText, _headers);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
+            return throwException("Not a player or a guest; empty body", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiErrorResponse.fromJS(resultData409);
+            return throwException("The caller is already in a lobby", status, _responseText, _headers, result409);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -173,17 +248,33 @@ export class ApiClient {
         return Promise.resolve<CreateLobbyResult>(null as any);
     }
 
-    fasterNFasterApiPresentationWebLeaderboardsGetLeaderboardsGetLeaderboardsEndpoint(getLeaderboardsRequest: GetLeaderboardsRequest): Promise<GetLeaderboardResults> {
-        let url_ = this.baseUrl + "/api/leaderboards";
+    /**
+     * Get a leaderboard page
+     * @return The page
+     */
+    fasterNFasterApiPresentationWebLeaderboardsGetLeaderboardsGetLeaderboardsEndpoint(sort: LeaderboardSort, descending: boolean, page: number, pageSize: number): Promise<GetLeaderboardResults> {
+        let url_ = this.baseUrl + "/api/leaderboards?";
+        if (sort === undefined || sort === null)
+            throw new globalThis.Error("The parameter 'sort' must be defined and cannot be null.");
+        else
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+        if (descending === undefined || descending === null)
+            throw new globalThis.Error("The parameter 'descending' must be defined and cannot be null.");
+        else
+            url_ += "descending=" + encodeURIComponent("" + descending) + "&";
+        if (page === undefined || page === null)
+            throw new globalThis.Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(getLeaderboardsRequest);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -203,6 +294,13 @@ export class ApiClient {
             result200 = GetLeaderboardResults.fromJS(resultData200);
             return result200;
             });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -211,6 +309,10 @@ export class ApiClient {
         return Promise.resolve<GetLeaderboardResults>(null as any);
     }
 
+    /**
+     * Verify an email
+     * @return Email verified
+     */
     fasterNFasterApiPresentationWebAuthVerifyEmailVerifyEmailEndpoint(verifyEmailRequest: VerifyEmailRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/verify-email";
         url_ = url_.replace(/[?&]$/, "");
@@ -233,9 +335,27 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthVerifyEmailVerifyEmailEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiErrorResponse.fromJS(resultData404);
+            return throwException("The token is unknown or expired, or its user no longer exists", status, _responseText, _headers, result404);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -245,6 +365,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Reset the password
+     * @return Password changed
+     */
     fasterNFasterApiPresentationWebAuthResetPasswordResetPasswordEndpoint(resetPasswordRequest: ResetPasswordRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/reset-password";
         url_ = url_.replace(/[?&]$/, "");
@@ -267,9 +391,34 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthResetPasswordResetPasswordEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiErrorResponse.fromJS(resultData400);
+            return throwException("Validation failed; `errors` maps each field to its messages", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiErrorResponse.fromJS(resultData404);
+            return throwException("The token is unknown or expired, or its user no longer exists", status, _responseText, _headers, result404);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -279,6 +428,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Resend the verification email
+     * @return Accepted; an email is sent if the account exists and isn't verified
+     */
     fasterNFasterApiPresentationWebAuthResendVerificationResendVerificationEndpoint(resendVerificationRequest: ResendVerificationRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/resend-verification";
         url_ = url_.replace(/[?&]$/, "");
@@ -301,9 +454,20 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthResendVerificationResendVerificationEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -313,6 +477,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Request a password reset
+     * @return Accepted; an email is sent if the account exists
+     */
     fasterNFasterApiPresentationWebAuthRequestPasswordResetRequestPasswordResetEndpoint(requestPasswordResetRequest: RequestPasswordResetRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/forgot-password";
         url_ = url_.replace(/[?&]$/, "");
@@ -335,9 +503,27 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthRequestPasswordResetRequestPasswordResetEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiErrorResponse.fromJS(resultData400);
+            return throwException("Validation failed; `errors` maps each field to its messages", status, _responseText, _headers, result400);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -347,6 +533,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Register a player account
+     * @return Registered; the verification email is sent
+     */
     fasterNFasterApiPresentationWebAuthRegisterUserRegisterUserEndpoint(registerUserRequest: RegisterUserRequest): Promise<RegisterUserResult> {
         let url_ = this.baseUrl + "/api/auth/register";
         url_ = url_.replace(/[?&]$/, "");
@@ -370,12 +560,37 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthRegisterUserRegisterUserEndpoint(response: Response): Promise<RegisterUserResult> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = RegisterUserResult.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = RegisterUserResult.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiErrorResponse.fromJS(resultData400);
+            return throwException("Validation failed; `errors` maps each field to its messages", status, _responseText, _headers, result400);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiErrorResponse.fromJS(resultData409);
+            return throwException("The login or the email is already taken", status, _responseText, _headers, result409);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -385,6 +600,10 @@ export class ApiClient {
         return Promise.resolve<RegisterUserResult>(null as any);
     }
 
+    /**
+     * Play as a guest
+     * @return Guest created
+     */
     fasterNFasterApiPresentationWebAuthRegisterAnonymousRegisterAnonymousEndpoint(registerAnonymousRequest: RegisterAnonymousRequest): Promise<RegisterAnonymousResponse> {
         let url_ = this.baseUrl + "/api/auth/guest";
         url_ = url_.replace(/[?&]$/, "");
@@ -408,12 +627,30 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthRegisterAnonymousRegisterAnonymousEndpoint(response: Response): Promise<RegisterAnonymousResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = RegisterAnonymousResponse.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = RegisterAnonymousResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiErrorResponse.fromJS(resultData400);
+            return throwException("Validation failed; `errors` maps each field to its messages", status, _responseText, _headers, result400);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -423,6 +660,10 @@ export class ApiClient {
         return Promise.resolve<RegisterAnonymousResponse>(null as any);
     }
 
+    /**
+     * Rotate the auth tokens
+     * @return Tokens rotated
+     */
     fasterNFasterApiPresentationWebAuthRefreshTokenRefreshTokenEndpoint(): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/refresh";
         url_ = url_.replace(/[?&]$/, "");
@@ -441,9 +682,27 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthRefreshTokenRefreshTokenEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiErrorResponse.fromJS(resultData401);
+            return throwException("The refresh token is invalid, expired or already rotated; the body is empty when the cookie is missing", status, _responseText, _headers, result401);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -453,6 +712,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Get the current user
+     * @return The current user
+     */
     fasterNFasterApiPresentationWebAuthMeMeEndpoint(): Promise<MeResponse> {
         let url_ = this.baseUrl + "/api/auth/me";
         url_ = url_.replace(/[?&]$/, "");
@@ -481,7 +744,14 @@ export class ApiClient {
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
+            return throwException("Not logged in; empty body", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -491,6 +761,10 @@ export class ApiClient {
         return Promise.resolve<MeResponse>(null as any);
     }
 
+    /**
+     * Log out
+     * @return Logged out
+     */
     fasterNFasterApiPresentationWebAuthLogoutLogoutEndpoint(): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/logout";
         url_ = url_.replace(/[?&]$/, "");
@@ -509,9 +783,16 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthLogoutLogoutEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -521,6 +802,10 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    /**
+     * Log in with a login and password
+     * @return Logged in
+     */
     fasterNFasterApiPresentationWebAuthLoginUserLoginUserEndpoint(loginUserRequest: LoginUserRequest): Promise<LoginUserResponse> {
         let url_ = this.baseUrl + "/api/auth/login";
         url_ = url_.replace(/[?&]$/, "");
@@ -551,6 +836,31 @@ export class ApiClient {
             result200 = LoginUserResponse.fromJS(resultData200);
             return result200;
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiErrorResponse.fromJS(resultData401);
+            return throwException("Wrong login or password", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiErrorResponse.fromJS(resultData403);
+            return throwException("The email isn\'t verified; `errors.email` holds the account\'s email", status, _responseText, _headers, result403);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many requests; retry after the `Retry-After` header", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -559,6 +869,9 @@ export class ApiClient {
         return Promise.resolve<LoginUserResponse>(null as any);
     }
 
+    /**
+     * Finish Google sign-in
+     */
     fasterNFasterApiPresentationWebAuthGoogleAuthGoogleCallbackEndpoint(): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/google/callback";
         url_ = url_.replace(/[?&]$/, "");
@@ -577,9 +890,16 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthGoogleAuthGoogleCallbackEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 302) {
             return response.text().then((_responseText) => {
-            return;
+            return throwException("Redirect back to the frontend", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -589,17 +909,19 @@ export class ApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    fasterNFasterApiPresentationWebAuthGoogleAuthGoogleChallengeEndpoint(googleChallengeRequest: GoogleChallengeRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/auth/google";
+    /**
+     * Start Google sign-in
+     * @param returnUrl (optional) 
+     */
+    fasterNFasterApiPresentationWebAuthGoogleAuthGoogleChallengeEndpoint(returnUrl: string | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/auth/google?";
+        if (returnUrl !== undefined && returnUrl !== null)
+            url_ += "returnUrl=" + encodeURIComponent("" + returnUrl) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(googleChallengeRequest);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
             }
         };
 
@@ -611,9 +933,16 @@ export class ApiClient {
     protected processFasterNFasterApiPresentationWebAuthGoogleAuthGoogleChallengeEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 302) {
             return response.text().then((_responseText) => {
-            return;
+            return throwException("Redirect to Google", status, _responseText, _headers);
+            });
+        } else if (status === 500) {
+            return response.text().then((_responseText) => {
+            let result500: any = null;
+            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result500 = ApiErrorResponse.fromJS(resultData500);
+            return throwException("Unexpected server error", status, _responseText, _headers, result500);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -622,6 +951,62 @@ export class ApiClient {
         }
         return Promise.resolve<void>(null as any);
     }
+}
+
+export class ApiErrorResponse implements IApiErrorResponse {
+    reason?: string | undefined;
+    code?: string | undefined;
+    errors?: { [key: string]: string[]; } | undefined;
+
+    constructor(data?: IApiErrorResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.reason = _data["reason"];
+            this.code = _data["code"];
+            if (_data["errors"]) {
+                this.errors = {} as any;
+                for (let key in _data["errors"]) {
+                    if (_data["errors"].hasOwnProperty(key))
+                        (this.errors as any)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiErrorResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiErrorResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["reason"] = this.reason;
+        data["code"] = this.code;
+        if (this.errors) {
+            data["errors"] = {};
+            for (let key in this.errors) {
+                if (this.errors.hasOwnProperty(key))
+                    (data["errors"] as any)[key] = (this.errors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IApiErrorResponse {
+    reason?: string | undefined;
+    code?: string | undefined;
+    errors?: { [key: string]: string[]; } | undefined;
 }
 
 export class GetUserProfileResult implements IGetUserProfileResult {
@@ -865,7 +1250,6 @@ export interface ILobbyListItem {
 }
 
 export class GetLobbiesRequest implements IGetLobbiesRequest {
-    inviteCode?: string | undefined;
 
     constructor(data?: IGetLobbiesRequest) {
         if (data) {
@@ -877,9 +1261,6 @@ export class GetLobbiesRequest implements IGetLobbiesRequest {
     }
 
     init(_data?: any) {
-        if (_data) {
-            this.inviteCode = _data["inviteCode"];
-        }
     }
 
     static fromJS(data: any): GetLobbiesRequest {
@@ -891,13 +1272,11 @@ export class GetLobbiesRequest implements IGetLobbiesRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["inviteCode"] = this.inviteCode;
         return data;
     }
 }
 
 export interface IGetLobbiesRequest {
-    inviteCode?: string | undefined;
 }
 
 export class CreateLobbyResult implements ICreateLobbyResult {
@@ -941,7 +1320,7 @@ export interface ICreateLobbyResult {
 }
 
 export class CreateLobbyRequest implements ICreateLobbyRequest {
-    lobbyName?: string;
+    lobbyName!: string;
     isPrivate?: boolean;
 
     constructor(data?: ICreateLobbyRequest) {
@@ -976,7 +1355,7 @@ export class CreateLobbyRequest implements ICreateLobbyRequest {
 }
 
 export interface ICreateLobbyRequest {
-    lobbyName?: string;
+    lobbyName: string;
     isPrivate?: boolean;
 }
 
@@ -1113,10 +1492,6 @@ export interface ILeaderboardResultDTO {
 }
 
 export class GetLeaderboardsRequest implements IGetLeaderboardsRequest {
-    sort?: LeaderboardSort;
-    descending?: boolean;
-    page?: number;
-    pageSize?: number;
 
     constructor(data?: IGetLeaderboardsRequest) {
         if (data) {
@@ -1128,12 +1503,6 @@ export class GetLeaderboardsRequest implements IGetLeaderboardsRequest {
     }
 
     init(_data?: any) {
-        if (_data) {
-            this.sort = _data["sort"];
-            this.descending = _data["descending"];
-            this.page = _data["page"];
-            this.pageSize = _data["pageSize"];
-        }
     }
 
     static fromJS(data: any): GetLeaderboardsRequest {
@@ -1145,19 +1514,11 @@ export class GetLeaderboardsRequest implements IGetLeaderboardsRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["sort"] = this.sort;
-        data["descending"] = this.descending;
-        data["page"] = this.page;
-        data["pageSize"] = this.pageSize;
         return data;
     }
 }
 
 export interface IGetLeaderboardsRequest {
-    sort?: LeaderboardSort;
-    descending?: boolean;
-    page?: number;
-    pageSize?: number;
 }
 
 export enum LeaderboardSort {
@@ -1207,8 +1568,8 @@ export interface IVerifyEmailRequest {
 }
 
 export class ResetPasswordRequest implements IResetPasswordRequest {
-    token?: string;
-    newPassword?: string;
+    token!: string;
+    newPassword!: string;
 
     constructor(data?: IResetPasswordRequest) {
         if (data) {
@@ -1242,8 +1603,8 @@ export class ResetPasswordRequest implements IResetPasswordRequest {
 }
 
 export interface IResetPasswordRequest {
-    token?: string;
-    newPassword?: string;
+    token: string;
+    newPassword: string;
 }
 
 export class ResendVerificationRequest implements IResendVerificationRequest {
@@ -1283,7 +1644,7 @@ export interface IResendVerificationRequest {
 }
 
 export class RequestPasswordResetRequest implements IRequestPasswordResetRequest {
-    email?: string;
+    email!: string;
 
     constructor(data?: IRequestPasswordResetRequest) {
         if (data) {
@@ -1315,7 +1676,7 @@ export class RequestPasswordResetRequest implements IRequestPasswordResetRequest
 }
 
 export interface IRequestPasswordResetRequest {
-    email?: string;
+    email: string;
 }
 
 export class RegisterUserResult implements IRegisterUserResult {
@@ -1359,10 +1720,10 @@ export interface IRegisterUserResult {
 }
 
 export class RegisterUserRequest implements IRegisterUserRequest {
-    nick?: string;
-    login?: string;
-    email?: string;
-    password?: string;
+    nick!: string;
+    login!: string;
+    email!: string;
+    password!: string;
 
     constructor(data?: IRegisterUserRequest) {
         if (data) {
@@ -1400,10 +1761,10 @@ export class RegisterUserRequest implements IRegisterUserRequest {
 }
 
 export interface IRegisterUserRequest {
-    nick?: string;
-    login?: string;
-    email?: string;
-    password?: string;
+    nick: string;
+    login: string;
+    email: string;
+    password: string;
 }
 
 export class RegisterAnonymousResponse implements IRegisterAnonymousResponse {
@@ -1443,7 +1804,7 @@ export interface IRegisterAnonymousResponse {
 }
 
 export class RegisterAnonymousRequest implements IRegisterAnonymousRequest {
-    nick?: string;
+    nick!: string;
 
     constructor(data?: IRegisterAnonymousRequest) {
         if (data) {
@@ -1475,7 +1836,7 @@ export class RegisterAnonymousRequest implements IRegisterAnonymousRequest {
 }
 
 export interface IRegisterAnonymousRequest {
-    nick?: string;
+    nick: string;
 }
 
 export class MeResponse implements IMeResponse {
@@ -1603,7 +1964,6 @@ export interface ILoginUserRequest {
 }
 
 export class GoogleChallengeRequest implements IGoogleChallengeRequest {
-    returnUrl?: string | undefined;
 
     constructor(data?: IGoogleChallengeRequest) {
         if (data) {
@@ -1615,9 +1975,6 @@ export class GoogleChallengeRequest implements IGoogleChallengeRequest {
     }
 
     init(_data?: any) {
-        if (_data) {
-            this.returnUrl = _data["returnUrl"];
-        }
     }
 
     static fromJS(data: any): GoogleChallengeRequest {
@@ -1629,13 +1986,11 @@ export class GoogleChallengeRequest implements IGoogleChallengeRequest {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["returnUrl"] = this.returnUrl;
         return data;
     }
 }
 
 export interface IGoogleChallengeRequest {
-    returnUrl?: string | undefined;
 }
 
 export class SwaggerException extends Error {

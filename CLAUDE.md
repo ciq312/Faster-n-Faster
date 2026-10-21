@@ -31,7 +31,7 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 ## Layout
 
 - `FasterNFaster.Api.{Domain,UseCases,Infrastructure,Presentation}`: the backend, Clean Architecture ([0003](docs/decisions/0003-clean-architecture-over-layered.md)); folders inside each follow feature areas.
-- `FasterNFaster.UnitTests`, `FasterNFaster.IntegrationTests`: xUnit with hand-rolled fakes; integration tests use Testcontainers.
+- `FasterNFaster.UnitTests`, `FasterNFaster.IntegrationTests`: xUnit, moving from hand-rolled fakes to Moq: new tests mock with Moq and assert with Shouldly, existing fakes and `Assert.*` stay until the test is touched; integration tests use Testcontainers and swap services for mocks in `ConfigureApp`.
 - `fasternfasterapp/`: React + Vite frontend, moving from JavaScript to TypeScript ([0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)): new code is `.ts`/`.tsx`, existing JS stays until converted (`allowJs`).
 - `loadtest/`: SignalR load-test bot.
 
@@ -47,7 +47,7 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 - `GameHub.UpdateRaceState` skips MediatR, so pipeline behaviors never run for progress updates. Rules for them live in `RaceParticipant` ([0004](docs/decisions/0004-cqrs-with-mediatr-bypassed-on-the-hot-path.md)).
 - Only commands that implement `ILobbyStateRequest` trigger a `LobbyState` broadcast; a lobby-changing command without it leaves clients on stale state ([0008](docs/decisions/0008-one-lobbystate-broadcast-per-changed-lobby.md)).
 - `AggregateGate` isn't re-entrant: calling the same store for the same id from inside `Mutate`/`Read` deadlocks ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
-- Business errors subclass one of the five `StatusException` categories; an error has a `code` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md)).
+- Business errors subclass one of the five `StatusException` categories; every HTTP error body is `ApiErrorResponse` (`reason`, `code`, `errors`), and an error gets a code other than `error` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md), README's API section).
 - EF migrations run at API startup and a rollback doesn't undo them, so every schema change also works with the previous release.
 - On the host the API takes its connection strings from `ConnectionStrings__*` lines in `.env`, found by searching up from the working directory. They interpolate `${POSTGRES_*}`, so they come after those lines, or the values come out empty. In Docker, compose's `environment:` overrides them.
 
@@ -66,4 +66,5 @@ Backend and frontend share one convention. Neighbouring files show it; where the
 - **Blank lines:** at most one between members; no double blank lines.
 - **Tests:** backend tests are named `Scenario_Expected`; frontend `it()` names are sentences without "should" (e.g. `it("rejects a space after a wrong word")`). A repeated multi-step setup lives in a named helper, not in comments at each call site.
 - **Method chains:** leading dot, one call per line once the chain doesn't fit on one line. Prettier enforces this in the frontend; in C# nothing does, so it's kept by hand.
+- **Endpoint OpenAPI docs:** each endpoint is described in a `<Name>Summary : ApiSummary<TEndpoint>` next to it (summary, description, examples, every status code it actually returns, errors as `ApiErrorResponse`), never in `Configure()`. `ApiSummary` already adds the 500; `ValidationFailed()` and `RateLimited()` add the 400 and 429. The only exception is `Description(x => x.ClearDefaultProduces(…))`, which a summary can't do. Building the API regenerates `swagger.json` and `fasternfasterapp/types.ts`; neither is edited by hand.
 - **Formatting is enforced in CI.** Backend: `.editorconfig` rules, checked by `dotnet format --verify-no-changes`. Frontend: Prettier plus the ESLint style rules, checked by `npm run format:check` and `npm run lint`. `dotnet format FasterNFaster.Api.sln` and `npm run format` fix it locally.

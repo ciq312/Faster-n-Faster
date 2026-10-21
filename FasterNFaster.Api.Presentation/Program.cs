@@ -54,6 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseFastEndpoints(c =>
 {
+    c.Errors.ProducesMetadataType = typeof(ApiErrorResponse);
     c.Errors.ResponseBuilder = (failures, ctx, statusCode) =>
     {
         var errors = failures

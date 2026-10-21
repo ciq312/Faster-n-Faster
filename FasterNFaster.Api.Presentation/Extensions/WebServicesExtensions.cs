@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FastEndpoints.Swagger;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Infrastructure.Lobbies;
 using FasterNFaster.Api.Infrastructure.Shared;
@@ -15,8 +16,11 @@ public static class WebServicesExtensions
     public static IServiceCollection AddWebServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddFastEndpoints();
-        services.AddEndpointsApiExplorer();
-        services.AddOpenApiDocument();
+        services.SwaggerDocument(o =>
+        {
+            o.ShortSchemaNames = true;
+            o.AutoTagPathSegmentIndex = 2;
+        });
         services.AddExceptionHandler<StatusExceptionHandler>();
         services.AddProblemDetails();
 

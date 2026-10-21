@@ -4,7 +4,6 @@ using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using FasterNFaster.Api.UseCases.Users.Ports;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -38,7 +37,8 @@ public class ExceptionContractTests(TestApplicationFactory<Program> fixture) : I
         apiErrorResponse.ShouldNotBeNull();
         apiErrorResponse.Reason.ShouldBe("One or more validation errors occurred.");
         apiErrorResponse.Code.ShouldBe("validation_failed");
-        apiErrorResponse.Errors?["password"].ShouldContain("Password can't be empty");
+        apiErrorResponse.Errors.ShouldNotBeNull();
+        apiErrorResponse.Errors["password"].ShouldContain("Password can't be empty");
     }
 
     [Fact]
@@ -59,7 +59,29 @@ public class ExceptionContractTests(TestApplicationFactory<Program> fixture) : I
         apiErrorResponse.ShouldNotBeNull();
         apiErrorResponse.Reason.ShouldBe("Email verification required");
         apiErrorResponse.Code.ShouldBe("email_not_verified");
-        apiErrorResponse.Errors?["email"].ShouldContain("player@test.com");
+        apiErrorResponse.Errors.ShouldNotBeNull();
+        apiErrorResponse.Errors["email"].ShouldContain("player@test.com");
+    }
+
+    [Fact]
+    public async Task ThrowsUnknownError_ShouldReturnFallbackMessage()
+    {
+        var client = App.CreateClient();
+
+        var user = new RegisterUserRequest("testUser", "testLogin", "test@gmail.com", "password123");
+
+        userRepo
+            .Setup(r => r.GetUserByLoginAsync(It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("some error"));
+
+        var response = await client.PostAsJsonAsync(AuthHelper.RegisterUri, user);
+
+        response.StatusCode.ShouldBe(System.Net.HttpStatusCode.InternalServerError);
+        var apiErrorResponse = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        apiErrorResponse.ShouldNotBeNull();
+        apiErrorResponse.Reason.ShouldBe("An unexpected error occurred");
+        apiErrorResponse.Code.ShouldBe("error");
+        apiErrorResponse.Errors.ShouldBeNull();
     }
 
 }

@@ -16,8 +16,8 @@ export async function extractHttpError(response) {
       }
     }
 
-    if (typeof body.error === "string" && body.error) {
-      return body.error;
+    if (typeof body.reason === "string" && body.reason) {
+      return body.reason;
     }
 
     if (typeof body.message === "string" && body.message) {
