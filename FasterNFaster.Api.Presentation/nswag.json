@@ -14,8 +14,9 @@
       "className": "ApiClient",
       "template": "Fetch",
       "typeScriptVersion": 6,
-      "generateClientClasses": true,
+      "generateClientClasses": false,
       "generateDtoTypes": true,
+      "typeStyle": "Interface",
       "output": "../fasternfasterapp/types.ts"
     }
   }
