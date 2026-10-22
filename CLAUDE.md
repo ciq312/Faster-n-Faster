@@ -10,7 +10,7 @@
 Repo root unless noted.
 
 ```bash
-dotnet tool restore                           # once; a Debug build runs the SignalR TypeScript generator from dotnet-tools.json
+dotnet tool restore                           # once; installs dotnet-ef and the SignalR TypeScript generator a Debug build runs
 dotnet build FasterNFaster.Api.sln
 dotnet test FasterNFaster.UnitTests           # no Docker needed
 dotnet test FasterNFaster.IntegrationTests    # needs Docker running (Testcontainers: Postgres + Redis)
@@ -20,8 +20,8 @@ cd fasternfasterapp && npm run lint && npm run typecheck && npm run format:check
 cd fasternfasterapp && npm test               # Vitest in watch mode
 
 cp .env.example .env                          # once, then fill in the values; compose and the API read it
-docker compose up api --build                 # API in Docker on :8080, starts Postgres and Redis with it
-docker compose up postgres redis              # or: only the databases in Docker, and the API on the host:
+docker compose up api --build                 # API in Docker on :8080, starts Postgres, Redis and migrate with it
+docker compose up postgres redis migrate      # or: only the databases (migrated) in Docker, and the API on the host:
 cd FasterNFaster.Api.Presentation && dotnet watch run   # :8080 via Properties/launchSettings.json; the api container must be stopped
 cd fasternfasterapp && npm run dev            # Vite on :3000, proxies /api and /gameHub to :8080
 
@@ -49,7 +49,8 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 - Only commands that implement `ILobbyStateRequest` trigger a `LobbyState` broadcast; a lobby-changing command without it leaves clients on stale state ([0008](docs/decisions/0008-one-lobbystate-broadcast-per-changed-lobby.md)).
 - `AggregateGate` isn't re-entrant: calling the same store for the same id from inside `Mutate`/`Read` deadlocks ([0006](docs/decisions/0006-stores-as-ports-with-one-gate-per-aggregate.md)).
 - Business errors subclass one of the five `StatusException` categories; every HTTP error body is `ApiErrorResponse` (`reason`, `code`, `errors`), and an error gets a code other than `error` only when the client branches on it ([0010](docs/decisions/0010-http-status-codes-mapped-in-presentation.md), README's API section).
-- EF migrations run at API startup and a rollback doesn't undo them, so every schema change also works with the previous release.
+- EF migrations don't run at API startup: the one-shot `migrate` compose service runs the migration bundle (`efbundle` in the API image) and `api` starts only after it succeeds. A rollback doesn't undo them, so every schema change also works with the previous release.
+- Start-up has no side effects before `app.Run()`, because NSwag runs `Program.cs` to generate `swagger.json`: required config is checked with `ValidateOnStart`, never thrown during service registration, and CI passes placeholder values for it on the build step.
 - On the host the API takes its connection strings from `ConnectionStrings__*` lines in `.env`, found by searching up from the working directory. They interpolate `${POSTGRES_*}`, so they come after those lines, or the values come out empty. In Docker, compose's `environment:` overrides them.
 
 ## Git flow

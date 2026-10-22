@@ -36,13 +36,12 @@
   </ItemGroup>
 
   <Target Name="NSwag" AfterTargets="Build">
-  <Copy SourceFiles="@(Reference)" DestinationFolder="$(OutDir)References" />
-  <Exec Command="$(NSwagExe_Net100) run nswag.json /variables:Configuration=$(Configuration)" />
-  <RemoveDir Directories="$(OutDir)References" />
-</Target>
+    <Copy SourceFiles="@(Reference)" DestinationFolder="$(OutDir)References" Condition="'$(Configuration)' == 'Debug'"/>
+    <Exec Command="$(NSwagExe_Net100) run nswag.json" Condition="'$(Configuration)' == 'Debug'" />
+    <RemoveDir Directories="$(OutDir)References" Condition="'$(Configuration)' == 'Debug'" />
+  </Target>
 
-  <!-- CI and Docker don't restore the dotnet tool, so the SignalR client is generated on local Debug builds only. -->
-  <Target Name="TypedSignalR" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And '$(CI)' != 'true'">
+  <Target Name="TypedSignalR" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <RemoveDir Directories="../fasternfasterapp/generated/signalr" />
     <Exec Command="dotnet tool run dotnet-tsrts --project $(MSBuildProjectFullPath) --output ../fasternfasterapp/generated/signalr --asm" />
   </Target>

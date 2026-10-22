@@ -216,7 +216,7 @@ gh workflow run deploy.yml -f sha=<full commit sha>
 ```
 
 - Only commits pushed to `main` have images. Any other SHA fails at `docker compose pull`, and nothing is restarted.
-- The API applies EF Core migrations on startup, and a rollback does not undo them. The older version has to work with the newer schema.
+- Migrations run before the new API starts: the one-shot `migrate` service applies the EF Core migration bundle from the same image, and `api` starts only if it succeeds. A rollback does not undo them. The older version has to work with the newer schema.
 
 ### On the server
 

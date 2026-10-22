@@ -24,8 +24,19 @@ jobs:
         global-json-file: global.json
     - name: Restore dependencies
       run: dotnet restore  ${{ env.Solution_name }}
+    - name: Restore tools
+      run: dotnet tool restore
     - name: Build
       run: dotnet build  ${{ env.Solution_name }} --no-restore
+      env:
+        # NSwag runs the API through app.Run() to read its endpoints; these pass the start-up checks, nothing connects to them.
+        ConnectionStrings__DefaultConnection: Host=localhost;Database=ci;Username=ci;Password=ci
+        ConnectionStrings__Redis: localhost,abortConnect=false
+        JwtOptions__PrivateKey: ci-placeholder
+    - name: Check generated contracts are committed
+      run: |
+        changes=$(git status --porcelain -- FasterNFaster.Api.Presentation/swagger.json fasternfasterapp/types.ts fasternfasterapp/generated)
+        if [ -n "$changes" ]; then echo "$changes"; echo "::error::Generated contracts are stale: build the API locally and commit them"; exit 1; fi
     - name: Check formatting
       run: dotnet format ${{ env.Solution_name }} --verify-no-changes --no-restore
     - name: Test

@@ -39,7 +39,6 @@ public static class WebServicesExtensions
             });
         });
 
-        services.Configure<JwtOptions>(config.GetSection("JwtOptions"));
         services.Configure<AuthCookiesOptions>(config.GetSection("AuthCookies"));
         services.Configure<AppOptions>(config.GetSection("AppUrls"));
         services.Configure<SmtpOptions>(config.GetSection("Smtp"));
@@ -47,6 +46,15 @@ public static class WebServicesExtensions
         services.Configure<AntiCheatSanctionOptions>(config.GetSection("AntiCheatSanctions"));
         services.Configure<ConfirmTokenOptions>(config.GetSection("ConfirmTokens"));
         services.Configure<LobbyCleanupOptions>(config.GetSection("LobbyCleanup"));
+        services.AddOptions<JwtOptions>()
+            .Bind(config.GetSection("JwtOptions"))
+            .Validate(opt => !string.IsNullOrEmpty(opt.PrivateKey), "JwtOptions:PrivateKey is not configured.")
+            .ValidateOnStart();
+        services.AddOptions<ConnectionStrings>()
+            .Bind(config.GetSection("ConnectionStrings"))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.DefaultConnection) && !string.IsNullOrWhiteSpace(o.Redis),
+                "ConnectionStrings:DefaultConnection and ConnectionStrings:Redis must be configured.")
+            .ValidateOnStart();
 
         return services;
     }

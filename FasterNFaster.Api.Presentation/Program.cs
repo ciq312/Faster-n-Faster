@@ -1,11 +1,9 @@
 using DotNetEnv;
 using FastEndpoints;
-using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -23,12 +21,6 @@ builder.Services.AddWebServices(builder.Configuration);
 builder.Services.AddApiRateLimiting(builder.Configuration);
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 app.UseExceptionHandler();
 
