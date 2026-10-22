@@ -11,7 +11,7 @@ public class BroadcastPlayerFinishedHandler(IBroadcaster broadcaster)
     public Task Handle(DomainEventNotification<PlayerFinishedEvent> notification, CancellationToken cancellationToken)
     {
         var e = notification.Event;
-        return broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.PlayerFinished,
-            new PlayerFinishedDTO(e.Nick, e.PlayerId, e.FinishPosition, e.Wpm, e.Accuracy));
+        return broadcaster.Broadcast(Audience.Lobby(e.LobbyId),
+            c => c.PlayerFinished(new PlayerFinishedDTO(e.Nick, e.PlayerId, e.FinishPosition, e.Wpm, e.Accuracy)));
     }
 }

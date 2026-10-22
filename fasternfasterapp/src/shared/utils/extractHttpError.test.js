@@ -8,46 +8,50 @@ function response(status, json) {
 }
 
 describe("extractHttpError", () => {
-  it("returns the first message of the first non-empty errors entry", async () => {
+  it("returns the first message of the first non-empty errors entry for a validation failure", async () => {
     const res = response(400, {
+      reason: "One or more validation errors occurred.",
+      code: "validation_failed",
       errors: { Name: [], Email: ["Email is invalid", "Email is taken"] },
     });
 
     expect(await extractHttpError(res)).toBe("Email is invalid");
   });
 
-  it("prefers errors over error and message", async () => {
-    const res = response(400, {
-      errors: { Name: ["Name is required"] },
-      error: "error text",
-      message: "message text",
+  it("uses reason when there are no errors", async () => {
+    const res = response(409, { reason: "Lobby is full", code: "lobby_full" });
+
+    expect(await extractHttpError(res)).toBe("Lobby is full");
+  });
+
+  it("uses reason and ignores errors that carry data for other codes", async () => {
+    const res = response(403, {
+      reason: "Email verification required",
+      code: "email_not_verified",
+      errors: { email: ["player@example.com"] },
     });
 
-    expect(await extractHttpError(res)).toBe("Name is required");
+    expect(await extractHttpError(res)).toBe("Email verification required");
   });
 
-  it("uses error when there are no errors", async () => {
-    const res = response(400, { error: "error text", message: "message text" });
+  it("falls back to the generic message for an empty reason", async () => {
+    const res = response(400, { reason: "", code: "bad_request" });
 
-    expect(await extractHttpError(res)).toBe("error text");
+    expect(await extractHttpError(res)).toBe(FALLBACK_MESSAGE);
   });
 
-  it("skips an empty error string and uses message", async () => {
-    const res = response(400, { error: "", message: "message text" });
-
-    expect(await extractHttpError(res)).toBe("message text");
+  it("falls back to the generic message for an empty object", async () => {
+    expect(await extractHttpError(response(400, {}))).toBe(FALLBACK_MESSAGE);
   });
 
-  it("falls back to the status for an empty object", async () => {
-    expect(await extractHttpError(response(400, {}))).toBe("Error 400");
+  it("falls back to the generic message for a non-object body", async () => {
+    expect(await extractHttpError(response(500, null))).toBe(FALLBACK_MESSAGE);
+    expect(await extractHttpError(response(502, "text"))).toBe(
+      FALLBACK_MESSAGE,
+    );
   });
 
-  it("falls back to the status for a non-object body", async () => {
-    expect(await extractHttpError(response(500, null))).toBe("Error 500");
-    expect(await extractHttpError(response(502, "text"))).toBe("Error 502");
-  });
-
-  it("returns a generic message when the body is not JSON", async () => {
+  it("returns the generic message when the body is not JSON", async () => {
     const res = {
       status: 500,
       json: async () => {

@@ -75,7 +75,7 @@ FasterNFaster.Api.UseCases/        — application layer, feature-sliced CQRS
 │   ├── Services/    — application services shared by several use cases (LobbyState tracking/query,
 │   │                  confirm tokens, user profiles)
 │   ├── Exceptions/  — area-specific exceptions
-│   └── *.cs         — area-wide constants (Realtime/GameEvents, Races/RaceCountdown)
+│   └── *.cs         — area-wide constants (Races/RaceCountdown)
 └── Shared/          — domain-event dispatch (MediatR), IUnitOfWork, AggregateGate
 FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
 ├── <Area>/          — Postgres/Redis repositories, SMTP, in-memory lobby/race stores, race tick loop + conflator
@@ -99,29 +99,40 @@ How the system runs — where state lives, the race hot path, the concurrency mo
 
 ### Error responses
 
-The shape of an error body depends on where the error comes from:
+Errors the API writes itself share one body, `ApiErrorResponse`:
 
-| Source | Status | Body |
-|---|---|---|
-| Business rule (`StatusException`) | 400, 401, 403, 404, 409 | `{ "error": "<message>" }`, plus `code` and any extra fields the exception sets (see below) |
-| Request validation (FastEndpoints) | 400 | `{ "statusCode": 400, "message": "One or more errors occurred!", "errors": { "<field>": ["<message>"] } }`, served as `application/problem+json` |
-| Rate limit | 429 | `{ "message": "Too many requests, try again shortly." }` and a `Retry-After` header in seconds |
-| Missing or invalid access/refresh token, missing role | 401 / 403 | empty body |
-| Unhandled server error | 500 | ProblemDetails, `application/problem+json` (`type`, `title`, `status`, `traceId`) |
+```json
+{ "reason": "<message for the user>", "code": "<machine code>", "errors": { "<key>": ["<value>"] } }
+```
 
-Show `error` / `errors` / `message` to the user; branch only on `code`, never on message text.
+`reason` and `code` are always present; `errors` is `null` when there is nothing to put in it.
+
+| Source | Status | `reason` | `code` | `errors` |
+|---|---|---|---|---|
+| Business rule (`StatusException`) | 400, 401, 403, 404, 409 | the exception's message | `error`, or a specific code (see below) | the exception's extra fields, or `null` |
+| Request validation (FastEndpoints) | 400 | `One or more validation errors occurred.` | `validation_failed` | `{ "<field>": ["<message>"] }` |
+| Missing or invalid access token | 401 | `Authentication required` | `not_authenticated` | `null` |
+| Missing role | 403 | `Access denied` | `forbidden` | `null` |
+| Rate limit | 429 | `Too many requests, try again shortly` | `rate_limited` | `null`; a `Retry-After` header gives the wait in seconds |
+| Unhandled server error | 500 | `An unexpected error occurred` | `error` | `null` |
+
+Show `errors` for a validation failure and `reason` otherwise; branch only on `code`, never on message text.
 
 #### Error codes
 
-| Code | Status | Endpoint | Extra fields | Meaning |
+| Code | Status | Endpoint | `errors` | Meaning |
 |---|---|---|---|---|
-| `EMAIL_NOT_VERIFIED` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
+| `email_not_verified` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
+| `invalid_credentials` | 401 | `POST /api/auth/login` | — | Wrong login or password; the message doesn't say which. |
+| `not_authenticated` | 401 | any endpoint that needs a login, `POST /api/auth/refresh` | — | No valid access token, or the refresh token is missing, expired or already rotated. |
+| `forbidden` | 403 | endpoints with a role requirement | — | Logged in, but the role isn't allowed. |
+| `rate_limited` | 429 | rate-limited endpoints | — | Too many requests; retry after `Retry-After`. |
 
 ```json
-{ "error": "Email verification required", "code": "EMAIL_NOT_VERIFIED", "email": "player@example.com" }
+{ "reason": "Email verification required", "code": "email_not_verified", "errors": { "email": ["player@example.com"] } }
 ```
 
-Add a code only when a client branches on it. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and are written flat next to `error`, never overwriting `error` or `code`. Exceptions that set neither keep the plain `{ "error" }` body.
+Every error gets its own code, whether or not a client branches on it yet; the client decides which ones to handle. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and go into `errors`.
 
 SignalR hub method errors carry only a message (`HubException`) and have no codes.
 
@@ -205,7 +216,7 @@ gh workflow run deploy.yml -f sha=<full commit sha>
 ```
 
 - Only commits pushed to `main` have images. Any other SHA fails at `docker compose pull`, and nothing is restarted.
-- The API applies EF Core migrations on startup, and a rollback does not undo them. The older version has to work with the newer schema.
+- Migrations run before the new API starts: the one-shot `migrate` service applies the EF Core migration bundle from the same image, and `api` starts only if it succeeds. A rollback does not undo them. The older version has to work with the newer schema.
 
 ### On the server
 

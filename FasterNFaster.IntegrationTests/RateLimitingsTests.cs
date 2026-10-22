@@ -1,8 +1,10 @@
 using System.Net.Http.Json;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterAnonymous;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.Extensions.Configuration;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -29,8 +31,8 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await AuthHelper.Register(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.TooManyRequests);
     }
 
     [Fact]
@@ -53,8 +55,8 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await AuthHelper.Register(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.Created, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
     }
 
     [Fact]
@@ -74,8 +76,13 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await CreateLobby(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.TooManyRequests);
+        var apiErrorResponse = await nthResponse.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        apiErrorResponse.ShouldNotBeNull();
+        apiErrorResponse.Reason.ShouldBe("Too many requests, try again shortly");
+        apiErrorResponse.Code.ShouldBe(ErrorCodes.RateLimited);
+        apiErrorResponse.Errors.ShouldBeNull();
     }
 
     private static Task<HttpResponseMessage> CreateLobby(HttpClient client) =>

@@ -1,0 +1,23 @@
+{
+  "runtime": "Net100",
+  "defaultVariables": "Configuration=Debug",
+  "documentGenerator": {
+    "aspNetCoreToOpenApi": {
+      "project": "FasterNFaster.Api.Presentation.csproj",
+      "configuration": "$(Configuration)",
+      "noBuild": true,
+      "output": "swagger.json"
+    }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "className": "ApiClient",
+      "template": "Fetch",
+      "typeScriptVersion": 6,
+      "generateClientClasses": false,
+      "generateDtoTypes": true,
+      "typeStyle": "Interface",
+      "output": "../fasternfasterapp/types.ts"
+    }
+  }
+}

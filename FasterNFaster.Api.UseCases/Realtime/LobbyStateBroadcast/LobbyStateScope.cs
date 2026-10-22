@@ -44,7 +44,8 @@ public class LobbyStateScope(
         {
             if (!lobbies.Exists(lobbyId)) continue;
 
-            await broadcaster.Broadcast(Audience.Lobby(lobbyId), GameEvents.LobbyState, await lobbyQuery.GetLobbyState(lobbyId));
+            var state = await lobbyQuery.GetLobbyState(lobbyId);
+            await broadcaster.Broadcast(Audience.Lobby(lobbyId), c => c.LobbyState(state));
         }
     }
 }

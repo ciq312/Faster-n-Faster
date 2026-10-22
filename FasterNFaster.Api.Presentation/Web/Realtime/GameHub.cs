@@ -11,7 +11,7 @@ using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -24,7 +24,7 @@ public partial class GameHub(
     ILobbyStore lobbies,
     ISessionService sessionService,
     IRaceStore races,
-    ISender sender) : Hub
+    ISender sender) : Hub<IGameClient>, IGameHub
 {
     private (Guid UserId, string Nick) GetCallerContext()
     {
@@ -64,7 +64,7 @@ public partial class GameHub(
     }
 
     private async Task HandleSessionRestart(string previousSession) =>
-        await Clients.Client(previousSession).SendAsync(GameEvents.AnotherSessionStarted);
+        await Clients.Client(previousSession).AnotherSessionStarted();
 
     public async Task ConnectToLobby(Guid lobbyId, string? inviteCode = null)
     {

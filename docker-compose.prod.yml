@@ -6,6 +6,11 @@ services:
     ports: !reset []
     restart: unless-stopped
 
+  migrate:
+    image: ghcr.io/ciq312/fasternfaster-api:${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}
+    build: !reset null
+    pull_policy: missing
+
   api:
     image: ghcr.io/ciq312/fasternfaster-api:${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}
     build: !reset null

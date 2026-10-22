@@ -17,7 +17,7 @@ public class LobbyQuery(ILobbyStore lobbies, IRaceStore races) : ILobbyQuery
             IsRaceStarted: lobby.IsSessionActive && raceHasStarted,
             raceSettings, lobby.LobbySettings.IsPrivate,
             lobby.LobbySettings.InviteCode, lobby.LobbySettings.MaxPlayers,
-            lobby.GetColors(),
+            [.. lobby.GetColors().Select(c => new ColorStatusDTO(c.Color, c.IsAvailable))],
             [.. lobby.Players.Select(p => new LobbyPlayerDTO(p.Id, lobby.IsPlayerHost(p.Id), p.Nick, p.JoinOrder, IsConnected: true, p.Color))]));
     }
 }

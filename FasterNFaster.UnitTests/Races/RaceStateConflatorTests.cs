@@ -1,5 +1,5 @@
-using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Races;
+using FasterNFaster.Api.UseCases.Realtime.RaceState;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -7,8 +7,8 @@ namespace FasterNFaster.UnitTests.Races;
 
 public class RaceStateConflatorTests
 {
-    private static IReadOnlyList<ParticipantSnapshot> Frame(string tag) =>
-        new List<ParticipantSnapshot> { new(Guid.NewGuid(), 0, tag, 0, "red", tag, 0) };
+    private static IReadOnlyList<RaceParticipantDTO> Frame(string tag) =>
+        new List<RaceParticipantDTO> { new(Guid.NewGuid(), 0, tag, 0, "red", tag, 0) };
 
     [Fact]
     public async Task DropsStaleFrames_SendsLatestWhilePreviousInFlight()

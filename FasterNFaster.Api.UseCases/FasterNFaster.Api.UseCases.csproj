@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.10" />
+    <PackageReference Include="Tapper.Attributes" Version="1.14.0" />
+    <PackageReference Include="TypedSignalR.Client.TypeScript.Attributes" Version="1.17.0" />
   </ItemGroup>
 
 </Project>

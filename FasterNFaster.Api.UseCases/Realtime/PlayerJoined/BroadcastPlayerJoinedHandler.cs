@@ -12,6 +12,6 @@ public class BroadcastPlayerJoinedHandler(IBroadcaster broadcaster)
     {
         var e = notification.Event;
 
-        await broadcaster.Broadcast(Audience.LobbyExcept(e.LobbyId, e.UserId), GameEvents.PlayerJoined, new PlayerJoinedDTO(e.UserId, e.Nick));
+        await broadcaster.Broadcast(Audience.LobbyExcept(e.LobbyId, e.UserId), c => c.PlayerJoined(new PlayerJoinedDTO(e.UserId, e.Nick)));
     }
 }

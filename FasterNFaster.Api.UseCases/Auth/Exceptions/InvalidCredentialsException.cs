@@ -7,4 +7,6 @@ public class InvalidCredentialsException : UnauthorizedException
 {
     public InvalidCredentialsException()
         : base("Invalid login or password") { }
+
+    public override string Code => ErrorCodes.InvalidCredentials;
 }

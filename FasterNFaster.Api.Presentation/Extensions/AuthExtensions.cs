@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.Presentation.Web.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FasterNFaster.Api.Presentation.Extensions;
@@ -10,15 +12,7 @@ public static class AuthExtensions
 {
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration config)
     {
-        var accessTokenCookieName = config.GetSection("AuthCookies").Get<AuthCookiesOptions>()?.AccessTokenCookieName
-            ?? new AuthCookiesOptions().AccessTokenCookieName;
-
-        var jwt = config.GetSection("JwtOptions").Get<JwtOptions>() ?? new JwtOptions();
-        if (string.IsNullOrEmpty(jwt.PrivateKey))
-            throw new InvalidOperationException("JwtOptions:PrivateKey is not configured.");
-
-        var rsa = RSA.Create();
-        rsa.ImportRSAPrivateKey(Convert.FromBase64String(jwt.PrivateKey), out _);
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, ApiErrorAuthorizationResultHandler>();
 
         services.AddAuthentication(o =>
         {
@@ -43,31 +37,37 @@ public static class AuthExtensions
             options.Scope.Add("profile");
             options.CallbackPath = "/api/auth/google/signin";
         })
-        .AddJwtBearer(options =>
-        {
-            options.MapInboundClaims = false;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                RoleClaimType = "role",
-                NameClaimType = "name",
-                ValidIssuer = jwt.Issuer,
-                ValidAudience = jwt.Audience,
-                IssuerSigningKey = new RsaSecurityKey(rsa),
-            };
+        .AddJwtBearer();
 
-            options.Events = new JwtBearerEvents
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtOptions>, IOptions<AuthCookiesOptions>>((options, jwtOptions, cookieOptions) =>
             {
-                OnMessageReceived = context =>
+                var jwt = jwtOptions.Value;
+                var rsa = RSA.Create();
+                rsa.ImportRSAPrivateKey(Convert.FromBase64String(jwt.PrivateKey), out _);
+
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    context.Token = context.Request.Cookies[accessTokenCookieName];
-                    return Task.CompletedTask;
-                }
-            };
-        });
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    RoleClaimType = "role",
+                    NameClaimType = "name",
+                    ValidIssuer = jwt.Issuer,
+                    ValidAudience = jwt.Audience,
+                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies[cookieOptions.Value.AccessTokenCookieName];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
         services.AddAuthorization();
 

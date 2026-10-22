@@ -1,5 +1,6 @@
 *
 !FasterNFaster.Api.sln
+!dotnet-tools.json
 !FasterNFaster.Api.Domain/
 !FasterNFaster.Api.UseCases/
 !FasterNFaster.Api.Infrastructure/

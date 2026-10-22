@@ -1,9 +1,8 @@
-using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Infrastructure.Races;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Realtime.RaceState;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -45,7 +44,7 @@ public class RaceTickServiceTests
         await tick.Tick();
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.RaceStarted, sent.EventName);
+        Assert.Equal(nameof(IGameClient.RaceStarted), sent.EventName);
         Assert.Equal(new LobbyAudience(context.LobbyId), sent.Audience);
     }
 
@@ -69,10 +68,10 @@ public class RaceTickServiceTests
         await tick.Tick();
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.RaceState, sent.EventName);
+        Assert.Equal(nameof(IGameClient.RaceState), sent.EventName);
         var audience = Assert.IsType<PlayersAudience>(sent.Audience);
         Assert.Equal((await context.ReadLobby(l => l.GetPlayerIds().ToList())).ToHashSet(), audience.PlayerIds.ToHashSet());
-        var snapshot = Assert.IsAssignableFrom<IReadOnlyList<ParticipantSnapshot>>(sent.Payload);
+        var snapshot = Assert.IsAssignableFrom<IReadOnlyList<RaceParticipantDTO>>(sent.Payload);
         Assert.Equal(2, snapshot.Count);
     }
 
