@@ -35,13 +35,19 @@
     <ProjectReference Include="..\FasterNFaster.Api.UseCases\FasterNFaster.Api.UseCases.csproj" />
   </ItemGroup>
 
-  <Target Name="NSwag" AfterTargets="Build">
-    <Copy SourceFiles="@(Reference)" DestinationFolder="$(OutDir)References" Condition="'$(Configuration)' == 'Debug'"/>
-    <Exec Command="$(NSwagExe_Net100) run nswag.json" Condition="'$(Configuration)' == 'Debug'" />
-    <RemoveDir Directories="$(OutDir)References" Condition="'$(Configuration)' == 'Debug'" />
+  <!-- Debug builds regenerate the client contracts; pass GenerateContracts=false to skip it where nothing reads them. -->
+  <PropertyGroup>
+    <GenerateContracts Condition="'$(GenerateContracts)' == '' And '$(Configuration)' == 'Debug'">true</GenerateContracts>
+  </PropertyGroup>
+
+  <Target Name="NSwag" AfterTargets="Build" Condition="'$(GenerateContracts)' == 'true'">
+    <Copy SourceFiles="@(Reference)" DestinationFolder="$(OutDir)References" />
+    <!-- NSwag converts DateTimeOffset examples to the machine's time zone; UTC keeps swagger.json identical on every machine and in CI. -->
+    <Exec Command="$(NSwagExe_Net100) run nswag.json" EnvironmentVariables="TZ=UTC" />
+    <RemoveDir Directories="$(OutDir)References" />
   </Target>
 
-  <Target Name="TypedSignalR" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+  <Target Name="TypedSignalR" AfterTargets="Build" Condition="'$(GenerateContracts)' == 'true'">
     <RemoveDir Directories="../fasternfasterapp/generated/signalr" />
     <Exec Command="dotnet tool run dotnet-tsrts --project $(MSBuildProjectFullPath) --output ../fasternfasterapp/generated/signalr --asm" />
   </Target>

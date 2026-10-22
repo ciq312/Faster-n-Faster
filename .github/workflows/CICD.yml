@@ -47,6 +47,8 @@ jobs:
 
     env:
       Integration_project_path: FasterNFaster.IntegrationTests/FasterNFaster.IntegrationTests.csproj
+      # backend-build already regenerates and checks the client contracts.
+      GenerateContracts: false
 
     steps:
     - uses: actions/checkout@v4
