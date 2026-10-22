@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
@@ -9,9 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Shouldly;
+
 namespace FasterNFaster.IntegrationTests;
 
-public class ExceptionContractTests(TestApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<TestApplicationFactory<Program>>
+public class ExceptionContractTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
     private readonly Mock<IUserRepository> userRepo = new();
 
@@ -23,6 +25,7 @@ public class ExceptionContractTests(TestApplicationFactory<Program> fixture) : I
             services.AddSingleton(userRepo.Object);
         });
     }
+
     [Fact]
     public async Task EmptyPassword_ShouldThrow400()
     {
@@ -84,4 +87,18 @@ public class ExceptionContractTests(TestApplicationFactory<Program> fixture) : I
         apiErrorResponse.Errors.ShouldBeNull();
     }
 
+    [Fact]
+    public async Task ThrowsUnauthorizedError_ShouldReturnContractResponse()
+    {
+        var client = App.CreateClient();
+
+        var response = await client.GetAsync("api/auth/me");
+
+        response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Unauthorized);
+        var apiErrorResponse = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        apiErrorResponse.ShouldNotBeNull();
+        apiErrorResponse.Reason.ShouldBe("Authentication required");
+        apiErrorResponse.Code.ShouldBe(ErrorCodes.NotAuthenticated);
+        apiErrorResponse.Errors.ShouldBeNull();
+    }
 }

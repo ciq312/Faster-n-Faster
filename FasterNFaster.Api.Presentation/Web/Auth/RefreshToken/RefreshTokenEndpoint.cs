@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Auth.RefreshToken;
 using MediatR;
@@ -22,8 +23,7 @@ public class RefreshTokenEndpoint(ISender sender, IAuthTokenWriter auth, IOption
         var refreshToken = HttpContext.Request.Cookies[options.RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken))
         {
-            await Send.UnauthorizedAsync(ct);
-            return;
+            throw new UnauthorizedException();
         }
 
         var result = await sender.Send(new RefreshTokenCommand(refreshToken), ct);

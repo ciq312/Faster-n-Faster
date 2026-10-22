@@ -10,5 +10,5 @@ public abstract class ApiSummary<TEndpoint> : Summary<TEndpoint> where TEndpoint
         Response<ApiErrorResponse>(400, "Validation failed; `errors` maps each field to its messages");
 
     protected void RateLimited() =>
-        Response(429, "Too many requests; retry after the `Retry-After` header");
+        Response<ApiErrorResponse>(429, "Too many requests (`rate_limited`); retry after the `Retry-After` header");
 }

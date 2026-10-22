@@ -9,7 +9,7 @@ public class RefreshTokenSummary : ApiSummary<RefreshTokenEndpoint>
         Summary = "Rotate the auth tokens";
         Description = "Reads the refresh token cookie, revokes it and sets a new access and refresh token pair as cookies.";
         Response(200, "Tokens rotated");
-        Response<ApiErrorResponse>(401, "The refresh token is invalid, expired or already rotated; the body is empty when the cookie is missing");
+        Response<ApiErrorResponse>(401, "The refresh token is missing, invalid, expired or already rotated (`not_authenticated`)");
         RateLimited();
     }
 }

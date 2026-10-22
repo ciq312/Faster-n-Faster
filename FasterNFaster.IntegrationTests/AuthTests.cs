@@ -54,7 +54,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : Integra
     }
 
     [Fact]
-    public async Task LoginUserWrongPassword_Returns401WithReasonAndFallbackCode()
+    public async Task LoginUserWrongPassword_Returns401WithInvalidCredentialsCode()
     {
         var client = App.CreateClient();
 
@@ -68,7 +68,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : Integra
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         body.ShouldNotBeNull();
         body.Reason.ShouldNotBeNullOrEmpty();
-        body.Code.ShouldBe("error");
+        body.Code.ShouldBe(ErrorCodes.InvalidCredentials);
         body.Errors.ShouldBeNull();
     }
 

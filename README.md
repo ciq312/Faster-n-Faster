@@ -111,14 +111,10 @@ Errors the API writes itself share one body, `ApiErrorResponse`:
 |---|---|---|---|---|
 | Business rule (`StatusException`) | 400, 401, 403, 404, 409 | the exception's message | `error`, or a specific code (see below) | the exception's extra fields, or `null` |
 | Request validation (FastEndpoints) | 400 | `One or more validation errors occurred.` | `validation_failed` | `{ "<field>": ["<message>"] }` |
+| Missing or invalid access token | 401 | `Authentication required` | `not_authenticated` | `null` |
+| Missing role | 403 | `Access denied` | `forbidden` | `null` |
+| Rate limit | 429 | `Too many requests, try again shortly` | `rate_limited` | `null`; a `Retry-After` header gives the wait in seconds |
 | Unhandled server error | 500 | `An unexpected error occurred` | `error` | `null` |
-
-Two responses don't use this body yet:
-
-| Source | Status | Body |
-|---|---|---|
-| Rate limit | 429 | `{ "message": "Too many requests, try again shortly." }` and a `Retry-After` header in seconds |
-| Missing or invalid access/refresh token, missing role | 401 / 403 | empty body |
 
 Show `errors` for a validation failure and `reason` otherwise; branch only on `code`, never on message text.
 
@@ -127,12 +123,16 @@ Show `errors` for a validation failure and `reason` otherwise; branch only on `c
 | Code | Status | Endpoint | `errors` | Meaning |
 |---|---|---|---|---|
 | `email_not_verified` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
+| `invalid_credentials` | 401 | `POST /api/auth/login` | — | Wrong login or password; the message doesn't say which. |
+| `not_authenticated` | 401 | any endpoint that needs a login, `POST /api/auth/refresh` | — | No valid access token, or the refresh token is missing, expired or already rotated. |
+| `forbidden` | 403 | endpoints with a role requirement | — | Logged in, but the role isn't allowed. |
+| `rate_limited` | 429 | rate-limited endpoints | — | Too many requests; retry after `Retry-After`. |
 
 ```json
 { "reason": "Email verification required", "code": "email_not_verified", "errors": { "email": ["player@example.com"] } }
 ```
 
-Add a specific code only when a client branches on it; every other error gets `error`. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and go into `errors`.
+Every error gets its own code, whether or not a client branches on it yet; the client decides which ones to handle. Codes live in `ErrorCodes` (`FasterNFaster.Api.Domain/Exceptions/ErrorCodes.cs`) and are set by overriding `StatusException.Code`; extra fields come from `StatusException.Extensions` and go into `errors`.
 
 SignalR hub method errors carry only a message (`HubException`) and have no codes.
 
