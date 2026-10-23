@@ -1,40 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useVerifyEmailMutation } from "../../features/auth/authApi";
 import "./VerifyEmail.css";
-import { API_BASE } from "../../config";
+
+function verificationStatus(
+  token: string | null,
+  { isSuccess, isError }: { isSuccess: boolean; isError: boolean },
+) {
+  if (!token) return "missing";
+  if (isSuccess) return "success";
+  if (isError) return "failed";
+  return "verifying";
+}
 
 function VerifyEmail() {
   const [params] = useSearchParams();
   const token = params.get("token");
-  const [status, setStatus] = useState("verifying");
+  const [verifyEmail, verification] = useVerifyEmailMutation();
+  const status = verificationStatus(token, verification);
 
   useEffect(() => {
-    if (!token) {
-      setStatus("missing");
-      return;
-    }
-
-    let ignore = false;
-
-    const verify = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/verify-email`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-        if (!ignore) setStatus(res.ok ? "success" : "failed");
-      } catch {
-        if (!ignore) setStatus("failed");
-      }
-    };
-    const timeoutId = setTimeout(verify, 1000);
-
-    return () => {
-      ignore = true;
-      clearTimeout(timeoutId);
-    };
-  }, [token]);
+    if (!token) return;
+    const id = setTimeout(() => verifyEmail({ token }), 1000);
+    return () => clearTimeout(id);
+  }, [token, verifyEmail]);
 
   return (
     <div className="verify-email">

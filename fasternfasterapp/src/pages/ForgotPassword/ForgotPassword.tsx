@@ -1,20 +1,38 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { useForgotPassword } from "../../features/auth/hooks/useForgotPassword";
+import { useForgotPasswordMutation } from "../../features/auth/authApi";
+import { errorMessage } from "../../shared/api/errorMessage";
+import { useError } from "../../shared/components/BannerProvider";
+import { useCooldown } from "../../shared/hooks/useCooldown";
 import "./ForgotPassword.css";
+
+const COOLDOWN_SECONDS = 15;
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const forgot = useForgotPassword();
+  const [submitted, setSubmitted] = useState(false);
+  const { showError } = useError();
+  const { cooldown, start } = useCooldown(COOLDOWN_SECONDS);
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
   const emailInvalid =
     email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const canSubmit = email.trim() && !emailInvalid;
 
-  const handleSubmit = (e) => {
+  const send = async () => {
+    const result = await forgotPassword({ email });
+    if (result.error) {
+      showError(errorMessage(result.error));
+      return;
+    }
+    setSubmitted(true);
+    start();
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit || forgot.loading || forgot.cooldown > 0) return;
-    forgot.execute(email);
+    if (!canSubmit || isLoading || cooldown > 0) return;
+    send();
   };
 
   return (
@@ -25,7 +43,7 @@ function ForgotPassword() {
       </div>
 
       <div className="forgot-password__card">
-        {!forgot.submitted && (
+        {!submitted && (
           <form className="forgot-password__form" onSubmit={handleSubmit}>
             <label className="forgot-password__label">
               <span>email</span>
@@ -44,14 +62,14 @@ function ForgotPassword() {
             <button
               type="submit"
               className="forgot-password__submit"
-              disabled={!canSubmit || forgot.loading}
+              disabled={!canSubmit || isLoading}
             >
-              {forgot.loading ? "sending..." : "send reset link"}
+              {isLoading ? "sending..." : "send reset link"}
             </button>
           </form>
         )}
 
-        {forgot.submitted && (
+        {submitted && (
           <>
             <p className="forgot-password__body">
               if an account with <strong>{email}</strong> exists, a reset link
@@ -60,13 +78,13 @@ function ForgotPassword() {
             <button
               type="button"
               className="forgot-password__submit"
-              onClick={() => forgot.execute(email)}
-              disabled={forgot.loading || forgot.cooldown > 0}
+              onClick={send}
+              disabled={isLoading || cooldown > 0}
             >
-              {forgot.loading
+              {isLoading
                 ? "sending..."
-                : forgot.cooldown > 0
-                  ? `resend in ${forgot.cooldown}s`
+                : cooldown > 0
+                  ? `resend in ${cooldown}s`
                   : "resend link"}
             </button>
           </>

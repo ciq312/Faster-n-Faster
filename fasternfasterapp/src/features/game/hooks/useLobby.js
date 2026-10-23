@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { useAuth } from "../../auth/AuthContext";
+import { useAppSelector } from "../../../app/hooks";
+import { selectAuthStatus, selectIsSelf } from "../../auth/authSelectors";
 import { useConnection } from "../../connection/ConnectionProvider";
 
 export function useLobby() {
@@ -10,7 +11,8 @@ export function useLobby() {
   const [lobbyMaxPlayers, setLobbyMaxPlayers] = useState(null);
   const [lobbyInviteCode, setLobbyInviteCode] = useState(null);
   const [colors, setColors] = useState(null);
-  const { isSelf, status } = useAuth();
+  const isSelf = useAppSelector(selectIsSelf);
+  const status = useAppSelector(selectAuthStatus);
   const isAuthenticated = status === "authenticated";
 
   const onLobbyState = useEffectEvent((state) => {

@@ -1,11 +1,27 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useResendVerification } from "../../features/auth/hooks/useResendVerification";
+import { useResendVerificationMutation } from "../../features/auth/authApi";
+import { errorMessage } from "../../shared/api/errorMessage";
+import { useError } from "../../shared/components/BannerProvider";
+import { useCooldown } from "../../shared/hooks/useCooldown";
 import "./CheckYourEmail.css";
+
+const COOLDOWN_SECONDS = 15;
 
 function CheckYourEmail() {
   const [params] = useSearchParams();
   const email = params.get("email") ?? "";
-  const resend = useResendVerification();
+  const { showError } = useError();
+  const { cooldown, start } = useCooldown(COOLDOWN_SECONDS, {
+    startActive: true,
+  });
+  const [resendVerification, { isLoading }] = useResendVerificationMutation();
+
+  const handleResend = async () => {
+    if (!email || isLoading || cooldown > 0) return;
+    const result = await resendVerification({ email });
+    if (result.error) showError(errorMessage(result.error));
+    else start();
+  };
 
   return (
     <div className="check-email">
@@ -26,13 +42,13 @@ function CheckYourEmail() {
         <button
           type="button"
           className="check-email__resend"
-          onClick={() => resend.execute(email)}
-          disabled={!email || resend.loading || resend.cooldown > 0}
+          onClick={handleResend}
+          disabled={!email || isLoading || cooldown > 0}
         >
-          {resend.loading
+          {isLoading
             ? "sending..."
-            : resend.cooldown > 0
-              ? `resend in ${resend.cooldown}s`
+            : cooldown > 0
+              ? `resend in ${cooldown}s`
               : "resend link"}
         </button>
 
