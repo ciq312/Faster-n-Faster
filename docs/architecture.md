@@ -112,11 +112,12 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 
 ## Frontend
 
-- React 19 + Vite SPA with react-router, JavaScript moving to TypeScript (strict `tsconfig.json` with `allowJs`; `tsc` checks the `.ts`/`.tsx` files in CI, the remaining JS is unchecked). Code is grouped by feature: `features/{auth, connection, game, lobbies, leaderboard}`, routed screens in `pages/`, shared components and utilities in `shared/`.
+- React 19 + Vite SPA with react-router, JavaScript moving to TypeScript (strict `tsconfig.json` with `allowJs`; `tsc` checks the `.ts`/`.tsx` files in CI, the remaining JS is unchecked). Code is grouped by feature: `features/{auth, connection, game, lobbies, leaderboard, profile}`, routed screens in `pages/`, the Redux store in `app/`, shared components and utilities in `shared/`.
 - `ConnectionProvider` owns one SignalR connection for the app, with automatic reconnect.
-- REST calls go through `apiCall`, which handles the refresh-and-retry above.
+- REST goes through one RTK Query api (`shared/api/api.ts`) on `baseQueryWithReauth`, which does the refresh-and-retry above through the shared single-flight `refreshOnce`. Features add endpoints with `injectEndpoints`; login opts out of the refresh because its 401 means wrong credentials. Lobby and leaderboard calls still use `apiCall` on the same `refreshOnce` until they move.
+- The current user is the `me` query cache read through selectors (`features/auth/authSelectors.ts`), with no separate auth state. Login and guest invalidate it, a successful logout resets the api state.
 - `useTyping` applies the typing rules locally for instant feedback; the server re-checks them ([0001](decisions/0001-server-authoritative-race-progress.md)).
-- Planned: Redux Toolkit and RTK Query, and converting the remaining JavaScript to TypeScript ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
+- Planned: the remaining REST on RTK Query, the SignalR connection and game state in Redux, and converting the rest of the JavaScript to TypeScript ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
 
 ## Testing
 

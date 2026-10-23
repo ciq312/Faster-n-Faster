@@ -33,7 +33,7 @@ dotnet ef migrations add <Name> --project FasterNFaster.Api.Infrastructure \
 
 - `FasterNFaster.Api.{Domain,UseCases,Infrastructure,Presentation}`: the backend, Clean Architecture ([0003](docs/decisions/0003-clean-architecture-over-layered.md)); folders inside each follow feature areas.
 - `FasterNFaster.UnitTests`, `FasterNFaster.IntegrationTests`: xUnit, moving from hand-rolled fakes to Moq: new tests mock with Moq and assert with Shouldly, existing fakes and `Assert.*` stay until the test is touched; integration tests use Testcontainers and swap services for mocks in `ConfigureApp`.
-- `fasternfasterapp/`: React + Vite frontend, moving from JavaScript to TypeScript ([0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)): new code is `.ts`/`.tsx`, existing JS stays until converted (`allowJs`).
+- `fasternfasterapp/`: React + Vite frontend, moving from JavaScript to TypeScript ([0012](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)): new code is `.ts`/`.tsx`, and every existing `.js`/`.jsx` file a change touches is converted in that same change, unless typing it needs untouched JS modules that a planned ticket rewrites, in which case it converts with that ticket; untouched JS stays until then (`allowJs`).
 - `loadtest/`: SignalR load-test bot.
 
 ## Architecture docs
