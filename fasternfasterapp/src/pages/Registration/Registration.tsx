@@ -1,12 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../features/auth/AuthContext";
+import type { LoginUserRequest, RegisterUserRequest } from "../../../types";
+import { useAppSelector } from "../../app/hooks";
+import {
+  useGuestMutation,
+  useLoginMutation,
+  useRegisterMutation,
+} from "../../features/auth/authApi";
+import { selectAuthStatus } from "../../features/auth/authSelectors";
 import LoginForm from "../../features/auth/components/LoginForm";
 import SignupForm from "../../features/auth/components/SignupForm";
-import { useAnonymousLogin } from "../../features/auth/hooks/useAnonymousLogin";
 import { useGoogleLogin } from "../../features/auth/hooks/useGoogleLogin";
-import { useLogin } from "../../features/auth/hooks/useLogin";
-import { useRegister } from "../../features/auth/hooks/useRegister";
+import { unverifiedEmail } from "../../features/auth/unverifiedEmail";
+import { errorMessage } from "../../shared/api/errorMessage";
+import { useError } from "../../shared/components/BannerProvider";
+import { ROUTES } from "../../shared/utils/routes";
 import "./Registration.css";
 
 const TABS = [
@@ -15,10 +23,14 @@ const TABS = [
   { key: "signup", label: "Sign up" },
 ];
 
+const checkYourEmailPath = (email: string) =>
+  `/check-your-email?email=${encodeURIComponent(email)}`;
+
 function Registration() {
   const [activeTab, setActiveTab] = useState("anonymous");
   const [nick, setNick] = useState("");
-  const { status } = useAuth();
+  const status = useAppSelector(selectAuthStatus);
+  const { showError } = useError();
   const navigate = useNavigate();
   // Only redirect on the loading → authenticated transition (i.e. /me just resolved).
   // If Registration is mounted with status already "authenticated", the user got here
@@ -27,25 +39,44 @@ function Registration() {
 
   useEffect(() => {
     if (prevStatusRef.current === "loading" && status === "authenticated") {
-      navigate("/lobbies", { replace: true });
+      navigate(ROUTES.LOBBIES, { replace: true });
     }
     prevStatusRef.current = status;
   }, [status, navigate]);
 
-  const anonymousLogin = useAnonymousLogin();
-  const login = useLogin();
-  const register = useRegister();
+  const [guest, guestState] = useGuestMutation();
+  const [login, loginState] = useLoginMutation();
+  const [register, registerState] = useRegisterMutation();
   const googleLogin = useGoogleLogin();
 
   const loading =
-    anonymousLogin.loading ||
-    login.loading ||
-    register.loading ||
+    guestState.isLoading ||
+    loginState.isLoading ||
+    registerState.isLoading ||
     googleLogin.loading;
 
-  const handleAnonymousSubmit = (e) => {
+  const handleAnonymousSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    anonymousLogin.execute(nick);
+    const result = await guest({ nick });
+    if (result.error) showError(errorMessage(result.error));
+    else navigate(ROUTES.LOBBIES);
+  };
+
+  const handleLogin = async (credentials: LoginUserRequest) => {
+    const result = await login(credentials);
+    if (!result.error) {
+      navigate(ROUTES.LOBBIES);
+      return;
+    }
+    const email = unverifiedEmail(result.error);
+    if (email === undefined) showError(errorMessage(result.error));
+    else navigate(checkYourEmailPath(email));
+  };
+
+  const handleRegister = async (form: RegisterUserRequest) => {
+    const result = await register(form);
+    if (result.error) showError(errorMessage(result.error));
+    else navigate(checkYourEmailPath(form.email));
   };
 
   return (
@@ -95,10 +126,10 @@ function Registration() {
         )}
 
         {activeTab === "login" && (
-          <LoginForm onSubmit={login.execute} loading={loading} />
+          <LoginForm onSubmit={handleLogin} loading={loading} />
         )}
         {activeTab === "signup" && (
-          <SignupForm onSubmit={register.execute} loading={loading} />
+          <SignupForm onSubmit={handleRegister} loading={loading} />
         )}
 
         <div className="registration__divider">

@@ -1,8 +1,20 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../features/auth/AuthContext";
-import { useFetchProfile } from "../../features/auth/hooks/useFetchProfile";
-import { useLogout } from "../../features/auth/hooks/useLogout";
+import { useAppSelector } from "../../app/hooks";
+import { useLogoutMutation } from "../../features/auth/authApi";
+import {
+  selectCurrentUser,
+  selectIsGuest,
+} from "../../features/auth/authSelectors";
+import { useConnection } from "../../features/connection/ConnectionProvider";
+import { useGetMyProfileQuery } from "../../features/profile/profileApi";
+import { errorMessage } from "../../shared/api/errorMessage";
+import {
+  useBannerMessage,
+  useError,
+} from "../../shared/components/BannerProvider";
 import Navbar from "../../shared/components/Navbar/Navbar";
+import { ROUTES } from "../../shared/utils/routes";
 import "./Profile.css";
 
 function formatNumber(value, precision = 1) {
@@ -16,10 +28,29 @@ function formatPercent(value, precision = 2) {
 }
 
 function Profile() {
-  const { profileData, isPending } = useFetchProfile();
-  const { isGuest } = useAuth();
-  const logout = useLogout();
+  const { data, isLoading, isError } = useGetMyProfileQuery();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const isGuest = useAppSelector(selectIsGuest);
+  const profileData = isError ? { nick: currentUser?.userName } : data?.dto;
+  const { showMessage } = useBannerMessage();
+  const { showError } = useError();
+  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const { disconnect } = useConnection();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isGuest) showMessage("Register to see the results of your races");
+  }, [isGuest, showMessage]);
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.error) {
+      showError(errorMessage(result.error));
+      return;
+    }
+    disconnect();
+    navigate(ROUTES.HOME);
+  };
 
   return (
     <div className="profile-page">
@@ -27,7 +58,7 @@ function Profile() {
       {isGuest ? (
         <button
           className="profile-page__logout"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(ROUTES.HOME)}
           type="button"
         >
           register now
@@ -35,19 +66,19 @@ function Profile() {
       ) : (
         <button
           className="profile-page__logout"
-          onClick={logout.execute}
-          disabled={logout.loading}
+          onClick={handleLogout}
+          disabled={isLoggingOut}
           type="button"
         >
-          {logout.loading ? "logging out..." : "log out"}
+          {isLoggingOut ? "logging out..." : "log out"}
         </button>
       )}
       <div className="profile-page__content">
-        {isPending && (
+        {isLoading && (
           <p className="profile-page__loading">Loading profile...</p>
         )}
 
-        {!isPending && (
+        {!isLoading && (
           <>
             <header className="profile-page__header">
               <span className="profile-page__eyebrow">Profile</span>

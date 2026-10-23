@@ -1,12 +1,13 @@
 import { useLobby } from "./useLobby";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook } from "@testing-library/react";
-import { useAuth } from "../../auth/AuthContext";
+import { act, renderHook } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { setupStore } from "../../../app/store";
+import { signedOut } from "../../../test/handlers";
+import { server } from "../../../test/server";
+import { authApi } from "../../auth/authApi";
 import { useConnection } from "../../connection/ConnectionProvider";
 
-vi.mock("../../auth/AuthContext", () => ({
-  useAuth: vi.fn(),
-}));
 vi.mock("../../connection/ConnectionProvider", () => ({
   useConnection: vi.fn(),
 }));
@@ -25,8 +26,14 @@ const lobbyState = {
 describe("useLobby", () => {
   let invoke;
   let subscribe;
+  let store;
+
+  const wrapper = ({ children }) => (
+    <Provider store={store}>{children}</Provider>
+  );
 
   beforeEach(() => {
+    store = setupStore();
     const handlers = {};
     subscribe = vi.fn((name, cb) => {
       handlers[name] = cb;
@@ -42,19 +49,28 @@ describe("useLobby", () => {
     });
   });
 
-  function authAs(status) {
-    vi.mocked(useAuth).mockReturnValue({
-      status,
-      isSelf: (id) => status === "authenticated" && id === "p1",
-    });
+  async function authAs(status) {
+    if (status === "authenticated") {
+      await act(() =>
+        store.dispatch(
+          authApi.util.upsertQueryData("me", undefined, {
+            userId: "p1",
+            userName: "Player",
+            role: "User",
+          }),
+        ),
+      );
+    }
+    if (status === "not authenticated") {
+      server.use(...signedOut());
+      await act(() => store.dispatch(authApi.endpoints.me.initiate()));
+    }
   }
 
   it("renders the lobby when auth resolves after the hub connects", async () => {
-    authAs("loading");
-    const { result, rerender } = renderHook(() => useLobby());
+    const { result } = renderHook(() => useLobby(), { wrapper });
 
-    authAs("authenticated");
-    rerender();
+    await authAs("authenticated");
 
     await vi.waitFor(() =>
       expect(result.current.players).toEqual(lobbyState.players),
@@ -70,19 +86,16 @@ describe("useLobby", () => {
   });
 
   it("does not invoke RefreshLobby while auth is loading", () => {
-    authAs("loading");
-
-    renderHook(() => useLobby());
+    renderHook(() => useLobby(), { wrapper });
 
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it("invokes RefreshLobby once after auth resolves", () => {
-    authAs("loading");
-    const { rerender } = renderHook(() => useLobby());
+  it("invokes RefreshLobby once after auth resolves", async () => {
+    const { rerender } = renderHook(() => useLobby(), { wrapper });
     invoke.mockClear();
 
-    authAs("authenticated");
+    await authAs("authenticated");
     rerender();
     rerender();
 
@@ -90,10 +103,10 @@ describe("useLobby", () => {
     expect(invoke).toHaveBeenCalledWith("RefreshLobby");
   });
 
-  it("does not subscribe when not authenticated", () => {
-    authAs("not authenticated");
+  it("does not subscribe when not authenticated", async () => {
+    await authAs("not authenticated");
 
-    renderHook(() => useLobby());
+    renderHook(() => useLobby(), { wrapper });
 
     expect(subscribe).not.toHaveBeenCalled();
   });

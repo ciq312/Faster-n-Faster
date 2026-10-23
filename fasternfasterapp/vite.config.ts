@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    env: { VITE_API_URL: "http://localhost:3000" },
   },
   server: {
     port: 3000,

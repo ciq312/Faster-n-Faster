@@ -2,7 +2,7 @@
 
 React SPA for [Faster'n'Faster](https://faster-n-faster.com), a real-time multiplayer typing game. Talks to the ASP.NET Core backend over REST (auth, lobbies, leaderboards) and a single SignalR WebSocket connection (live races).
 
-**Stack:** React 19, Vite, react-router 7, `@microsoft/signalr`. JavaScript moving to TypeScript (strict `tsconfig.json`, `allowJs` until the rest is converted). Plain JSX, CSS per component — no UI framework.
+**Stack:** React 19, Vite, react-router 7, Redux Toolkit + RTK Query, `@microsoft/signalr`, Vitest + Testing Library + MSW. JavaScript moving to TypeScript (strict `tsconfig.json`, `allowJs` until the rest is converted). Plain JSX, CSS per component — no UI framework.
 
 ---
 
@@ -10,18 +10,22 @@ React SPA for [Faster'n'Faster](https://faster-n-faster.com), a real-time multip
 
 ```
 src/
+├── app/                 — Redux store and typed hooks
 ├── features/            — logic grouped by domain
-│   ├── auth/            — AuthContext (session state from /api/auth/me) + hooks for
-│   │                      login, signup, guest, Google OAuth, logout, password reset
+│   ├── auth/            — auth endpoints (login, signup, guest, logout, password reset,
+│   │                      email verification), selectors over the /api/auth/me cache
+│   │                      (current user, status), Google OAuth hook
 │   ├── connection/      — ConnectionProvider: owns the one SignalR connection,
 │   │                      exposes invoke/subscribe, handles reconnects and
 │   │                      server-pushed session events (kick, ban, second login)
 │   ├── game/            — the race itself: typing engine, race/lobby state hooks,
 │   │                      typing area, results, player cards
 │   ├── lobbies/         — lobby list, create/join
-│   └── leaderboard/     — leaderboard fetch (mockable via VITE_MOCK_LEADERBOARD)
+│   ├── leaderboard/     — leaderboard fetch (mockable via VITE_MOCK_LEADERBOARD)
+│   └── profile/         — own profile endpoint
 ├── pages/               — one folder per route
-└── shared/              — apiCall fetch wrapper, banner notifications, navbar
+└── shared/              — RTK Query api with refresh-on-401, apiCall fetch wrapper (until
+                           lobbies and leaderboard move), banner notifications, navbar
 ```
 
 Routing: auth pages are public; game routes are nested under `ConnectionLayout`, so the SignalR connection exists only while the user is inside the game area.
@@ -33,7 +37,7 @@ Routing: auth pages are public; game routes are nested under `ConnectionLayout`,
 - **Server-authoritative typing, optimistic rendering** — `useTyping` validates every keystroke locally against the passage (mistake tracking, max-overflow cap, no word skipping) for instant feedback, while the server independently verifies all progress. After a reconnect the hook resyncs its state from the server snapshot.
 - **Throttled progress updates** — keystroke progress is batched through `useThrottledCallback` before hitting the hub, so fast typists don't flood the connection; the final keystroke flushes immediately.
 - **One connection, many subscribers** — components subscribe to hub events through `ConnectionProvider`'s `subscribe()`, which returns an unsubscribe function for effect cleanup. No component owns the connection.
-- **Cookie auth end-to-end** — tokens live in HttpOnly cookies; `apiCall` sends credentials, and on a 401 it hits `/api/auth/refresh` once and retries. The SignalR negotiate request reuses the same cookies.
+- **Cookie auth end-to-end** — tokens live in HttpOnly cookies; RTK Query requests send credentials, and `baseQueryWithReauth` hits `/api/auth/refresh` once on a 401 (concurrent 401s share that refresh) and retries. The SignalR negotiate request reuses the same cookies.
 
 ---
 

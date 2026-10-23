@@ -1,6 +1,12 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { useResetPassword } from "../../features/auth/hooks/useResetPassword";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useResetPasswordMutation } from "../../features/auth/authApi";
+import { errorMessage } from "../../shared/api/errorMessage";
+import {
+  useBannerMessage,
+  useError,
+} from "../../shared/components/BannerProvider";
+import { ROUTES } from "../../shared/utils/routes";
 import "./ResetPassword.css";
 
 function ResetPassword() {
@@ -9,17 +15,26 @@ function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const reset = useResetPassword();
+  const { showError } = useError();
+  const { showMessage } = useBannerMessage();
+  const navigate = useNavigate();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const passwordMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
   const canSubmit =
     token && password.trim() && confirmPassword.trim() && !passwordMismatch;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit || reset.loading) return;
-    await reset.execute({ token, newPassword: password });
+    if (!canSubmit || isLoading) return;
+    const result = await resetPassword({ token, newPassword: password });
+    if (result.error) {
+      showError(errorMessage(result.error));
+      return;
+    }
+    showMessage("password updated — please log in");
+    navigate(ROUTES.HOME);
   };
 
   if (!token) {
@@ -78,9 +93,9 @@ function ResetPassword() {
           <button
             type="submit"
             className="reset-password__submit"
-            disabled={!canSubmit || reset.loading}
+            disabled={!canSubmit || isLoading}
           >
-            {reset.loading ? "saving..." : "update password"}
+            {isLoading ? "saving..." : "update password"}
           </button>
         </form>
 

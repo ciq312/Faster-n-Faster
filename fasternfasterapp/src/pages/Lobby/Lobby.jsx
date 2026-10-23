@@ -1,5 +1,9 @@
 import { useCallback } from "react";
-import { useAuth } from "../../features/auth/AuthContext";
+import { useAppSelector } from "../../app/hooks";
+import {
+  selectCurrentUser,
+  selectIsSelf,
+} from "../../features/auth/authSelectors";
 import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
 import RaceResults from "../../features/game/components/RaceResults";
 import TypingArea from "../../features/game/components/TypingArea/TypingArea";
@@ -11,7 +15,8 @@ import Navbar from "../../shared/components/Navbar/Navbar";
 import "./Lobby.css";
 
 function Lobby() {
-  const { isSelf, userId: selfId } = useAuth();
+  const isSelf = useAppSelector(selectIsSelf);
+  const selfId = useAppSelector(selectCurrentUser)?.userId;
 
   const {
     isHost,

@@ -1,7 +1,7 @@
-import { refreshOnce } from "./refreshOnce.js";
+import { refreshOnce } from "./refreshOnce";
 import { API_BASE } from "../../config";
 
-export async function apiCall(url, options = {}) {
+export async function apiCall(url: string, options: RequestInit = {}) {
   const request = () =>
     fetch(`${API_BASE}${url}`, {
       credentials: "include",
