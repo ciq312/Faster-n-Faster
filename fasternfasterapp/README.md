@@ -20,12 +20,11 @@ src/
 │   │                      server-pushed session events (kick, ban, second login)
 │   ├── game/            — the race itself: typing engine, race/lobby state hooks,
 │   │                      typing area, results, player cards
-│   ├── lobbies/         — lobby list, create/join
-│   ├── leaderboard/     — leaderboard fetch (mockable via VITE_MOCK_LEADERBOARD)
+│   ├── lobbies/         — lobby endpoints (list, invite-code lookup, create), hub join
+│   ├── leaderboard/     — leaderboard page endpoint
 │   └── profile/         — own profile endpoint
 ├── pages/               — one folder per route
-└── shared/              — RTK Query api with refresh-on-401, apiCall fetch wrapper (until
-                           lobbies and leaderboard move), banner notifications, navbar
+└── shared/              — RTK Query api with refresh-on-401, banner notifications, navbar
 ```
 
 Routing: auth pages are public; game routes are nested under `ConnectionLayout`, so the SignalR connection exists only while the user is inside the game area.
@@ -52,7 +51,7 @@ npm run dev        # serves on :3000, proxies /api and /gameHub to :8080
 
 The Vite dev proxy keeps everything same-origin, so auth cookies work in dev without CORS setup.
 
-`.env` keys: `VITE_API_URL` (empty = same origin), `VITE_MOCK_LEADERBOARD` (serve mock leaderboard data).
+`.env` keys: `VITE_API_URL` (empty = same origin).
 
 ---
 
