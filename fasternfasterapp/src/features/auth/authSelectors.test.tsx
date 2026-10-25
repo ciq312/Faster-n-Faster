@@ -1,12 +1,11 @@
 import { renderHook } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import type { ReactNode } from "react";
-import { Provider } from "react-redux";
 import { describe, expect, it, vi } from "vitest";
 import { setupStore } from "../../app/store";
 import { API_BASE } from "../../config";
 import { signedOut } from "../../test/handlers";
 import { server } from "../../test/server";
+import { wrapperFor } from "../../test/store";
 import { authApi, useMeQuery } from "./authApi";
 import {
   selectAuthStatus,
@@ -21,12 +20,6 @@ function meRespondsWith(user: typeof player) {
   server.use(
     http.get(`${API_BASE}/api/auth/me`, () => HttpResponse.json(user)),
   );
-}
-
-function wrapperFor(store: ReturnType<typeof setupStore>) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return <Provider store={store}>{children}</Provider>;
-  };
 }
 
 async function storeWithMe(user = player) {
