@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useConnection } from "../../connection/ConnectionProvider";
+import { useCallback, useRef, useState } from "react";
+import { useHubEvent } from "../../connection/hooks/useHubEvent";
+import { hubEvents } from "../../connection/hubEvents";
 
 export function useRace() {
-  const { subscribe, isConnected } = useConnection();
   const [isRacing, setIsRacing] = useState(false);
   const [isRaceStarting, setIsRaceStarting] = useState(false);
   const [raceSettings, setRaceSettings] = useState(null);
@@ -12,59 +12,53 @@ export function useRace() {
   const [countdown, setCountdown] = useState(null);
   const [isWithdrawn, setIsWithdrawn] = useState(false);
 
-  useEffect(() => {
-    const cleanups = [
-      subscribe("RaceEnded", (data) => {
-        setRaceResults(data.results);
-        setRaceParticipants([]);
-        setIsRacing(false);
-      }),
+  useHubEvent(hubEvents.raceEnded, (data) => {
+    setRaceResults(data.results);
+    setRaceParticipants([]);
+    setIsRacing(false);
+  });
 
-      subscribe("LobbyState", (state) => {
-        setRaceSettings(state.settings);
-        setIsRaceStarting(state.isRaceStarting);
-        setIsRacing(state.isRaceStarted);
-      }),
+  useHubEvent(hubEvents.lobbyState, (state) => {
+    setRaceSettings(state.settings);
+    setIsRaceStarting(state.isRaceStarting);
+    setIsRacing(state.isRaceStarted);
+  });
 
-      subscribe("RaceStarting", ({ countdownSeconds }) => {
-        countdownTimersRef.current.forEach(clearTimeout);
-        countdownTimersRef.current = [];
+  useHubEvent(hubEvents.raceStarting, ({ countdownSeconds }) => {
+    countdownTimersRef.current.forEach(clearTimeout);
+    countdownTimersRef.current = [];
 
-        for (let i = countdownSeconds; i > 0; i--) {
-          countdownTimersRef.current.push(
-            setTimeout(() => setCountdown(i), (countdownSeconds - i) * 1000),
-          );
-        }
+    for (let i = countdownSeconds; i > 0; i--) {
+      countdownTimersRef.current.push(
+        setTimeout(() => setCountdown(i), (countdownSeconds - i) * 1000),
+      );
+    }
 
-        countdownTimersRef.current.push(
-          setTimeout(() => setCountdown("GO"), countdownSeconds * 1000),
-        );
+    countdownTimersRef.current.push(
+      setTimeout(() => setCountdown("GO"), countdownSeconds * 1000),
+    );
 
-        setIsRaceStarting(true);
-        setRaceResults(null);
-      }),
+    setIsRaceStarting(true);
+    setRaceResults(null);
+  });
 
-      subscribe("RaceStarted", () => {
-        countdownTimersRef.current.forEach(clearTimeout);
-        countdownTimersRef.current = [];
-        setIsRaceStarting(false);
-        setCountdown(null);
-        setIsRacing(true);
-        setIsWithdrawn(false);
-      }),
+  useHubEvent(hubEvents.raceStarted, () => {
+    countdownTimersRef.current.forEach(clearTimeout);
+    countdownTimersRef.current = [];
+    setIsRaceStarting(false);
+    setCountdown(null);
+    setIsRacing(true);
+    setIsWithdrawn(false);
+  });
 
-      subscribe("RaceState", (state) => {
-        setRaceParticipants(state);
-      }),
+  useHubEvent(hubEvents.raceState, (state) => {
+    setRaceParticipants(state);
+  });
 
-      // Withdrawal only ends this race, not lobby membership.
-      subscribe("RaceWithdrawn", () => {
-        setIsWithdrawn(true);
-      }),
-    ];
-
-    return () => cleanups.map((fn) => fn());
-  }, [isConnected, subscribe]);
+  // Withdrawal only ends this race, not lobby membership.
+  useHubEvent(hubEvents.raceWithdrawn, () => {
+    setIsWithdrawn(true);
+  });
 
   const dismissResults = useCallback(() => {
     setRaceResults(null);

@@ -1,33 +1,43 @@
-import { useCallback } from "react";
-import { useAppSelector } from "../../app/hooks";
+import { useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   selectCurrentUser,
   selectIsSelf,
 } from "../../features/auth/authSelectors";
+import {
+  changeColor,
+  kickPlayer,
+  leaveLobby,
+  transferHost,
+} from "../../features/connection/hubThunks";
 import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
 import RaceResults from "../../features/game/components/RaceResults";
 import TypingArea from "../../features/game/components/TypingArea/TypingArea";
-import { useLobby } from "../../features/game/hooks/useLobby";
-import { useLobbyActions } from "../../features/game/hooks/useLobbyActions";
 import { useRace } from "../../features/game/hooks/useRace";
 import { useRaceActions } from "../../features/game/hooks/useRaceActions";
+import { useLobbyRefresh } from "../../features/lobbies/hooks/useLobbyRefresh";
+import {
+  selectIsHost,
+  selectJoinedLobby,
+  selectPlayers,
+  selectWasKicked,
+} from "../../features/lobbies/lobbySelectors";
 import Navbar from "../../shared/components/Navbar/Navbar";
+import { ROUTES } from "../../shared/utils/routes";
 import "./Lobby.css";
 
 function Lobby() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const isSelf = useAppSelector(selectIsSelf);
   const selfId = useAppSelector(selectCurrentUser)?.userId;
 
-  const {
-    isHost,
-    players,
-    lobbyName,
-    lobbyMaxPlayers,
-    lobbyInviteCode,
-    colors,
-  } = useLobby();
-  const { changeColor, kickPlayer, transferHost, leaveLobby } =
-    useLobbyActions();
+  const joinedLobby = useAppSelector(selectJoinedLobby);
+  const players = useAppSelector(selectPlayers);
+  const isHost = useAppSelector(selectIsHost);
+  const wasKicked = useAppSelector(selectWasKicked);
+  useLobbyRefresh();
   const {
     dismissResults,
     isRacing,
@@ -43,6 +53,28 @@ function Lobby() {
   const maxPerSide = 10;
   const half = Math.min(players.length, maxPerSide);
 
+  useEffect(() => {
+    if (wasKicked) navigate(ROUTES.LOBBIES);
+  }, [wasKicked, navigate]);
+
+  const handleLeave = async () => {
+    const result = await dispatch(leaveLobby());
+    if (leaveLobby.fulfilled.match(result)) navigate(ROUTES.LOBBIES);
+  };
+
+  const onChangeColor = useCallback(
+    (color) => dispatch(changeColor(color)),
+    [dispatch],
+  );
+  const onKick = useCallback(
+    (targetId) => dispatch(kickPlayer(targetId)),
+    [dispatch],
+  );
+  const onTransferHost = useCallback(
+    (targetId) => dispatch(transferHost(targetId)),
+    [dispatch],
+  );
+
   const handleProgress = useCallback(
     (update) => {
       sendProgress(update);
@@ -57,13 +89,13 @@ function Lobby() {
       <div className="lobby-body">
         <header className="lobby-topbar">
           <div className="lobby-topbar__info">
-            <h2 className="lobby-topbar__name">{lobbyName}</h2>
+            <h2 className="lobby-topbar__name">{joinedLobby?.lobbyName}</h2>
             <span className="lobby-topbar__count">
-              {players.length}/{lobbyMaxPlayers} players
+              {players.length}/{joinedLobby?.maxPlayers} players
             </span>
-            {lobbyInviteCode && (
+            {joinedLobby?.inviteCode && (
               <span className="lobby-topbar__invite-code">
-                code: {lobbyInviteCode}
+                code: {joinedLobby.inviteCode}
               </span>
             )}
             {raceSettings && (
@@ -72,7 +104,7 @@ function Lobby() {
               </span>
             )}
           </div>
-          <button className="lobby-topbar__leave" onClick={leaveLobby}>
+          <button className="lobby-topbar__leave" onClick={handleLeave}>
             leave lobby
           </button>
         </header>
@@ -83,11 +115,11 @@ function Lobby() {
               <div key={p.id} className="lobby-player-row">
                 <LobbyPlayerCard
                   player={p}
-                  colors={colors}
-                  changeColor={changeColor}
+                  colors={joinedLobby?.colors}
+                  changeColor={onChangeColor}
                   isSelf={isSelf(p.id)}
-                  kickPlayer={kickPlayer}
-                  transferHost={transferHost}
+                  kickPlayer={onKick}
+                  transferHost={onTransferHost}
                   isHost={isHost}
                 />
                 {raceParticipants.find((rp) => rp.playerId === p.id) && (

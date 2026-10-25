@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import type { GetUserProfileResponse } from "../../../types";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useLogoutMutation } from "../../features/auth/authApi";
 import {
   selectCurrentUser,
   selectIsGuest,
 } from "../../features/auth/authSelectors";
-import { useConnection } from "../../features/connection/ConnectionProvider";
 import { useGetMyProfileQuery } from "../../features/profile/profileApi";
 import { errorMessage } from "../../shared/api/errorMessage";
 import { showError, showMessage } from "../../shared/banner/bannerSlice";
@@ -14,12 +14,12 @@ import Navbar from "../../shared/components/Navbar/Navbar";
 import { ROUTES } from "../../shared/utils/routes";
 import "./Profile.css";
 
-function formatNumber(value, precision = 1) {
+function formatNumber(value: number | undefined, precision = 1) {
   if (typeof value !== "number") return "—";
   return Number.isInteger(value) ? value : value.toFixed(precision);
 }
 
-function formatPercent(value, precision = 2) {
+function formatPercent(value: number | undefined, precision = 2) {
   if (typeof value !== "number") return "—";
   return value.toFixed(precision);
 }
@@ -29,9 +29,10 @@ function Profile() {
   const { data, isLoading, isError } = useGetMyProfileQuery();
   const currentUser = useAppSelector(selectCurrentUser);
   const isGuest = useAppSelector(selectIsGuest);
-  const profileData = isError ? { nick: currentUser?.userName } : data;
+  const profileData: Partial<GetUserProfileResponse> | undefined = isError
+    ? { nick: currentUser?.userName }
+    : data;
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
-  const { disconnect } = useConnection();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +47,6 @@ function Profile() {
       dispatch(showError(errorMessage(result.error)));
       return;
     }
-    disconnect();
     navigate(ROUTES.HOME);
   };
 

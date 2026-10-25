@@ -1,18 +1,12 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { API_BASE } from "../../config";
-import { LobbyProvider } from "../../features/game/hooks/LobbyProvider";
+import { fakeGameHub, type FakeGameHub } from "../../test/fakeGameHub";
 import { renderPage } from "../../test/renderPage";
 import { server } from "../../test/server";
 import Lobbies from "./Lobbies";
-
-const connection = vi.hoisted(() => ({ invoke: vi.fn() }));
-
-vi.mock("../../features/connection/ConnectionProvider", () => ({
-  useConnection: () => connection,
-}));
 
 function lobby(id: string, name: string, isPrivate = false) {
   return {
@@ -26,25 +20,22 @@ function lobby(id: string, name: string, isPrivate = false) {
 }
 
 function renderLobbies() {
-  renderPage(
-    <LobbyProvider>
-      <Lobbies />
-    </LobbyProvider>,
-    { route: "/lobbies", probes: ["/lobby/:lobbyId"] },
-  );
+  const hub = fakeGameHub();
+  renderPage(<Lobbies />, {
+    route: "/lobbies",
+    probes: ["/lobby/:lobbyId"],
+    hub,
+  });
+  return hub;
 }
 
-function keepPageAfterCreate() {
-  connection.invoke.mockRejectedValue(
+function keepPageAfterCreate(hub: FakeGameHub) {
+  hub.server.connectToLobby.mockRejectedValue(
     new Error("HubException: You are already in a lobby"),
   );
 }
 
 describe("Lobbies", () => {
-  beforeEach(() => {
-    connection.invoke.mockReset();
-  });
-
   it("lists the public lobbies from the server", async () => {
     server.use(
       http.get(`${API_BASE}/api/lobbies`, () =>
@@ -78,9 +69,9 @@ describe("Lobbies", () => {
         );
       }),
     );
-    keepPageAfterCreate();
     const user = userEvent.setup();
-    renderLobbies();
+    const hub = renderLobbies();
+    keepPageAfterCreate(hub);
 
     await user.click(
       await screen.findByRole("button", { name: "create lobby" }),
@@ -101,14 +92,14 @@ describe("Lobbies", () => {
         HttpResponse.json({ lobbies: [] }),
       ),
     );
-    renderLobbies();
+    const hub = renderLobbies();
 
     await userEvent
       .setup()
       .type(screen.getByPlaceholderText("enter code"), "NOPE{enter}");
 
     expect(await screen.findByText("Invalid invite code")).toBeTruthy();
-    expect(connection.invoke).not.toHaveBeenCalled();
+    expect(hub.server.connectToLobby).not.toHaveBeenCalled();
   });
 
   it("shows the server reason and keeps the modal open when creating fails", async () => {
@@ -126,7 +117,7 @@ describe("Lobbies", () => {
       ),
     );
     const user = userEvent.setup();
-    renderLobbies();
+    const hub = renderLobbies();
 
     await user.click(
       await screen.findByRole("button", { name: "create lobby" }),
@@ -136,7 +127,7 @@ describe("Lobbies", () => {
 
     expect(await screen.findByText("Too many lobbies")).toBeTruthy();
     expect(screen.getByPlaceholderText("name your lobby")).toBeTruthy();
-    expect(connection.invoke).not.toHaveBeenCalled();
+    expect(hub.server.connectToLobby).not.toHaveBeenCalled();
     expect(listRequests).toBe(1);
   });
 
@@ -151,14 +142,14 @@ describe("Lobbies", () => {
           : HttpResponse.json({ lobbies: [] }),
       ),
     );
-    renderLobbies();
+    const hub = renderLobbies();
 
     await userEvent
       .setup()
       .type(screen.getByPlaceholderText("enter code"), "CODE{enter}");
 
     expect(await screen.findByText("Slow down")).toBeTruthy();
-    expect(connection.invoke).not.toHaveBeenCalled();
+    expect(hub.server.connectToLobby).not.toHaveBeenCalled();
   });
 
   it("joins the lobby found by invite code", async () => {
@@ -171,17 +162,32 @@ describe("Lobbies", () => {
         }),
       ),
     );
-    renderLobbies();
+    const hub = renderLobbies();
 
     await userEvent
       .setup()
       .type(screen.getByPlaceholderText("enter code"), "CODE{enter}");
 
     expect(await screen.findByText("/lobby/l1")).toBeTruthy();
-    expect(connection.invoke).toHaveBeenCalledWith(
-      "ConnectToLobby",
-      "l1",
-      "CODE",
+    expect(hub.server.connectToLobby).toHaveBeenCalledWith("l1", "CODE");
+  });
+
+  it("joins a listed lobby without an invite code", async () => {
+    server.use(
+      http.get(`${API_BASE}/api/lobbies`, () =>
+        HttpResponse.json({ lobbies: [lobby("l1", "Open room")] }),
+      ),
     );
+    const hub = renderLobbies();
+
+    const list = await screen.findByRole("region", { name: "Active lobbies" });
+    await screen.findByText("Open room");
+
+    await userEvent
+      .setup()
+      .click(within(list).getByRole("button", { name: "join lobby" }));
+
+    expect(await screen.findByText("/lobby/l1")).toBeTruthy();
+    expect(hub.server.connectToLobby).toHaveBeenCalledWith("l1", null);
   });
 });

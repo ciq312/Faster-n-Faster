@@ -1,27 +1,23 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { API_BASE } from "../../config";
-import { LobbyProvider } from "../../features/game/hooks/LobbyProvider";
+import { fakeGameHub } from "../../test/fakeGameHub";
 import { CurrentUser, renderPage } from "../../test/renderPage";
 import { server } from "../../test/server";
 import Profile from "./Profile";
 
-const connection = vi.hoisted(() => ({ disconnect: vi.fn() }));
-
-vi.mock("../../features/connection/ConnectionProvider", () => ({
-  useConnection: () => connection,
-}));
-
 function renderProfile() {
+  const hub = fakeGameHub();
   renderPage(
-    <LobbyProvider>
+    <>
       <CurrentUser />
       <Profile />
-    </LobbyProvider>,
-    { route: "/profile/me", probes: ["/"] },
+    </>,
+    { route: "/profile/me", probes: ["/"], hub },
   );
+  return hub;
 }
 
 async function logOut() {
@@ -33,26 +29,23 @@ async function logOut() {
       HttpResponse.json({ nick: "Player" }),
     ),
   );
-  renderProfile();
+  const hub = renderProfile();
   await userEvent
     .setup()
     .click(await screen.findByRole("button", { name: "log out" }));
+  return hub;
 }
 
 describe("Profile", () => {
-  beforeEach(() => {
-    connection.disconnect.mockClear();
-  });
-
   it("disconnects the hub and returns home after logout", async () => {
     server.use(
       http.post(`${API_BASE}/api/auth/logout`, () => HttpResponse.json({})),
     );
 
-    await logOut();
+    const hub = await logOut();
 
     expect(await screen.findByText("/")).toBeTruthy();
-    expect(connection.disconnect).toHaveBeenCalledTimes(1);
+    expect(hub.stop).toHaveBeenCalledTimes(1);
   });
 
   it("shows the server reason and stays on the profile when logout fails", async () => {
@@ -65,11 +58,11 @@ describe("Profile", () => {
       ),
     );
 
-    await logOut();
+    const hub = await logOut();
 
     expect(await screen.findByText("Could not log out")).toBeTruthy();
     expect(await screen.findByRole("button", { name: "log out" })).toBeTruthy();
-    expect(connection.disconnect).not.toHaveBeenCalled();
+    expect(hub.stop).not.toHaveBeenCalled();
   });
 
   it("shows the player's statistics", async () => {

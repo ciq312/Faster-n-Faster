@@ -1,50 +1,32 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useAppDispatch } from "../../../app/hooks";
-import { showMessage } from "../../../shared/banner/bannerSlice";
-import { useConnection } from "../../connection/ConnectionProvider";
+import {
+  refreshPassage as refreshPassageThunk,
+  startRace as startRaceThunk,
+  updateRaceState,
+} from "../../connection/hubThunks";
 import { useThrottledCallback } from "./useThrottledCallback";
 
 const PROGRESS_THROTTLE_MS = 100;
 
 export function useRaceActions() {
   const dispatch = useAppDispatch();
-  const { invoke, invokeOrShowError, subscribe, isConnected } = useConnection();
-
-  useEffect(() => {
-    const cleanups = [
-      subscribe("PlayerFinished", (data) => {
-        dispatch(
-          showMessage(
-            `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
-          ),
-        );
-      }),
-      subscribe("RaceWithdrawn", () => {
-        dispatch(
-          showMessage("You were removed from this race for suspicious input"),
-        );
-      }),
-    ];
-    return () => cleanups.forEach((fn) => fn());
-  }, [isConnected, subscribe, dispatch]);
 
   const rawSendProgress = useCallback(
-    async ({ index, mistakes, typed }) => {
-      await invoke("UpdateRaceState", index, mistakes, typed);
-    },
-    [invoke],
+    ({ index, mistakes, typed }) =>
+      dispatch(updateRaceState({ index, mistakes, typed })),
+    [dispatch],
   );
 
   const { throttled: sendProgress, flush: flushProgress } =
     useThrottledCallback(rawSendProgress, PROGRESS_THROTTLE_MS);
 
-  const startRace = useCallback(async () => {
-    await invokeOrShowError("StartRace");
-  }, [invokeOrShowError]);
+  const startRace = useCallback(() => dispatch(startRaceThunk()), [dispatch]);
 
-  const refreshPassage = useCallback(async () => {
-    await invokeOrShowError("RefreshPassage");
-  }, [invokeOrShowError]);
+  const refreshPassage = useCallback(
+    () => dispatch(refreshPassageThunk()),
+    [dispatch],
+  );
 
   return {
     startRace,

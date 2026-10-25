@@ -1,7 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useConnection } from "../../connection/ConnectionProvider";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { useAppSelector } from "../../../app/hooks";
+import { selectIsConnected } from "../../connection/connectionSlice";
 
 const MAX_OVERFLOW = 6;
+
+export type TypingProgress = {
+  index: number;
+  mistakes: number;
+  typed: string;
+  final: boolean;
+};
+
+type TypingOptions = {
+  passage: string;
+  disabled: boolean;
+  onProgress?: (progress: TypingProgress) => void;
+  selfTyped?: string;
+  selfCorrectIndex?: number;
+  selfMistakes?: number;
+};
 
 export function useTyping({
   passage,
@@ -10,18 +33,24 @@ export function useTyping({
   selfTyped,
   selfCorrectIndex,
   selfMistakes,
-}) {
+}: TypingOptions): {
+  typed: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  handleTyping: (e: { target: { value: string } }) => void;
+  focusInput: () => void;
+  nextSepIndex: number;
+} {
   const [typed, setTyped] = useState("");
   const mistakesRef = useRef(0);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const lastCorrectIndexRef = useRef(-1);
   const nextSep = useRef(-1);
   const needResyncRef = useRef(true);
   const hasSyncedRef = useRef(false);
-  const { isConnected } = useConnection();
+  const isConnected = useAppSelector(selectIsConnected);
 
   const sendProgress = useCallback(
-    (value) => {
+    (value: string) => {
       // Sending before the first RaceState would overwrite the server's progress with the reloaded, empty text.
       if (needResyncRef.current) return;
       onProgress?.({
@@ -64,7 +93,7 @@ export function useTyping({
     sendProgress,
   ]);
   const handleTyping = useCallback(
-    (e) => {
+    (e: { target: { value: string } }) => {
       if (disabled) return;
       const value = e.target.value;
 
@@ -93,7 +122,7 @@ export function useTyping({
             lastCorrectIndexRef.current = lastCorrectIndexRef.current + 1;
             const isLastChar =
               lastCorrectIndexRef.current === passage.length - 1;
-            if (isLastChar) inputRef.current.blur();
+            if (isLastChar) inputRef.current?.blur();
           }
         } else {
           setTyped(value);
