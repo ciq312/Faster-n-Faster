@@ -31,7 +31,7 @@ function Profile() {
   const { data, isLoading, isError } = useGetMyProfileQuery();
   const currentUser = useAppSelector(selectCurrentUser);
   const isGuest = useAppSelector(selectIsGuest);
-  const profileData = isError ? { nick: currentUser?.userName } : data?.dto;
+  const profileData = isError ? { nick: currentUser?.userName } : data;
   const { showMessage } = useBannerMessage();
   const { showError } = useError();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();

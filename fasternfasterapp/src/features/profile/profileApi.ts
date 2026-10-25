@@ -1,9 +1,9 @@
-import type { GetUserProfileResult } from "../../../types";
+import type { GetUserProfileResponse } from "../../../types";
 import { api } from "../../shared/api/api";
 
 export const profileApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getMyProfile: builder.query<GetUserProfileResult, void>({
+    getMyProfile: builder.query<GetUserProfileResponse, void>({
       query: () => "/api/users/me/profile",
       providesTags: ["Me"],
     }),

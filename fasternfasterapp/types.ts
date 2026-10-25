@@ -15,11 +15,7 @@ export interface ApiErrorResponse {
     errors?: { [key: string]: string[]; } | undefined;
 }
 
-export interface GetUserProfileResult {
-    dto?: UserStatisticsDTO;
-}
-
-export interface UserStatisticsDTO {
+export interface GetUserProfileResponse {
     nick?: string;
     wins?: number;
     racesTyped?: number;

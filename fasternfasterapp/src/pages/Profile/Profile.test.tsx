@@ -14,15 +14,7 @@ vi.mock("../../features/connection/ConnectionProvider", () => ({
   useConnection: () => connection,
 }));
 
-async function logOut() {
-  server.use(
-    http.get(`${API_BASE}/api/auth/me`, () =>
-      HttpResponse.json({ userId: "p1", userName: "Player", role: "User" }),
-    ),
-    http.get(`${API_BASE}/api/users/me/profile`, () =>
-      HttpResponse.json({ dto: { nick: "Player" } }),
-    ),
-  );
+function renderProfile() {
   renderPage(
     <LobbyProvider>
       <CurrentUser />
@@ -30,6 +22,18 @@ async function logOut() {
     </LobbyProvider>,
     { route: "/profile/me", probes: ["/"] },
   );
+}
+
+async function logOut() {
+  server.use(
+    http.get(`${API_BASE}/api/auth/me`, () =>
+      HttpResponse.json({ userId: "p1", userName: "Player", role: "User" }),
+    ),
+    http.get(`${API_BASE}/api/users/me/profile`, () =>
+      HttpResponse.json({ nick: "Player" }),
+    ),
+  );
+  renderProfile();
   await userEvent
     .setup()
     .click(await screen.findByRole("button", { name: "log out" }));
@@ -66,5 +70,30 @@ describe("Profile", () => {
     expect(await screen.findByText("Could not log out")).toBeTruthy();
     expect(await screen.findByRole("button", { name: "log out" })).toBeTruthy();
     expect(connection.disconnect).not.toHaveBeenCalled();
+  });
+
+  it("shows the player's statistics", async () => {
+    server.use(
+      http.get(`${API_BASE}/api/auth/me`, () =>
+        HttpResponse.json({ userId: "p1", userName: "Player", role: "User" }),
+      ),
+      http.get(`${API_BASE}/api/users/me/profile`, () =>
+        HttpResponse.json({
+          nick: "Speedy",
+          wins: 3,
+          racesTyped: 7,
+          bestWPM: 88,
+          avgWPM: 70,
+          bestAccuracy: 99,
+          avgAccuracy: 95,
+          wordsTyped: 400,
+        }),
+      ),
+    );
+
+    renderProfile();
+
+    expect(await screen.findByRole("heading", { name: "Speedy" })).toBeTruthy();
+    expect(screen.getByText("88")).toBeTruthy();
   });
 });

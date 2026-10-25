@@ -29,19 +29,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetUserProfileResult"
+                  "$ref": "#/components/schemas/GetUserProfileResponse"
                 },
                 "example": {
-                  "dto": {
-                    "nick": "player1",
-                    "wins": 14,
-                    "racesTyped": 42,
-                    "bestWPM": 112.4,
-                    "avgWPM": 95.7,
-                    "bestAccuracy": 98.1,
-                    "avgAccuracy": 96.3,
-                    "wordsTyped": 5210
-                  }
+                  "nick": "player1",
+                  "wins": 14,
+                  "racesTyped": 42,
+                  "bestWPM": 112.4,
+                  "avgWPM": 95.7,
+                  "bestAccuracy": 98.1,
+                  "avgAccuracy": 96.3,
+                  "wordsTyped": 5210
                 }
               }
             }
@@ -1046,16 +1044,7 @@
           }
         }
       },
-      "GetUserProfileResult": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "dto": {
-            "$ref": "#/components/schemas/UserStatisticsDTO"
-          }
-        }
-      },
-      "UserStatisticsDTO": {
+      "GetUserProfileResponse": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
