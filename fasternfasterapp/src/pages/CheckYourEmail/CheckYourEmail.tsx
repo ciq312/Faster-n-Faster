@@ -1,16 +1,17 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { useAppDispatch } from "../../app/hooks";
 import { useResendVerificationMutation } from "../../features/auth/authApi";
 import { errorMessage } from "../../shared/api/errorMessage";
-import { useError } from "../../shared/components/BannerProvider";
+import { showError } from "../../shared/banner/bannerSlice";
 import { useCooldown } from "../../shared/hooks/useCooldown";
 import "./CheckYourEmail.css";
 
 const COOLDOWN_SECONDS = 15;
 
 function CheckYourEmail() {
+  const dispatch = useAppDispatch();
   const [params] = useSearchParams();
   const email = params.get("email") ?? "";
-  const { showError } = useError();
   const { cooldown, start } = useCooldown(COOLDOWN_SECONDS, {
     startActive: true,
   });
@@ -19,7 +20,7 @@ function CheckYourEmail() {
   const handleResend = async () => {
     if (!email || isLoading || cooldown > 0) return;
     const result = await resendVerification({ email });
-    if (result.error) showError(errorMessage(result.error));
+    if (result.error) dispatch(showError(errorMessage(result.error)));
     else start();
   };
 

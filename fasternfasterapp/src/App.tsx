@@ -17,30 +17,29 @@ import Profile from "./pages/Profile/Profile";
 import Registration from "./pages/Registration/Registration";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
-import BannerProvider from "./shared/components/BannerProvider";
+import BannerHost from "./shared/components/Banner/BannerHost";
 
 function App() {
   useMeQuery();
 
   return (
     <Router>
-      <BannerProvider>
-        <Routes>
-          <Route path="/" element={<Registration />} />
-          <Route path="/auth/google/callback" element={<AuthCallback />} />
-          <Route element={<ConnectionLayout />}>
-            <Route path="/lobbies" element={<Lobbies />} />
-            <Route path="/lobby/:lobbyId" element={<Lobby />} />
-            <Route path="/profile/me" element={<Profile />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-          </Route>
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/check-your-email" element={<CheckYourEmail />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BannerProvider>
+      <BannerHost />
+      <Routes>
+        <Route path="/" element={<Registration />} />
+        <Route path="/auth/google/callback" element={<AuthCallback />} />
+        <Route element={<ConnectionLayout />}>
+          <Route path="/lobbies" element={<Lobbies />} />
+          <Route path="/lobby/:lobbyId" element={<Lobby />} />
+          <Route path="/profile/me" element={<Profile />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+        </Route>
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/check-your-email" element={<CheckYourEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 }

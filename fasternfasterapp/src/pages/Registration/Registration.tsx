@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { LoginUserRequest, RegisterUserRequest } from "../../../types";
-import { useAppSelector } from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   useGuestMutation,
   useLoginMutation,
@@ -13,7 +13,7 @@ import SignupForm from "../../features/auth/components/SignupForm";
 import { useGoogleLogin } from "../../features/auth/hooks/useGoogleLogin";
 import { unverifiedEmail } from "../../features/auth/unverifiedEmail";
 import { errorMessage } from "../../shared/api/errorMessage";
-import { useError } from "../../shared/components/BannerProvider";
+import { showError } from "../../shared/banner/bannerSlice";
 import { ROUTES } from "../../shared/utils/routes";
 import "./Registration.css";
 
@@ -27,10 +27,10 @@ const checkYourEmailPath = (email: string) =>
   `/check-your-email?email=${encodeURIComponent(email)}`;
 
 function Registration() {
+  const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState("anonymous");
   const [nick, setNick] = useState("");
   const status = useAppSelector(selectAuthStatus);
-  const { showError } = useError();
   const navigate = useNavigate();
   // Only redirect on the loading → authenticated transition (i.e. /me just resolved).
   // If Registration is mounted with status already "authenticated", the user got here
@@ -58,7 +58,7 @@ function Registration() {
   const handleAnonymousSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = await guest({ nick });
-    if (result.error) showError(errorMessage(result.error));
+    if (result.error) dispatch(showError(errorMessage(result.error)));
     else navigate(ROUTES.LOBBIES);
   };
 
@@ -69,13 +69,13 @@ function Registration() {
       return;
     }
     const email = unverifiedEmail(result.error);
-    if (email === undefined) showError(errorMessage(result.error));
+    if (email === undefined) dispatch(showError(errorMessage(result.error)));
     else navigate(checkYourEmailPath(email));
   };
 
   const handleRegister = async (form: RegisterUserRequest) => {
     const result = await register(form);
-    if (result.error) showError(errorMessage(result.error));
+    if (result.error) dispatch(showError(errorMessage(result.error)));
     else navigate(checkYourEmailPath(form.email));
   };
 

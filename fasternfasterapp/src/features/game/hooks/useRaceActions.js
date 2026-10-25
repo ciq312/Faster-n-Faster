@@ -1,27 +1,32 @@
 import { useCallback, useEffect } from "react";
-import { useBannerMessage } from "../../../shared/components/BannerProvider";
+import { useAppDispatch } from "../../../app/hooks";
+import { showMessage } from "../../../shared/banner/bannerSlice";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useThrottledCallback } from "./useThrottledCallback";
 
 const PROGRESS_THROTTLE_MS = 100;
 
 export function useRaceActions() {
+  const dispatch = useAppDispatch();
   const { invoke, invokeOrShowError, subscribe, isConnected } = useConnection();
-  const { showMessage } = useBannerMessage();
 
   useEffect(() => {
     const cleanups = [
       subscribe("PlayerFinished", (data) => {
-        showMessage(
-          `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
+        dispatch(
+          showMessage(
+            `${data.nick} finished ${data.finishPosition} with wpm:${Math.trunc(Number(data.wpm))}`,
+          ),
         );
       }),
       subscribe("RaceWithdrawn", () => {
-        showMessage("You were removed from this race for suspicious input");
+        dispatch(
+          showMessage("You were removed from this race for suspicious input"),
+        );
       }),
     ];
     return () => cleanups.forEach((fn) => fn());
-  }, [isConnected, subscribe, showMessage]);
+  }, [isConnected, subscribe, dispatch]);
 
   const rawSendProgress = useCallback(
     async ({ index, mistakes, typed }) => {

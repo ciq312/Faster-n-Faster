@@ -9,36 +9,35 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  useBannerMessage,
-  useError,
-} from "../../shared/components/BannerProvider";
+import { useAppDispatch } from "../../app/hooks";
+import { showError, showMessage } from "../../shared/banner/bannerSlice";
 import { extractHubError } from "../../shared/utils/extractHubError";
 const ConnectionContext = createContext(null);
 
 function ConnectionProvider({ url, children }) {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { showError } = useError();
-  const { showMessage } = useBannerMessage();
   const connectionRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
 
   const onAnotherSessionStarted = useEffectEvent(() => {
-    showMessage("Someone else logged into your account");
+    dispatch(showMessage("Someone else logged into your account"));
     navigate("/");
   });
   const onBanned = useEffectEvent((reason) => {
-    showError(reason || "You are banned");
+    dispatch(showError(reason || "You are banned"));
     navigate("/");
   });
   const onSuspended = useEffectEvent((data) => {
-    showError(
-      `You are suspended until ${new Date(data.expiresAt).toLocaleString()}`,
+    dispatch(
+      showError(
+        `You are suspended until ${new Date(data.expiresAt).toLocaleString()}`,
+      ),
     );
     navigate("/");
   });
   const onStartFailed = useEffectEvent(() => {
-    showError("Can't connect to the server");
+    dispatch(showError("Can't connect to the server"));
   });
 
   useEffect(() => {
@@ -123,10 +122,10 @@ function ConnectionProvider({ url, children }) {
       try {
         return await invoke(methodName, ...args);
       } catch (e) {
-        showError(extractHubError(e));
+        dispatch(showError(extractHubError(e)));
       }
     },
-    [invoke, showError],
+    [invoke, dispatch],
   );
 
   const subscribe = useCallback((methodName, callback) => {

@@ -1,22 +1,19 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAppDispatch } from "../../app/hooks";
 import { useResetPasswordMutation } from "../../features/auth/authApi";
 import { errorMessage } from "../../shared/api/errorMessage";
-import {
-  useBannerMessage,
-  useError,
-} from "../../shared/components/BannerProvider";
+import { showError, showMessage } from "../../shared/banner/bannerSlice";
 import { ROUTES } from "../../shared/utils/routes";
 import "./ResetPassword.css";
 
 function ResetPassword() {
+  const dispatch = useAppDispatch();
   const [params] = useSearchParams();
   const token = params.get("token") ?? "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { showError } = useError();
-  const { showMessage } = useBannerMessage();
   const navigate = useNavigate();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
@@ -30,10 +27,10 @@ function ResetPassword() {
     if (!canSubmit || isLoading) return;
     const result = await resetPassword({ token, newPassword: password });
     if (result.error) {
-      showError(errorMessage(result.error));
+      dispatch(showError(errorMessage(result.error)));
       return;
     }
-    showMessage("password updated — please log in");
+    dispatch(showMessage("password updated — please log in"));
     navigate(ROUTES.HOME);
   };
 
