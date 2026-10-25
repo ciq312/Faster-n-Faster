@@ -12,9 +12,7 @@ import type {
   VerifyEmailRequest,
 } from "../../../types";
 import { api } from "../../shared/api/api";
-
-const invalidatesMeOnSuccess = (_result: unknown, error: unknown) =>
-  error ? [] : ["Me" as const];
+import { invalidatesOnSuccess } from "../../shared/api/invalidatesOnSuccess";
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -26,7 +24,7 @@ export const authApi = api.injectEndpoints({
       query: (body) => ({ url: "/api/auth/login", method: "POST", body }),
       // a 401 here means wrong credentials, not an expired session
       extraOptions: { reauth: false },
-      invalidatesTags: invalidatesMeOnSuccess,
+      invalidatesTags: invalidatesOnSuccess("Me"),
     }),
     register: builder.mutation<RegisterUserResult, RegisterUserRequest>({
       query: (body) => ({ url: "/api/auth/register", method: "POST", body }),
@@ -36,7 +34,7 @@ export const authApi = api.injectEndpoints({
       RegisterAnonymousRequest
     >({
       query: (body) => ({ url: "/api/auth/guest", method: "POST", body }),
-      invalidatesTags: invalidatesMeOnSuccess,
+      invalidatesTags: invalidatesOnSuccess("Me"),
     }),
     logout: builder.mutation<void, void>({
       query: () => ({ url: "/api/auth/logout", method: "POST" }),

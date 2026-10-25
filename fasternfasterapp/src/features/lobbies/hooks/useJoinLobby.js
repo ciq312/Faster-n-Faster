@@ -12,6 +12,9 @@ export function useJoinLobby() {
   const { setLobbyId } = useLobbyContext();
 
   const joinLobby = useCallback(
+    /**
+     * @param {string | null | undefined} [inviteCode]
+     */
     async (lobbyId, inviteCode = null) => {
       try {
         await invoke("ConnectToLobby", lobbyId, inviteCode);
