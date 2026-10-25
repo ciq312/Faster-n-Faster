@@ -1,17 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { useAppDispatch } from "../../app/hooks";
 import { useForgotPasswordMutation } from "../../features/auth/authApi";
 import { errorMessage } from "../../shared/api/errorMessage";
-import { useError } from "../../shared/components/BannerProvider";
+import { showError } from "../../shared/banner/bannerSlice";
 import { useCooldown } from "../../shared/hooks/useCooldown";
 import "./ForgotPassword.css";
 
 const COOLDOWN_SECONDS = 15;
 
 function ForgotPassword() {
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const { showError } = useError();
   const { cooldown, start } = useCooldown(COOLDOWN_SECONDS);
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
@@ -22,7 +23,7 @@ function ForgotPassword() {
   const send = async () => {
     const result = await forgotPassword({ email });
     if (result.error) {
-      showError(errorMessage(result.error));
+      dispatch(showError(errorMessage(result.error)));
       return;
     }
     setSubmitted(true);

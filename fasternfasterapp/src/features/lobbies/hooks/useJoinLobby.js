@@ -1,14 +1,15 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useError } from "../../../shared/components/BannerProvider";
+import { useAppDispatch } from "../../../app/hooks";
+import { showError } from "../../../shared/banner/bannerSlice";
 import { extractHubError } from "../../../shared/utils/extractHubError";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "../../game/hooks/LobbyProvider";
 
 export function useJoinLobby() {
+  const dispatch = useAppDispatch();
   const { invoke } = useConnection();
   const navigate = useNavigate();
-  const { showError } = useError();
   const { setLobbyId } = useLobbyContext();
 
   const joinLobby = useCallback(
@@ -21,10 +22,10 @@ export function useJoinLobby() {
         setLobbyId(lobbyId);
         navigate(`/lobby/${lobbyId}`);
       } catch (e) {
-        showError(extractHubError(e));
+        dispatch(showError(extractHubError(e)));
       }
     },
-    [invoke, navigate, setLobbyId, showError],
+    [invoke, navigate, setLobbyId, dispatch],
   );
 
   return { joinLobby };

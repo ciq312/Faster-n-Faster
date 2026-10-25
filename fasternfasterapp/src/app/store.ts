@@ -1,7 +1,8 @@
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { api } from "../shared/api/api";
+import { bannerSlice } from "../shared/banner/bannerSlice";
 
-const rootReducer = combineSlices(api);
+const rootReducer = combineSlices(api, bannerSlice);
 
 export function setupStore() {
   return configureStore({

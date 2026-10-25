@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useLogoutMutation } from "../../features/auth/authApi";
 import {
   selectCurrentUser,
@@ -9,10 +9,7 @@ import {
 import { useConnection } from "../../features/connection/ConnectionProvider";
 import { useGetMyProfileQuery } from "../../features/profile/profileApi";
 import { errorMessage } from "../../shared/api/errorMessage";
-import {
-  useBannerMessage,
-  useError,
-} from "../../shared/components/BannerProvider";
+import { showError, showMessage } from "../../shared/banner/bannerSlice";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import { ROUTES } from "../../shared/utils/routes";
 import "./Profile.css";
@@ -28,24 +25,25 @@ function formatPercent(value, precision = 2) {
 }
 
 function Profile() {
+  const dispatch = useAppDispatch();
   const { data, isLoading, isError } = useGetMyProfileQuery();
   const currentUser = useAppSelector(selectCurrentUser);
   const isGuest = useAppSelector(selectIsGuest);
   const profileData = isError ? { nick: currentUser?.userName } : data;
-  const { showMessage } = useBannerMessage();
-  const { showError } = useError();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const { disconnect } = useConnection();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isGuest) showMessage("Register to see the results of your races");
-  }, [isGuest, showMessage]);
+    if (isGuest) {
+      dispatch(showMessage("Register to see the results of your races"));
+    }
+  }, [isGuest, dispatch]);
 
   const handleLogout = async () => {
     const result = await logout();
     if (result.error) {
-      showError(errorMessage(result.error));
+      dispatch(showError(errorMessage(result.error)));
       return;
     }
     disconnect();

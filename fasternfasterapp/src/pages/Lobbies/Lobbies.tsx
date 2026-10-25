@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { CreateLobbyRequest } from "../../../types";
+import { useAppDispatch } from "../../app/hooks";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
 import { useJoinLobby } from "../../features/lobbies/hooks/useJoinLobby";
 import {
@@ -8,12 +9,13 @@ import {
   useLazyFindLobbyByInviteCodeQuery,
 } from "../../features/lobbies/lobbiesApi";
 import { errorMessage } from "../../shared/api/errorMessage";
-import { useError } from "../../shared/components/BannerProvider";
+import { showError } from "../../shared/banner/bannerSlice";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import { useQueryErrorBanner } from "../../shared/hooks/useQueryErrorBanner";
 import "./Lobbies.css";
 
 function Lobbies() {
+  const dispatch = useAppDispatch();
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { joinLobby } = useJoinLobby();
@@ -27,7 +29,6 @@ function Lobbies() {
   } = useGetLobbiesQuery(undefined, { refetchOnMountOrArgChange: true });
   const [createLobby] = useCreateLobbyMutation();
   const [findLobbyByInviteCode] = useLazyFindLobbyByInviteCodeQuery();
-  const { showError } = useError();
   useQueryErrorBanner(error);
 
   const publicLobbies = lobbies.filter((lobby) => !lobby.isPrivate);
@@ -35,7 +36,7 @@ function Lobbies() {
   const handleCreate = async (lobby: CreateLobbyRequest) => {
     const result = await createLobby(lobby);
     if (result.error) {
-      showError(errorMessage(result.error));
+      dispatch(showError(errorMessage(result.error)));
       return;
     }
     await joinLobby(result.data.lobbyId, result.data.inviteCode);
@@ -49,11 +50,11 @@ function Lobbies() {
 
     const result = await findLobbyByInviteCode(code);
     if (result.error) {
-      showError(errorMessage(result.error));
+      dispatch(showError(errorMessage(result.error)));
       return;
     }
     if (!result.data) {
-      showError("Invalid invite code");
+      dispatch(showError("Invalid invite code"));
       return;
     }
     joinLobby(result.data.id, code);

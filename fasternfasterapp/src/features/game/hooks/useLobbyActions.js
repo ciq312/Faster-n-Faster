@@ -1,13 +1,14 @@
 import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useBannerMessage } from "../../../shared/components/BannerProvider";
+import { useAppDispatch } from "../../../app/hooks";
+import { showMessage } from "../../../shared/banner/bannerSlice";
 import { ROUTES } from "../../../shared/utils/routes";
 import { useConnection } from "../../connection/ConnectionProvider";
 import { useLobbyContext } from "./LobbyProvider";
 
 export function useLobbyActions() {
+  const dispatch = useAppDispatch();
   const { invoke, invokeOrShowError, subscribe, isConnected } = useConnection();
-  const { showMessage } = useBannerMessage();
   const { setLobbyId } = useLobbyContext();
   const navigate = useNavigate();
 
@@ -18,24 +19,26 @@ export function useLobbyActions() {
   useEffect(() => {
     const cleanups = [
       subscribe("PlayerKicked", (kickedDTO) => {
-        showMessage(`player ${kickedDTO.nick} was kicked from lobby`);
+        dispatch(showMessage(`player ${kickedDTO.nick} was kicked from lobby`));
       }),
       subscribe("PlayerDisconnected", (diconnectedDTO) => {
-        showMessage(
-          `player ${diconnectedDTO.disconnectedUserNick} disconnected from lobby`,
+        dispatch(
+          showMessage(
+            `player ${diconnectedDTO.disconnectedUserNick} disconnected from lobby`,
+          ),
         );
       }),
       subscribe("Kicked", () => {
-        showMessage(`You were kicked from lobby`);
+        dispatch(showMessage(`You were kicked from lobby`));
         lobbyCleanup();
         navigate(ROUTES.LOBBIES);
       }),
       subscribe("HostChanged", (data) => {
-        showMessage(`New host is ${data.newHostNick}`);
+        dispatch(showMessage(`New host is ${data.newHostNick}`));
       }),
     ];
     return () => cleanups.forEach((fn) => fn());
-  }, [isConnected, subscribe, showMessage, lobbyCleanup, navigate]);
+  }, [isConnected, subscribe, dispatch, lobbyCleanup, navigate]);
 
   const changeColor = useCallback(
     async (color) => {

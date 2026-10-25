@@ -1,15 +1,16 @@
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { useEffect } from "react";
+import { useAppDispatch } from "../../app/hooks";
 import { errorMessage } from "../api/errorMessage";
-import { useError } from "../components/BannerProvider";
+import { showError } from "../banner/bannerSlice";
 
 export function useQueryErrorBanner(
   error: FetchBaseQueryError | SerializedError | undefined,
 ): void {
-  const { showError } = useError();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (error) showError(errorMessage(error));
-  }, [error, showError]);
+    if (error) dispatch(showError(errorMessage(error)));
+  }, [error, dispatch]);
 }

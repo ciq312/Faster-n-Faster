@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { setupStore } from "../app/store";
 import { useMeQuery } from "../features/auth/authApi";
-import BannerProvider from "../shared/components/BannerProvider";
+import BannerHost from "../shared/components/Banner/BannerHost";
 
 type RenderPageOptions = { route?: string; probes?: string[] };
 
@@ -27,14 +27,13 @@ export function renderPage(
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[route]}>
-        <BannerProvider>
-          <Routes>
-            <Route path={pagePath} element={page} />
-            {probes.map((path) => (
-              <Route key={path} path={path} element={<LocationProbe />} />
-            ))}
-          </Routes>
-        </BannerProvider>
+        <BannerHost />
+        <Routes>
+          <Route path={pagePath} element={page} />
+          {probes.map((path) => (
+            <Route key={path} path={path} element={<LocationProbe />} />
+          ))}
+        </Routes>
       </MemoryRouter>
     </Provider>,
   );
