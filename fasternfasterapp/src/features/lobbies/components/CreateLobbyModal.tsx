@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import type { CreateLobbyRequest } from "../../../../types";
 import "./CreateLobbyModal.css";
 
-function CreateLobbyModal({ onClose, onCreate }) {
+type Props = {
+  onClose: () => void;
+  onCreate: (lobby: CreateLobbyRequest) => void;
+};
+
+function CreateLobbyModal({ onClose, onCreate }: Props) {
   const [lobbyName, setLobbyName] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
   const canCreate = lobbyName.trim().length > 0;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canCreate) return;
 
-    onCreate({
-      lobbyName: lobbyName.trim(),
-      isPrivate,
-      gameMode: "wordcount",
-      wordCount: 50,
-      timerDurationSeconds: null,
-    });
+    onCreate({ lobbyName: lobbyName.trim(), isPrivate });
   };
 
   return (

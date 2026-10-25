@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { setupStore } from "../../app/store";
 import { API_BASE } from "../../config";
+import { deferred } from "../../test/deferred";
 import { server } from "../../test/server";
 import { api } from "./api";
 
@@ -16,12 +17,6 @@ const probeApi = api.injectEndpoints({
     }),
   }),
 });
-
-function deferred() {
-  let resolve!: () => void;
-  const promise = new Promise<void>((r) => (resolve = r));
-  return { promise, resolve };
-}
 
 function serveProbe({ refresh }: { refresh: () => Promise<Response> }) {
   const hits = { probe: 0, refresh: 0 };
