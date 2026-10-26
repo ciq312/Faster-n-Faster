@@ -7,7 +7,7 @@ type Event = keyof IGameClient;
 
 const payloads: { [E in Event]: Parameters<IGameClient[E]> } = {
   lobbyState: [lobbyState()],
-  playerJoined: [{ playerId: "p2", displayName: "Other" }],
+  playerJoined: [{ playerId: "p2", nick: "Other" }],
   playerKicked: [{ userId: "p2", nick: "Other" }],
   kicked: [],
   playerDisconnected: [

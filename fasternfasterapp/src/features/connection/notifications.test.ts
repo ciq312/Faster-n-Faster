@@ -5,6 +5,12 @@ import { notificationFor } from "./notifications";
 describe("notificationFor", () => {
   it.each([
     {
+      event: "playerJoined",
+      action: hubEvents.playerJoined({ playerId: "p2", nick: "Other" }),
+      variant: "message",
+      message: "player Other joined the lobby",
+    },
+    {
       event: "playerKicked",
       action: hubEvents.playerKicked({ userId: "p2", nick: "Other" }),
       variant: "message",
