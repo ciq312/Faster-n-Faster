@@ -9,13 +9,24 @@ import {
   changeColor,
   kickPlayer,
   leaveLobby,
+  refreshPassage,
+  startRace,
   transferHost,
 } from "../../features/connection/hubThunks";
+import Countdown from "../../features/game/components/Countdown";
 import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/LobbyPlayerCard";
 import RaceResults from "../../features/game/components/RaceResults";
 import TypingArea from "../../features/game/components/TypingArea/TypingArea";
-import { useRace } from "../../features/game/hooks/useRace";
-import { useRaceActions } from "../../features/game/hooks/useRaceActions";
+import type { TypingProgress } from "../../features/game/hooks/useTyping";
+import {
+  progressTyped,
+  resultsDismissed,
+  selectCanType,
+  selectCountdownSeconds,
+  selectRaceParticipants,
+  selectRacePhase,
+  selectRaceResults,
+} from "../../features/game/raceSlice";
 import { useLobbyRefresh } from "../../features/lobbies/hooks/useLobbyRefresh";
 import {
   selectIsHost,
@@ -26,6 +37,8 @@ import {
 import Navbar from "../../shared/components/Navbar/Navbar";
 import { ROUTES } from "../../shared/utils/routes";
 import "./Lobby.css";
+
+const MAX_PLAYERS_PER_SIDE = 10;
 
 function Lobby() {
   const dispatch = useAppDispatch();
@@ -38,20 +51,13 @@ function Lobby() {
   const isHost = useAppSelector(selectIsHost);
   const wasKicked = useAppSelector(selectWasKicked);
   useLobbyRefresh();
-  const {
-    dismissResults,
-    isRacing,
-    isRaceStarting,
-    raceSettings,
-    raceResults,
-    raceParticipants,
-    countdown,
-    isWithdrawn,
-  } = useRace();
-  const { startRace, sendProgress, flushProgress, refreshPassage } =
-    useRaceActions();
-  const maxPerSide = 10;
-  const half = Math.min(players.length, maxPerSide);
+  const phase = useAppSelector(selectRacePhase);
+  const countdownSeconds = useAppSelector(selectCountdownSeconds);
+  const results = useAppSelector(selectRaceResults);
+  const participants = useAppSelector(selectRaceParticipants);
+  const canType = useAppSelector(selectCanType);
+  const settings = joinedLobby?.settings;
+  const half = Math.min(players.length, MAX_PLAYERS_PER_SIDE);
 
   useEffect(() => {
     if (wasKicked) navigate(ROUTES.LOBBIES);
@@ -63,24 +69,21 @@ function Lobby() {
   };
 
   const onChangeColor = useCallback(
-    (color) => dispatch(changeColor(color)),
+    (color: string) => dispatch(changeColor(color)),
     [dispatch],
   );
   const onKick = useCallback(
-    (targetId) => dispatch(kickPlayer(targetId)),
+    (targetId: string) => dispatch(kickPlayer(targetId)),
     [dispatch],
   );
   const onTransferHost = useCallback(
-    (targetId) => dispatch(transferHost(targetId)),
+    (targetId: string) => dispatch(transferHost(targetId)),
     [dispatch],
   );
 
-  const handleProgress = useCallback(
-    (update) => {
-      sendProgress(update);
-      if (update.final) flushProgress();
-    },
-    [sendProgress, flushProgress],
+  const onProgress = useCallback(
+    (progress: TypingProgress) => dispatch(progressTyped(progress)),
+    [dispatch],
   );
 
   return (
@@ -98,9 +101,9 @@ function Lobby() {
                 code: {joinedLobby.inviteCode}
               </span>
             )}
-            {raceSettings && (
+            {settings && (
               <span className="lobby-topbar__mode">
-                word race · {raceSettings.wordCount} words
+                word race · {settings.wordCount} words
               </span>
             )}
           </div>
@@ -111,55 +114,60 @@ function Lobby() {
 
         <div className="lobby-arena">
           <div className="lobby-players-col">
-            {players.slice(0, half).map((p) => (
-              <div key={p.id} className="lobby-player-row">
-                <LobbyPlayerCard
-                  player={p}
-                  colors={joinedLobby?.colors}
-                  changeColor={onChangeColor}
-                  isSelf={isSelf(p.id)}
-                  kickPlayer={onKick}
-                  transferHost={onTransferHost}
-                  isHost={isHost}
-                />
-                {raceParticipants.find((rp) => rp.playerId === p.id) && (
-                  <div className="lobby-player-row__wpm">
-                    <span className="lobby-player-row__wpm-value">
-                      {Math.round(
-                        raceParticipants.find((rp) => rp.playerId === p.id).wpm,
-                      )}
-                    </span>
-                    <span className="lobby-player-row__wpm-unit">wpm</span>
-                  </div>
-                )}
-              </div>
-            ))}
+            {players.slice(0, half).map((p) => {
+              const wpm = participants.find((rp) => rp.playerId === p.id)?.wpm;
+              return (
+                <div key={p.id} className="lobby-player-row">
+                  <LobbyPlayerCard
+                    player={p}
+                    colors={joinedLobby?.colors}
+                    changeColor={onChangeColor}
+                    isSelf={isSelf(p.id)}
+                    kickPlayer={onKick}
+                    transferHost={onTransferHost}
+                    isHost={isHost}
+                  />
+                  {wpm !== undefined && (
+                    <div className="lobby-player-row__wpm">
+                      <span className="lobby-player-row__wpm-value">
+                        {Math.round(wpm)}
+                      </span>
+                      <span className="lobby-player-row__wpm-unit">wpm</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="lobby-game">
-            <div className="countdown-overlay">{countdown}</div>
+            <div className="countdown-overlay">
+              {countdownSeconds !== null && (
+                <Countdown seconds={countdownSeconds} />
+              )}
+            </div>
 
-            {raceResults ? (
+            {results ? (
               <RaceResults
-                results={raceResults}
+                results={results}
                 selfId={selfId}
-                onDismiss={dismissResults}
+                onDismiss={() => dispatch(resultsDismissed())}
               />
-            ) : raceSettings ? (
+            ) : settings ? (
               <TypingArea
-                passage={raceSettings.passage}
-                disabled={!isRacing || isWithdrawn}
-                onProgress={handleProgress}
-                opponents={raceParticipants}
+                passage={settings.passage}
+                disabled={!canType}
+                onProgress={onProgress}
+                opponents={participants}
                 selfId={selfId}
               />
             ) : (
               <div className="lobby-game__waiting">Loading...</div>
             )}
-            {!(isRaceStarting || isRacing || raceResults) && isHost && (
+            {phase === "idle" && isHost && (
               <button
                 className="lobby-next-passage__icon"
-                onClick={refreshPassage}
+                onClick={() => dispatch(refreshPassage())}
               >
                 &gt;
               </button>
@@ -177,8 +185,8 @@ function Lobby() {
           {isHost && (
             <button
               className="lobby-footer__start"
-              disabled={isRaceStarting || isRacing}
-              onClick={startRace}
+              disabled={phase === "countdown" || phase === "racing"}
+              onClick={() => dispatch(startRace())}
             >
               start race
             </button>

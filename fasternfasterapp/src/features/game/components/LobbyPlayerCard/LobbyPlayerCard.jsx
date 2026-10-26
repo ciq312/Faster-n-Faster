@@ -2,6 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { useColorPalette } from "../../hooks/useColorPalette";
 import "./LobbyPlayerCard.css";
 
+/**
+ * @param {{
+ *   player: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState").LobbyPlayerDTO,
+ *   colors?: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState").ColorStatusDTO[],
+ *   changeColor?: (color: string) => void,
+ *   kickPlayer?: (targetId: string) => void,
+ *   transferHost?: (targetId: string) => void,
+ *   isSelf?: boolean,
+ *   isHost?: boolean,
+ * }} props
+ */
 function LobbyPlayerCard({
   player,
   colors,

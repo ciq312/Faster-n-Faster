@@ -3,6 +3,15 @@ import { useCharPositions } from "../../hooks/useCharPositions";
 import { useTyping } from "../../hooks/useTyping";
 import "./TypingArea.css";
 
+/**
+ * @param {{
+ *   passage: string,
+ *   disabled: boolean,
+ *   onProgress: (progress: import("../../hooks/useTyping").TypingProgress) => void,
+ *   opponents?: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState").RaceParticipantDTO[],
+ *   selfId?: string,
+ * }} props
+ */
 function TypingArea({
   passage,
   disabled,

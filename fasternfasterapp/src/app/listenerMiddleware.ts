@@ -13,10 +13,14 @@ import {
   bannerHubCalls,
   connectHub,
   disconnectHub,
+  updateRaceState,
 } from "../features/connection/hubThunks";
 import { notificationFor } from "../features/connection/notifications";
+import { progressTyped, selectCanType } from "../features/game/raceSlice";
 import { showError, showMessage } from "../shared/banner/bannerSlice";
 import type { AppDispatch, RootState, ThunkExtra } from "./store";
+
+const PROGRESS_THROTTLE_MS = 100;
 
 export function createAppListenerMiddleware(
   extra: ThunkExtra,
@@ -75,6 +79,23 @@ export function createAppListenerMiddleware(
     matcher: authApi.endpoints.logout.matchFulfilled,
     effect: (_, { dispatch }) => {
       dispatch(disconnectHub());
+    },
+  });
+
+  let lastProgressSentAt = 0;
+  startListening({
+    actionCreator: progressTyped,
+    effect: async (
+      { payload },
+      { cancelActiveListeners, delay, dispatch, getState },
+    ) => {
+      cancelActiveListeners();
+      const wait = lastProgressSentAt + PROGRESS_THROTTLE_MS - Date.now();
+      if (!payload.final && wait > 0) await delay(wait);
+      if (!selectCanType(getState())) return;
+      lastProgressSentAt = Date.now();
+      const { index, mistakes, typed } = payload;
+      dispatch(updateRaceState({ index, mistakes, typed }));
     },
   });
 

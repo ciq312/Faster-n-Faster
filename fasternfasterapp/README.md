@@ -17,7 +17,7 @@ src/
 │   │                      (current user, status), Google OAuth hook
 │   ├── connection/      — game hub port + SignalR adapter, hub event actions and
 │   │                      thunks, connection slice, ConnectionLayout
-│   ├── game/            — the race itself: typing engine, race state hooks,
+│   ├── game/            — the race itself: race slice (state machine), typing engine,
 │   │                      typing area, results, player cards
 │   ├── lobbies/         — lobby endpoints (list, invite-code lookup, create), lobby
 │   │                      slice and selectors
@@ -35,7 +35,7 @@ Routing: auth pages are public; game routes are nested under `ConnectionLayout`,
 ## Key design
 
 - **Server-authoritative typing, optimistic rendering** — `useTyping` validates every keystroke locally against the passage (mistake tracking, max-overflow cap, no word skipping) for instant feedback, while the server independently verifies all progress. After a reconnect the hook resyncs its state from the server snapshot.
-- **Throttled progress updates** — keystroke progress is batched through `useThrottledCallback` before hitting the hub, so fast typists don't flood the connection; the final keystroke flushes immediately.
+- **Throttled progress updates** — keystroke progress goes through a `progressTyped` listener in `app/listenerMiddleware.ts`, one `UpdateRaceState` per 100 ms, so fast typists don't flood the connection; the final keystroke is sent at once.
 - **One connection, events as actions** — the hub is injected into the store; every server event is dispatched as a typed action, hub calls are thunks, and listener middleware turns events into banners and stops the hub when a session ends, while `ConnectionLayout` navigates home. No component touches the connection.
 - **Cookie auth end-to-end** — tokens live in HttpOnly cookies; RTK Query requests send credentials, and `baseQueryWithReauth` hits `/api/auth/refresh` once on a 401 (concurrent 401s share that refresh) and retries. The SignalR negotiate request reuses the same cookies.
 
