@@ -4,12 +4,22 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  type RefObject,
 } from "react";
 
-export function useCharPositions(passage, typedLength) {
-  const charsRef = useRef([]);
-  const containerRef = useRef(null);
-  const [charPositions, setCharPositions] = useState([]);
+type CharPosition = { left: number; top: number };
+
+export function useCharPositions(
+  passage: string,
+  typedLength: number,
+): {
+  charsRef: RefObject<(HTMLSpanElement | null)[]>;
+  containerRef: RefObject<HTMLDivElement | null>;
+  caretPos: (index: number) => CharPosition;
+} {
+  const charsRef = useRef<(HTMLSpanElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [charPositions, setCharPositions] = useState<CharPosition[]>([]);
 
   const measure = useCallback(() => {
     if (!containerRef.current) return;
@@ -35,7 +45,7 @@ export function useCharPositions(passage, typedLength) {
   }, [measure]);
 
   const caretPos = useCallback(
-    (index) => {
+    (index: number): CharPosition => {
       if (!charPositions.length) return { left: 0, top: 0 };
       if (index < charPositions.length) return charPositions[index];
       const last = charPositions[charPositions.length - 1];

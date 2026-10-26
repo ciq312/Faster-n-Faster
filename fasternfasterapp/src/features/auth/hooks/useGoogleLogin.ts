@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "../../../config";
 
-export function useGoogleLogin() {
+export function useGoogleLogin(): {
+  execute: () => void;
+  loading: boolean;
+} {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const onPageShow = (event) => {
+    const onPageShow = (event: PageTransitionEvent) => {
       if (event.persisted) setLoading(false);
     };
     window.addEventListener("pageshow", onPageShow);

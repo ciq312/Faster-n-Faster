@@ -1,25 +1,25 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { RaceParticipantDTO } from "../../../../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState";
 import { useCharPositions } from "../../hooks/useCharPositions";
-import { useTyping } from "../../hooks/useTyping";
+import { useTyping, type TypingProgress } from "../../hooks/useTyping";
 import "./TypingArea.css";
 
-/**
- * @param {{
- *   passage: string,
- *   disabled: boolean,
- *   onProgress: (progress: import("../../hooks/useTyping").TypingProgress) => void,
- *   opponents?: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState").RaceParticipantDTO[],
- *   selfId?: string,
- * }} props
- */
+type TypingAreaProps = {
+  passage: string;
+  disabled: boolean;
+  onProgress: (progress: TypingProgress) => void;
+  opponents?: RaceParticipantDTO[];
+  selfId?: string;
+};
+
 function TypingArea({
   passage,
   disabled,
   onProgress,
   opponents: players = [],
   selfId,
-}) {
-  const [self, setSelf] = useState(null);
+}: TypingAreaProps) {
+  const [self, setSelf] = useState<RaceParticipantDTO | undefined>();
 
   useEffect(() => {
     setSelf(players.filter((p) => p.playerId === selfId).pop());
@@ -40,7 +40,7 @@ function TypingArea({
     typed.length,
   );
 
-  const lastOverflowRef = useRef(null);
+  const lastOverflowRef = useRef<HTMLSpanElement>(null);
   const [selfPos, setSelfPos] = useState({ left: 0, top: 0 });
 
   useLayoutEffect(() => {
@@ -82,7 +82,9 @@ function TypingArea({
                   className="typing-area__char typing-area__char--incorrect"
                   ref={
                     j === overflowChars.length - 1
-                      ? (el) => (lastOverflowRef.current = el)
+                      ? (el) => {
+                          lastOverflowRef.current = el;
+                        }
                       : undefined
                   }
                 >
@@ -93,7 +95,9 @@ function TypingArea({
                 <span
                   key={i}
                   className="typing-area__char typing-area__space--incorrect"
-                  ref={(el) => (charsRef.current[i] = el)}
+                  ref={(el) => {
+                    charsRef.current[i] = el;
+                  }}
                 >
                   {" "}
                 </span>,
@@ -119,7 +123,9 @@ function TypingArea({
               <span
                 key={i}
                 className={cls}
-                ref={(el) => (charsRef.current[i] = el)}
+                ref={(el) => {
+                  charsRef.current[i] = el;
+                }}
               >
                 {char}
               </span>,

@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import type { LoginUserRequest } from "../../../../types";
 
-function LoginForm({ onSubmit, loading }) {
+type LoginFormProps = {
+  onSubmit: (credentials: LoginUserRequest) => Promise<void>;
+  loading: boolean;
+};
+
+function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
 
   const canSubmit = login.trim() && password.trim();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSubmit || loading) return;
     await onSubmit({ login, password });

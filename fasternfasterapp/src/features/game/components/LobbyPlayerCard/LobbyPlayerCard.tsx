@@ -1,36 +1,42 @@
 import { useEffect, useRef, useState } from "react";
 import { useColorPalette } from "../../hooks/useColorPalette";
+import type {
+  ColorStatusDTO,
+  LobbyPlayerDTO,
+} from "../../../../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState";
 import "./LobbyPlayerCard.css";
 
-/**
- * @param {{
- *   player: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState").LobbyPlayerDTO,
- *   colors?: import("../../../../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState").ColorStatusDTO[],
- *   changeColor?: (color: string) => void,
- *   kickPlayer?: (targetId: string) => void,
- *   transferHost?: (targetId: string) => void,
- *   isSelf?: boolean,
- *   isHost?: boolean,
- * }} props
- */
+type LobbyPlayerCardProps = {
+  player: LobbyPlayerDTO;
+  colors?: ColorStatusDTO[];
+  changeColor?: (color: string) => void;
+  kickPlayer?: (targetId: string) => void;
+  transferHost?: (targetId: string) => void;
+  isSelf?: boolean;
+  isHost?: boolean;
+};
+
 function LobbyPlayerCard({
   player,
   colors,
   changeColor,
   kickPlayer,
   transferHost,
-  isSelf,
-  isHost,
-}) {
+  isSelf = false,
+  isHost = false,
+}: LobbyPlayerCardProps) {
   const palette = useColorPalette();
-  const cardRef = useRef(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [showHostActions, setShowHostActions] = useState(false);
 
   useEffect(() => {
     if (!showHostActions) return;
 
-    const handleClick = (e) => {
-      if (cardRef.current && !cardRef.current.contains(e.target)) {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        cardRef.current &&
+        !cardRef.current.contains(e.target as Node | null)
+      ) {
         setShowHostActions(false);
       }
     };
@@ -90,7 +96,7 @@ function LobbyPlayerCard({
           <button
             className="host-actions__btn"
             onClick={() => {
-              transferHost(player.id);
+              transferHost?.(player.id);
               setShowHostActions(false);
             }}
           >
@@ -99,7 +105,7 @@ function LobbyPlayerCard({
           <button
             className="host-actions__btn host-actions__btn--kick"
             onClick={() => {
-              kickPlayer(player.id);
+              kickPlayer?.(player.id);
               setShowHostActions(false);
             }}
           >
