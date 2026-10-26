@@ -1,26 +1,16 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { API_BASE } from "../../config";
 import { leaderboardApi } from "../../features/leaderboard/leaderboardApi";
-import { LobbyProvider } from "../../features/game/hooks/LobbyProvider";
 import { deferred } from "../../test/deferred";
 import { renderPage } from "../../test/renderPage";
 import { server } from "../../test/server";
 import Leaderboard from "./Leaderboard";
 
-vi.mock("../../features/connection/ConnectionProvider", () => ({
-  useConnection: () => ({}),
-}));
-
 function renderLeaderboard() {
-  return renderPage(
-    <LobbyProvider>
-      <Leaderboard />
-    </LobbyProvider>,
-    { route: "/leaderboard" },
-  );
+  return renderPage(<Leaderboard />, { route: "/leaderboard" });
 }
 
 function serveLeaderboard(hold?: {

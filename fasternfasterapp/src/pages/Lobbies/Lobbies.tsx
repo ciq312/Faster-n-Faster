@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import type { CreateLobbyRequest } from "../../../types";
 import { useAppDispatch } from "../../app/hooks";
+import { connectToLobby } from "../../features/connection/hubThunks";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
-import { useJoinLobby } from "../../features/lobbies/hooks/useJoinLobby";
 import {
   useCreateLobbyMutation,
   useGetLobbiesQuery,
@@ -12,13 +13,14 @@ import { errorMessage } from "../../shared/api/errorMessage";
 import { showError } from "../../shared/banner/bannerSlice";
 import Navbar from "../../shared/components/Navbar/Navbar";
 import { useQueryErrorBanner } from "../../shared/hooks/useQueryErrorBanner";
+import { lobbyPath } from "../../shared/utils/routes";
 import "./Lobbies.css";
 
 function Lobbies() {
   const dispatch = useAppDispatch();
   const [inviteCode, setInviteCode] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { joinLobby } = useJoinLobby();
+  const navigate = useNavigate();
   const {
     data: lobbies = [],
     isLoading,
@@ -32,6 +34,14 @@ function Lobbies() {
   useQueryErrorBanner(error);
 
   const publicLobbies = lobbies.filter((lobby) => !lobby.isPrivate);
+
+  const joinLobby = async (lobbyId: string | undefined, code?: string) => {
+    if (!lobbyId) return;
+    const result = await dispatch(
+      connectToLobby({ lobbyId, inviteCode: code }),
+    );
+    if (connectToLobby.fulfilled.match(result)) navigate(lobbyPath(lobbyId));
+  };
 
   const handleCreate = async (lobby: CreateLobbyRequest) => {
     const result = await createLobby(lobby);
@@ -57,7 +67,7 @@ function Lobbies() {
       dispatch(showError("Invalid invite code"));
       return;
     }
-    joinLobby(result.data.id, code);
+    await joinLobby(result.data.id, code);
   };
 
   return (
@@ -99,8 +109,10 @@ function Lobbies() {
           </form>
         </section>
 
-        <section className="lobby-list">
-          <h2 className="lobby-list__title">Active lobbies</h2>
+        <section className="lobby-list" aria-labelledby="lobby-list-title">
+          <h2 id="lobby-list-title" className="lobby-list__title">
+            Active lobbies
+          </h2>
           {isLoading && <div>Loading...</div>}
           {isSuccess && publicLobbies.length === 0 && (
             <p className="lobby-list__empty">No active lobbies — create one!</p>

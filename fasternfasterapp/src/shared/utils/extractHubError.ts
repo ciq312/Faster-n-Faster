@@ -2,8 +2,14 @@
 const HUB_EXCEPTION_MARKER = "HubException: ";
 const FALLBACK_MESSAGE = "Something went wrong, try again";
 
-export function extractHubError(error) {
-  const message = typeof error?.message === "string" ? error.message : "";
+export function extractHubError(error: unknown): string {
+  const message =
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+      ? error.message
+      : "";
   const markerIndex = message.indexOf(HUB_EXCEPTION_MARKER);
   if (markerIndex === -1) return FALLBACK_MESSAGE;
   return (

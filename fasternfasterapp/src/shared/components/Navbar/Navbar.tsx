@@ -1,9 +1,11 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useLobbyContext } from "../../../features/game/hooks/LobbyProvider";
+import { useAppSelector } from "../../../app/hooks";
+import { selectLobbyId } from "../../../features/lobbies/lobbySelectors";
+import { lobbyPath } from "../../utils/routes";
 import "./Navbar.css";
 
 function Navbar() {
-  const { lobbyId } = useLobbyContext();
+  const lobbyId = useAppSelector(selectLobbyId);
   const navigate = useNavigate();
   const location = useLocation();
   const isOnLobbyPage = location.pathname.startsWith("/lobby/");
@@ -26,7 +28,7 @@ function Navbar() {
         {lobbyId && !isOnLobbyPage && (
           <button
             className="navbar__return-lobby"
-            onClick={() => navigate(`/lobby/${lobbyId}`)}
+            onClick={() => navigate(lobbyPath(lobbyId))}
           >
             <span className="navbar__return-lobby-dot" />
             back to lobby

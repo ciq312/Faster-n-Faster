@@ -1,21 +1,26 @@
-import { useTyping } from "./useTyping";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useConnection } from "../../connection/ConnectionProvider";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { setupStore } from "../../../app/store";
+import { fakeGameHub } from "../../../test/fakeGameHub";
+import { wrapperFor } from "../../../test/store";
+import { hubStatusChanged } from "../../connection/hubThunks";
+import { useTyping, type TypingProgress } from "./useTyping";
 
-vi.mock("../../connection/ConnectionProvider", () => ({
-  useConnection: vi.fn(),
-}));
+type TypingOptions = Parameters<typeof useTyping>[0];
 
 describe("useTyping", () => {
-  let onProgress;
+  let onProgress: Mock<(progress: TypingProgress) => void>;
+  let store: ReturnType<typeof setupStore>;
 
   beforeEach(() => {
-    vi.mocked(useConnection).mockReturnValue({ isConnected: true });
+    store = setupStore({ hub: fakeGameHub() });
+    act(() => {
+      store.dispatch(hubStatusChanged("connected"));
+    });
     onProgress = vi.fn();
   });
 
-  function typingProps(overrides) {
+  function typingProps(overrides?: Partial<TypingOptions>): TypingOptions {
     return {
       passage: "hi",
       disabled: false,
@@ -27,18 +32,29 @@ describe("useTyping", () => {
     };
   }
 
-  function renderTyping(overrides) {
-    return renderHook((p) => useTyping(p), {
+  function renderTyping(overrides?: Partial<TypingOptions>) {
+    return renderHook((p: TypingOptions) => useTyping(p), {
       initialProps: typingProps(overrides),
+      wrapper: wrapperFor(store),
     });
   }
 
-  function setConnected(rerender, props, isConnected) {
-    vi.mocked(useConnection).mockReturnValue({ isConnected });
+  function setConnected(
+    rerender: (props: TypingOptions) => void,
+    props: TypingOptions,
+    isConnected: boolean,
+  ) {
+    act(() => {
+      store.dispatch(
+        hubStatusChanged(isConnected ? "connected" : "disconnected"),
+      );
+    });
     rerender(props);
   }
 
-  function typeText(result, text) {
+  type Typing = ReturnType<typeof renderTyping>["result"];
+
+  function typeText(result: Typing, text: string) {
     for (const ch of text) {
       act(() => {
         result.current.handleTyping({
@@ -48,7 +64,7 @@ describe("useTyping", () => {
     }
   }
 
-  function backspace(result) {
+  function backspace(result: Typing) {
     act(() => {
       result.current.handleTyping({
         target: { value: result.current.typed.slice(0, -1) },
@@ -145,10 +161,11 @@ describe("useTyping", () => {
 
   it("marks progress final and blurs the input on the last correct character", () => {
     const { result } = renderTyping();
-    const blur = vi.fn();
+    const input = document.createElement("input");
+    const blur = vi.spyOn(input, "blur");
 
     typeText(result, "h");
-    result.current.inputRef.current = { blur, focus: vi.fn() };
+    result.current.inputRef.current = input;
     typeText(result, "i");
 
     expect(blur).toHaveBeenCalledTimes(1);
@@ -215,10 +232,12 @@ describe("useTyping", () => {
     );
     expect(result.current.typed).toBe("ab");
 
-    const blur = vi.fn();
-    result.current.inputRef.current = { blur, focus: vi.fn() };
+    const input = document.createElement("input");
+    const blur = vi.spyOn(input, "blur");
+    result.current.inputRef.current = input;
     typeText(result, "c");
 
+    expect(blur).toHaveBeenCalledTimes(1);
     expect(onProgress).toHaveBeenLastCalledWith({
       index: 2,
       mistakes: 2,

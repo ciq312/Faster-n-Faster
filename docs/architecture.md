@@ -113,11 +113,12 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 ## Frontend
 
 - React 19 + Vite SPA with react-router, JavaScript moving to TypeScript (strict `tsconfig.json` with `allowJs`; `tsc` checks the `.ts`/`.tsx` files in CI, the remaining JS is unchecked). Code is grouped by feature: `features/{auth, connection, game, lobbies, leaderboard, profile}`, routed screens in `pages/`, the Redux store in `app/`, shared components and utilities in `shared/`.
-- `ConnectionProvider` owns one SignalR connection for the app, with automatic reconnect.
+- One SignalR connection, owned by a `GameHub` port (`features/connection/gameHub.ts`) whose adapter (`signalRGameHub.ts`) is the only code that imports `@microsoft/signalr`. It is the thunk extra argument (`setupStore({ hub })`), so hub calls are thunks and tests pass a fake hub (dependency inversion). Each server event becomes one typed action (`hubEvents`), registered once per connection; reactions (banners, stopping the hub on ban/suspension/another session, error banners for failed hub calls, disconnect on logout) are listener-middleware listeners in `app/listenerMiddleware.ts`.
+- The `connection` slice holds the status and why a session ended; `ConnectionLayout` connects on mount, disconnects on unmount and navigates home when the session ends. The `lobby` slice keeps the last `LobbyState`; selectors expose it only once the current user is known and in it, so the navbar's "back to lobby" works on any page once a `LobbyState` has arrived. Banners are a `banner` slice rendered by `BannerHost`.
 - REST goes through one RTK Query api (`shared/api/api.ts`) on `baseQueryWithReauth`, which does the refresh-and-retry above through the shared single-flight `refreshOnce`. Features add endpoints with `injectEndpoints`; login opts out of the refresh because its 401 means wrong credentials. Creating a lobby invalidates the `Lobbies` tag, so a mounted lobby list refetches.
 - The current user is the `me` query cache read through selectors (`features/auth/authSelectors.ts`), with no separate auth state. Login and guest invalidate it, a successful logout resets the api state.
 - `useTyping` applies the typing rules locally for instant feedback; the server re-checks them ([0001](decisions/0001-server-authoritative-race-progress.md)).
-- Planned: the SignalR connection and game state in Redux, and converting the rest of the JavaScript to TypeScript ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
+- Planned: race state in a slice, and converting the rest of the JavaScript to TypeScript ([0012](decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
 
 ## Testing
 

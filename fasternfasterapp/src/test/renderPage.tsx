@@ -4,9 +4,15 @@ import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { setupStore } from "../app/store";
 import { useMeQuery } from "../features/auth/authApi";
+import type { GameHub } from "../features/connection/gameHub";
 import BannerHost from "../shared/components/Banner/BannerHost";
+import { fakeGameHub } from "./fakeGameHub";
 
-type RenderPageOptions = { route?: string; probes?: string[] };
+type RenderPageOptions = {
+  route?: string;
+  probes?: string[];
+  hub?: GameHub;
+};
 
 export function CurrentUser() {
   useMeQuery();
@@ -20,9 +26,9 @@ function LocationProbe() {
 
 export function renderPage(
   page: ReactElement,
-  { route = "/", probes = [] }: RenderPageOptions = {},
+  { route = "/", probes = [], hub }: RenderPageOptions = {},
 ) {
-  const store = setupStore();
+  const store = setupStore({ hub: hub ?? fakeGameHub() });
   const [pagePath] = route.split("?");
   render(
     <Provider store={store}>
