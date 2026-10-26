@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -142,6 +143,31 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var ex = await Assert.ThrowsAsync<HubException>(() => guestHub.InvokeAsync("StartRace"));
 
         Assert.EndsWith("Only the host can start the race", ex.Message);
+    }
+
+    [Fact]
+    public async Task GuestJoinsLobby_NotifiesHostButNotGuest()
+    {
+        var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
+        var lobby = await CreateLobbyAsync(hostClient);
+        await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
+        var hostJoined = NextEventAsync<JsonElement>(hostHub, nameof(IGameClient.PlayerJoined));
+
+        var guest = NewUser("guest");
+        var (guestClient, guestCookies, guestLogin) = await RegisterAndLoginAsync(guest);
+        await using var guestHub = BuildHubConnection(guestClient, guestCookies);
+        var guestJoined = NextEventAsync<JsonElement>(guestHub, nameof(IGameClient.PlayerJoined));
+        var guestLobbyState = NextEventAsync<JsonElement>(guestHub, nameof(IGameClient.LobbyState));
+        await guestHub.StartAsync();
+        await guestHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.InviteCode);
+
+        var joined = await hostJoined.WaitAsync(EventTimeout);
+        joined.GetProperty("playerId").GetGuid().ShouldBe(guestLogin.UserId);
+        joined.GetProperty("nick").GetString().ShouldBe(guest.Nick);
+
+        // LobbyState is sent after any PlayerJoined, and the client runs handlers in arrival order.
+        await guestLobbyState.WaitAsync(EventTimeout);
+        guestJoined.IsCompleted.ShouldBeFalse();
     }
 
     [Fact]

@@ -7,6 +7,6 @@ export type PlayerJoinedDTO = {
     /** Transpiled from System.Guid */
     playerId: string;
     /** Transpiled from string */
-    displayName: string;
+    nick: string;
 }
 

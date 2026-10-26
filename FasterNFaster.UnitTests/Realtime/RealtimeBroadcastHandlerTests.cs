@@ -170,7 +170,7 @@ public class RealtimeBroadcastHandlerTests
         Assert.Equal(userId, audience.UserId);
         var payload = Assert.IsType<PlayerJoinedDTO>(sent.Payload);
         Assert.Equal(userId, payload.PlayerId);
-        Assert.Equal("nick", payload.DisplayName);
+        Assert.Equal("nick", payload.Nick);
     }
 
     [Fact]

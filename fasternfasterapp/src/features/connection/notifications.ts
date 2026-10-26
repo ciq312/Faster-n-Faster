@@ -5,6 +5,12 @@ import { hubEvents } from "./hubEvents";
 export type Notification = { variant: BannerVariant; message: string };
 
 export function notificationFor(action: UnknownAction): Notification | null {
+  if (hubEvents.playerJoined.match(action)) {
+    return {
+      variant: "message",
+      message: `player ${action.payload.nick} joined the lobby`,
+    };
+  }
   if (hubEvents.playerKicked.match(action)) {
     return {
       variant: "message",
