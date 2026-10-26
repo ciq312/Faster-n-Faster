@@ -260,7 +260,6 @@ Frontend tests use Vitest + Testing Library on jsdom: `npm test` (watch) or `npm
 
 - **CI-triggered profiling** — the load-test → profile → graph pipeline is already one command ([`automation.py`](https://github.com/ciq312/Faster-n-Faster-profiling)); next step is triggering runs from CI so every deploy gets a performance baseline.
 - **Dependency cleanup** — packages pulled in early are being evaluated and removed where they add weight without value.
-- **Frontend switch to TypeScript** — in progress: strict tooling and a CI typecheck are in place, and files are converted as each migration step touches them ([decision record](docs/decisions/0012-frontend-on-typescript-redux-toolkit-rtk-query.md)).
 
 ---
 

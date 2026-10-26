@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import type { RegisterUserRequest } from "../../../../types";
 
-function SignupForm({ onSubmit, loading }) {
+type SignupFormProps = {
+  onSubmit: (form: RegisterUserRequest) => Promise<void>;
+  loading: boolean;
+};
+
+function SignupForm({ onSubmit, loading }: SignupFormProps) {
   const [login, setLogin] = useState("");
   const [nick, setNick] = useState("");
   const [email, setEmail] = useState("");
@@ -20,7 +26,7 @@ function SignupForm({ onSubmit, loading }) {
     confirmPassword.trim() &&
     !passwordMismatch;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSubmit || loading) return;
     await onSubmit({ login, nick, email, password });

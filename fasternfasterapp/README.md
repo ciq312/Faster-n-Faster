@@ -2,7 +2,7 @@
 
 React SPA for [Faster'n'Faster](https://faster-n-faster.com), a real-time multiplayer typing game. Talks to the ASP.NET Core backend over REST (auth, lobbies, leaderboards) and a single SignalR WebSocket connection (live races).
 
-**Stack:** React 19, Vite, react-router 7, Redux Toolkit + RTK Query, `@microsoft/signalr`, Vitest + Testing Library + MSW. JavaScript moving to TypeScript (strict `tsconfig.json`, `allowJs` until the rest is converted). Plain JSX, CSS per component — no UI framework.
+**Stack:** React 19, Vite, react-router 7, Redux Toolkit + RTK Query, `@microsoft/signalr`, Vitest + Testing Library + MSW. TypeScript (strict `tsconfig.json`). Plain TSX, CSS per component — no UI framework.
 
 ---
 

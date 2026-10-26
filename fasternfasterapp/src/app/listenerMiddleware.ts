@@ -1,5 +1,4 @@
 import {
-  addListener,
   createListenerMiddleware,
   isAnyOf,
   isRejectedWithValue,
@@ -101,9 +100,3 @@ export function createAppListenerMiddleware(
 
   return instance;
 }
-
-export const addAppListener = addListener.withTypes<
-  RootState,
-  AppDispatch,
-  ThunkExtra
->();

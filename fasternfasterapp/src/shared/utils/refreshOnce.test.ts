@@ -11,8 +11,8 @@ describe("refreshOnce", () => {
     vi.unstubAllGlobals();
   });
 
-  it("should send POST request with creadentials", async () => {
-    fetch.mockResolvedValue({ ok: true });
+  it("sends a POST request with credentials", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response());
 
     await refreshOnce();
 
@@ -22,8 +22,8 @@ describe("refreshOnce", () => {
     });
   });
 
-  it("should fetch once if two concurrent requests are made", async () => {
-    fetch.mockResolvedValue({ ok: true });
+  it("fetches once for two concurrent requests", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response());
 
     const [result1, result2] = await Promise.all([
       refreshOnce(),
@@ -35,7 +35,7 @@ describe("refreshOnce", () => {
   });
 
   it("allows a new request after the previous one completes", async () => {
-    fetch.mockResolvedValue({ ok: true });
+    vi.mocked(fetch).mockResolvedValue(new Response());
 
     await refreshOnce();
     await refreshOnce();
@@ -44,9 +44,9 @@ describe("refreshOnce", () => {
   });
 
   it("allows retry after a failed request", async () => {
-    fetch
+    vi.mocked(fetch)
       .mockRejectedValueOnce(new Error("Network error"))
-      .mockResolvedValueOnce({ ok: true });
+      .mockResolvedValueOnce(new Response());
 
     await expect(refreshOnce()).rejects.toThrow("Network error");
 
