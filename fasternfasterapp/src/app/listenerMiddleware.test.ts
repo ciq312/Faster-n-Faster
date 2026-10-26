@@ -1,8 +1,10 @@
 import { http, HttpResponse } from "msw";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { API_BASE } from "../config";
 import { authApi } from "../features/auth/authApi";
+import { hubEvents } from "../features/connection/hubEvents";
 import { connectHub } from "../features/connection/hubThunks";
+import { progressTyped } from "../features/game/raceSlice";
 import { selectCurrentBanner } from "../shared/banner/bannerSlice";
 import { fakeGameHub, type FakeGameHub } from "../test/fakeGameHub";
 import { server } from "../test/server";
@@ -74,5 +76,115 @@ describe("listener middleware", () => {
     await store.dispatch(authApi.endpoints.logout.initiate());
 
     expect(hub.stop).not.toHaveBeenCalled();
+  });
+
+  describe("progress throttle", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    async function startRacing(store: ReturnType<typeof setup>["store"]) {
+      await store.dispatch(connectHub());
+      store.dispatch(hubEvents.raceStarted());
+    }
+
+    function progress(typed: string, final = false) {
+      return progressTyped({
+        index: typed.length - 1,
+        mistakes: 0,
+        typed,
+        final,
+      });
+    }
+
+    it("sends the first progress at once", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+
+      store.dispatch(progress("a"));
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledWith(0, 0, "a");
+    });
+
+    it("coalesces progress within 100 ms into one trailing send with the latest text", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+
+      store.dispatch(progress("a"));
+      store.dispatch(progress("ab"));
+      store.dispatch(progress("abc"));
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(hub.server.updateRaceState.mock.calls).toEqual([
+        [0, 0, "a"],
+        [2, 0, "abc"],
+      ]);
+    });
+
+    it("sends at once again after 100 ms have passed", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+      store.dispatch(progress("a"));
+
+      await vi.advanceTimersByTimeAsync(100);
+      store.dispatch(progress("ab"));
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(2);
+    });
+
+    it("sends final progress at once and drops the pending one", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+
+      store.dispatch(progress("a"));
+      store.dispatch(progress("ab"));
+      store.dispatch(progress("abc", true));
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(2);
+      expect(hub.server.updateRaceState).toHaveBeenLastCalledWith(2, 0, "abc");
+
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(2);
+    });
+
+    it("drops pending progress after the player is withdrawn", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+      store.dispatch(progress("a"));
+      store.dispatch(progress("ab"));
+
+      store.dispatch(hubEvents.raceWithdrawn());
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(1);
+    });
+
+    it("drops pending progress when the race ends before it is sent", async () => {
+      const { hub, store } = setup();
+      await startRacing(store);
+      store.dispatch(progress("a"));
+      store.dispatch(progress("ab"));
+
+      store.dispatch(hubEvents.raceEnded({ results: [] }));
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(hub.server.updateRaceState).toHaveBeenCalledTimes(1);
+    });
+
+    it("sends no progress outside a race", async () => {
+      const { hub, store } = setup();
+      await store.dispatch(connectHub());
+
+      store.dispatch(progress("a"));
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(hub.server.updateRaceState).not.toHaveBeenCalled();
+    });
   });
 });

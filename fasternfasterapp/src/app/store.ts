@@ -3,6 +3,7 @@ import { API_BASE } from "../config";
 import { connectionSlice } from "../features/connection/connectionSlice";
 import type { GameHub } from "../features/connection/gameHub";
 import { createSignalRGameHub } from "../features/connection/signalRGameHub";
+import { raceSlice } from "../features/game/raceSlice";
 import { lobbySlice } from "../features/lobbies/lobbySlice";
 import { api } from "../shared/api/api";
 import { bannerSlice } from "../shared/banner/bannerSlice";
@@ -13,6 +14,7 @@ const rootReducer = combineSlices(
   bannerSlice,
   connectionSlice,
   lobbySlice,
+  raceSlice,
 );
 
 export type ThunkExtra = { hub: GameHub };

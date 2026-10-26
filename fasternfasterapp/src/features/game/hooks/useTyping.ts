@@ -7,15 +7,11 @@ import {
 } from "react";
 import { useAppSelector } from "../../../app/hooks";
 import { selectIsConnected } from "../../connection/connectionSlice";
+import type { RaceProgress } from "../../connection/hubThunks";
 
 const MAX_OVERFLOW = 6;
 
-export type TypingProgress = {
-  index: number;
-  mistakes: number;
-  typed: string;
-  final: boolean;
-};
+export type TypingProgress = RaceProgress & { final: boolean };
 
 type TypingOptions = {
   passage: string;

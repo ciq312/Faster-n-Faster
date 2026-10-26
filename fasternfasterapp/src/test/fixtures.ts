@@ -1,3 +1,5 @@
+import type { RaceResultDTO } from "../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceFinished";
+import type { RaceParticipantDTO } from "../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState";
 import type { LobbyStateDTO } from "../../generated/signalr/FasterNFaster.Api.UseCases.Lobbies.LobbyState";
 
 export function lobbyState(
@@ -34,6 +36,35 @@ export function lobbyState(
         color: "blue",
       },
     ],
+    ...overrides,
+  };
+}
+
+export function raceResult(
+  overrides: Partial<RaceResultDTO> = {},
+): RaceResultDTO {
+  return {
+    playerId: "p1",
+    nick: "Player",
+    finishPosition: 1,
+    wpm: 40,
+    accuracy: 100,
+    mistakeCount: 0,
+    ...overrides,
+  };
+}
+
+export function raceParticipant(
+  overrides: Partial<RaceParticipantDTO> = {},
+): RaceParticipantDTO {
+  return {
+    playerId: "p1",
+    index: 2,
+    typed: "hi ",
+    wpm: 40,
+    color: "red",
+    nick: "Player",
+    mistakes: 1,
     ...overrides,
   };
 }
