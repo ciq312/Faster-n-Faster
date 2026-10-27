@@ -15,5 +15,6 @@ public class GetLeaderboardsSummary : ApiSummary<GetLeaderboardsEndpoint>
             PageSize: 30,
             TotalPlayers: 1,
             TotalPages: 1));
+        ValidationFailed();
     }
 }

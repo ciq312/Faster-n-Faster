@@ -276,6 +276,119 @@
         ]
       }
     },
+    "/api/leaderboards/me": {
+      "get": {
+        "tags": [
+          "Leaderboards"
+        ],
+        "summary": "Get the current player's leaderboard row",
+        "description": "Returns the caller's rank and stats for `sort` and `descending`, ranked exactly like `GET /api/leaderboards` (ties broken by id). Not cached.",
+        "operationId": "FasterNFasterApiPresentationWebLeaderboardsGetMyLeaderboardRankGetMyLeaderboardRankEndpoint",
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LeaderboardSort"
+                }
+              ]
+            }
+          },
+          {
+            "name": "descending",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The player's row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardResultDTO"
+                },
+                "example": {
+                  "rank": 57,
+                  "id": "3f2b8c1e-7a4d-4e9b-9c2a-1d5e6f7a8b9c",
+                  "nick": "player1",
+                  "bestWPM": 112.4,
+                  "bestAccuracy": 98.1,
+                  "avgWPM": 95.7,
+                  "avgAccuracy": 96.3,
+                  "wins": 14,
+                  "wordsTyped": 5210,
+                  "racesTyped": 42
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed; `errors` maps each field to its messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in (`not_authenticated`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a registered player, e.g. a guest (`forbidden`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The player has no leaderboard row: no statistics yet, banned or suspended (`not_on_leaderboard`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTBearerAuth": [
+              "Player"
+            ]
+          }
+        ]
+      }
+    },
     "/api/leaderboards": {
       "get": {
         "tags": [
@@ -347,7 +460,7 @@
                     {
                       "rank": 1,
                       "id": "3f2b8c1e-7a4d-4e9b-9c2a-1d5e6f7a8b9c",
-                      "playerName": "player1",
+                      "nick": "player1",
                       "bestWPM": 112.4,
                       "bestAccuracy": 98.1,
                       "avgWPM": 95.7,
@@ -361,6 +474,16 @@
                   "pageSize": 30,
                   "totalPlayers": 1,
                   "totalPages": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed; `errors` maps each field to its messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
@@ -1175,34 +1298,6 @@
           }
         }
       },
-      "GetLeaderboardResults": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LeaderboardResultDTO"
-            }
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPlayers": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "LeaderboardResultDTO": {
         "type": "object",
         "additionalProperties": false,
@@ -1215,7 +1310,7 @@
             "type": "string",
             "format": "guid"
           },
-          "playerName": {
+          "nick": {
             "type": "string"
           },
           "bestWPM": {
@@ -1248,7 +1343,7 @@
           }
         }
       },
-      "GetLeaderboardsRequest": {
+      "GetMyLeaderboardRankRequest": {
         "type": "object",
         "additionalProperties": false
       },
@@ -1273,6 +1368,38 @@
           5,
           6
         ]
+      },
+      "GetLeaderboardResults": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardResultDTO"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPlayers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "GetLeaderboardsRequest": {
+        "type": "object",
+        "additionalProperties": false
       },
       "VerifyEmailRequest": {
         "type": "object",

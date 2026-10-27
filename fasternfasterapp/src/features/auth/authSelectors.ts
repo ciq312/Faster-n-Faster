@@ -20,6 +20,9 @@ export const selectCurrentUser = (state: RootState) =>
 export const selectIsGuest = (state: RootState) =>
   selectCurrentUser(state)?.role === "Guest";
 
+export const selectIsPlayer = (state: RootState) =>
+  selectCurrentUser(state)?.role === "Player";
+
 export const selectIsSelf = createSelector(
   [(state: RootState) => selectCurrentUser(state)?.userId],
   (userId) => (id: string) => userId === id,

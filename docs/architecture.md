@@ -30,7 +30,7 @@ Images are built in CI, pushed to GHCR and deployed pinned to the commit SHA. Th
 |---|---|---|
 | Users, external logins, statistics, race results, bans and suspensions | PostgreSQL (EF Core, `AppDbContext`) | Yes |
 | Refresh tokens, email-verification and password-reset tokens | Redis, with TTLs | Yes |
-| Leaderboard pages | Redis, 60 s cache-aside | Yes (it's a cache) |
+| Leaderboard pages | Redis, 60 s cache-aside; the player's own rank (`/api/leaderboards/me`) is read live | Yes (it's a cache) |
 | Lobbies, races, player → lobby index, invite codes | API memory: `InMemoryLobbyStore`, `InMemoryRaceStore` ([0002](decisions/0002-live-game-state-in-memory-on-one-instance.md)) | No |
 | Active connection per user, strikes, pending reconnect removals, racing-lobby registry, sanction terminator's connection list | API memory (singletons) | No |
 | Finished race results waiting to be written | In-process channel, `RaceResultQueue` | No |

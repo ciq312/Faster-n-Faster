@@ -12,4 +12,7 @@ public class CachedLeaderboardRepository(ILeaderboardRepository inner, ICache ca
         var key = $"lb:{sort}:{descending}:{page}:{pageSize}";
         return cache.GetOrSetAsync(key, () => inner.GetTopPlayersAsync(sort, descending, page, pageSize), Ttl);
     }
+
+    public Task<PlayerRank?> GetPlayerRankAsync(Guid playerId, LeaderboardSort sort, bool descending, CancellationToken cancellationToken) =>
+        inner.GetPlayerRankAsync(playerId, sort, descending, cancellationToken);
 }

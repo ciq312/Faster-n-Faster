@@ -124,6 +124,7 @@ Show `errors` for a validation failure and `reason` otherwise; branch only on `c
 |---|---|---|---|---|
 | `email_not_verified` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
 | `invalid_credentials` | 401 | `POST /api/auth/login` | — | Wrong login or password; the message doesn't say which. |
+| `not_on_leaderboard` | 404 | `GET /api/leaderboards/me` | — | The player has no statistics yet, or is banned or suspended, so has no leaderboard row. The client shows no pinned row. |
 | `not_authenticated` | 401 | any endpoint that needs a login, `POST /api/auth/refresh` | — | No valid access token, or the refresh token is missing, expired or already rotated. |
 | `forbidden` | 403 | endpoints with a role requirement | — | Logged in, but the role isn't allowed. |
 | `rate_limited` | 429 | rate-limited endpoints | — | Too many requests; retry after `Retry-After`. |

@@ -57,18 +57,10 @@ export interface CreateLobbyRequest {
     isPrivate?: boolean;
 }
 
-export interface GetLeaderboardResults {
-    items?: LeaderboardResultDTO[];
-    page?: number;
-    pageSize?: number;
-    totalPlayers?: number;
-    totalPages?: number;
-}
-
 export interface LeaderboardResultDTO {
     rank?: number;
     id?: string;
-    playerName?: string;
+    nick?: string;
     bestWPM?: number;
     bestAccuracy?: number;
     avgWPM?: number;
@@ -78,7 +70,7 @@ export interface LeaderboardResultDTO {
     racesTyped?: number;
 }
 
-export interface GetLeaderboardsRequest {
+export interface GetMyLeaderboardRankRequest {
 }
 
 export enum LeaderboardSort {
@@ -89,6 +81,17 @@ export enum LeaderboardSort {
     Wins = 4,
     WordsTyped = 5,
     RacesTyped = 6,
+}
+
+export interface GetLeaderboardResults {
+    items?: LeaderboardResultDTO[];
+    page?: number;
+    pageSize?: number;
+    totalPlayers?: number;
+    totalPages?: number;
+}
+
+export interface GetLeaderboardsRequest {
 }
 
 export interface VerifyEmailRequest {
