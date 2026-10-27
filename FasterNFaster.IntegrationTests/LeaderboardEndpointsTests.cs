@@ -2,8 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.Leaderboards.GetLeaderboard;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using static FasterNFaster.IntegrationTests.StatisticsSeeder;
 
@@ -12,6 +16,14 @@ namespace FasterNFaster.IntegrationTests;
 public class LeaderboardEndpointsTests(NoRateLimitApplicationFactory<Program> fixture) : IntegrationTestBase(fixture), IClassFixture<NoRateLimitApplicationFactory<Program>>
 {
     private const string MyRankUri = "api/leaderboards/me";
+
+    protected override void ConfigureApp(IWebHostBuilder builder) =>
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddSingleton<GatedDbCommandCounter>();
+            services.ConfigureDbContext<AppDbContext>((sp, options) =>
+                options.AddInterceptors(sp.GetRequiredService<GatedDbCommandCounter>()));
+        });
 
     [Fact]
     public async Task MyRank_LoggedOut_Returns401NotAuthenticated()
@@ -121,6 +133,25 @@ public class LeaderboardEndpointsTests(NoRateLimitApplicationFactory<Program> fi
         var item = body.RootElement.GetProperty("items")[0];
         item.TryGetProperty("nick", out _).ShouldBeTrue();
         item.TryGetProperty("playerName", out _).ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task List_ConcurrentRequestsOnColdPage_QueryDatabaseOnce()
+    {
+        const int Requests = 10;
+        const int CommandsPerPageLoad = 2;
+        var counter = App.Services.GetRequiredService<GatedDbCommandCounter>();
+        var client = App.CreateClient();
+        counter.Hold();
+        var before = counter.Count;
+
+        var responses = Enumerable.Range(0, Requests).Select(_ => client.GetAsync("api/leaderboards")).ToList();
+        // Uncoalesced, every request's first query is counted and held here; coalesced, only one is, so the wait runs to its timeout.
+        await counter.WaitUntilCountOrTimeoutAsync(before + Requests, TimeSpan.FromSeconds(1));
+        counter.Release();
+
+        (await Task.WhenAll(responses)).ShouldAllBe(response => response.StatusCode == HttpStatusCode.OK);
+        (counter.Count - before).ShouldBe(CommandsPerPageLoad);
     }
 
     private async Task SeedOtherPlayersAsync(float wpm, int count)
