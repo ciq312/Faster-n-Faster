@@ -1,3 +1,5 @@
+using FasterNFaster.Api.UseCases.Leaderboards.Ports;
+
 namespace FasterNFaster.Api.UseCases.Leaderboards.GetLeaderboard;
 
 public record GetLeaderboardResults(
@@ -10,11 +12,15 @@ public record GetLeaderboardResults(
 public record LeaderboardResultDTO(
     int Rank,
     Guid Id,
-    string PlayerName,
+    string Nick,
     double BestWPM,
     double BestAccuracy,
     double AvgWPM,
     double AvgAccuracy,
     int Wins,
     int WordsTyped,
-    int RacesTyped);
+    int RacesTyped)
+{
+    public static LeaderboardResultDTO From(int rank, LeaderboardEntry entry) =>
+        new(rank, entry.Id, entry.Nick, entry.BestWPM, entry.BestAccuracy, entry.AvgWPM, entry.AvgAccuracy, entry.Wins, entry.WordsTyped, entry.RacesTyped);
+}

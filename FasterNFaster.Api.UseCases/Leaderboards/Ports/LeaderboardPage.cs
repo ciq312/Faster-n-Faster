@@ -4,7 +4,7 @@ public record LeaderboardPage(IReadOnlyList<LeaderboardEntry> Items, int TotalPl
 
 public record LeaderboardEntry(
     Guid Id,
-    string PlayerName,
+    string Nick,
     float BestWPM,
     float BestAccuracy,
     float AvgWPM,

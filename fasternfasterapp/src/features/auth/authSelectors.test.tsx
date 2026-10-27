@@ -11,6 +11,7 @@ import {
   selectAuthStatus,
   selectCurrentUser,
   selectIsGuest,
+  selectIsPlayer,
   selectIsSelf,
 } from "./authSelectors";
 
@@ -85,6 +86,15 @@ describe("auth selectors", () => {
     const store = await storeWithMe({ ...player, role: "Guest" });
 
     expect(selectIsGuest(store.getState())).toBe(true);
+  });
+
+  it("treats only the Player role as a registered player", async () => {
+    const asPlayer = await storeWithMe({ ...player, role: "Player" });
+    const asGuest = await storeWithMe({ ...player, role: "Guest" });
+
+    expect(selectIsPlayer(asPlayer.getState())).toBe(true);
+    expect(selectIsPlayer(asGuest.getState())).toBe(false);
+    expect(selectIsPlayer(setupStore().getState())).toBe(false);
   });
 
   it("matches only the current user's id in isSelf", async () => {
