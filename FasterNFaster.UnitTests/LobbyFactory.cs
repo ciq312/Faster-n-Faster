@@ -116,6 +116,10 @@ public static class LobbyFactory
         return (host, other, context);
     }
 
+    public static Task<CreateLobbyResult> CreateLobby(LobbyTestContext context, string name, bool isPrivate) =>
+        new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time)
+            .Handle(new CreateLobbyCommand(name, isPrivate, Guid.NewGuid()), CancellationToken.None);
+
     public static Task StartRace(LobbyTestContext context, Guid hostId)
     {
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FasterNFaster.Api.Domain.Entities.Auth;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
+using FasterNFaster.Api.Presentation.Web.Auth.RegisterAnonymous;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Auth.VerifyEmail;
 using FasterNFaster.Api.UseCases.Auth.Ports;
@@ -68,4 +69,9 @@ public static class AuthHelper
     public static string LogoutUri => "api/auth/logout";
     public static string GuestUri => "api/auth/guest";
 
+    public static async Task RegisterGuestAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync(GuestUri, new RegisterAnonymousRequest { Nick = "guest" });
+        response.EnsureSuccessStatusCode();
+    }
 }

@@ -6,6 +6,7 @@ using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using Shouldly;
 
 namespace FasterNFaster.UnitTests.Lobbies;
 
@@ -21,8 +22,8 @@ public class CreateLobbyHandlerTests
 
         var (name, storedHostId) = await lobbies.Read(result.LobbyId, l => (l.Name, l.HostId));
 
-        Assert.Equal("testLobby", name);
-        Assert.Equal(hostId, storedHostId);
+        name.ShouldBe("testLobby");
+        storedHostId.ShouldBe(hostId);
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public class CreateLobbyHandlerTests
 
         await createLobbyHandler.Handle(new CreateLobbyCommand("testLobby", false, Guid.NewGuid()), CancellationToken.None);
 
-        Assert.Single(lobbies.GetAllIds());
+        lobbies.GetAllIds().ShouldHaveSingleItem();
     }
 
     [Fact]
@@ -42,10 +43,10 @@ public class CreateLobbyHandlerTests
         var context = await LobbyFactory.WithPlayers(host);
         var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time);
 
-        await Assert.ThrowsAsync<AlreadyInLobbyException>(() =>
+        await Should.ThrowAsync<AlreadyInLobbyException>(() =>
             handler.Handle(new CreateLobbyCommand("second", false, host.Id), CancellationToken.None));
 
-        Assert.Single(context.Lobbies.GetAllIds());
+        context.Lobbies.GetAllIds().ShouldHaveSingleItem();
     }
 
     private static (CreateLobbyHandler Handler, InMemoryLobbyStore Lobbies) Build()

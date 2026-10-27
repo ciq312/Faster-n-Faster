@@ -124,6 +124,8 @@ Show `errors` for a validation failure and `reason` otherwise; branch only on `c
 |---|---|---|---|---|
 | `email_not_verified` | 403 | `POST /api/auth/login` | `email` — the account's email | Credentials are correct but the email isn't verified. The client redirects to `/check-your-email?email=…`, where the user can resend the link. |
 | `invalid_credentials` | 401 | `POST /api/auth/login` | — | Wrong login or password; the message doesn't say which. |
+| `invalid_cursor` | 400 | `GET /api/lobbies` | — | `cursor` isn't one this endpoint issued. The client shows the reason; Refresh starts the feed again from the first page. |
+| `invalid_invite_code` | 404 | `GET /api/lobbies/by-invite/{inviteCode}` | — | No lobby has this invite code. Joining a private lobby with a wrong code over the hub gives the same message without a code. |
 | `not_on_leaderboard` | 404 | `GET /api/leaderboards/me` | — | The player has no statistics yet, or is banned or suspended, so has no leaderboard row. The client shows no pinned row. |
 | `not_authenticated` | 401 | any endpoint that needs a login, `POST /api/auth/refresh` | — | No valid access token, or the refresh token is missing, expired or already rotated. |
 | `forbidden` | 403 | endpoints with a role requirement | — | Logged in, but the role isn't allowed. |

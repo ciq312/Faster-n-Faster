@@ -8,7 +8,6 @@ using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
-using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
@@ -134,7 +133,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     public async Task NonHostStartRace_ShouldThrowHubException()
     {
         var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(hostClient);
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
 
         var (guestClient, guestCookies, _) = await RegisterAndLoginAsync(NewUser("guest"));
@@ -149,7 +148,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     public async Task GuestJoinsLobby_NotifiesHostButNotGuest()
     {
         var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(hostClient);
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
         var hostJoined = NextEventAsync<JsonElement>(hostHub, nameof(IGameClient.PlayerJoined));
 
@@ -175,7 +174,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     {
         var (hostClient, hostCookies, host) = await RegisterAndLoginAsync();
         var (guestClient, guestCookies, guest) = await RegisterAndLoginAsync(NewUser("guest"));
-        var lobby = await CreateLobbyAsync(hostClient);
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
         await using var guestHub = await JoinLobbyAsync(guestClient, guestCookies, lobby);
 
@@ -226,7 +225,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     public async Task StartRace_SendsLobbyStateWithRaceStartingOnly()
     {
         var (client, cookies, _) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(client);
+        var lobby = await LobbyHelper.CreateLobbyAsync(client);
         await using var hub = await JoinLobbyAsync(client, cookies, lobby);
         var lobbyState = NextEventAsync<JsonElement>(hub, nameof(IGameClient.LobbyState));
 
@@ -265,7 +264,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     private async Task<(HubConnection Hub, Guid UserId, Guid LobbyId)> StartSoloRaceAsync()
     {
         var (client, cookies, loginResult) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(client);
+        var lobby = await LobbyHelper.CreateLobbyAsync(client);
         var hub = await JoinLobbyAsync(client, cookies, lobby);
 
         var raceStarted = NextEventAsync(hub, nameof(IGameClient.RaceStarted));
@@ -309,14 +308,6 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         }
 
         throw new TimeoutException($"Statistics for user {userId} were not saved within {EventTimeout}");
-    }
-
-    private static async Task<CreateLobbyResult> CreateLobbyAsync(HttpClient client)
-    {
-        var response = await client.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
-
-        return await response.Content.ReadFromJsonAsync<CreateLobbyResult>()
-            ?? throw new InvalidOperationException("can't parse create lobby result");
     }
 
     private async Task<HubConnection> JoinLobbyAsync(HttpClient client, CookieContainer cookies, CreateLobbyResult lobby)

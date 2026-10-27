@@ -30,10 +30,6 @@ export interface HealthResponse {
     status?: string;
 }
 
-export interface GetLobbiesResult {
-    lobbies?: LobbyListItem[];
-}
-
 export interface LobbyListItem {
     id?: string;
     name?: string;
@@ -42,6 +38,14 @@ export interface LobbyListItem {
     playerCount?: number;
     maxPlayers?: number;
     createdAt?: Date;
+}
+
+export interface GetLobbyByInviteCodeRequest {
+}
+
+export interface GetLobbiesResult {
+    items?: LobbyListItem[];
+    nextCursor?: string | undefined;
 }
 
 export interface GetLobbiesRequest {
