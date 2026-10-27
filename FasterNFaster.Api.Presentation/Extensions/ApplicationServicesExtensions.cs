@@ -37,7 +37,8 @@ public static class ApplicationServicesExtensions
     {
         services.AddSingleton<IPassageProvider, RandomPassageProvider>();
 
-        services.AddSingleton<ICache, RedisCache>();
+        services.AddSingleton<RedisCache>();
+        services.AddSingleton<ICache>(sp => new CoalescingCache(sp.GetRequiredService<RedisCache>()));
 
         services.AddScoped<IUserRepository, PostgresUserRepository>();
         services.AddScoped<IStatisticsRepository, PostgresStatisticsRepository>();

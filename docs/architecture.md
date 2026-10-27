@@ -30,7 +30,7 @@ Images are built in CI, pushed to GHCR and deployed pinned to the commit SHA. Th
 |---|---|---|
 | Users, external logins, statistics, race results, bans and suspensions | PostgreSQL (EF Core, `AppDbContext`) | Yes |
 | Refresh tokens, email-verification and password-reset tokens | Redis, with TTLs | Yes |
-| Leaderboard pages | Redis, 60 s cache-aside; the player's own rank (`/api/leaderboards/me`) is read live | Yes (it's a cache) |
+| Leaderboard pages | Redis, 60 s cache-aside; concurrent misses on one page share a single query (`CoalescingCache`); the player's own rank (`/api/leaderboards/me`) is read live | Yes (it's a cache) |
 | Lobbies, races, player → lobby index, invite codes | API memory: `InMemoryLobbyStore`, `InMemoryRaceStore` ([0002](decisions/0002-live-game-state-in-memory-on-one-instance.md)) | No |
 | Active connection per user, strikes, pending reconnect removals, racing-lobby registry, sanction terminator's connection list | API memory (singletons) | No |
 | Finished race results waiting to be written | In-process channel, `RaceResultQueue` | No |
@@ -109,6 +109,7 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 - **Indexes live with the store.** `InMemoryLobbyStore` keeps the player → lobby and invite-code indexes in sync with each mutation. "One lobby per player" is an atomic `GetOrAdd` claim on that index.
 - **Lock-free broadcasting.** The conflator swaps frames with `Interlocked` and runs at most one send loop per lobby.
 - **Off-path persistence.** Race results go through a single-reader channel, so a slow database never blocks a hub call.
+- **Single-flight cache loads.** `CoalescingCache` decorates `RedisCache` behind `ICache`: the first miss on a key starts the load, concurrent callers on that key await the same task, and the entry is dropped before the load settles, so a failed load is retried by the next call instead of being shared or cached. Keys don't wait on each other.
 
 ## Frontend
 
@@ -131,7 +132,7 @@ The API runs as a single instance on purpose ([0002](decisions/0002-live-game-st
 - **A Redis SignalR backplane,** so a broadcast reaches players connected to other instances.
 - **A `RedisLobbyStore` behind `ILobbyStore`.** Lobbies are serialized to Redis, and a distributed lock or optimistic versioning replaces the in-process gate. The player → lobby and invite-code indexes become Redis keys, and the player claim becomes `SET NX`. Handlers only talk to the port and LobbyState marking sits in the decorator over it, so they don't change.
 - **Race state pinned to one instance.** The keystroke hot path stays in memory on the instance that owns the race. The lobby records the owner, and that instance's tick loop broadcasts, so there's no Redis round-trip per keystroke.
-- **Shared or sticky per-instance registries.** Strikes (`StrikeRegistry`), pending reconnect removals (`PendingRemovalRegistry`), sessions (`InMemorySessionService`), the race tick registry and the connection terminator are in-process today.
+- **Shared or sticky per-instance registries.** Strikes (`StrikeRegistry`), pending reconnect removals (`PendingRemovalRegistry`), sessions (`InMemorySessionService`), the race tick registry and the connection terminator are in-process today. Cache-miss coalescing is per instance too, so a cold key costs at most one query per instance.
 
 ## Decisions
 
