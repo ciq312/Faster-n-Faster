@@ -8,4 +8,6 @@ public static class ErrorCodes
     public const string Forbidden = "forbidden";
     public const string RateLimited = "rate_limited";
     public const string NotOnLeaderboard = "not_on_leaderboard";
+    public const string InvalidInviteCode = "invalid_invite_code";
+    public const string InvalidCursor = "invalid_cursor";
 }

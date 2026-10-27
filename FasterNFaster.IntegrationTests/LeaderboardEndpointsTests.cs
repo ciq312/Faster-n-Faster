@@ -2,8 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FasterNFaster.Api.Domain.Exceptions;
-using FasterNFaster.Api.Presentation.Web.Auth.RegisterAnonymous;
-using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.Leaderboards.GetLeaderboard;
 using Shouldly;
@@ -27,8 +25,7 @@ public class LeaderboardEndpointsTests(NoRateLimitApplicationFactory<Program> fi
     public async Task MyRank_Guest_Returns403Forbidden()
     {
         var client = App.CreateClient();
-        var guestResponse = await client.PostAsJsonAsync(AuthHelper.GuestUri, new RegisterAnonymousRequest { Nick = "guest" });
-        guestResponse.EnsureSuccessStatusCode();
+        await AuthHelper.RegisterGuestAsync(client);
 
         var response = await client.GetAsync(MyRankUri);
 
@@ -124,13 +121,6 @@ public class LeaderboardEndpointsTests(NoRateLimitApplicationFactory<Program> fi
         var item = body.RootElement.GetProperty("items")[0];
         item.TryGetProperty("nick", out _).ShouldBeTrue();
         item.TryGetProperty("playerName", out _).ShouldBeFalse();
-    }
-
-    private static async Task ShouldBeErrorAsync(HttpResponseMessage response, HttpStatusCode status, string code)
-    {
-        response.StatusCode.ShouldBe(status);
-        var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
-        body.ShouldNotBeNull().Code.ShouldBe(code);
     }
 
     private async Task SeedOtherPlayersAsync(float wpm, int count)

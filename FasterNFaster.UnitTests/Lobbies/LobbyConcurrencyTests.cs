@@ -271,7 +271,7 @@ public class LobbyConcurrencyTests
             actions.Add(() => Repeat(readsPerReader, async () =>
                 states.Add(await context.LobbyQuery.GetLobbyState(context.LobbyId))));
             actions.Add(() => Repeat(readsPerReader, () =>
-                lobbiesHandler.Handle(new GetLobbiesQuery(), CancellationToken.None)));
+                lobbiesHandler.Handle(new GetLobbiesQuery(20), CancellationToken.None)));
             actions.Add(() => Repeat(readsPerReader, () =>
                 context.Lobbies.TryRead(context.LobbyId, l => l.GetPlayerIds())));
             actions.Add(() =>

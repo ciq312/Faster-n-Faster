@@ -7,17 +7,25 @@ import type {
 import { api } from "../../shared/api/api";
 import { invalidatesOnSuccess } from "../../shared/api/invalidatesOnSuccess";
 
+const LOBBY_PAGE_SIZE = 20;
+
 export const lobbiesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getLobbies: builder.query<LobbyListItem[], void>({
-      query: () => "/api/lobbies",
-      transformResponse: (response: GetLobbiesResult) => response.lobbies ?? [],
+    getLobbies: builder.infiniteQuery<GetLobbiesResult, void, string | null>({
+      infiniteQueryOptions: {
+        initialPageParam: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+        refetchCachedPages: false,
+      },
+      query: ({ pageParam }) => ({
+        url: "/api/lobbies",
+        params: { limit: LOBBY_PAGE_SIZE, cursor: pageParam ?? undefined },
+      }),
       providesTags: ["Lobbies"],
     }),
-    findLobbyByInviteCode: builder.query<LobbyListItem | null, string>({
-      query: (inviteCode) => ({ url: "/api/lobbies", params: { inviteCode } }),
-      transformResponse: (response: GetLobbiesResult) =>
-        response.lobbies?.[0] ?? null,
+    findLobbyByInviteCode: builder.query<LobbyListItem, string>({
+      query: (inviteCode) =>
+        `/api/lobbies/by-invite/${encodeURIComponent(inviteCode)}`,
     }),
     createLobby: builder.mutation<CreateLobbyResult, CreateLobbyRequest>({
       query: (body) => ({ url: "/api/lobbies", method: "POST", body }),
@@ -27,7 +35,7 @@ export const lobbiesApi = api.injectEndpoints({
 });
 
 export const {
-  useGetLobbiesQuery,
+  useGetLobbiesInfiniteQuery,
   useLazyFindLobbyByInviteCodeQuery,
   useCreateLobbyMutation,
 } = lobbiesApi;

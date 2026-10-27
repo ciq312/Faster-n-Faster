@@ -106,17 +106,97 @@
         }
       }
     },
+    "/api/lobbies/by-invite/{inviteCode}": {
+      "get": {
+        "tags": [
+          "Lobbies"
+        ],
+        "summary": "Find a lobby by invite code",
+        "description": "Returns the lobby with this invite code, public or private. The code is case-insensitive.",
+        "operationId": "FasterNFasterApiPresentationWebLobbiesGetLobbyByInviteCodeGetLobbyByInviteCodeEndpoint",
+        "parameters": [
+          {
+            "name": "inviteCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The lobby",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LobbyListItem"
+                },
+                "example": {
+                  "id": "b7e6d5c4-3a2b-4c1d-9e8f-7a6b5c4d3e2f",
+                  "name": "Friends only",
+                  "isPrivate": true,
+                  "isSessionActive": false,
+                  "playerCount": 2,
+                  "maxPlayers": 6,
+                  "createdAt": "2026-10-21T18:30:00+00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No lobby has this invite code (`invalid_invite_code`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests (`rate_limited`); retry after the `Retry-After` header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/lobbies": {
       "get": {
         "tags": [
           "Lobbies"
         ],
-        "summary": "List lobbies",
-        "description": "Lists the lobbies, newest first. With `inviteCode`, returns only the lobby with that code, or an empty list if none matches.",
+        "summary": "List public lobbies",
+        "description": "Lists public lobbies newest first, `limit` per page (default 20, at most 100). Pass the previous page's `nextCursor` as `cursor` to get the next page; `nextCursor` is `null` on the last page. Private lobbies are never listed; find them with `GET /api/lobbies/by-invite/{inviteCode}`.",
         "operationId": "FasterNFasterApiPresentationWebLobbiesGetLobbiesGetLobbiesEndpoint",
         "parameters": [
           {
-            "name": "inviteCode",
+            "name": "limit",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
             "in": "query",
             "schema": {
               "type": "string",
@@ -136,14 +216,14 @@
             }
           },
           "200": {
-            "description": "The lobbies",
+            "description": "One page of lobbies",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetLobbiesResult"
                 },
                 "example": {
-                  "lobbies": [
+                  "items": [
                     {
                       "id": "b7e6d5c4-3a2b-4c1d-9e8f-7a6b5c4d3e2f",
                       "name": "Friday race",
@@ -153,13 +233,14 @@
                       "maxPlayers": 6,
                       "createdAt": "2026-10-21T18:30:00+00:00"
                     }
-                  ]
+                  ],
+                  "nextCursor": "eyJDcmVhdGVkQXQiOiIyMDI2LTEwLTIxVDE4OjMwOjAwKzAwOjAwIiwiSWQiOiJiN2U2ZDVjNC0zYTJiLTRjMWQtOWU4Zi03YTZiNWM0ZDNlMmYifQ"
                 }
               }
             }
           },
-          "429": {
-            "description": "Too many requests (`rate_limited`); retry after the `Retry-After` header",
+          "400": {
+            "description": "`limit` isn't a number (`validation_failed`), or `cursor` wasn't issued by this endpoint (`invalid_cursor`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1213,18 +1294,6 @@
           }
         }
       },
-      "GetLobbiesResult": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "lobbies": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LobbyListItem"
-            }
-          }
-        }
-      },
       "LobbyListItem": {
         "type": "object",
         "additionalProperties": false,
@@ -1253,6 +1322,26 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "GetLobbyByInviteCodeRequest": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "GetLobbiesResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LobbyListItem"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

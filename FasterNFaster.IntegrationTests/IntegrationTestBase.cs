@@ -1,5 +1,9 @@
+using System.Net;
+using System.Net.Http.Json;
+using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -18,5 +22,12 @@ public abstract class IntegrationTestBase(TestApplicationFactory<Program> fixtur
 
     protected virtual void ConfigureApp(IWebHostBuilder builder)
     {
+    }
+
+    protected static async Task ShouldBeErrorAsync(HttpResponseMessage response, HttpStatusCode status, string code)
+    {
+        response.StatusCode.ShouldBe(status);
+        var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        body.ShouldNotBeNull().Code.ShouldBe(code);
     }
 }

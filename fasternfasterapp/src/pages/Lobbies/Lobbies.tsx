@@ -4,14 +4,16 @@ import type { CreateLobbyRequest } from "../../../types";
 import { useAppDispatch } from "../../app/hooks";
 import { connectToLobby } from "../../features/connection/hubThunks";
 import CreateLobbyModal from "../../features/lobbies/components/CreateLobbyModal";
+import { uniqueLobbies } from "../../features/lobbies/uniqueLobbies";
 import {
   useCreateLobbyMutation,
-  useGetLobbiesQuery,
+  useGetLobbiesInfiniteQuery,
   useLazyFindLobbyByInviteCodeQuery,
 } from "../../features/lobbies/lobbiesApi";
 import { errorMessage } from "../../shared/api/errorMessage";
 import { showError } from "../../shared/banner/bannerSlice";
 import Navbar from "../../shared/components/Navbar/Navbar";
+import { useOnVisible } from "../../shared/hooks/useOnVisible";
 import { useQueryErrorBanner } from "../../shared/hooks/useQueryErrorBanner";
 import { lobbyPath } from "../../shared/utils/routes";
 import "./Lobbies.css";
@@ -22,18 +24,24 @@ function Lobbies() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
   const {
-    data: lobbies = [],
+    data,
     isLoading,
     isFetching,
     isSuccess,
     error,
     refetch,
-  } = useGetLobbiesQuery(undefined, { refetchOnMountOrArgChange: true });
+    hasNextPage,
+    isFetchNextPageError,
+    fetchNextPage,
+  } = useGetLobbiesInfiniteQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [createLobby] = useCreateLobbyMutation();
   const [findLobbyByInviteCode] = useLazyFindLobbyByInviteCodeQuery();
   useQueryErrorBanner(error);
 
-  const publicLobbies = lobbies.filter((lobby) => !lobby.isPrivate);
+  const lobbies = uniqueLobbies(data?.pages ?? []);
+  const loadMoreRef = useOnVisible(() => fetchNextPage());
 
   const joinLobby = async (lobbyId: string | undefined, code?: string) => {
     if (!lobbyId) return;
@@ -59,12 +67,8 @@ function Lobbies() {
     if (!code) return;
 
     const result = await findLobbyByInviteCode(code);
-    if (result.error) {
+    if (result.error || !result.data) {
       dispatch(showError(errorMessage(result.error)));
-      return;
-    }
-    if (!result.data) {
-      dispatch(showError("Invalid invite code"));
       return;
     }
     await joinLobby(result.data.id, code);
@@ -82,7 +86,11 @@ function Lobbies() {
             create lobby
           </button>
 
-          <button className="lobby-config__create" onClick={() => refetch()}>
+          <button
+            className="lobby-config__create"
+            disabled={isFetching}
+            onClick={() => refetch()}
+          >
             Refresh
           </button>
 
@@ -114,12 +122,12 @@ function Lobbies() {
             Active lobbies
           </h2>
           {isLoading && <div>Loading...</div>}
-          {isSuccess && publicLobbies.length === 0 && (
+          {isSuccess && lobbies.length === 0 && (
             <p className="lobby-list__empty">No active lobbies — create one!</p>
           )}
-          {publicLobbies.length > 0 && (
+          {lobbies.length > 0 && (
             <div className="lobby-list__cards" aria-busy={isFetching}>
-              {publicLobbies.map((lobby) => (
+              {lobbies.map((lobby) => (
                 <div key={lobby.id} className="lobby-card">
                   <div className="lobby-card__info">
                     <span className="lobby-card__name">{lobby.name}</span>
@@ -136,6 +144,14 @@ function Lobbies() {
                 </div>
               ))}
             </div>
+          )}
+          {/* Remount per page so a fresh observer re-checks visibility: a fetch can resolve without a render where isFetching is true. */}
+          {hasNextPage && !isFetching && !isFetchNextPageError && (
+            <div
+              key={data?.pages.length}
+              ref={loadMoreRef}
+              className="lobby-list__sentinel"
+            />
           )}
         </section>
       </div>
