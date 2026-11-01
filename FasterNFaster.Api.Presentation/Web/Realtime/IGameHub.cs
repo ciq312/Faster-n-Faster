@@ -12,7 +12,7 @@ public interface IGameHub
     Task TransferHost(Guid targetPlayerId);
     Task KickPlayer(Guid targetPlayerId);
     Task ChangeColor(string color);
-    Task UpdateRaceState(int index, int mistakes, string typed);
+    Task UpdateRaceState(KeystrokeEventDTO[] keystrokes);
     Task LeaveLobby();
     Task<long> Ping(long clientSentMs);
 }

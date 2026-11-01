@@ -80,6 +80,6 @@ public class RaceTickService(
         if (connectedPlayerIds is null) return;
 
         conflator.Publish(entry.LobbyId, connectedPlayerIds,
-            [.. snapshot.Select(p => new RaceParticipantDTO(p.PlayerId, p.Index, p.Typed, p.Wpm, p.Color, p.Nick, p.Mistakes))]);
+            [.. snapshot.Select(p => new RaceParticipantDTO(p.PlayerId, p.Index, p.Wpm))]);
     }
 }

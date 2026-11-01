@@ -3,6 +3,7 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
+import type { KeystrokeEventDTO } from '../FasterNFaster.Api.Presentation.Web.Realtime';
 
 export type IGameHub = {
     /**
@@ -39,12 +40,10 @@ export type IGameHub = {
     */
     changeColor(color: string): Promise<void>;
     /**
-    * @param index Transpiled from int
-    * @param mistakes Transpiled from int
-    * @param typed Transpiled from string
+    * @param keystrokes Transpiled from FasterNFaster.Api.Presentation.Web.Realtime.KeystrokeEventDTO[]
     * @returns Transpiled from System.Threading.Tasks.Task
     */
-    updateRaceState(index: number, mistakes: number, typed: string): Promise<void>;
+    updateRaceState(keystrokes: KeystrokeEventDTO[]): Promise<void>;
     /**
     * @returns Transpiled from System.Threading.Tasks.Task
     */
