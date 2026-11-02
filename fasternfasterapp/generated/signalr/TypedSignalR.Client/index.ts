@@ -5,7 +5,7 @@
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { IGameHub } from './FasterNFaster.Api.Presentation.Web.Realtime';
 import type { IGameClient } from './FasterNFaster.Api.UseCases.Realtime.Ports';
-import type { KeystrokeEventDTO } from '../FasterNFaster.Api.Presentation.Web.Realtime';
+import type { KeystrokeEventDTO, RaceProgressDTO } from '../FasterNFaster.Api.Presentation.Web.Realtime';
 import type { LobbyStateDTO } from '../FasterNFaster.Api.UseCases.Lobbies.LobbyState';
 import type { PlayerJoinedDTO } from '../FasterNFaster.Api.UseCases.Realtime.PlayerJoined';
 import type { PlayerKickedDTO } from '../FasterNFaster.Api.UseCases.Realtime.PlayerKicked';
@@ -121,6 +121,10 @@ class IGameHub_HubProxy implements IGameHub {
 
     public readonly updateRaceState = async (keystrokes: KeystrokeEventDTO[]): Promise<void> => {
         return await this.connection.invoke("UpdateRaceState", keystrokes);
+    }
+
+    public readonly getRaceProgress = async (): Promise<RaceProgressDTO> => {
+        return await this.connection.invoke("GetRaceProgress");
     }
 
     public readonly leaveLobby = async (): Promise<void> => {

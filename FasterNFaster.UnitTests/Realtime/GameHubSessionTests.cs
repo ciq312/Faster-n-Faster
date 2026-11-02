@@ -13,6 +13,7 @@ using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Time.Testing;
+using Shouldly;
 
 namespace FasterNFaster.UnitTests.Realtime;
 
@@ -81,6 +82,14 @@ public class GameHubSessionTests
         await disconnect;
     }
 
+    private static async Task<LobbyTestContext> StartedSoloRace(User host)
+    {
+        var context = await LobbyFactory.WithPlayers(host);
+        await LobbyFactory.StartRace(context, host.Id);
+        await context.Races.Mutate(context.LobbyId, r => r.Start());
+        return context;
+    }
+
     [Fact]
     public async Task Disconnect_OutsideLobby_ClearsSession()
     {
@@ -111,15 +120,13 @@ public class GameHubSessionTests
     public async Task StartedRace_UpdateAdvancesParticipant()
     {
         var host = new User("host");
-        var context = await LobbyFactory.WithPlayers(host);
-        await LobbyFactory.StartRace(context, host.Id);
-        await context.Races.Mutate(context.LobbyId, r => r.Start());
+        var context = await StartedSoloRace(host);
         var passage = await context.ReadRace(r => r.Passage);
 
-        await NewTab(host.Id, context.Lobbies, context.Races).UpdateRaceState(0, 0, passage[..1]);
+        await NewTab(host.Id, context.Lobbies, context.Races).UpdateRaceState([new KeystrokeEventDTO(passage[..1], 0)]);
 
-        var index = await context.ReadRace(r => r.Participants[host.Id].Index);
-        Assert.Equal(0, index);
+        var lastValidIndex = await context.ReadRace(r => r.Participants[host.Id].LastValidIndex);
+        lastValidIndex.ShouldBe(0);
     }
 
     [Fact]
@@ -130,24 +137,58 @@ public class GameHubSessionTests
         context.Races.Remove(context.LobbyId);
 
         var exception = await Record.ExceptionAsync(() =>
-            NewTab(host.Id, context.Lobbies, context.Races).UpdateRaceState(0, 0, "a"));
+            NewTab(host.Id, context.Lobbies, context.Races).UpdateRaceState([new KeystrokeEventDTO("a", 0)]));
 
-        Assert.Null(exception);
+        exception.ShouldBeNull();
     }
 
     [Fact]
     public async Task PlayerOutsideLobby_UpdateDoesNothing()
     {
         var host = new User("host");
-        var context = await LobbyFactory.WithPlayers(host);
-        await LobbyFactory.StartRace(context, host.Id);
-        await context.Races.Mutate(context.LobbyId, r => r.Start());
+        var context = await StartedSoloRace(host);
 
         var exception = await Record.ExceptionAsync(() =>
-            NewTab(Guid.NewGuid(), context.Lobbies, context.Races).UpdateRaceState(0, 0, "a"));
+            NewTab(Guid.NewGuid(), context.Lobbies, context.Races).UpdateRaceState([new KeystrokeEventDTO("a", 0)]));
 
-        Assert.Null(exception);
-        Assert.Equal(-1, await context.ReadRace(r => r.Participants[host.Id].Index));
+        exception.ShouldBeNull();
+        (await context.ReadRace(r => r.Participants[host.Id].LastValidIndex)).ShouldBe(-1);
+    }
+
+    [Fact]
+    public async Task StartedRace_GetRaceProgressReturnsCallersProgress()
+    {
+        var host = new User("host");
+        var context = await StartedSoloRace(host);
+        var passage = await context.ReadRace(r => r.Passage);
+        var tab = NewTab(host.Id, context.Lobbies, context.Races);
+        await tab.UpdateRaceState([new KeystrokeEventDTO(passage[..1], 0), new KeystrokeEventDTO("#", 0)]);
+
+        var progress = await tab.GetRaceProgress();
+
+        progress.ShouldBe(new RaceProgressDTO(LastValidIndex: 0, WrongTail: "#", Mistakes: 1));
+    }
+
+    [Fact]
+    public async Task RaceNotStarted_GetRaceProgressReturnsNull()
+    {
+        var host = new User("host");
+        var context = await LobbyFactory.WithPlayers(host);
+
+        var progress = await NewTab(host.Id, context.Lobbies, context.Races).GetRaceProgress();
+
+        progress.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task PlayerOutsideLobby_GetRaceProgressReturnsNull()
+    {
+        var host = new User("host");
+        var context = await StartedSoloRace(host);
+
+        var progress = await NewTab(Guid.NewGuid(), context.Lobbies, context.Races).GetRaceProgress();
+
+        progress.ShouldBeNull();
     }
 
     [Fact]

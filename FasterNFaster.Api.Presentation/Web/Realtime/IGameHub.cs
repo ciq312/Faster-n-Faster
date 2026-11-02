@@ -13,6 +13,7 @@ public interface IGameHub
     Task KickPlayer(Guid targetPlayerId);
     Task ChangeColor(string color);
     Task UpdateRaceState(KeystrokeEventDTO[] keystrokes);
+    Task<RaceProgressDTO?> GetRaceProgress();
     Task LeaveLobby();
     Task<long> Ping(long clientSentMs);
 }

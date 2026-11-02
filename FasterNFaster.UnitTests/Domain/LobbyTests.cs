@@ -2,7 +2,7 @@ using FasterNFaster.Api.Domain.Entities.Lobbies;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
-using FasterNFaster.UnitTests.Fakes;
+using FasterNFaster.UnitTests.Shared;
 using Microsoft.Extensions.Time.Testing;
 
 namespace FasterNFaster.UnitTests.Domain;
@@ -380,7 +380,7 @@ public class LobbyTests
         var time = new FakeTimeProvider();
         var lobby = CreateLobby(time);
         lobby.Join(Guid.NewGuid(), "joiner", null, Claim);
-        var participant = Assert.Single(lobby.GetRaceParticipants(new FakeAntiCheatPolicy(maxCharsPerSecond: 1000, budgetSlack: 1000)));
+        var participant = Assert.Single(lobby.GetRaceParticipants(AntiCheatPolicy.Unlimited));
         time.Advance(TimeSpan.FromSeconds(30));
 
         participant.Start();

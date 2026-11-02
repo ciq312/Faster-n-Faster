@@ -8,6 +8,7 @@ using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
+using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
@@ -88,11 +89,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (hub, userId, _) = await StartSoloRaceAsync();
         await using var _ = hub;
         var connectionClosed = CloseSignal(hub);
-        const int indexBeyondTyped = 5;
+        KeystrokeEventDTO[] backspaceOnEmptyText = [new("Backspace", 0)];
 
         // Abort() can race with delivering this call's own response, so the invoke itself
         // may legitimately fault - only the resulting close and suspension matter here.
-        await Record.ExceptionAsync(() => hub.InvokeAsync("UpdateRaceState", indexBeyondTyped, 0, ""));
+        await Record.ExceptionAsync(() => hub.InvokeAsync("UpdateRaceState", backspaceOnEmptyText));
 
         await connectionClosed.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
@@ -193,8 +194,8 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (passage, wordCount) = await App.Services
             .GetRequiredService<IRaceStore>()
             .Read(lobby.LobbyId, r => (r.Passage, r.WordCount));
-        await hostHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
-        await guestHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
+        await hostHub.InvokeAsync("UpdateRaceState", Keystrokes(passage));
+        await guestHub.InvokeAsync("UpdateRaceState", Keystrokes(passage));
 
         var ended = await hostRaceEnded.WaitAsync(EventTimeout);
         await guestRaceEnded.WaitAsync(EventTimeout);
@@ -274,13 +275,8 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         return (hub, loginResult.UserId, lobby.LobbyId);
     }
 
-    private static async Task TypeWithoutFinishingAsync(HubConnection hub, string passage)
-    {
-        const int maxUpdates = 20;
-        var updates = Math.Min(maxUpdates, passage.Length - 1);
-        for (var i = 0; i < updates; i++)
-            await hub.InvokeAsync("UpdateRaceState", i, 0, passage[..(i + 1)]);
-    }
+    private static KeystrokeEventDTO[] Keystrokes(string text) =>
+        [.. text.Select(c => new KeystrokeEventDTO(c.ToString(), 0))];
 
     private static Task<T> NextEventAsync<T>(HubConnection hub, string eventName)
     {

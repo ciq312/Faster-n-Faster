@@ -110,6 +110,12 @@ public sealed class Race : AggregateRoot<Guid>
 
     private void HandleOutcome(RaceParticipant racer, ProgressOutcome outcome)
     {
+        if (outcome.Status == ProgressStatus.Rejected)
+        {
+            RaiseDomainEvent(new RaceViolationEvent(LobbyId, racer.Id, racer.Nick, outcome.Rule!));
+            return;
+        }
+
         if (DidRacerFinish(racer) && !racer.IsFinished)
         {
             racer.MarkFinished(nextFinishPosition++);

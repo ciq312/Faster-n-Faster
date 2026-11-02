@@ -121,10 +121,15 @@ public partial class GameHub(
         await sender.Send(new ChangeColorCommand(userId, color));
     }
 
-    public async Task<RaceProgressDTO> SelfRaceProgress()
+    public async Task<RaceProgressDTO?> GetRaceProgress()
     {
         var userId = GetCallerContext().UserId;
-        return await races.Read(userId, r => new RaceProgressDTO(r.Participants.Values.First(p => p.Id == userId).LastValidIndex, r.Participants.Values.First(p => p.Id == userId).WrongTail, r.Participants.Values.First(p => p.Id == userId).Mistakes));
+        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return null;
+
+        return await races.TryRead(lobbyId, r =>
+            r.Participants.GetValueOrDefault(userId) is { } participant
+                ? new RaceProgressDTO(participant.LastValidIndex, participant.WrongTail, participant.Mistakes)
+                : null);
     }
 
     public async Task UpdateRaceState(KeystrokeEventDTO[] keystrokeEvents)

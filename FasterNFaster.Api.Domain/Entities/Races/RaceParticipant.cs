@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FasterNFaster.Api.Domain.Entities.Keys;
 using FasterNFaster.Api.Domain.Interfaces;
 
@@ -7,12 +8,14 @@ public class RaceParticipant
 {
     public const int MaxOverflow = 6;
     private readonly ProgressBudget budget;
+    private readonly int maxPendingKeystrokes;
     private readonly TimeProvider timeProvider;
     private readonly Queue<Keystroke> pendingKeystrokes = new();
 
     public RaceParticipant(Guid id, string color, string nick, IAntiCheatPolicy policy, TimeProvider timeProvider)
     {
         budget = new ProgressBudget(policy.MaxCharsPerSecond, policy.BudgetSlack, timeProvider);
+        maxPendingKeystrokes = policy.MaxPendingKeystrokes;
         Id = id;
         Color = color;
         Nick = nick;
@@ -50,7 +53,11 @@ public class RaceParticipant
             pendingKeystrokes.Enqueue(key);
         }
 
-        return ApplyPending(passage);
+        var outcome = ApplyPending(passage);
+        if (pendingKeystrokes.Count <= maxPendingKeystrokes) return outcome;
+
+        pendingKeystrokes.Clear();
+        return ProgressOutcome.Rejected("keystroke backlog exceeds limit");
     }
 
     private ProgressOutcome ApplyPending(string passage)
@@ -61,6 +68,8 @@ public class RaceParticipant
         {
             var violatedRule = ApplyKeystroke(pendingKeystrokes.Dequeue(), passage);
             if (violatedRule is null) continue;
+
+            pendingKeystrokes.Clear();
             return ProgressOutcome.Rejected(violatedRule);
         }
 
@@ -71,51 +80,48 @@ public class RaceParticipant
     {
         if (LastValidIndex >= passage.Length - 1) return null;
 
-        switch (keystroke)
+        return keystroke switch
         {
-            case Backspace:
-                if (WrongTail.Length > 0)
-                {
-                    WrongTail = WrongTail[..^1];
-                }
-                else if (LastValidIndex > -1)
-                {
-                    LastValidIndex--;
-                    WordsTyped = CountWords(passage.AsSpan(0, LastValidIndex + 1));
-                }
-                return "Backspace on empty text";
-            case CharTyped charTyped:
-                var newIndex = Index + 1;
-                var isExpected = newIndex < passage.Length && passage[newIndex] == charTyped.Value;
+            Backspace => ApplyBackspace(passage),
+            CharTyped charTyped => ApplyCharTyped(charTyped.Value, passage),
+            _ => throw new UnreachableException()
+        };
+    }
 
-                if (WrongTail.Length > 0)
-                {
-                    if (charTyped.Value == ' ')
-                    {
-                        return "space typed after wrong character";
-                    }
-                    if (WrongTail.Length >= MaxOverflow)
-                    {
-                        return "overflow exceeds limit";
-                    }
-
-                    WrongTail += charTyped.Value;
-                    if (!isExpected) Mistakes++;
-                    return null;
-                }
-
-                if (isExpected)
-                {
-                    LastValidIndex = newIndex;
-                    WordsTyped = CountWords(passage.AsSpan(0, LastValidIndex + 1));
-                }
-                else
-                {
-                    WrongTail += charTyped.Value;
-                    Mistakes++;
-                }
-                return null;
+    private string? ApplyBackspace(string passage)
+    {
+        if (WrongTail.Length > 0)
+        {
+            WrongTail = WrongTail[..^1];
+            return null;
         }
+
+        if (LastValidIndex == -1) return "backspace on empty text";
+
+        LastValidIndex--;
+        WordsTyped = CountWords(passage.AsSpan(0, LastValidIndex + 1));
+        return null;
+    }
+
+    private string? ApplyCharTyped(char value, string passage)
+    {
+        var newIndex = Index + 1;
+        if (newIndex >= passage.Length) return "typed past passage end";
+
+        var isExpected = passage[newIndex] == value;
+
+        if (WrongTail.Length == 0 && isExpected)
+        {
+            LastValidIndex = newIndex;
+            WordsTyped = CountWords(passage.AsSpan(0, LastValidIndex + 1));
+            return null;
+        }
+
+        if (WrongTail.Length > 0 && value == ' ') return "space typed after wrong character";
+        if (WrongTail.Length >= MaxOverflow) return "overflow exceeds limit";
+
+        WrongTail += value;
+        if (!isExpected) Mistakes++;
         return null;
     }
 

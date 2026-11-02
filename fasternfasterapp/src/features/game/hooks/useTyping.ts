@@ -98,6 +98,9 @@ export function useTyping({
         value.length - 1 - lastCorrectIndexRef.current > MAX_OVERFLOW;
       if (isMaxOverflow) return;
 
+      const isPastPassageEnd = value.length > passage.length;
+      if (isPastPassageEnd) return;
+
       const isNewCharTyped = value.length - 1 === typed.length;
       const isCharDeleted = value.length + 1 === typed.length;
 
