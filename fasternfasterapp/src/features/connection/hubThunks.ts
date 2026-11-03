@@ -1,4 +1,5 @@
 import { createAction, type AsyncThunk } from "@reduxjs/toolkit";
+import { KeystrokeEventDTO } from "../../../generated/signalr/FasterNFaster.Api.Presentation.Web.Realtime";
 import {
   createAppAsyncThunk,
   type AppThunkConfig,
@@ -8,7 +9,7 @@ import type { GameHubServer, HubStatus } from "./gameHub";
 import { receiverFor } from "./hubEvents";
 
 export type JoinLobbyArgs = { lobbyId: string; inviteCode?: string | null };
-export type RaceProgress = { index: number; mistakes: number; typed: string };
+export type RaceProgress = { keys: KeystrokeEventDTO[] };
 
 export const hubStatusChanged = createAction<HubStatus>(
   "connection/statusChanged",
@@ -75,8 +76,8 @@ export const refreshPassage = hubCall<void>("refreshPassage", (server) =>
 );
 export const updateRaceState = hubCall<RaceProgress>(
   "updateRaceState",
-  (server, { index, mistakes, typed }) =>
-    server.updateRaceState(index, mistakes, typed),
+  (server, { keys }) =>
+    server.updateRaceState(keys),
 );
 
 export const bannerHubCalls = [

@@ -30,9 +30,7 @@ function TypingArea({
       passage,
       disabled,
       onProgress,
-      selfTyped: self?.typed,
-      selfCorrectIndex: self?.index,
-      selfMistakes: self?.mistakes,
+      selfIndex: self?.index ?? -1,
     },
   );
   const { charsRef, containerRef, caretPos } = useCharPositions(

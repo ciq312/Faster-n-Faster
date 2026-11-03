@@ -17,18 +17,14 @@ type TypingOptions = {
   passage: string;
   disabled: boolean;
   onProgress?: (progress: TypingProgress) => void;
-  selfTyped?: string;
-  selfCorrectIndex?: number;
-  selfMistakes?: number;
+  selfIndex: number;
 };
 
 export function useTyping({
   passage,
   disabled,
   onProgress,
-  selfTyped,
-  selfCorrectIndex,
-  selfMistakes,
+  selfIndex,
 }: TypingOptions): {
   typed: string;
   inputRef: RefObject<HTMLInputElement | null>;
@@ -88,6 +84,10 @@ export function useTyping({
     typed,
     sendProgress,
   ]);
+
+  const processKeystroke = (e: ) => {
+
+  };
   const handleTyping = useCallback(
     (e: { target: { value: string } }) => {
       if (disabled) return;
