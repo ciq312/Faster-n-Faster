@@ -33,7 +33,7 @@ export function createSignalRGameHub(url: string): GameHub {
   return {
     get server() {
       if (!proxy) throw new Error("The game hub is not connected");
-      // The generated proxy types inviteCode as string, but the server accepts null.
+      // The generated proxy drops C# nullability: inviteCode accepts null and getRaceProgress can return it.
       return proxy as unknown as GameHubServer;
     },
 

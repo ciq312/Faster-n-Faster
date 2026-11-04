@@ -1,7 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
+import type { ChangeEvent } from "react";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import type { RaceProgressDTO } from "../../../../generated/signalr/FasterNFaster.Api.UseCases.Races.GetRaceProgress";
 import { setupStore } from "../../../app/store";
-import { fakeGameHub } from "../../../test/fakeGameHub";
+import { deferred } from "../../../test/deferred";
+import { fakeGameHub, type FakeGameHub } from "../../../test/fakeGameHub";
 import { wrapperFor } from "../../../test/store";
 import { hubStatusChanged } from "../../connection/hubThunks";
 import { useTyping, type TypingProgress } from "./useTyping";
@@ -9,292 +12,214 @@ import { useTyping, type TypingProgress } from "./useTyping";
 type TypingOptions = Parameters<typeof useTyping>[0];
 
 describe("useTyping", () => {
-  let onProgress: Mock<(progress: TypingProgress) => void>;
+  let hub: FakeGameHub;
   let store: ReturnType<typeof setupStore>;
+  let onProgress: Mock<(progress: TypingProgress) => void>;
 
   beforeEach(() => {
-    store = setupStore({ hub: fakeGameHub() });
-    act(() => {
-      store.dispatch(hubStatusChanged("connected"));
-    });
+    hub = fakeGameHub();
+    store = setupStore({ hub });
+    store.dispatch(hubStatusChanged("connected"));
     onProgress = vi.fn();
   });
 
   function typingProps(overrides?: Partial<TypingOptions>): TypingOptions {
-    return {
-      passage: "hi",
-      disabled: false,
-      onProgress,
-      selfTyped: "",
-      selfCorrectIndex: -1,
-      selfMistakes: 0,
-      ...overrides,
-    };
+    return { passage: "ab", disabled: false, onProgress, ...overrides };
   }
 
-  function renderTyping(overrides?: Partial<TypingOptions>) {
-    return renderHook((p: TypingOptions) => useTyping(p), {
+  // The resync answers through a thunk; a macrotask lets its whole promise chain finish.
+  async function settle() {
+    await act(() => new Promise((resolve) => setTimeout(resolve)));
+  }
+
+  async function renderTyping(overrides?: Partial<TypingOptions>) {
+    const rendered = renderHook((props: TypingOptions) => useTyping(props), {
       initialProps: typingProps(overrides),
       wrapper: wrapperFor(store),
     });
+    await settle();
+    return rendered;
   }
 
-  function setConnected(
-    rerender: (props: TypingOptions) => void,
-    props: TypingOptions,
-    isConnected: boolean,
-  ) {
+  function setConnected(isConnected: boolean) {
     act(() => {
       store.dispatch(
         hubStatusChanged(isConnected ? "connected" : "disconnected"),
       );
     });
-    rerender(props);
   }
 
-  type Typing = ReturnType<typeof renderTyping>["result"];
+  type Typing = Awaited<ReturnType<typeof renderTyping>>["result"];
+
+  // handleTyping reads only the input's new value.
+  function changeTo(value: string) {
+    return { target: { value } } as ChangeEvent<HTMLInputElement>;
+  }
 
   function typeText(result: Typing, text: string) {
     for (const ch of text) {
-      act(() => {
-        result.current.handleTyping({
-          target: { value: result.current.typed + ch },
-        });
-      });
+      act(() =>
+        result.current.handleTyping(changeTo(result.current.typed + ch)),
+      );
     }
   }
 
   function backspace(result: Typing) {
-    act(() => {
-      result.current.handleTyping({
-        target: { value: result.current.typed.slice(0, -1) },
-      });
-    });
+    act(() =>
+      result.current.handleTyping(changeTo(result.current.typed.slice(0, -1))),
+    );
   }
 
-  it("advances the correct index for a correct character", () => {
-    const { result } = renderTyping();
+  // final is true only once the valid index reaches the passage's last character.
+  function sent(key: string, final = false) {
+    return [{ keystroke: { key }, final }];
+  }
 
-    act(() => {
-      result.current.handleTyping({
-        target: { value: "h" },
-      });
-    });
-
-    expect(result.current.typed).toBe("h");
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 0,
-      mistakes: 0,
-      typed: "h",
-      final: false,
-    });
-  });
-
-  it("counts a wrong character as a mistake without advancing the index", () => {
-    const { result } = renderTyping({ passage: "ab" });
-
-    typeText(result, "x");
-
-    expect(result.current.typed).toBe("x");
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: -1,
-      mistakes: 1,
-      typed: "x",
-      final: false,
-    });
-  });
-
-  it("does not advance the index for a correct character after a mistake", () => {
-    const { result } = renderTyping({ passage: "ab" });
-
-    typeText(result, "xb");
-
-    expect(onProgress).toHaveBeenLastCalledWith(
-      expect.objectContaining({ index: -1, typed: "xb" }),
-    );
-  });
-
-  it("rejects a space after a wrong word", () => {
-    const { result } = renderTyping({ passage: "ab cd" });
-
-    typeText(result, "ax");
-    const callsBefore = onProgress.mock.calls.length;
-    typeText(result, " ");
-
-    expect(result.current.typed).toBe("ax");
-    expect(onProgress).toHaveBeenCalledTimes(callsBefore);
-  });
-
-  it("accepts a space after a correct word", () => {
-    const { result } = renderTyping({ passage: "ab cd" });
-
-    typeText(result, "ab ");
-
-    expect(result.current.typed).toBe("ab ");
-    expect(onProgress).toHaveBeenLastCalledWith(
-      expect.objectContaining({ index: 2, typed: "ab " }),
-    );
-  });
-
-  it("stops accepting characters past the overflow limit", () => {
-    const { result } = renderTyping({ passage: "abcdefghij" });
+  it("drops a character past the overflow limit", async () => {
+    const { result } = await renderTyping({ passage: "abcdefghij" });
 
     typeText(result, "xxxxxxx");
 
     expect(result.current.typed).toBe("xxxxxx");
-    expect(onProgress).toHaveBeenLastCalledWith(
-      expect.objectContaining({ mistakes: 6 }),
-    );
+    expect(onProgress).toHaveBeenCalledTimes(6);
   });
 
-  it("rolls the correct index back on backspace", () => {
-    const { result } = renderTyping({ passage: "abc" });
+  it("drops a character past the end of the passage", async () => {
+    const { result } = await renderTyping({ passage: "ab" });
+
+    typeText(result, "axy");
+
+    expect(result.current.typed).toBe("ax");
+    expect(onProgress).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops a space after a wrong character", async () => {
+    const { result } = await renderTyping({ passage: "ab cd" });
+
+    typeText(result, "ax ");
+
+    expect(result.current.typed).toBe("ax");
+    expect(onProgress).toHaveBeenCalledTimes(2);
+  });
+
+  it("advances the valid index for each correct character", async () => {
+    const { result } = await renderTyping({ passage: "ab" });
 
     typeText(result, "ab");
+
+    expect(result.current.typed).toBe("ab");
+    expect(onProgress.mock.calls).toEqual([sent("a"), sent("b", true)]);
+  });
+
+  it("keeps the valid index after a wrong character", async () => {
+    const { result } = await renderTyping({ passage: "ab" });
+
+    typeText(result, "xb");
+
+    expect(result.current.typed).toBe("xb");
+    expect(onProgress.mock.calls).toEqual([sent("x"), sent("b")]);
+  });
+
+  it("moves the valid index back when deleting a correct character", async () => {
+    const { result } = await renderTyping({ passage: "ab" });
+    typeText(result, "ab");
+
     backspace(result);
 
     expect(result.current.typed).toBe("a");
-    expect(onProgress).toHaveBeenLastCalledWith(
-      expect.objectContaining({ index: 0, typed: "a" }),
-    );
+    expect(onProgress.mock.calls).toEqual([
+      sent("a"),
+      sent("b", true),
+      sent("Backspace"),
+    ]);
   });
 
-  it("marks progress final and blurs the input on the last correct character", () => {
-    const { result } = renderTyping();
+  it("keeps the valid index when deleting a wrong character", async () => {
+    const { result } = await renderTyping({ passage: "ab" });
+    typeText(result, "ax");
+
+    backspace(result);
+    typeText(result, "b");
+
+    expect(result.current.typed).toBe("ab");
+    expect(onProgress.mock.calls).toEqual([
+      sent("a"),
+      sent("x"),
+      sent("Backspace"),
+      sent("b", true),
+    ]);
+  });
+
+  it("focuses the input once typing is enabled", async () => {
+    const { result, rerender } = await renderTyping({ disabled: true });
     const input = document.createElement("input");
-    const blur = vi.spyOn(input, "blur");
-
-    typeText(result, "h");
+    const focus = vi.spyOn(input, "focus");
     result.current.inputRef.current = input;
-    typeText(result, "i");
 
-    expect(blur).toHaveBeenCalledTimes(1);
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 1,
-      mistakes: 0,
-      typed: "hi",
-      final: true,
-    });
+    rerender(typingProps({ disabled: false }));
+
+    expect(focus).toHaveBeenCalledTimes(1);
   });
 
-  it("ignores typing while disabled", () => {
-    const { result } = renderTyping({ disabled: true });
+  it("fetches the server's progress once connected", async () => {
+    await renderTyping();
 
-    typeText(result, "h");
+    expect(hub.server.getRaceProgress).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not fetch the progress again while it stays connected", async () => {
+    const { rerender } = await renderTyping();
+
+    rerender(typingProps({ passage: "cd" }));
+    await settle();
+
+    expect(hub.server.getRaceProgress).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops typing while disconnected", async () => {
+    const { result } = await renderTyping();
+    setConnected(false);
+
+    typeText(result, "a");
 
     expect(result.current.typed).toBe("");
     expect(onProgress).not.toHaveBeenCalled();
   });
 
-  it("does not send progress before the first race state", () => {
-    const { result } = renderTyping({
-      selfTyped: undefined,
-      selfCorrectIndex: undefined,
-    });
+  it("drops typing after reconnecting until the server answers", async () => {
+    const { result } = await renderTyping();
+    const answer = deferred<RaceProgressDTO | null>();
+    hub.server.getRaceProgress.mockReturnValueOnce(answer.promise);
+    setConnected(false);
+    setConnected(true);
 
-    typeText(result, "h");
-
-    expect(result.current.typed).toBe("h");
-    expect(onProgress).not.toHaveBeenCalled();
-  });
-
-  it("sends the typed text once the first race state arrives", () => {
-    const { result, rerender } = renderTyping({
-      selfTyped: undefined,
-      selfCorrectIndex: undefined,
-    });
-    typeText(result, "h");
-
-    rerender(typingProps({ selfTyped: "", selfCorrectIndex: -1 }));
-
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 0,
-      mistakes: 0,
-      typed: "h",
-      final: false,
-    });
-  });
-
-  it("restores progress from a longer server state", () => {
-    const { result, rerender } = renderTyping({
-      passage: "abc",
-      selfTyped: undefined,
-      selfCorrectIndex: undefined,
-    });
-
-    rerender(
-      typingProps({
-        passage: "abc",
-        selfTyped: "ab",
-        selfCorrectIndex: 1,
-        selfMistakes: 2,
-      }),
-    );
-    expect(result.current.typed).toBe("ab");
-
-    const input = document.createElement("input");
-    const blur = vi.spyOn(input, "blur");
-    result.current.inputRef.current = input;
-    typeText(result, "c");
-
-    expect(blur).toHaveBeenCalledTimes(1);
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 2,
-      mistakes: 2,
-      typed: "abc",
-      final: true,
-    });
-  });
-
-  it("does not send progress while disconnected", () => {
-    const props = typingProps({ passage: "abc" });
-    const { result, rerender } = renderTyping({ passage: "abc" });
     typeText(result, "a");
-    expect(onProgress).toHaveBeenCalledTimes(1);
+    expect(result.current.typed).toBe("");
 
-    setConnected(rerender, props, false);
-    typeText(result, "b");
-
-    expect(onProgress).toHaveBeenCalledTimes(1);
-  });
-
-  it("sends the typed text once reconnected", () => {
-    const props = typingProps({ passage: "abc" });
-    const { result, rerender } = renderTyping({ passage: "abc" });
+    answer.resolve(null);
+    await settle();
     typeText(result, "a");
-    setConnected(rerender, props, false);
-    typeText(result, "b");
-
-    setConnected(rerender, props, true);
-
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 1,
-      mistakes: 0,
-      typed: "ab",
-      final: false,
-    });
-  });
-
-  it("keeps a backspace made while disconnected after reconnecting", () => {
-    const { result, rerender } = renderTyping({ passage: "abc" });
-    typeText(result, "ab");
-    const props = typingProps({
-      passage: "abc",
-      selfTyped: "ab",
-      selfCorrectIndex: 1,
-    });
-    rerender(props);
-    setConnected(rerender, props, false);
-    backspace(result);
-
-    setConnected(rerender, props, true);
 
     expect(result.current.typed).toBe("a");
-    expect(onProgress).toHaveBeenLastCalledWith({
-      index: 0,
-      mistakes: 0,
-      typed: "a",
-      final: false,
+    expect(onProgress.mock.calls).toEqual([sent("a")]);
+  });
+
+  it("restores the typed text and the valid index from the server after reconnecting", async () => {
+    const { result } = await renderTyping({ passage: "abcd" });
+    typeText(result, "a");
+    hub.server.getRaceProgress.mockResolvedValueOnce({
+      lastValidIndex: 2,
+      wrongTail: "x",
+      mistakes: 1,
     });
+
+    setConnected(false);
+    setConnected(true);
+    await settle();
+
+    expect(result.current.typed).toBe("abcx");
+    backspace(result);
+    typeText(result, "d");
+    expect(onProgress).toHaveBeenLastCalledWith(...sent("d", true));
   });
 });

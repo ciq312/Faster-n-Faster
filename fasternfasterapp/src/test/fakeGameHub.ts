@@ -27,6 +27,7 @@ export function fakeGameHub(): FakeGameHub {
     kickPlayer: vi.fn(async () => undefined),
     changeColor: vi.fn(async () => undefined),
     updateRaceState: vi.fn(async () => undefined),
+    getRaceProgress: vi.fn(async () => null),
     leaveLobby: vi.fn(async () => undefined),
   };
 

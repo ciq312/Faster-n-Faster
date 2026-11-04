@@ -9,4 +9,5 @@ public class ConfiguredAntiCheatPolicy(IOptions<AntiCheatOptions> options) : IAn
 
     public double MaxCharsPerSecond => opts.MaxWpm * opts.AverageWordLength / 60.0;
     public int BudgetSlack => opts.BudgetSlack;
+    public int MaxPendingKeystrokes => (int)(MaxCharsPerSecond * opts.MaxBacklogSeconds);
 }

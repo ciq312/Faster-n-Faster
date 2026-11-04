@@ -1,10 +1,11 @@
+using FasterNFaster.Api.Domain.Entities.Keys;
 using FasterNFaster.Api.Domain.Entities.Lobbies.Events;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.Domain.Exceptions.Races;
 
 namespace FasterNFaster.Api.Domain.Entities.Races;
 
-public record struct ParticipantSnapshot(Guid PlayerId, int Index, string Typed, double Wpm, string Color, string Nick, int Mistakes);
+public record struct ParticipantSnapshot(Guid PlayerId, int Index, double Wpm);
 
 public sealed class Race : AggregateRoot<Guid>
 {
@@ -58,19 +59,18 @@ public sealed class Race : AggregateRoot<Guid>
     }
 
     public List<ParticipantSnapshot> GetSnapshot() =>
-        Participants.Values
+        [.. Participants.Values
             .Where(p => !p.IsFinished)
-            .Select(p => new ParticipantSnapshot(p.Id, p.Index, p.Typed, p.GetWPM(), p.Color, p.Nick, p.Mistakes))
-            .ToList();
+            .Select(p => new ParticipantSnapshot(p.Id, p.LastValidIndex, p.GetWPM()))];
 
-    public void ProcessUpdate(Guid playerId, int index, int mistakes, string typed)
+    public void ProcessUpdate(Guid playerId, Keystroke[] keystrokes)
     {
         if (!HasStarted) return;
 
         var racer = Participants.GetValueOrDefault(playerId) ?? throw new PlayerNotInRaceException(playerId);
         if (racer.IsFinished) return;
 
-        var outcome = racer.UpdateProgress(index, typed, mistakes, Passage);
+        var outcome = racer.UpdateProgress(keystrokes, Passage);
         HandleOutcome(racer, outcome);
     }
 
@@ -85,7 +85,7 @@ public sealed class Race : AggregateRoot<Guid>
         if (participant is null || participant.IsFinished) return;
         participant.MarkWithdrawn();
         if (IsRaceFinished())
-            RaceFinished();
+            FinishRace();
     }
 
     public bool TryChangePassage(string passage)
@@ -102,7 +102,6 @@ public sealed class Race : AggregateRoot<Guid>
 
         foreach (var racer in Participants.Values.ToList())
         {
-            if (racer.IsFinished) continue;
             HandleOutcome(racer, racer.RetryPendingClaim(Passage));
         }
     }
@@ -117,16 +116,16 @@ public sealed class Race : AggregateRoot<Guid>
             return;
         }
 
-        if (IsRacerFinished(racer))
+        if (DidRacerFinish(racer) && !racer.IsFinished)
         {
             racer.MarkFinished(nextFinishPosition++);
             RaiseDomainEvent(new PlayerFinishedEvent(LobbyId, racer.Nick, racer.Id, racer.FinishPosition, racer.Result!.WPM, racer.Result.Accuracy));
             if (IsRaceFinished())
-                RaceFinished();
+                FinishRace();
         }
     }
 
-    private void RaceFinished()
+    private void FinishRace()
     {
         RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
         EndTime = timeProvider.GetUtcNow();
@@ -140,5 +139,5 @@ public sealed class Race : AggregateRoot<Guid>
         HasStarted = false;
     }
 
-    private bool IsRacerFinished(RaceParticipant racer) => racer.Index >= Passage.Length - 1;
+    private bool DidRacerFinish(RaceParticipant racer) => racer.LastValidIndex >= Passage.Length - 1;
 }

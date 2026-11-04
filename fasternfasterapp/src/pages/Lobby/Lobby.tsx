@@ -18,6 +18,7 @@ import LobbyPlayerCard from "../../features/game/components/LobbyPlayerCard/Lobb
 import RaceResults from "../../features/game/components/RaceResults";
 import TypingArea from "../../features/game/components/TypingArea/TypingArea";
 import type { TypingProgress } from "../../features/game/hooks/useTyping";
+import { selectRaceCarets } from "../../features/game/raceSelectors";
 import {
   progressTyped,
   resultsDismissed,
@@ -55,6 +56,7 @@ function Lobby() {
   const countdownSeconds = useAppSelector(selectCountdownSeconds);
   const results = useAppSelector(selectRaceResults);
   const participants = useAppSelector(selectRaceParticipants);
+  const carets = useAppSelector(selectRaceCarets);
   const canType = useAppSelector(selectCanType);
   const settings = joinedLobby?.settings;
   const half = Math.min(players.length, MAX_PLAYERS_PER_SIDE);
@@ -158,7 +160,7 @@ function Lobby() {
                 passage={settings.passage}
                 disabled={!canType}
                 onProgress={onProgress}
-                opponents={participants}
+                opponents={carets}
                 selfId={selfId}
               />
             ) : (

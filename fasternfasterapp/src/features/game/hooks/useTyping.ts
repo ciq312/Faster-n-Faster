@@ -3,57 +3,45 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type RefObject,
 } from "react";
-import { useAppSelector } from "../../../app/hooks";
+import type { KeystrokeEventDTO } from "../../../../generated/signalr/FasterNFaster.Api.Presentation.Web.Realtime";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectIsConnected } from "../../connection/connectionSlice";
-import type { RaceProgress } from "../../connection/hubThunks";
+import { getRaceProgress } from "../../connection/hubThunks";
 
 const MAX_OVERFLOW = 6;
 
-export type TypingProgress = RaceProgress & { final: boolean };
+export type TypingProgress = { keystroke: KeystrokeEventDTO; final: boolean };
 
 type TypingOptions = {
   passage: string;
   disabled: boolean;
-  onProgress?: (progress: TypingProgress) => void;
-  selfTyped?: string;
-  selfCorrectIndex?: number;
-  selfMistakes?: number;
+  onProgress: (progress: TypingProgress) => void;
 };
 
-export function useTyping({
-  passage,
-  disabled,
-  onProgress,
-  selfTyped,
-  selfCorrectIndex,
-  selfMistakes,
-}: TypingOptions): {
+export function useTyping({ passage, disabled, onProgress }: TypingOptions): {
   typed: string;
   inputRef: RefObject<HTMLInputElement | null>;
-  handleTyping: (e: { target: { value: string } }) => void;
+  handleTyping: (e: ChangeEvent<HTMLInputElement>) => void;
   focusInput: () => void;
   nextSepIndex: number;
 } {
   const [typed, setTyped] = useState("");
+  const dispatch = useAppDispatch();
   const mistakesRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const lastCorrectIndexRef = useRef(-1);
+  const lastValidIndexRef = useRef(-1);
   const nextSep = useRef(-1);
   const needResyncRef = useRef(true);
-  const hasSyncedRef = useRef(false);
   const isConnected = useAppSelector(selectIsConnected);
 
   const sendProgress = useCallback(
-    (value: string) => {
-      // Sending before the first RaceState would overwrite the server's progress with the reloaded, empty text.
-      if (needResyncRef.current) return;
-      onProgress?.({
-        index: lastCorrectIndexRef.current,
-        mistakes: mistakesRef.current,
-        typed: value,
-        final: lastCorrectIndexRef.current === passage.length - 1,
+    (keystroke: KeystrokeEventDTO) => {
+      onProgress({
+        keystroke,
+        final: lastValidIndexRef.current === passage.length - 1,
       });
     },
     [onProgress, passage],
@@ -64,39 +52,74 @@ export function useTyping({
       needResyncRef.current = true;
     }
   }, [isConnected]);
+
   useEffect(() => {
     if (!isConnected || !needResyncRef.current) return;
-    if (selfTyped === undefined || selfCorrectIndex === undefined) return;
-    needResyncRef.current = false;
-    const isReconnect = hasSyncedRef.current;
-    hasSyncedRef.current = true;
-    // A longer server text wins only after a reload; after a reconnect the local text is fresher.
-    if (isReconnect || selfTyped.length <= typed.length) {
-      if (typed) sendProgress(typed);
-      return;
-    }
-    setTyped(selfTyped);
-    lastCorrectIndexRef.current = selfCorrectIndex;
-    nextSep.current = passage.indexOf(" ", selfCorrectIndex + 1);
-    mistakesRef.current = selfMistakes ?? 0;
-  }, [
-    isConnected,
-    selfTyped,
-    passage,
-    selfCorrectIndex,
-    selfMistakes,
-    typed,
-    sendProgress,
-  ]);
+    const resync = async () => {
+      const result = await dispatch(getRaceProgress());
+      if (!getRaceProgress.fulfilled.match(result)) return;
+      needResyncRef.current = false;
+      const progress = result.payload;
+      if (!progress) return;
+      setTyped(
+        passage.substring(0, progress.lastValidIndex + 1) + progress.wrongTail,
+      );
+      lastValidIndexRef.current = progress.lastValidIndex;
+      mistakesRef.current = progress.mistakes;
+      nextSep.current = passage.indexOf(" ", progress.lastValidIndex + 1);
+    };
+    resync();
+  }, [isConnected, passage, dispatch]);
+
+  const handleCharTyped = useCallback(
+    (value: string): string => {
+      const newChar = value[value.length - 1];
+      const nextChar = passage[value.length - 1];
+      const isNewCharCorrect = newChar === nextChar;
+
+      if (isNewCharCorrect) {
+        setTyped(value);
+
+        const isPreviousCharCorrect =
+          lastValidIndexRef.current + 1 === value.length - 1;
+        if (isPreviousCharCorrect) {
+          lastValidIndexRef.current++;
+          const isLastChar = lastValidIndexRef.current === passage.length - 1;
+          if (isLastChar) inputRef.current?.blur();
+        }
+      } else {
+        setTyped(value);
+        mistakesRef.current++;
+      }
+
+      return newChar;
+    },
+    [passage],
+  );
+
+  const handleBackspace = useCallback((value: string): string => {
+    lastValidIndexRef.current = Math.min(
+      lastValidIndexRef.current,
+      value.length - 1,
+    );
+    setTyped(value);
+
+    return "Backspace";
+  }, []);
+
   const handleTyping = useCallback(
-    (e: { target: { value: string } }) => {
-      if (disabled) return;
+    (e: ChangeEvent<HTMLInputElement>) => {
+      // Until the server's progress is restored, the server would apply the keystroke at a different position.
+      if (disabled || needResyncRef.current) return;
       const value = e.target.value;
 
       const isMaxOverflow =
         value.length > typed.length &&
-        value.length - 1 - lastCorrectIndexRef.current > MAX_OVERFLOW;
+        value.length - 1 - lastValidIndexRef.current > MAX_OVERFLOW;
       if (isMaxOverflow) return;
+
+      const isPastPassageEnd = value.length > passage.length;
+      if (isPastPassageEnd) return;
 
       const isNewCharTyped = value.length - 1 === typed.length;
       const isCharDeleted = value.length + 1 === typed.length;
@@ -104,39 +127,25 @@ export function useTyping({
       if (isNewCharTyped) {
         const newChar = value[value.length - 1];
         const isPreviousBeforeSpaceInCorrect =
-          newChar === ` ` &&
-          lastCorrectIndexRef.current !== value.length - 1 - 1;
+          newChar === ` ` && lastValidIndexRef.current !== value.length - 1 - 1;
 
         if (isPreviousBeforeSpaceInCorrect) return;
 
-        const isNewCharCorrect = newChar === passage[value.length - 1];
-        if (isNewCharCorrect) {
-          setTyped(value);
-          const isPreviousCharCorrect =
-            lastCorrectIndexRef.current + 1 === value.length - 1;
-          if (isPreviousCharCorrect) {
-            lastCorrectIndexRef.current = lastCorrectIndexRef.current + 1;
-            const isLastChar =
-              lastCorrectIndexRef.current === passage.length - 1;
-            if (isLastChar) inputRef.current?.blur();
-          }
-        } else {
-          setTyped(value);
-          mistakesRef.current++;
-        }
+        sendProgress({ key: handleCharTyped(value) });
       } else if (isCharDeleted) {
-        lastCorrectIndexRef.current = Math.min(
-          lastCorrectIndexRef.current,
-          value.length - 1,
-        );
-        setTyped(value);
+        sendProgress({ key: handleBackspace(value) });
       }
 
-      nextSep.current = passage.indexOf(" ", lastCorrectIndexRef.current + 1);
-
-      sendProgress(value);
+      nextSep.current = passage.indexOf(" ", lastValidIndexRef.current + 1);
     },
-    [typed.length, passage, disabled, sendProgress],
+    [
+      disabled,
+      typed.length,
+      passage,
+      handleBackspace,
+      handleCharTyped,
+      sendProgress,
+    ],
   );
 
   useEffect(() => {

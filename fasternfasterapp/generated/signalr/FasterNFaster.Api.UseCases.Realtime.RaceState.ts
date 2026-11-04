@@ -8,15 +8,7 @@ export type RaceParticipantDTO = {
     playerId: string;
     /** Transpiled from int */
     index: number;
-    /** Transpiled from string */
-    typed: string;
     /** Transpiled from double */
     wpm: number;
-    /** Transpiled from string */
-    color: string;
-    /** Transpiled from string */
-    nick: string;
-    /** Transpiled from int */
-    mistakes: number;
 }
 

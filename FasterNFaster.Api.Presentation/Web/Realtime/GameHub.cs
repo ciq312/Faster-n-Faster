@@ -1,3 +1,4 @@
+using FasterNFaster.Api.Domain.Entities.Keys;
 using FasterNFaster.Api.UseCases.Auth.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
@@ -8,6 +9,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Races.GetRaceProgress;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
@@ -120,12 +122,18 @@ public partial class GameHub(
         await sender.Send(new ChangeColorCommand(userId, color));
     }
 
-    public async Task UpdateRaceState(int index, int mistakes, string typed)
+    public async Task<RaceProgressDTO?> GetRaceProgress()
+    {
+        return await sender.Send(new GetRaceProgressQuery(GetCallerContext().UserId));
+    }
+
+    public async Task UpdateRaceState(KeystrokeEventDTO[] keystrokeEvents)
     {
         var userId = GetCallerContext().UserId;
         //skip mediator to minimize the allocations
         if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return;
-        await races.TryMutate(lobbyId, r => r.ProcessUpdate(userId, index, mistakes, typed));
+        Keystroke[] keystrokes = [.. keystrokeEvents.Select(k => k.ToKeystroke())];
+        await races.TryMutate(lobbyId, r => r.ProcessUpdate(userId, keystrokes));
     }
 
     public async Task LeaveLobby()
