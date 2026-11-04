@@ -5,12 +5,12 @@ using Tapper;
 namespace FasterNFaster.Api.Presentation.Web.Realtime;
 
 [TranspilationSource]
-public sealed record KeystrokeEventDTO(string Key, int DelayMs)
+public sealed record KeystrokeEventDTO(string Key)
 {
     public Keystroke ToKeystroke() => Key switch
     {
-        "Backspace" => new Backspace(DelayMs),
-        [var c] => new CharTyped(c, DelayMs),
+        "Backspace" => new Backspace(),
+        [var c] => new CharTyped(c),
         _ => throw new HubException($"Invalid key: {Key}")
     };
 }

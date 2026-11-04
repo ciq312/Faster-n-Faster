@@ -1,14 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { RaceParticipantDTO } from "../../../../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useCharPositions } from "../../hooks/useCharPositions";
 import { useTyping, type TypingProgress } from "../../hooks/useTyping";
+import type { RaceCaret } from "../../raceSelectors";
 import "./TypingArea.css";
 
 type TypingAreaProps = {
   passage: string;
   disabled: boolean;
   onProgress: (progress: TypingProgress) => void;
-  opponents?: RaceParticipantDTO[];
+  opponents?: RaceCaret[];
   selfId?: string;
 };
 
@@ -19,19 +19,8 @@ function TypingArea({
   opponents: players = [],
   selfId,
 }: TypingAreaProps) {
-  const [self, setSelf] = useState<RaceParticipantDTO | undefined>();
-
-  useEffect(() => {
-    setSelf(players.filter((p) => p.playerId === selfId).pop());
-  }, [players, selfId]);
-
   const { typed, inputRef, handleTyping, focusInput, nextSepIndex } = useTyping(
-    {
-      passage,
-      disabled,
-      onProgress,
-      selfIndex: self?.index ?? -1,
-    },
+    { passage, disabled, onProgress },
   );
   const { charsRef, containerRef, caretPos } = useCharPositions(
     passage,

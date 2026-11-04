@@ -106,11 +106,8 @@ describe("hub thunks", () => {
     },
     {
       method: "updateRaceState",
-      run: (store: Store) =>
-        store.dispatch(
-          updateRaceState({ index: 3, mistakes: 1, typed: "abc" }),
-        ),
-      args: [3, 1, "abc"],
+      run: (store: Store) => store.dispatch(updateRaceState([{ key: "a" }])),
+      args: [[{ key: "a" }]],
     },
   ] as const)(
     "invokes $method with the thunk arguments",
@@ -151,7 +148,7 @@ describe("hub thunks", () => {
       new Error("HubException: Race is over"),
     );
 
-    await store.dispatch(updateRaceState({ index: 0, mistakes: 0, typed: "" }));
+    await store.dispatch(updateRaceState([{ key: "a" }]));
 
     expect(bannerMessage(store)).toBeUndefined();
   });

@@ -6,17 +6,5 @@
 export type KeystrokeEventDTO = {
     /** Transpiled from string */
     key: string;
-    /** Transpiled from int */
-    delayMs: number;
-}
-
-/** Transpiled from FasterNFaster.Api.Presentation.Web.Realtime.RaceProgressDTO */
-export type RaceProgressDTO = {
-    /** Transpiled from int */
-    lastValidIndex: number;
-    /** Transpiled from string */
-    wrongTail: string;
-    /** Transpiled from int */
-    mistakes: number;
 }
 

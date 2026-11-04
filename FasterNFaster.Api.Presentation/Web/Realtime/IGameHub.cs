@@ -1,3 +1,4 @@
+using FasterNFaster.Api.UseCases.Races.GetRaceProgress;
 using TypedSignalR.Client;
 
 namespace FasterNFaster.Api.Presentation.Web.Realtime;

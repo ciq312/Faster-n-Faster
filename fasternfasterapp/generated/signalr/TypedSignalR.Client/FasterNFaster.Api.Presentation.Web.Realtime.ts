@@ -3,7 +3,8 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
-import type { KeystrokeEventDTO, RaceProgressDTO } from '../FasterNFaster.Api.Presentation.Web.Realtime';
+import type { KeystrokeEventDTO } from '../FasterNFaster.Api.Presentation.Web.Realtime';
+import type { RaceProgressDTO } from '../FasterNFaster.Api.UseCases.Races.GetRaceProgress';
 
 export type IGameHub = {
     /**
@@ -45,7 +46,7 @@ export type IGameHub = {
     */
     updateRaceState(keystrokes: KeystrokeEventDTO[]): Promise<void>;
     /**
-    * @returns Transpiled from System.Threading.Tasks.Task<FasterNFaster.Api.Presentation.Web.Realtime.RaceProgressDTO?>
+    * @returns Transpiled from System.Threading.Tasks.Task<FasterNFaster.Api.UseCases.Races.GetRaceProgress.RaceProgressDTO?>
     */
     getRaceProgress(): Promise<RaceProgressDTO>;
     /**

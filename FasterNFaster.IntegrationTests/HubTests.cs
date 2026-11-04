@@ -89,7 +89,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (hub, userId, _) = await StartSoloRaceAsync();
         await using var _ = hub;
         var connectionClosed = CloseSignal(hub);
-        KeystrokeEventDTO[] backspaceOnEmptyText = [new("Backspace", 0)];
+        KeystrokeEventDTO[] backspaceOnEmptyText = [new("Backspace")];
 
         // Abort() can race with delivering this call's own response, so the invoke itself
         // may legitimately fault - only the resulting close and suspension matter here.
@@ -276,7 +276,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     }
 
     private static KeystrokeEventDTO[] Keystrokes(string text) =>
-        [.. text.Select(c => new KeystrokeEventDTO(c.ToString(), 0))];
+        [.. text.Select(c => new KeystrokeEventDTO(c.ToString()))];
 
     private static Task<T> NextEventAsync<T>(HubConnection hub, string eventName)
     {

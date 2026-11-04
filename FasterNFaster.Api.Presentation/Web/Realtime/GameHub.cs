@@ -9,6 +9,7 @@ using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Reconnect;
 using FasterNFaster.Api.UseCases.Lobbies.Refresh;
 using FasterNFaster.Api.UseCases.Lobbies.TransferHost;
+using FasterNFaster.Api.UseCases.Races.GetRaceProgress;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Races.StartRace;
@@ -123,13 +124,7 @@ public partial class GameHub(
 
     public async Task<RaceProgressDTO?> GetRaceProgress()
     {
-        var userId = GetCallerContext().UserId;
-        if (lobbies.GetLobbyIdOfPlayer(userId) is not Guid lobbyId) return null;
-
-        return await races.TryRead(lobbyId, r =>
-            r.Participants.GetValueOrDefault(userId) is { } participant
-                ? new RaceProgressDTO(participant.LastValidIndex, participant.WrongTail, participant.Mistakes)
-                : null);
+        return await sender.Send(new GetRaceProgressQuery(GetCallerContext().UserId));
     }
 
     public async Task UpdateRaceState(KeystrokeEventDTO[] keystrokeEvents)

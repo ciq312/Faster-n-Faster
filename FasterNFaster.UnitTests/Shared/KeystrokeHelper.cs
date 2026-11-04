@@ -4,7 +4,7 @@ namespace FasterNFaster.UnitTests.Shared;
 
 public static class KeystrokeHelper
 {
-    public static Keystroke Backspace(int delayMs = 0) => new Backspace(delayMs);
-    public static Keystroke CharTyped(char value, int delayMs = 0) => new CharTyped(value, delayMs);
-    public static Keystroke[] Sequence(string input, int delayMs = 0) => [.. input.Select(c => new CharTyped(c, delayMs))];
+    public static Keystroke Backspace() => new Backspace();
+    public static Keystroke CharTyped(char value) => new CharTyped(value);
+    public static Keystroke[] Sequence(string input) => [.. input.Select(c => new CharTyped(c))];
 }

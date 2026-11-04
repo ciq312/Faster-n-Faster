@@ -1,6 +1,6 @@
 using Tapper;
 
-namespace FasterNFaster.Api.Presentation.Web.Realtime;
+namespace FasterNFaster.Api.UseCases.Races.GetRaceProgress;
 
 [TranspilationSource]
 public sealed record RaceProgressDTO(int LastValidIndex, string WrongTail, int Mistakes);
