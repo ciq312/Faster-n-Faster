@@ -70,11 +70,11 @@ describe("Profile", () => {
       }),
     );
     const hub = renderProfile();
-
-    const user = await editNick("Speedy");
+    const nick = "Speedy";
+    const user = await editNick(nick);
     await user.click(screen.getByRole("button", { name: "save nick" }));
 
-    expect(await screen.findByText("Nick changed")).toBeTruthy();
+    expect(await screen.findByText(`You changed nick to ${nick}`)).toBeTruthy();
     await waitFor(() => expect(hub.start).toHaveBeenCalledTimes(1));
     expect(hub.stop).toHaveBeenCalledTimes(1);
     expect(sentBody).toEqual({ nick: "Speedy" });
@@ -84,10 +84,10 @@ describe("Profile", () => {
     signedInAs("Player");
     server.use(http.put(CHANGE_NICK_URL, () => HttpResponse.json({})));
     renderProfile();
+    const nick = "Speedy";
+    await editNick(`${nick}{Enter}`);
 
-    await editNick("Speedy{Enter}");
-
-    expect(await screen.findByText("Nick changed")).toBeTruthy();
+    expect(await screen.findByText(`You changed nick to ${nick}`)).toBeTruthy();
   });
 
   it("shows loading while saving, then the check mark, then the edit button again", async () => {
@@ -160,7 +160,7 @@ describe("Profile", () => {
       await screen.findByRole("button", { name: "edit nick" }),
     ).toBeTruthy();
     expect(requested).toBe(false);
-    expect(screen.queryByText("Nick changed")).toBeNull();
+    expect(screen.queryByText(/You changed nick/)).toBeNull();
   });
 
   it("restores the nick when Escape is pressed", async () => {

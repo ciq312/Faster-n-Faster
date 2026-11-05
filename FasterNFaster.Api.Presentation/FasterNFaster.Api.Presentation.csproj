@@ -42,7 +42,7 @@
 
   <Target Name="NSwag" AfterTargets="Build" Condition="'$(GenerateContracts)' == 'true'">
     <Copy SourceFiles="@(Reference)" DestinationFolder="$(OutDir)References" />
-    <!-- NSwag converts DateTimeOffset examples to the machine's time zone; UTC keeps swagger.json identical on every machine and in CI. -->
+    <!-- NSwag can write DateTimeOffset examples in the machine's time zone. TZ=UTC pins it on Linux and macOS only: .NET on Windows ignores TZ, so after a Windows build set the example offsets in swagger.json back to +00:00 by hand. -->
     <Exec Command="$(NSwagExe_Net100) run nswag.json" EnvironmentVariables="TZ=UTC" />
     <RemoveDir Directories="$(OutDir)References" />
   </Target>
