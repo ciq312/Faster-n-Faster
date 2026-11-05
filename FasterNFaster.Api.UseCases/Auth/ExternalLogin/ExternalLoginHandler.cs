@@ -14,13 +14,13 @@ public class ExternalLoginHandler(
 {
     public async Task<ExternalLoginResult> Handle(ExternalLoginCommand command, CancellationToken cancellationToken)
     {
-        var user = await GetLinkedUserAsync(command)
-                   ?? await LinkToExistingAccountAsync(command)
-                   ?? await RegisterNewUserAsync(command);
+        var existingUser = await GetLinkedUserAsync(command)
+                           ?? await LinkToExistingAccountAsync(command);
+        var user = existingUser ?? await RegisterNewUserAsync(command);
 
         var tokens = await tokenService.IssuePlayerTokens(user.Id, user.Nick);
 
-        return new ExternalLoginResult(tokens);
+        return new ExternalLoginResult(tokens, IsNewUser: existingUser is null);
     }
 
     private async Task<User?> GetLinkedUserAsync(ExternalLoginCommand command)
@@ -48,7 +48,7 @@ public class ExternalLoginHandler(
 
     private async Task<User> RegisterNewUserAsync(ExternalLoginCommand command)
     {
-        var user = new User(command.Name, null, null);
+        var user = new User(GenerateDefaultNick(), null, null);
         user.SetEmail(command.Email);
         user.SetEmailVerified();
 
@@ -59,4 +59,6 @@ public class ExternalLoginHandler(
 
         return user;
     }
+
+    private static string GenerateDefaultNick() => $"player_{Random.Shared.Next(1000, 10000)}";
 }

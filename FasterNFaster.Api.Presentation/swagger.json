@@ -72,6 +72,101 @@
         ]
       }
     },
+    "/api/users/me/nick": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Change the current player's nick",
+        "description": "Saves the nick and sets new access and refresh token cookies that carry it. A lobby the player is already in keeps the old nick until they rejoin.",
+        "operationId": "FasterNFasterApiPresentationWebUsersChangeNickChangeNickEndpoint",
+        "requestBody": {
+          "x-name": "ChangeNickRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeNickRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Nick changed"
+          },
+          "400": {
+            "description": "Validation failed; `errors` maps each field to its messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not logged in (`not_authenticated`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a registered player, e.g. a guest (`forbidden`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The player no longer exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests (`rate_limited`); retry after the `Retry-After` header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWTBearerAuth": [
+              "Player"
+            ]
+          }
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "tags": [
@@ -1167,7 +1262,7 @@
           "Auth"
         ],
         "summary": "Finish Google sign-in",
-        "description": "Called by Google, not by the client. Logs the player in, sets the auth cookies and redirects to the same-origin `returnUrl`; on failure it redirects with an `error` query parameter.",
+        "description": "Called by Google, not by the client. Logs the player in, sets the auth cookies and redirects to the same-origin `returnUrl`, or to `/choose-nick` when this sign-in created the account; on failure it redirects with an `error` query parameter.",
         "operationId": "FasterNFasterApiPresentationWebAuthGoogleAuthGoogleCallbackEndpoint",
         "responses": {
           "500": {
@@ -1282,6 +1377,25 @@
           "wordsTyped": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ChangeNickRequest": {
+        "type": "object",
+        "example": {
+          "nick": "player1"
+        },
+        "additionalProperties": false,
+        "required": [
+          "nick"
+        ],
+        "properties": {
+          "nick": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 0,
+            "nullable": false,
+            "example": "player1"
           }
         }
       },

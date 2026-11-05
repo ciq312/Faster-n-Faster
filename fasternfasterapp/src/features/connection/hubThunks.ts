@@ -31,6 +31,15 @@ export const disconnectHub = createAppAsyncThunk(
   },
 );
 
+// A connection keeps the nick from the token it started with, so a rename needs a new one.
+export const reconnectHub = createAppAsyncThunk(
+  "connection/reconnect",
+  async (_: void, { dispatch }) => {
+    await dispatch(disconnectHub());
+    await dispatch(connectHub());
+  },
+);
+
 function hubCall<Arg, Result = void>(
   name: string,
   call: (server: GameHubServer, arg: Arg) => Promise<Result>,
@@ -41,6 +50,7 @@ function hubCall<Arg, Result = void>(
       try {
         return await call(extra.hub.server, arg);
       } catch (e) {
+        console.error(e);
         return rejectWithValue(extractHubError(e));
       }
     },

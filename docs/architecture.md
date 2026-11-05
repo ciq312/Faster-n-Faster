@@ -100,6 +100,8 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 - Login (email/password, Google OAuth, or guest) issues an RS256 access JWT (5 min; 7 days for guests) and an opaque refresh token (4 h, rotated on use), both in HttpOnly cookies.
 - The JWT bearer handler reads the access token from its cookie, so REST calls and the hub connection authenticate the same way.
 - On a 401 the client refreshes once — concurrent requests share one in-flight refresh — and retries.
+- A new Google account starts with a default nick (`player_1234`); the Google name isn't used. The callback sends that first sign-in to `/choose-nick`, which the player can skip. Nothing records that they saw it, so it isn't shown again.
+- The access token carries the nick. A rename (`PUT /api/users/me/nick`, registered players only) issues new tokens, and the client restarts its hub connection, because a connection keeps the nick from the token it started with. Lobbies and races hold their own copy, so the old nick stays there until the player rejoins.
 - A banned or suspended player can't open a hub connection; a player sanctioned while connected has their connection aborted.
 
 ## Concurrency model

@@ -1,7 +1,9 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { useAppSelector } from "../../../../app/hooks";
 import { useCharPositions } from "../../hooks/useCharPositions";
 import { useTyping, type TypingProgress } from "../../hooks/useTyping";
 import type { RaceCaret } from "../../raceSelectors";
+import { selectRacePhase } from "../../raceSlice";
 import "./TypingArea.css";
 
 type TypingAreaProps = {
@@ -29,6 +31,8 @@ function TypingArea({
 
   const lastOverflowRef = useRef<HTMLSpanElement>(null);
   const [selfPos, setSelfPos] = useState({ left: 0, top: 0 });
+  const phase = useAppSelector(selectRacePhase);
+  const showPlayerCaret = phase === "countdown" || phase === "racing";
 
   useLayoutEffect(() => {
     if (lastOverflowRef.current && containerRef.current) {
@@ -122,7 +126,7 @@ function TypingArea({
           {players.map((p) => {
             if (p.index < -1 || p.index >= passage.length - 1) return null;
 
-            if (p.playerId === selfId) {
+            if (p.playerId === selfId && showPlayerCaret) {
               return (
                 <span
                   key={p.playerId}

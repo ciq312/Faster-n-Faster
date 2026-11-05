@@ -33,7 +33,6 @@ public class GoogleCallbackEndpoint(
 
         var subject = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
         var email = result.Principal.FindFirstValue(ClaimTypes.Email) ?? throw new InvalidOperationException("No email provided");
-        var name = result.Principal.FindFirstValue(ClaimTypes.Name) ?? throw new InvalidOperationException("No name provided");
 
         if (string.IsNullOrWhiteSpace(subject))
         {
@@ -41,16 +40,17 @@ public class GoogleCallbackEndpoint(
             return;
         }
 
-        var login = await sender.Send(new ExternalLoginCommand("google", subject, email, name, EmailVerified: true), ct);
+        var login = await sender.Send(new ExternalLoginCommand("google", subject, email, EmailVerified: true), ct);
 
         await HttpContext.SignOutAsync("External");
 
         auth.WriteAuth(login.Tokens);
 
-        var returnUrl = result.Properties?.Items["returnUrl"];
-        var safeReturnUrl = ResolveSafeReturnUrl(returnUrl);
+        var redirectUrl = login.IsNewUser
+            ? $"{appOptions.FrontendUrl}/choose-nick"
+            : ResolveSafeReturnUrl(result.Properties?.Items["returnUrl"]);
 
-        await Send.RedirectAsync(safeReturnUrl, isPermanent: false, allowRemoteRedirects: true);
+        await Send.RedirectAsync(redirectUrl, isPermanent: false, allowRemoteRedirects: true);
     }
 
     private string ResolveSafeReturnUrl(string? returnUrl)
