@@ -21,6 +21,11 @@ public class User : Entity<Guid>
         Password = password;
     }
 
+    public void SetNick(string newNick)
+    {
+        Nick = newNick;
+    }
+
     public void SetPassword(string newPassword)
     {
         Password = newPassword;

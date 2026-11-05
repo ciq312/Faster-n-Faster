@@ -8,9 +8,7 @@ public class RegisterUserValidator : Validator<RegisterUserRequest>
 {
     public RegisterUserValidator()
     {
-        RuleFor(x => x.Nick)
-        .NotEmpty().WithMessage("Nick can't be empty")
-        .MaximumLength(10).WithMessage("Nick max length is 10");
+        RuleFor(x => x.Nick).Nick();
         RuleFor(x => x.Login)
         .NotEmpty().WithMessage("Login can't be empty")
         .MaximumLength(10).WithMessage("Login max length is 10");

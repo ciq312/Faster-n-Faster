@@ -87,16 +87,6 @@
   margin-bottom: 10px;
 }
 
-.profile-page__nick {
-  font-family: var(--font-display);
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--text-1);
-  line-height: 1;
-  letter-spacing: -0.5px;
-  margin: 0;
-}
-
 .profile-page__meta {
   margin-top: 12px;
   font-family: var(--font-mono);
@@ -220,10 +210,6 @@
 @media (max-width: 720px) {
   .profile-page__content {
     padding: 24px 16px;
-  }
-
-  .profile-page__nick {
-    font-size: 1.8rem;
   }
 
   .profile-hero {

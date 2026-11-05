@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Presentation.Web.Shared;
+using FasterNFaster.Api.Presentation.Web.Users.ChangeNick;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 
@@ -99,6 +100,22 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         allowedResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.NotFound);
         await ShouldBeErrorAsync(nthResponse, System.Net.HttpStatusCode.TooManyRequests, ErrorCodes.RateLimited);
+    }
+
+    [Fact]
+    public async Task ChangeNick_ExceedAuthStrictLimit_Returns429()
+    {
+        var client = App.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.6");
+        await AuthHelper.RegisterAndLoginAsync(App, client, AuthHelper.NewPlayer());
+
+        var responses = new List<HttpResponseMessage>();
+        for (var i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
+        {
+            responses.Add(await client.PutAsJsonAsync("api/users/me/nick", new ChangeNickRequest("Renamed")));
+        }
+
+        await ShouldBeErrorAsync(responses[^1], System.Net.HttpStatusCode.TooManyRequests, ErrorCodes.RateLimited);
     }
 
     private static Task<HttpResponseMessage> CreateLobby(HttpClient client) =>

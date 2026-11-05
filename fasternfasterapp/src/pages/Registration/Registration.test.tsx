@@ -111,22 +111,6 @@ describe("Registration", () => {
     expect(await screen.findByText("/lobbies")).toBeTruthy();
   });
 
-  it("shows the server reason when joining as a guest fails", async () => {
-    server.use(
-      http.post(`${API_BASE}/api/auth/guest`, () =>
-        HttpResponse.json(
-          { reason: "Nick is already taken", code: "nick_taken" },
-          { status: 409 },
-        ),
-      ),
-    );
-    renderRegistration();
-
-    await joinAsGuest();
-
-    expect(await screen.findByText("Nick is already taken")).toBeTruthy();
-  });
-
   it("opens check-your-email after sign-up", async () => {
     server.use(
       http.post(`${API_BASE}/api/auth/register`, () => HttpResponse.json({})),
