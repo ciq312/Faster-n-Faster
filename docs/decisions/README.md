@@ -38,6 +38,7 @@ Records 0001–0012 were written on 2026-10-14 from the commit history, pull req
 |---|---|---|---|
 | [0011](0011-batched-keystroke-events-replayed-on-the-server.md) | Batched keystroke events replayed on the server | Proposed | 2026-10-07 |
 | [0012](0012-frontend-on-typescript-redux-toolkit-rtk-query.md) | Frontend on TypeScript, Redux Toolkit and RTK Query | Accepted, not started | 2026-10-13 |
+| [0014](0014-local-load-testing-and-profiling.md) | Local load testing and profiling with a measured generator | Proposed | 2026-11-16 |
 
 ## Statuses
 
