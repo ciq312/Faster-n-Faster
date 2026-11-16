@@ -1,22 +1,22 @@
 # Codex repository setup
 
-`AGENTS.md` is the shared source for project instructions. `CLAUDE.md` imports it with `@AGENTS.md`, so Claude and Codex use the same conventions. Codex-specific workflow instructions live in `.agents/skills/spec/SKILL.md`; the five specialist roles live in `.codex/agents/`. Each role inherits the selected parent model and reasoning effort. Global model, MCP and plugin settings are unchanged.
+`AGENTS.md` is the canonical source for repository instructions used by Codex. `CLAUDE.md` contains `@AGENTS.md`, so Claude Code imports the same instructions. The Jira delivery workflow lives in `.agents/skills/spec/SKILL.md`; the five custom roles live in `.codex/agents/`. The roles inherit the active parent model, reasoning effort, sandbox and connected tools unless explicitly configured otherwise. These repository files do not configure personal/global model, MCP or plugin settings.
 
 ## Activate
 
-1. Restart Codex in this trusted repository to discover the new instructions, skill and agents.
-2. Open `/hooks` in the CLI, or **Settings > Hooks** in the desktop app. Review and trust the repository hooks. Changed definitions/scripts may require another review.
-3. Ask to use `$spec` for a ticket, or request a named role such as `code-reviewer`. The workflow requires plan approval before implementation and authorization before commit/PR actions; existing explicit approvals count.
+1. Start a new Codex session in this repository to load its instructions, skill and custom roles.
+2. Review and trust the repository hook in `/hooks` (CLI) or **Settings > Hooks** (desktop). The hook definition invokes `.codex/hooks/dispatch.py`; that script invokes the two guard scripts. Hook activation depends on host trust, and script/definition changes may require review again.
+3. Ask to use `$spec` for a Jira ticket, or request a custom role such as `code-reviewer`. The skill describes approval checkpoints; existing explicit user authorization still applies.
 
-The project config enables hooks and agents, with at most three concurrent spawned agents. It does not grant broader filesystem, network or Jira permissions. Custom roles request read-only behaviour where appropriate; they inherit the parent's sandbox and MCP access, so this is not an independent permission boundary.
+`.codex/config.toml` enables hooks and custom agents and sets the session limit to three concurrent agent threads. This is repository configuration; it does not itself grant filesystem, network or Jira access. Custom roles inherit the parent's sandbox and connected tools, so role instructions are not an independent security boundary.
 
 ## Guards
 
-`dispatch.py` normalizes Codex shell arguments and delegates to adapted copies of the Claude branch and docs guards. The branch guard blocks tracked edits on protected branches, validates feature branch naming/base and checks cached remote refs. Apply-patch calls are conservatively checked against the session repository. The docs guard flags commits whose changed files are referenced by unstaged documentation; after reviewing the indicated passages, the same unchanged diff may be committed again, matching the Claude workflow.
+`dispatch.py` normalizes tool arguments, blocks explicit real `.env`/`secrets/` paths and `curl` shell commands, then runs both guards. The branch guard rejects Edit/Write operations on non-ignored files in this repo's protected branches, rejects `apply_patch` on those branches, and blocks commits there. When it sees a branch-creation command it checks the branch name and base; while planning it attempts a bounded fetch of the integration branch to report whether local `dev`/`develop` is behind. The docs guard only acts on commit commands. It compares staged changes (and unstaged tracked changes for `commit -a/--all`) to names mentioned in `docs/*.md` and the root `README.md`; a matching doc must be included or explicitly reviewed. For an unchanged diff, it records a one-time review marker so the same commit command can be retried.
 
-Explicit real `.env`/`secrets/` paths and `curl` commands are blocked by the dispatcher; `.env.example` remains usable. These hooks are convenience guards, not exhaustive shell analysis or filesystem read protection. Indirect commands and specialized tool paths may evade matching. Keep sandbox and permission controls enabled and follow AGENTS.md even for tools outside hook coverage. MCP mutations still require authorization from the user or an explicitly invoked workflow.
+The secret and `curl` checks are textual guardrails, not exhaustive shell analysis or filesystem read protection; indirect commands and tool paths that bypass this hook may evade them. Keep sandbox and permission controls enabled and follow `AGENTS.md` for tools outside hook coverage. MCP mutations still require user authorization or an explicitly authorized workflow.
 
-The adapters are self-contained, so ignored local `.claude/hooks/` files are not required on another checkout. Updating the Claude guards does not automatically update these copies; compare them when policy changes. No plugin credentials, personal settings or Claude history were copied.
+The Codex guards are checked into `.codex/hooks/` and do not depend on the ignored local `.claude/hooks/` scripts. The Claude and Codex hook implementations are separate; update and review both if their shared policy needs to change. No personal credentials or global settings are stored in this repository configuration.
 
 ## Verify
 
@@ -24,6 +24,6 @@ The adapters are self-contained, so ignored local `.claude/hooks/` files are not
 python3 .codex/hooks/test_guards.py
 ```
 
-This exercises protected-branch edits, patch handling, permitted feature edits, branch naming/base checks, explicit secret paths, shell normalization and the docs-review checkpoint in disposable repositories. Live hook activation still requires the host's trust review.
+This runs the guard unit tests using disposable repositories. They cover protected-branch edits and commits, patch handling, feature edits, branch naming/base checks, explicit secret paths, shell argument normalization and the docs-review checkpoint. It does not verify that the host has activated or trusted the hook; that is checked through `/hooks` or **Settings > Hooks**.
 
 References: [Codex hooks](https://learn.chatgpt.com/docs/hooks), [custom agents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [project instructions](https://learn.chatgpt.com/docs/agent-configuration/agents-md).

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse: before Claude commits, flags changed files that docs/ or the README describe,
+# PreToolUse: before Codex commits, flags changed files that docs/ or the README describe,
 # so those docs get read against the diff before it lands.
 set -uo pipefail
 
