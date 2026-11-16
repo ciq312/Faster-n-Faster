@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -171,7 +172,7 @@ public class LoadTestBot
 
         // 1 WPM = 5 chars/min. delayMs = 60000 / charsPerSec = 60000 / (wpm*5/60) = 12000/wpm
         if (targetWpm <= 0) throw new ArgumentOutOfRangeException(nameof(targetWpm));
-        int baseDelayMs = Math.Max(10, 12000 / targetWpm);
+        var baseDelayMs = Math.Max(10, 12000 / targetWpm);
         var jitter = new Random(BotId);
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var sendInterval = TimeSpan.FromMilliseconds(100);
@@ -182,13 +183,13 @@ public class LoadTestBot
             .Distinct()
             .ToArray();
 
-        for (int index = 0; index < Passage.Length; index++)
+        for (var index = 0; index < Passage.Length; index++)
         {
             if (WasBanned) return;
             ct.ThrowIfCancellationRequested();
             if (index > 0)
             {
-                int jitterSpread = Math.Max(1, baseDelayMs / 5);
+                var jitterSpread = Math.Max(1, baseDelayMs / 5);
                 plannedTypingAt += TimeSpan.FromMilliseconds(baseDelayMs + jitter.Next(-jitterSpread, jitterSpread));
                 var remaining = plannedTypingAt - sw.Elapsed;
                 if (remaining > TimeSpan.Zero) await Task.Delay(remaining, ct);
@@ -232,7 +233,10 @@ public class LoadTestBot
             if (!TryGetProp(participant, "playerId", out var idElement) ||
                 !Guid.TryParse(idElement.GetString(), out var id) || id != UserId ||
                 !TryGetProp(participant, "index", out var indexElement) ||
-                !indexElement.TryGetInt32(out var index)) continue;
+                !indexElement.TryGetInt32(out var index))
+            {
+                continue;
+            }
 
             Interlocked.Exchange(ref highestObservedIndex, Math.Max(HighestObservedIndex, index));
             foreach (var sample in progressLatencies.Values.Where(s => s.Index <= index))

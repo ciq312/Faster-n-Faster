@@ -2,6 +2,8 @@
 
 The performance stack uses a separate Compose project and does not read the development or production `.env`. It contains the API, test-only PostgreSQL/Redis, the existing SignalR load-test bots and a diagnostics sidecar with pinned `dotnet-counters` 10.0.750501. Database/cache ports are private to the Compose network; the API is published on `127.0.0.1:18080`. The local API has `RateLimiting:Enabled=false`; the normal application and production settings remain enabled. Anti-cheat stays enabled.
 
+The diagnostics socket uses an explicit runtime `connect,nosuspend` port so API startup does not wait for the collector. The `profiling-runs` bind mount uses Docker's shared SELinux label (`:z`) because both the collector and load-test container write there.
+
 Start the isolated API and dependencies:
 
 ```bash

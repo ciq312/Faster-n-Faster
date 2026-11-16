@@ -9,17 +9,17 @@ var runClock = Stopwatch.StartNew();
 var errors = new List<string>();
 var runStarted = DateTime.UtcNow;
 var runId = $"{runStarted:yyyyMMdd'T'HHmmssfff'Z'}-{Guid.NewGuid():N}"[..32];
-int users = 5;
-string server = "http://localhost:8080";
-bool insecure = false;
-int wpm = 120;
-bool allowRemote = false;
-string outDir = Environment.GetEnvironmentVariable("LOADTEST_OUT") ?? AppContext.BaseDirectory;
+var users = 5;
+var server = "http://localhost:8080";
+var insecure = false;
+var wpm = 120;
+var allowRemote = false;
+var outDir = Environment.GetEnvironmentVariable("LOADTEST_OUT") ?? AppContext.BaseDirectory;
 var bots = new List<LoadTestBot>();
 
 try
 {
-    for (int i = 0; i < args.Length; i++)
+    for (var i = 0; i < args.Length; i++)
     {
         switch (args[i])
         {
@@ -55,7 +55,7 @@ try
         const int authBatchSize = 100;
         var semaphore = new SemaphoreSlim(10);
         MarkPhase("auth_start");
-        for (int i = 0; i < bots.Count; i += authBatchSize)
+        for (var i = 0; i < bots.Count; i += authBatchSize)
         {
             var batch = bots.Skip(i).Take(authBatchSize).ToList();
             Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1}: bots {i}..{i + batch.Count - 1}");
@@ -75,7 +75,7 @@ try
 
         var hosts = new List<LoadTestBot>();
         MarkPhase("join_start");
-        for (int i = 0; i < users; i++)
+        for (var i = 0; i < users; i++)
         {
             if (i % 10 == 0)
             {
@@ -254,8 +254,6 @@ catch (Exception exception)
             bots = bots.Select(bot => new { bot.BotId, bot.UserId, bot.IsConnected, bot.ProgressSends, bot.LateCharacters, bot.MaxScheduleLatenessMs, bot.HighestObservedIndex, bot.WasBanned, bot.BannedReason }),
             phases,
             phaseOffsetsMs,
-            pingRtts = partialPings,
-            progressLatencySamples = partialProgress
         };
         await File.WriteAllTextAsync(Path.Combine(artifactDir, "run-summary.json"),
             JsonSerializer.Serialize(failureSummary, new JsonSerializerOptions { WriteIndented = true }));
