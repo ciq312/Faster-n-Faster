@@ -1,6 +1,6 @@
 # 0014. Local load testing and profiling with a measured generator
 
-- **Status:** Proposed
+- **Status:** Accepted, in progress
 - **Date:** 2026-11-16
 - **Sources:** Local performance-testing design discussion (2026-11-16); current [`loadtest/`](../../loadtest/), [profiling orchestrator](https://github.com/ciq312/Faster-n-Faster-profiling), and [race tick design](0007-race-tick-with-latest-frame-conflation.md).
 

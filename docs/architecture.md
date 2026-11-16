@@ -125,7 +125,7 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 
 - **Unit tests** (`FasterNFaster.UnitTests`): xUnit with hand-rolled fakes and `FakeTimeProvider`; no mocking framework.
 - **Integration tests** (`FasterNFaster.IntegrationTests`): real PostgreSQL and Redis through Testcontainers, one host per test.
-- **Performance testing (planned):** an isolated local Compose stack, separate SignalR bot and diagnostics containers, and a host Python runner. Record achieved load and generator health alongside server metrics; collect short traces in separate diagnostic runs. See [0014](decisions/0014-local-load-testing-and-profiling.md) for scenarios, artifacts and implementation stages. Local results describe that configuration, not production VPS capacity.
+- **Performance testing (in progress):** an isolated Compose stack runs the API, test-only PostgreSQL/Redis, SignalR bots and a `dotnet-counters` sidecar. Bot correctness, latency and .NET runtime counter artifacts are collected; container/host metrics and targeted traces are still pending. See [0014](decisions/0014-local-load-testing-and-profiling.md) for the design and [local profiling instructions](local-profiling.md) for the current workflow. Local results describe that configuration, not production VPS capacity.
 
 ## Scaling out (later)
 

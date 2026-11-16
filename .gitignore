@@ -39,6 +39,7 @@ yarn-error.log*
 Thumbs.db
 desktop.ini
 .playwright-mcp/
+/profiling-runs/
 
 # ========================
 # IDE

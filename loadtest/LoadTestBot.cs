@@ -1,4 +1,5 @@
-using System.Net;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -11,25 +12,40 @@ public class LoadTestBot
     public string Nick { get; }
     public string ServerUrl { get; }
     public bool Insecure { get; }
+    public Guid? UserId { get; private set; }
 
     public Guid? LobbyId { get; private set; }
     public string? Passage { get; private set; }
-    public IReadOnlyList<(DateTime T, long Ms)> PingRtts => pingRtts;
+    public bool IsConnected { get; private set; }
+    public int ProgressSends => Volatile.Read(ref progressSends);
+    public int LateCharacters => Volatile.Read(ref lateCharacters);
+    public double MaxScheduleLatenessMs => Interlocked.Read(ref maxScheduleLatenessTicks) / (double)TimeSpan.TicksPerMillisecond;
+    public IReadOnlyList<(DateTime T, double Ms)> PingRtts => pingRtts;
+    public IReadOnlyCollection<ProgressLatencySample> ProgressLatencies => progressLatencies.Values.ToArray();
+    public int HighestObservedIndex => highestObservedIndex;
+    public JsonElement? RaceResult { get; private set; }
     public bool WasBanned { get; private set; }
     public string? BannedReason { get; private set; }
+    public int PingFailures => Volatile.Read(ref pingFailures);
 
     public Task PassageReady => passageReadyTcs.Task;
     public Task RaceStarted => raceStartedTcs.Task;
     public Task RaceEnded => raceEndedTcs.Task;
 
     private readonly CookieContainer cookies = new();
-    private readonly List<(DateTime T, long Ms)> pingRtts = new();
+    private readonly List<(DateTime T, double Ms)> pingRtts = new();
+    private readonly ConcurrentDictionary<int, ProgressLatencySample> progressLatencies = new();
     private readonly TaskCompletionSource passageReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource raceStartedTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource raceEndedTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private HttpClient? http;
     private HubConnection? hub;
+    private int highestObservedIndex = -1;
+    private int pingFailures;
+    private int progressSends;
+    private int lateCharacters;
+    private long maxScheduleLatenessTicks;
 
     public LoadTestBot(int botId, string serverUrl, bool insecure)
     {
@@ -53,6 +69,9 @@ public class LoadTestBot
             throw new InvalidOperationException(
                 $"Bot {BotId} auth failed: {(int)resp.StatusCode} {resp.ReasonPhrase} — {body}");
         }
+
+        var bodyJson = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        UserId = Guid.Parse(GetCaseInsensitive(bodyJson, "guestId").GetString()!);
     }
 
     public async Task ConnectHubAsync()
@@ -89,7 +108,18 @@ public class LoadTestBot
         });
 
         hub.On("RaceStarted", () => raceStartedTcs.TrySetResult());
-        hub.On<JsonElement>("RaceEnded", _ => raceEndedTcs.TrySetResult());
+        hub.On<JsonElement>("RaceState", state => ObserveRaceState(state));
+        hub.On<JsonElement>("RaceEnded", result =>
+        {
+            RaceResult = result;
+            if (ContainsOwnResult(result))
+            {
+                var finishIndex = (Passage?.Length ?? 0) - 1;
+                if (progressLatencies.TryGetValue(finishIndex, out var finalSample))
+                    finalSample.TryObserve(Stopwatch.GetTimestamp());
+            }
+            raceEndedTcs.TrySetResult();
+        });
         hub.On<string>("Banned", reason =>
         {
             WasBanned = true;
@@ -102,6 +132,7 @@ public class LoadTestBot
             Console.WriteLine($"[bot {BotId}] another session started — duplicate auth?"));
 
         await hub.StartAsync();
+        IsConnected = true;
     }
 
     public async Task<Guid> CreateLobbyAsync(string lobbyName, bool isPrivate = false)
@@ -139,24 +170,84 @@ public class LoadTestBot
         if (Passage is null) throw new InvalidOperationException("Passage not received.");
 
         // 1 WPM = 5 chars/min. delayMs = 60000 / charsPerSec = 60000 / (wpm*5/60) = 12000/wpm
+        if (targetWpm <= 0) throw new ArgumentOutOfRangeException(nameof(targetWpm));
         int baseDelayMs = Math.Max(10, 12000 / targetWpm);
         var jitter = new Random(BotId);
-        var sw = new System.Diagnostics.Stopwatch();
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sendInterval = TimeSpan.FromMilliseconds(100);
+        var nextSend = TimeSpan.Zero;
+        var plannedTypingAt = TimeSpan.Zero;
+        var milestones = Enumerable.Range(0, 5)
+            .Select(i => (int)Math.Ceiling((Passage.Length - 1) * i / 4d))
+            .Distinct()
+            .ToArray();
 
         for (int index = 0; index < Passage.Length; index++)
         {
             if (WasBanned) return;
             ct.ThrowIfCancellationRequested();
+            if (index > 0)
+            {
+                int jitterSpread = Math.Max(1, baseDelayMs / 5);
+                plannedTypingAt += TimeSpan.FromMilliseconds(baseDelayMs + jitter.Next(-jitterSpread, jitterSpread));
+                var remaining = plannedTypingAt - sw.Elapsed;
+                if (remaining > TimeSpan.Zero) await Task.Delay(remaining, ct);
+
+                var lateness = sw.Elapsed - plannedTypingAt;
+                if (lateness > TimeSpan.FromMilliseconds(10)) Interlocked.Increment(ref lateCharacters);
+                UpdateMax(ref maxScheduleLatenessTicks, lateness.Ticks);
+            }
             var typedPrefix = Passage[..(index + 1)];
 
-            // fire-and-forget: matches what the real client should do; latency is measured separately via PingLoopAsync
-            await hub.SendAsync("UpdateRaceState", index, 0, typedPrefix, cancellationToken: ct);
+            var isFinal = index == Passage.Length - 1;
+            var sendStartedAt = sw.Elapsed;
+            if (index == 0 || isFinal || sendStartedAt >= nextSend)
+            {
+                foreach (var milestone in milestones.Where(m => m <= index))
+                    progressLatencies.TryAdd(milestone, new ProgressLatencySample(milestone, Stopwatch.GetTimestamp()));
 
-            // ±20% jitter so bots don't keystroke in lockstep
-            int jitterSpread = Math.Max(1, baseDelayMs / 5);
-            int delay = baseDelayMs + jitter.Next(-jitterSpread, jitterSpread);
-            if (delay > 0) await Task.Delay(delay, ct);
+                await hub.SendAsync("UpdateRaceState", index, 0, typedPrefix, cancellationToken: ct);
+                Interlocked.Increment(ref progressSends);
+                nextSend = sendStartedAt + sendInterval;
+            }
         }
+    }
+
+    private static void UpdateMax(ref long max, long candidate)
+    {
+        var current = Interlocked.Read(ref max);
+        while (candidate > current)
+        {
+            var observed = Interlocked.CompareExchange(ref max, candidate, current);
+            if (observed == current) return;
+            current = observed;
+        }
+    }
+
+    private void ObserveRaceState(JsonElement state)
+    {
+        if (UserId is null || state.ValueKind != JsonValueKind.Array) return;
+        foreach (var participant in state.EnumerateArray())
+        {
+            if (!TryGetProp(participant, "playerId", out var idElement) ||
+                !Guid.TryParse(idElement.GetString(), out var id) || id != UserId ||
+                !TryGetProp(participant, "index", out var indexElement) ||
+                !indexElement.TryGetInt32(out var index)) continue;
+
+            Interlocked.Exchange(ref highestObservedIndex, Math.Max(HighestObservedIndex, index));
+            foreach (var sample in progressLatencies.Values.Where(s => s.Index <= index))
+                sample.TryObserve(Stopwatch.GetTimestamp());
+            return;
+        }
+    }
+
+    private bool ContainsOwnResult(JsonElement result)
+    {
+        if (UserId is null || !TryGetProp(result, "results", out var results) || results.ValueKind != JsonValueKind.Array)
+            return false;
+        return results.EnumerateArray().Any(item =>
+            TryGetProp(item, "playerId", out var playerId) &&
+            Guid.TryParse(playerId.GetString(), out var id) && id == UserId);
     }
 
     public async Task PingLoopAsync(TimeSpan interval, CancellationToken ct)
@@ -171,10 +262,10 @@ public class LoadTestBot
                 sw.Restart();
                 await hub.InvokeAsync<long>("Ping", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), cancellationToken: ct);
                 sw.Stop();
-                pingRtts.Add((DateTime.UtcNow, sw.ElapsedMilliseconds));
+                pingRtts.Add((DateTime.UtcNow, sw.Elapsed.TotalMilliseconds));
             }
             catch (OperationCanceledException) { return; }
-            catch { /* ignore transient hub errors during shutdown */ }
+            catch { Interlocked.Increment(ref pingFailures); }
 
             try { await Task.Delay(interval, ct); }
             catch (OperationCanceledException) { return; }
@@ -212,13 +303,13 @@ public class LoadTestBot
         throw new InvalidOperationException($"Property '{name}' not found in response.");
     }
 
-    public async Task<long> PingAsync()
+    public async Task<double> PingAsync()
     {
         if (hub is null) throw new InvalidOperationException("Hub not connected.");
         var sw = System.Diagnostics.Stopwatch.StartNew();
         await hub.InvokeAsync<long>("Ping", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         sw.Stop();
-        return sw.ElapsedMilliseconds;
+        return sw.Elapsed.TotalMilliseconds;
     }
 
     public async Task DisposeAsync()
@@ -226,4 +317,16 @@ public class LoadTestBot
         if (hub is not null) await hub.DisposeAsync();
         http?.Dispose();
     }
+}
+
+public sealed class ProgressLatencySample(int index, long sentTimestamp)
+{
+    private long observedTimestamp;
+
+    public int Index { get; } = index;
+    public double? LatencyMs => observedTimestamp == 0
+        ? null
+        : (observedTimestamp - sentTimestamp) * 1000d / Stopwatch.Frequency;
+
+    public void TryObserve(long timestamp) => Interlocked.CompareExchange(ref observedTimestamp, timestamp, 0);
 }

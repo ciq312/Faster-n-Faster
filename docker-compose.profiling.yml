@@ -1,0 +1,120 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: profiler
+      POSTGRES_PASSWORD: local-profiling-only
+      POSTGRES_DB: faster_n_faster_profile
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U profiler -d faster_n_faster_profile"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - profile_postgres:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_POSTGRES_CPUS:-0.75}"
+          memory: "${PROFILE_POSTGRES_MEMORY:-768m}"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - profile_redis:/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_REDIS_CPUS:-0.5}"
+          memory: "${PROFILE_REDIS_MEMORY:-384m}"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: FasterNFaster.Api.Presentation/Dockerfile
+    entrypoint: ["./efbundle", "--connection", "Host=postgres;Port=5432;Database=faster_n_faster_profile;Username=profiler;Password=local-profiling-only"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  diagnostics:
+    build:
+      context: ./profiling-tools
+    user: "0:0"
+    volumes:
+      - profile_diagnostics:/diag
+      - ./profiling-runs:/out
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /diag/dotnet-diagnostic.sock"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 3s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_DIAGNOSTICS_CPUS:-0.5}"
+          memory: "${PROFILE_DIAGNOSTICS_MEMORY:-384m}"
+
+  api:
+    build:
+      context: .
+      dockerfile: FasterNFaster.Api.Presentation/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=faster_n_faster_profile;Username=profiler;Password=local-profiling-only
+      ConnectionStrings__Redis: redis:6379
+      # Public test fixture: never reuse this key outside isolated local profiling.
+      JwtOptions__PrivateKey: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCZH66r8pUo6FPpJ2aE22+DFCNo9Rd3sSUFcpzgVv7LXQqFCmZRp+kuV2y9JPrYqkb3V7+P8yMy/2MsrhA2XQ9Bugvjq/v0TCNA9YE2Uy0zsrdfxn/8zGjn8WivzADqjyP7FJvS0rZKQ9iWRmBmdKTXnnHNgWgcjAykUxWP4h4AK0EjGQ4M7S8wmWq4YmF7kLDiIYOBFGYaQMgUoGOyTFQVogNJne/Go9udKaAq8NriyI4lro31JTxsFh6urpnmpjvyxYsiuA6MP3C/768R/s8F4YjXdP+wgFwfNugqke3LFi5cCpRYXYm45uR+mbbK2cvamElmt/DWvslbjIuIg5crAgMBAAECggEAAzvMZzHKpnJiIANputgu+4yHugttb4NgRwdXIjvfgUCHYrMLHkB4JL04IYVdtSEwjv0LOdV9M2YMRAijXGOt/bqx8q0AK1FsAjaG7czU3Y+lfP0TA6feRdd0/bXGhb/TqZJooKoXYgQ/lExCT8zpsxt+ceJuWemApTj0/dM4n65mXdWM6w7OkudNJwebKAJosT0NbujYQxS/KKv02KHu3hy2cH4tIrnw8TPYw2+7gpAIV4RKW/kp0Ss1+oKn55N0pNgq7IjmkGZbKPQEd7Zak2yqGNYihWv/nBNOnQC/+kqeD9dAljH13iUOHsXLvaBiDDOb0Squz54lxqLebG7nhQKBgQDKFfX8E8H3uBDkgrL2NAEa2yVGiciLXROy8dI8nC1GAYzFRKrzU9wNrorSN0PDBK6PoYe///50lC6netBH30/dd2fhDzyMME/+WS8TwaZO9bG0RV6Kntlt+PsLMQXnWKPEs0fSmFwsEa8leF7RbzeGEEISdAiMmy8V9HBv0DRevwKBgQDB+beCacorPcCOhC93VHdX8O63as0LfA8jbwdR00/BjEimsuMjY+b7Jjw+9Vm5SWe5HGRKsQzjRcu1uP6FjK+Gj7iyalRZ7AFkO7epzhc9NalNN78eVzvnUozyxDUK21Tumy+ytNPj4Yr/TK0/SHPz6jCC/M9ucpFpYfGBM6YOlQKBgQCuhm7NR+bxYDa+kp2qAVme7vnvRFk8+qJjnXKaw6pZ1kbTqy0UPi1CZ6YeTHop92YmRzNsvtHrrnnoTCmKmLJpqpC9DqKU07iSCkWdA1X0xT22WV5/yxYuYqO0k57soGG3I7n4h3q62H7xllYU+77w+iOFuk4T2IW+qT9dYWuJEwKBgF3B0sZRVeuyrGj2UW8PP6QdC3VSRQuhCjwpRVNynOFDajZQzuLjPdj08TfJJXYemejqZTuI+l679KvAYB2zE4Ap5a8vH9ha741AJBUKTUdDsbJmGJWUupqj1wbceXrm6tVt4w8wwh4qfSHLMQ4eehVSg+I8ShLrg4d5VN8LVN9FAoGBAIXmGGDWrUOA/OTdHecPBvvjZocnPHjAP/88iOP099ksZCA5Jhwl8oBAVEg0DSF7sAaZU9JmvMSCWrNw/0iNKpHNYF+OxBcRSGhwFUmR0VJCV2VFbd+mvA1wrBj3ogUJIv6JOfrajaQDJxhJUGFNVlN7L/ZXhYyESsISBN63EuCS
+      Google__ClientId: local-profile-unused
+      Google__ClientSecret: local-profile-unused
+      AuthCookies__Secure: "false"
+      Cors__AllowedOrigins__0: http://localhost:3000
+      RateLimiting__Enabled: "false"
+      DOTNET_DiagnosticPorts: /diag/dotnet-diagnostic.sock,nosuspend
+    ports:
+      - "127.0.0.1:18080:8080"
+    volumes:
+      - profile_diagnostics:/diag
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      diagnostics:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_API_CPUS:-2.0}"
+          memory: "${PROFILE_API_MEMORY:-1536m}"
+
+  loadtest:
+    profiles: ["loadtest"]
+    user: "${PROFILE_UID:-1000}:${PROFILE_GID:-1000}"
+    build:
+      context: ./loadtest
+    command: ["--users", "${PROFILE_USERS:-5}", "--server", "http://api:8080", "--wpm", "${PROFILE_WPM:-120}", "--out", "/runs"]
+    volumes:
+      - ./profiling-runs:/runs
+    depends_on:
+      api:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_BOTS_CPUS:-1.0}"
+          memory: "${PROFILE_BOTS_MEMORY:-768m}"
+
+volumes:
+  profile_postgres:
+  profile_redis:
+  profile_diagnostics:
