@@ -2,7 +2,7 @@ import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { fakeGameHub } from "../../test/fakeGameHub";
-import { lobbyState, raceParticipant, raceResult } from "../../test/fixtures";
+import { lobbyState, raceResult } from "../../test/fixtures";
 import { renderPage } from "../../test/renderPage";
 import { enterLobby } from "../../test/store";
 import Lobby from "./Lobby";
@@ -106,17 +106,10 @@ describe("Lobby", () => {
   it("sends typed progress to the server", async () => {
     const hub = await renderLobby();
     await act(() => hub.client().raceStarted());
-    await act(() =>
-      hub
-        .client()
-        .raceState([
-          raceParticipant({ index: -1, typed: "", wpm: 0, mistakes: 0 }),
-        ]),
-    );
 
     await userEvent.setup().type(typingInput(), "h");
 
-    expect(hub.server.updateRaceState).toHaveBeenCalledWith(0, 0, "h");
+    expect(hub.server.updateRaceState).toHaveBeenCalledWith([{ key: "h" }]);
   });
 
   it("shows the results after the race ends and the typing area after closing them", async () => {

@@ -2,6 +2,13 @@ namespace FasterNFaster.Api.Presentation.Web.Auth.Validation;
 
 public static class ValidationExtensions
 {
+    public static IRuleBuilderOptions<T, string> Nick<T>(this IRuleBuilder<T, string> ruleBuilder)
+    {
+        return ruleBuilder
+            .NotEmpty().WithMessage("Nick can't be empty")
+            .MaximumLength(10).WithMessage("Nick max length is {MaxLength}");
+    }
+
     public static IRuleBuilderOptions<T, string> Password<T>(this IRuleBuilder<T, string> ruleBuilder)
     {
         return ruleBuilder

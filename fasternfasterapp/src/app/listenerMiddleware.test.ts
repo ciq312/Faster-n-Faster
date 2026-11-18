@@ -91,38 +91,37 @@ describe("listener middleware", () => {
       store.dispatch(hubEvents.raceStarted());
     }
 
-    function progress(typed: string, final = false) {
-      return progressTyped({
-        index: typed.length - 1,
-        mistakes: 0,
-        typed,
-        final,
-      });
+    function keystroke(key: string) {
+      return { key };
     }
 
-    it("sends the first progress at once", async () => {
+    function progress(key: string, final = false) {
+      return progressTyped({ keystroke: keystroke(key), final });
+    }
+
+    it("sends the first keystroke at once", async () => {
       const { hub, store } = setup();
       await startRacing(store);
 
       store.dispatch(progress("a"));
 
-      expect(hub.server.updateRaceState).toHaveBeenCalledWith(0, 0, "a");
+      expect(hub.server.updateRaceState).toHaveBeenCalledWith([keystroke("a")]);
     });
 
-    it("coalesces progress within 100 ms into one trailing send with the latest text", async () => {
+    it("collects keystrokes within 100 ms into one trailing batch", async () => {
       const { hub, store } = setup();
       await startRacing(store);
 
       store.dispatch(progress("a"));
-      store.dispatch(progress("ab"));
-      store.dispatch(progress("abc"));
+      store.dispatch(progress("b"));
+      store.dispatch(progress("c"));
       expect(hub.server.updateRaceState).toHaveBeenCalledTimes(1);
 
       await vi.advanceTimersByTimeAsync(100);
 
       expect(hub.server.updateRaceState.mock.calls).toEqual([
-        [0, 0, "a"],
-        [2, 0, "abc"],
+        [[keystroke("a")]],
+        [[keystroke("b"), keystroke("c")]],
       ]);
     });
 
@@ -132,21 +131,24 @@ describe("listener middleware", () => {
       store.dispatch(progress("a"));
 
       await vi.advanceTimersByTimeAsync(100);
-      store.dispatch(progress("ab"));
+      store.dispatch(progress("b"));
 
       expect(hub.server.updateRaceState).toHaveBeenCalledTimes(2);
     });
 
-    it("sends final progress at once and drops the pending one", async () => {
+    it("sends the final keystroke at once together with the pending ones", async () => {
       const { hub, store } = setup();
       await startRacing(store);
 
       store.dispatch(progress("a"));
-      store.dispatch(progress("ab"));
-      store.dispatch(progress("abc", true));
+      store.dispatch(progress("b"));
+      store.dispatch(progress("c", true));
 
       expect(hub.server.updateRaceState).toHaveBeenCalledTimes(2);
-      expect(hub.server.updateRaceState).toHaveBeenLastCalledWith(2, 0, "abc");
+      expect(hub.server.updateRaceState).toHaveBeenLastCalledWith([
+        keystroke("b"),
+        keystroke("c"),
+      ]);
 
       await vi.advanceTimersByTimeAsync(100);
 
@@ -157,7 +159,7 @@ describe("listener middleware", () => {
       const { hub, store } = setup();
       await startRacing(store);
       store.dispatch(progress("a"));
-      store.dispatch(progress("ab"));
+      store.dispatch(progress("b"));
 
       store.dispatch(hubEvents.raceWithdrawn());
       await vi.advanceTimersByTimeAsync(100);
@@ -169,7 +171,7 @@ describe("listener middleware", () => {
       const { hub, store } = setup();
       await startRacing(store);
       store.dispatch(progress("a"));
-      store.dispatch(progress("ab"));
+      store.dispatch(progress("b"));
 
       store.dispatch(hubEvents.raceEnded({ results: [] }));
       await vi.advanceTimersByTimeAsync(100);

@@ -60,11 +60,7 @@ export function raceParticipant(
   return {
     playerId: "p1",
     index: 2,
-    typed: "hi ",
     wpm: 40,
-    color: "red",
-    nick: "Player",
-    mistakes: 1,
     ...overrides,
   };
 }

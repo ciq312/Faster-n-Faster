@@ -3,10 +3,9 @@ using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.Domain.Exceptions.Races;
 using FasterNFaster.Api.Domain.Interfaces;
-using FasterNFaster.Api.Presentation.Web.AntiCheat;
-using FasterNFaster.UnitTests.Fakes;
-using Microsoft.Extensions.Options;
+using FasterNFaster.UnitTests.Shared;
 using Microsoft.Extensions.Time.Testing;
+using Shouldly;
 
 namespace FasterNFaster.UnitTests.Domain;
 
@@ -17,111 +16,113 @@ public class RaceTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void NonPositiveWordCount_ConstructorThrows(int wordCount) =>
-        Assert.Throws<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage, new FakeTimeProvider()));
+    public void NonPositiveWordCount_ConstructorShouldThrow(int wordCount) =>
+        Should.Throw<ArgumentException>(() => new Race(Guid.NewGuid(), wordCount, Passage, new FakeTimeProvider()));
 
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void EmptyPassage_ConstructorThrows(string? passage) =>
-        Assert.ThrowsAny<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!, new FakeTimeProvider()));
+    public void EmptyPassage_ConstructorShouldThrow(string? passage) =>
+        Should.Throw<ArgumentException>(() => new Race(Guid.NewGuid(), 9, passage!, new FakeTimeProvider()));
 
-    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateStartedRace(IAntiCheatPolicy policy, string passage = Passage)
+    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateStartedRace(IAntiCheatPolicy? policy = null, string passage = Passage)
     {
         var (race, participant, clock) = CreateRace(policy, passage);
         race.Start();
         return (race, participant, clock);
     }
 
-    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateRace(IAntiCheatPolicy policy, string passage = Passage)
+    private static (Race Race, RaceParticipant Participant, FakeTimeProvider Clock) CreateRace(IAntiCheatPolicy? policy = null, string passage = Passage)
     {
         var clock = new FakeTimeProvider();
         var race = new Race(Guid.NewGuid(), 9, passage, clock);
-        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy, clock);
+        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? AntiCheatPolicy.Unlimited, clock);
         race.AddParticipant(participant);
         return (race, participant, clock);
     }
 
+    private static (Race Race, RaceParticipant Alice, RaceParticipant Bob, FakeTimeProvider Clock) CreateStartedRaceWithTwoRacers()
+    {
+        var (race, alice, clock) = CreateRace();
+        var bob = new RaceParticipant(Guid.NewGuid(), "#000", "bob", AntiCheatPolicy.Unlimited, clock);
+        race.AddParticipant(bob);
+        race.Start();
+        return (race, alice, bob, clock);
+    }
+
+    private static void Finish(Race race, RaceParticipant racer) =>
+        race.ProcessUpdate(racer.Id, KeystrokeHelper.Sequence(race.Passage));
+
     [Fact]
     public void RejectedUpdate_ShouldBeDroppedWithoutThrowing()
     {
-        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, participant, _) = CreateStartedRace();
 
-        race.ProcessUpdate(participant.Id, 2, 0, "txe");
+        race.ProcessUpdate(participant.Id, [KeystrokeHelper.Backspace()]);
 
-        Assert.Equal(-1, participant.Index);
-        Assert.Equal("", participant.Typed);
+        participant.LastValidIndex.ShouldBe(-1);
+        participant.WrongTail.ShouldBeEmpty();
     }
 
     [Fact]
     public void RejectedUpdate_ShouldRaiseRaceViolationEventWithRule()
     {
-        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, participant, _) = CreateStartedRace();
 
-        race.ProcessUpdate(participant.Id, 2, 0, "txe");
+        race.ProcessUpdate(participant.Id, [KeystrokeHelper.Backspace()]);
 
-        var violation = Assert.Single(race.DomainEvents.OfType<RaceViolationEvent>());
-        Assert.Equal(race.LobbyId, violation.LobbyId);
-        Assert.Equal(participant.Id, violation.PlayerId);
-        Assert.Equal("typed prefix does not match passage", violation.Rule);
+        var violation = race.DomainEvents.OfType<RaceViolationEvent>().ShouldHaveSingleItem();
+        violation.LobbyId.ShouldBe(race.LobbyId);
+        violation.PlayerId.ShouldBe(participant.Id);
+        violation.Rule.ShouldBe("backspace on empty text");
     }
 
     [Fact]
     public void ClampedUpdate_ShouldApplyClampedState()
     {
-        var policy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var (race, participant, _) = CreateStartedRace(policy);
+        var (race, participant, _) = CreateStartedRace(AntiCheatPolicy.WithBudget(charsPerSecond: 10, slack: 6));
 
-        // 9 characters against the default slack of 6
-        race.ProcessUpdate(participant.Id, 8, 0, "the quick");
+        race.ProcessUpdate(participant.Id, KeystrokeHelper.Sequence("the quick"));
 
-        Assert.Equal("the qu", participant.Typed);
-        Assert.Equal(5, participant.Index);
+        participant.LastValidIndex.ShouldBe(5);
     }
 
     [Fact]
     public void Write9Words_ShouldBe9WPM()
     {
-        var (race, participant, clock) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
-
+        var (race, participant, clock) = CreateRace();
         clock.Advance(TimeSpan.FromMilliseconds(3500));
-
         race.Start();
-
         clock.Advance(TimeSpan.FromSeconds(60));
 
-        race.ProcessUpdate(participant.Id, Passage.Length - 1, 0, Passage);
+        race.ProcessUpdate(participant.Id, KeystrokeHelper.Sequence(Passage));
 
-        Assert.Equal(9, participant.GetWPM());
+        participant.GetWPM().ShouldBe(9);
     }
 
     [Fact]
     public void StalledFinalKeystroke_ShouldEventuallyFinishAndRaisePlayerFinishedEvent()
     {
-        // Slack covers everything but the last character, so the final keystroke clamps and stalls.
-        var policy = new FakeAntiCheatPolicy(maxCharsPerSecond: 100, budgetSlack: Passage.Length - 1);
-        var (race, participant, clock) = CreateStartedRace(policy);
-
-        race.ProcessUpdate(participant.Id, Passage.Length - 1, 0, Passage);
-        Assert.False(participant.IsFinished);
+        var (race, participant, clock) = CreateStartedRace(AntiCheatPolicy.WithBudget(charsPerSecond: 100, slack: Passage.Length - 1));
+        race.ProcessUpdate(participant.Id, KeystrokeHelper.Sequence(Passage));
+        participant.IsFinished.ShouldBeFalse();
 
         clock.Advance(TimeSpan.FromMilliseconds(100));
         race.RetryPendingClaims();
 
-        Assert.True(participant.IsFinished);
-        var finished = Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
-        Assert.Equal(participant.Id, finished.PlayerId);
+        participant.IsFinished.ShouldBeTrue();
+        race.DomainEvents.OfType<PlayerFinishedEvent>().ShouldHaveSingleItem().PlayerId.ShouldBe(participant.Id);
     }
 
     [Fact]
     public void Start_StampsStartTimeFromClock()
     {
-        var (race, _, clock) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, _, clock) = CreateRace();
         clock.Advance(TimeSpan.FromSeconds(42));
 
         race.Start();
 
-        Assert.Equal(clock.GetUtcNow(), race.StartTime);
+        race.StartTime.ShouldBe(clock.GetUtcNow());
     }
 
     [Fact]
@@ -133,7 +134,7 @@ public class RaceTests
 
         Finish(race, bob);
 
-        Assert.Equal(clock.GetUtcNow(), race.EndTime);
+        race.EndTime.ShouldBe(clock.GetUtcNow());
     }
 
     [Fact]
@@ -143,53 +144,53 @@ public class RaceTests
 
         var changed = race.TryChangePassage("another passage");
 
-        Assert.True(changed);
-        Assert.Equal("another passage", race.Passage);
+        changed.ShouldBeTrue();
+        race.Passage.ShouldBe("another passage");
     }
 
     [Fact]
     public void EnrolledButNotStarted_PassageReplaced()
     {
-        var (race, _, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, _, _) = CreateRace();
 
         var changed = race.TryChangePassage("another passage");
 
-        Assert.True(changed);
-        Assert.Equal("another passage", race.Passage);
+        changed.ShouldBeTrue();
+        race.Passage.ShouldBe("another passage");
     }
 
     [Fact]
     public void StartedRace_PassageChangeRefused()
     {
-        var (race, _, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, _, _) = CreateStartedRace();
 
         var changed = race.TryChangePassage("another passage");
 
-        Assert.False(changed);
-        Assert.Equal(Passage, race.Passage);
+        changed.ShouldBeFalse();
+        race.Passage.ShouldBe(Passage);
     }
 
     [Fact]
     public void FinishedRace_PassageReplaced()
     {
-        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, participant, _) = CreateStartedRace();
         Finish(race, participant);
 
         var changed = race.TryChangePassage("another passage");
 
-        Assert.True(changed);
-        Assert.Equal("another passage", race.Passage);
+        changed.ShouldBeTrue();
+        race.Passage.ShouldBe("another passage");
     }
 
     [Fact]
     public void PassageWithRepeatedSpace_ResultCountsEachWordOnce()
     {
         const string passage = "the  quick brown";
-        var (race, participant, _) = CreateStartedRace(new FakeAntiCheatPolicy(1000, 1000), passage);
+        var (race, participant, _) = CreateStartedRace(passage: passage);
 
-        race.ProcessUpdate(participant.Id, passage.Length - 1, 0, passage);
+        race.ProcessUpdate(participant.Id, KeystrokeHelper.Sequence(passage));
 
-        Assert.Equal(3, participant.Result!.WordsTyped);
+        participant.Result!.WordsTyped.ShouldBe(3);
     }
 
     [Fact]
@@ -199,7 +200,7 @@ public class RaceTests
 
         Finish(race, alice);
 
-        Assert.Equal(1, alice.FinishPosition);
+        alice.FinishPosition.ShouldBe(1);
     }
 
     [Fact]
@@ -209,11 +210,11 @@ public class RaceTests
 
         Finish(race, alice);
 
-        var finished = Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
-        Assert.Equal(race.LobbyId, finished.LobbyId);
-        Assert.Equal(alice.Id, finished.PlayerId);
-        Assert.Equal(1, finished.FinishPosition);
-        Assert.Equal(100, finished.Accuracy);
+        var finished = race.DomainEvents.OfType<PlayerFinishedEvent>().ShouldHaveSingleItem();
+        finished.LobbyId.ShouldBe(race.LobbyId);
+        finished.PlayerId.ShouldBe(alice.Id);
+        finished.FinishPosition.ShouldBe(1);
+        finished.Accuracy.ShouldBe(100);
     }
 
     [Fact]
@@ -224,7 +225,7 @@ public class RaceTests
 
         Finish(race, bob);
 
-        Assert.Equal(2, bob.FinishPosition);
+        bob.FinishPosition.ShouldBe(2);
     }
 
     [Fact]
@@ -234,8 +235,8 @@ public class RaceTests
 
         Finish(race, alice);
 
-        Assert.DoesNotContain(race.DomainEvents, e => e is RaceFinishedEvent);
-        Assert.True(race.HasStarted);
+        race.DomainEvents.OfType<RaceFinishedEvent>().ShouldBeEmpty();
+        race.HasStarted.ShouldBeTrue();
     }
 
     [Fact]
@@ -246,11 +247,9 @@ public class RaceTests
 
         Finish(race, bob);
 
-        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
-        Assert.Equal(race.LobbyId, finished.LobbyId);
-        Assert.Equal(
-            new int?[] { 1, 2 },
-            finished.Results.Select(r => r.FinishPosition).OrderBy(position => position));
+        var finished = race.DomainEvents.OfType<RaceFinishedEvent>().ShouldHaveSingleItem();
+        finished.LobbyId.ShouldBe(race.LobbyId);
+        finished.Results.Select(r => r.FinishPosition).OrderBy(position => position).ShouldBe(new int?[] { 1, 2 });
     }
 
     [Fact]
@@ -261,8 +260,8 @@ public class RaceTests
 
         Finish(race, bob);
 
-        Assert.Empty(race.Participants);
-        Assert.False(race.HasStarted);
+        race.Participants.ShouldBeEmpty();
+        race.HasStarted.ShouldBeFalse();
     }
 
     [Fact]
@@ -273,18 +272,18 @@ public class RaceTests
 
         Finish(race, alice);
 
-        Assert.Single(race.DomainEvents.OfType<PlayerFinishedEvent>());
+        race.DomainEvents.OfType<PlayerFinishedEvent>().ShouldHaveSingleItem();
     }
 
     [Fact]
     public void UpdateBeforeStart_IsIgnored()
     {
-        var (race, participant, _) = CreateRace(new FakeAntiCheatPolicy(1000, 1000));
+        var (race, participant, _) = CreateRace();
 
-        race.ProcessUpdate(participant.Id, 2, 0, "the");
+        race.ProcessUpdate(participant.Id, KeystrokeHelper.Sequence("the"));
 
-        Assert.Equal(-1, participant.Index);
-        Assert.Empty(race.DomainEvents);
+        participant.LastValidIndex.ShouldBe(-1);
+        race.DomainEvents.ShouldBeEmpty();
     }
 
     [Fact]
@@ -292,7 +291,7 @@ public class RaceTests
     {
         var (race, _, _, _) = CreateStartedRaceWithTwoRacers();
 
-        Assert.Throws<PlayerNotInRaceException>(() => race.ProcessUpdate(Guid.NewGuid(), 2, 0, "the"));
+        Should.Throw<PlayerNotInRaceException>(() => race.ProcessUpdate(Guid.NewGuid(), KeystrokeHelper.Sequence("the")));
     }
 
     [Fact]
@@ -303,9 +302,8 @@ public class RaceTests
 
         race.WithdrawParticipant(bob.Id);
 
-        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
-        var result = Assert.Single(finished.Results);
-        Assert.Equal(alice.Id, result.LobbyPlayerId);
+        var finished = race.DomainEvents.OfType<RaceFinishedEvent>().ShouldHaveSingleItem();
+        finished.Results.ShouldHaveSingleItem().LobbyPlayerId.ShouldBe(alice.Id);
     }
 
     [Fact]
@@ -315,8 +313,8 @@ public class RaceTests
 
         race.WithdrawParticipant(alice.Id);
 
-        Assert.DoesNotContain(race.DomainEvents, e => e is RaceFinishedEvent);
-        Assert.True(race.HasStarted);
+        race.DomainEvents.OfType<RaceFinishedEvent>().ShouldBeEmpty();
+        race.HasStarted.ShouldBeTrue();
     }
 
     [Fact]
@@ -327,8 +325,7 @@ public class RaceTests
         race.WithdrawParticipant(alice.Id);
         race.WithdrawParticipant(bob.Id);
 
-        var finished = Assert.Single(race.DomainEvents.OfType<RaceFinishedEvent>());
-        Assert.Empty(finished.Results);
+        race.DomainEvents.OfType<RaceFinishedEvent>().ShouldHaveSingleItem().Results.ShouldBeEmpty();
     }
 
     [Fact]
@@ -341,7 +338,7 @@ public class RaceTests
 
         race.WithdrawParticipant(alice.Id);
 
-        Assert.Equal(finishedAtBefore, alice.FinishedAt);
+        alice.FinishedAt.ShouldBe(finishedAtBefore);
     }
 
     [Fact]
@@ -351,20 +348,7 @@ public class RaceTests
 
         race.WithdrawParticipant(Guid.NewGuid());
 
-        Assert.Empty(race.DomainEvents);
-        Assert.True(race.HasStarted);
+        race.DomainEvents.ShouldBeEmpty();
+        race.HasStarted.ShouldBeTrue();
     }
-
-    private static (Race Race, RaceParticipant Alice, RaceParticipant Bob, FakeTimeProvider Clock) CreateStartedRaceWithTwoRacers()
-    {
-        var policy = new FakeAntiCheatPolicy(1000, 1000);
-        var (race, alice, clock) = CreateRace(policy);
-        var bob = new RaceParticipant(Guid.NewGuid(), "#000", "bob", policy, clock);
-        race.AddParticipant(bob);
-        race.Start();
-        return (race, alice, bob, clock);
-    }
-
-    private static void Finish(Race race, RaceParticipant racer) =>
-        race.ProcessUpdate(racer.Id, Passage.Length - 1, 0, Passage);
 }

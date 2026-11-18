@@ -26,6 +26,10 @@ export interface GetUserProfileResponse {
     wordsTyped?: number;
 }
 
+export interface ChangeNickRequest {
+    nick: string;
+}
+
 export interface HealthResponse {
     status?: string;
 }

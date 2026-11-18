@@ -10,6 +10,7 @@ import {
   disconnectHub,
   kickPlayer,
   leaveLobby,
+  reconnectHub,
   refreshLobby,
   refreshPassage,
   startRace,
@@ -29,6 +30,19 @@ const bannerMessage = (store: Store) =>
   selectCurrentBanner(store.getState())?.message;
 
 describe("hub thunks", () => {
+  it("stops the connection before starting a new one when reconnecting", async () => {
+    const { hub, store } = setup();
+    await store.dispatch(connectHub());
+
+    await store.dispatch(reconnectHub());
+
+    expect(hub.stop).toHaveBeenCalledTimes(1);
+    expect(hub.start).toHaveBeenCalledTimes(2);
+    expect(hub.stop.mock.invocationCallOrder[0]).toBeLessThan(
+      hub.start.mock.invocationCallOrder[1],
+    );
+  });
+
   it("reports connecting while the hub starts and connected once it has", async () => {
     const { hub, store } = setup();
     const gate = deferred();
@@ -106,11 +120,8 @@ describe("hub thunks", () => {
     },
     {
       method: "updateRaceState",
-      run: (store: Store) =>
-        store.dispatch(
-          updateRaceState({ index: 3, mistakes: 1, typed: "abc" }),
-        ),
-      args: [3, 1, "abc"],
+      run: (store: Store) => store.dispatch(updateRaceState([{ key: "a" }])),
+      args: [[{ key: "a" }]],
     },
   ] as const)(
     "invokes $method with the thunk arguments",
@@ -151,7 +162,7 @@ describe("hub thunks", () => {
       new Error("HubException: Race is over"),
     );
 
-    await store.dispatch(updateRaceState({ index: 0, mistakes: 0, typed: "" }));
+    await store.dispatch(updateRaceState([{ key: "a" }]));
 
     expect(bannerMessage(store)).toBeUndefined();
   });

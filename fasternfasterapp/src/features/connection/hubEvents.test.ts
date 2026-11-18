@@ -16,19 +16,7 @@ const payloads: { [E in Event]: Parameters<IGameClient[E]> } = {
   hostChanged: [{ userId: "p2", newHostNick: "Other" }],
   raceStarting: [{ countdownSeconds: 3 }],
   raceStarted: [],
-  raceState: [
-    [
-      {
-        playerId: "p1",
-        index: 1,
-        typed: "hi",
-        wpm: 50,
-        color: "red",
-        nick: "Player",
-        mistakes: 0,
-      },
-    ],
-  ],
+  raceState: [[{ playerId: "p1", index: 1, wpm: 50 }]],
   playerFinished: [
     {
       nick: "Player",

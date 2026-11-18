@@ -1,14 +1,16 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { RaceParticipantDTO } from "../../../../../generated/signalr/FasterNFaster.Api.UseCases.Realtime.RaceState";
+import { useLayoutEffect, useRef, useState } from "react";
+import { useAppSelector } from "../../../../app/hooks";
 import { useCharPositions } from "../../hooks/useCharPositions";
 import { useTyping, type TypingProgress } from "../../hooks/useTyping";
+import type { RaceCaret } from "../../raceSelectors";
+import { selectRacePhase } from "../../raceSlice";
 import "./TypingArea.css";
 
 type TypingAreaProps = {
   passage: string;
   disabled: boolean;
   onProgress: (progress: TypingProgress) => void;
-  opponents?: RaceParticipantDTO[];
+  opponents?: RaceCaret[];
   selfId?: string;
 };
 
@@ -19,21 +21,8 @@ function TypingArea({
   opponents: players = [],
   selfId,
 }: TypingAreaProps) {
-  const [self, setSelf] = useState<RaceParticipantDTO | undefined>();
-
-  useEffect(() => {
-    setSelf(players.filter((p) => p.playerId === selfId).pop());
-  }, [players, selfId]);
-
   const { typed, inputRef, handleTyping, focusInput, nextSepIndex } = useTyping(
-    {
-      passage,
-      disabled,
-      onProgress,
-      selfTyped: self?.typed,
-      selfCorrectIndex: self?.index,
-      selfMistakes: self?.mistakes,
-    },
+    { passage, disabled, onProgress },
   );
   const { charsRef, containerRef, caretPos } = useCharPositions(
     passage,
@@ -42,6 +31,8 @@ function TypingArea({
 
   const lastOverflowRef = useRef<HTMLSpanElement>(null);
   const [selfPos, setSelfPos] = useState({ left: 0, top: 0 });
+  const phase = useAppSelector(selectRacePhase);
+  const showPlayerCaret = phase === "countdown" || phase === "racing";
 
   useLayoutEffect(() => {
     if (lastOverflowRef.current && containerRef.current) {
@@ -135,7 +126,7 @@ function TypingArea({
           {players.map((p) => {
             if (p.index < -1 || p.index >= passage.length - 1) return null;
 
-            if (p.playerId === selfId) {
+            if (p.playerId === selfId && showPlayerCaret) {
               return (
                 <span
                   key={p.playerId}

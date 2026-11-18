@@ -115,19 +115,6 @@ describe("Leaderboard", () => {
     ).toBeNull();
   });
 
-  it("moves with the arrow buttons", async () => {
-    serveLeaderboard();
-    renderLeaderboard("?page=2");
-    const user = userEvent.setup();
-    await screen.findByText("BestWpm true p2");
-
-    await user.click(screen.getByRole("button", { name: "Next page" }));
-    await screen.findByText("BestWpm true p3");
-    await user.click(screen.getByRole("button", { name: "Previous page" }));
-
-    expect(await screen.findByText("BestWpm true p2")).toBeTruthy();
-  });
-
   it("restarts at page 1 when the sort changes", async () => {
     serveLeaderboard();
     renderLeaderboard("?page=3");
@@ -331,7 +318,7 @@ describe("Leaderboard", () => {
     const user = userEvent.setup();
     await screen.findByText("BestWpm true p1");
 
-    await user.click(screen.getByRole("button", { name: "Next page" }));
+    await user.click(screen.getByRole("button", { name: "2" }));
 
     expect(screen.getByText("BestWpm true p1")).toBeTruthy();
     release.resolve();
@@ -348,7 +335,7 @@ describe("Leaderboard", () => {
     await screen.findByText("BestWpm true p1");
 
     await user.click(screen.getByText("Wins"));
-    await user.click(screen.getByRole("button", { name: "Next page" }));
+    await user.click(screen.getByRole("button", { name: "2" }));
     await screen.findByText("Wins true p2");
     release.resolve();
     await waitFor(() =>

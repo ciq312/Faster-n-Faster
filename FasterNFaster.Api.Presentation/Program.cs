@@ -4,16 +4,19 @@ using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .WriteTo.Console()
-    .WriteTo.File("log.txt")
     .CreateLogger();
 
 Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSerilog();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
@@ -22,6 +25,8 @@ builder.Services.AddApiRateLimiting(builder.Configuration);
 
 var app = builder.Build();
 
+// Outside UseExceptionHandler, or business errors thrown as exceptions would log as 500s.
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 
 // The API is only reachable through Caddy (its port isn't published in prod),

@@ -10,14 +10,6 @@ type PagerProps = {
 function Pager({ current, total, onChange }: PagerProps) {
   return (
     <nav className="leaderboard-pager" aria-label="Leaderboard pages">
-      <button
-        className="leaderboard-pager__btn"
-        onClick={() => onChange(current - 1)}
-        disabled={current <= 1}
-        aria-label="Previous page"
-      >
-        ‹
-      </button>
       {pageItems(current, total).map((item, i) =>
         item === "gap" ? (
           <span key={`gap-${i}`} className="leaderboard-pager__gap">
@@ -34,14 +26,6 @@ function Pager({ current, total, onChange }: PagerProps) {
           </button>
         ),
       )}
-      <button
-        className="leaderboard-pager__btn"
-        onClick={() => onChange(current + 1)}
-        disabled={current >= total}
-        aria-label="Next page"
-      >
-        ›
-      </button>
     </nav>
   );
 }

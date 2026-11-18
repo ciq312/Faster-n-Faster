@@ -7,8 +7,8 @@ namespace FasterNFaster.UnitTests.Races;
 
 public class RaceStateConflatorTests
 {
-    private static IReadOnlyList<RaceParticipantDTO> Frame(string tag) =>
-        new List<RaceParticipantDTO> { new(Guid.NewGuid(), 0, tag, 0, "red", tag, 0) };
+    private static IReadOnlyList<RaceParticipantDTO> Frame() =>
+        [new(Guid.NewGuid(), 0, 0)];
 
     [Fact]
     public async Task DropsStaleFrames_SendsLatestWhilePreviousInFlight()
@@ -17,9 +17,9 @@ public class RaceStateConflatorTests
         var conflator = new RaceStateConflator(broadcaster, NullLogger<RaceStateConflator>.Instance);
         var lobbyId = Guid.NewGuid();
 
-        var first = Frame("first");
-        var stale = Frame("stale");
-        var latest = Frame("latest");
+        var first = Frame();
+        var stale = Frame();
+        var latest = Frame();
 
         conflator.Publish(lobbyId, [], first);
         await broadcaster.WaitForSendStarted();
@@ -43,8 +43,8 @@ public class RaceStateConflatorTests
         var conflator = new RaceStateConflator(broadcaster, NullLogger<RaceStateConflator>.Instance);
         var lobbyId = Guid.NewGuid();
 
-        var first = Frame("first");
-        var second = Frame("second");
+        var first = Frame();
+        var second = Frame();
 
         conflator.Publish(lobbyId, [], first);
         await broadcaster.WaitForSendStarted();
@@ -67,8 +67,8 @@ public class RaceStateConflatorTests
         var kept = Guid.NewGuid();
         var removed = Guid.NewGuid();
 
-        conflator.Publish(kept, [], Frame("a"));
-        conflator.Publish(removed, [], Frame("b"));
+        conflator.Publish(kept, [], Frame());
+        conflator.Publish(removed, [], Frame());
 
         conflator.Prune(new HashSet<Guid> { kept });
 

@@ -1,4 +1,6 @@
 import { createAction, type AsyncThunk } from "@reduxjs/toolkit";
+import type { KeystrokeEventDTO } from "../../../generated/signalr/FasterNFaster.Api.Presentation.Web.Realtime";
+import type { RaceProgressDTO } from "../../../generated/signalr/FasterNFaster.Api.UseCases.Races.GetRaceProgress";
 import {
   createAppAsyncThunk,
   type AppThunkConfig,
@@ -8,7 +10,6 @@ import type { GameHubServer, HubStatus } from "./gameHub";
 import { receiverFor } from "./hubEvents";
 
 export type JoinLobbyArgs = { lobbyId: string; inviteCode?: string | null };
-export type RaceProgress = { index: number; mistakes: number; typed: string };
 
 export const hubStatusChanged = createAction<HubStatus>(
   "connection/statusChanged",
@@ -30,16 +31,26 @@ export const disconnectHub = createAppAsyncThunk(
   },
 );
 
-function hubCall<Arg>(
+// A connection keeps the nick from the token it started with, so a rename needs a new one.
+export const reconnectHub = createAppAsyncThunk(
+  "connection/reconnect",
+  async (_: void, { dispatch }) => {
+    await dispatch(disconnectHub());
+    await dispatch(connectHub());
+  },
+);
+
+function hubCall<Arg, Result = void>(
   name: string,
-  call: (server: GameHubServer, arg: Arg) => Promise<unknown>,
-): AsyncThunk<void, Arg, AppThunkConfig> {
-  return createAppAsyncThunk<void, Arg>(
+  call: (server: GameHubServer, arg: Arg) => Promise<Result>,
+): AsyncThunk<Result, Arg, AppThunkConfig> {
+  return createAppAsyncThunk<Result, Arg>(
     `hubCall/${name}`,
     async (arg, { extra, rejectWithValue }) => {
       try {
-        await call(extra.hub.server, arg);
+        return await call(extra.hub.server, arg);
       } catch (e) {
+        console.error(e);
         return rejectWithValue(extractHubError(e));
       }
     },
@@ -73,10 +84,13 @@ export const startRace = hubCall<void>("startRace", (server) =>
 export const refreshPassage = hubCall<void>("refreshPassage", (server) =>
   server.refreshPassage(),
 );
-export const updateRaceState = hubCall<RaceProgress>(
+export const updateRaceState = hubCall<KeystrokeEventDTO[]>(
   "updateRaceState",
-  (server, { index, mistakes, typed }) =>
-    server.updateRaceState(index, mistakes, typed),
+  (server, keystrokes) => server.updateRaceState(keystrokes),
+);
+export const getRaceProgress = hubCall<void, RaceProgressDTO | null>(
+  "getRaceProgress",
+  (server) => server.getRaceProgress(),
 );
 
 export const bannerHubCalls = [
@@ -88,4 +102,5 @@ export const bannerHubCalls = [
   transferHost,
   startRace,
   refreshPassage,
+  getRaceProgress,
 ] as const;

@@ -6,7 +6,10 @@ import { useLogoutMutation } from "../../features/auth/authApi";
 import {
   selectCurrentUser,
   selectIsGuest,
+  selectIsPlayer,
 } from "../../features/auth/authSelectors";
+import { reconnectHub } from "../../features/connection/hubThunks";
+import ProfileNick from "../../features/profile/components/ProfileNick";
 import { useGetMyProfileQuery } from "../../features/profile/profileApi";
 import { errorMessage } from "../../shared/api/errorMessage";
 import { showError, showMessage } from "../../shared/banner/bannerSlice";
@@ -29,6 +32,7 @@ function Profile() {
   const { data, isLoading, isError } = useGetMyProfileQuery();
   const currentUser = useAppSelector(selectCurrentUser);
   const isGuest = useAppSelector(selectIsGuest);
+  const isPlayer = useAppSelector(selectIsPlayer);
   const profileData: Partial<GetUserProfileResponse> | undefined = isError
     ? { nick: currentUser?.userName }
     : data;
@@ -80,7 +84,11 @@ function Profile() {
           <>
             <header className="profile-page__header">
               <span className="profile-page__eyebrow">Profile</span>
-              <h1 className="profile-page__nick">{profileData?.nick}</h1>
+              <ProfileNick
+                nick={profileData?.nick ?? ""}
+                editable={isPlayer}
+                onChanged={() => dispatch(reconnectHub())}
+              />
               <p className="profile-page__meta">
                 <span className="profile-page__meta-accent">
                   {profileData?.racesTyped}

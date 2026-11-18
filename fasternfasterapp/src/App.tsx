@@ -9,6 +9,7 @@ import { useMeQuery } from "./features/auth/authApi";
 import ConnectionLayout from "./features/connection/ConnectionLayout";
 import AuthCallback from "./pages/AuthCallback/AuthCallback";
 import CheckYourEmail from "./pages/CheckYourEmail/CheckYourEmail";
+import ChooseNick from "./pages/ChooseNick/ChooseNick";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import Leaderboard from "./pages/Leaderboard/Leaderboard";
 import Lobbies from "./pages/Lobbies/Lobbies";
@@ -18,6 +19,7 @@ import Registration from "./pages/Registration/Registration";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
 import BannerHost from "./shared/components/Banner/BannerHost";
+import { ROUTES } from "./shared/utils/routes";
 
 function App() {
   useMeQuery();
@@ -28,6 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Registration />} />
         <Route path="/auth/google/callback" element={<AuthCallback />} />
+        <Route path={ROUTES.CHOOSE_NICK} element={<ChooseNick />} />
         <Route element={<ConnectionLayout />}>
           <Route path="/lobbies" element={<Lobbies />} />
           <Route path="/lobby/:lobbyId" element={<Lobby />} />

@@ -1,5 +1,6 @@
-import type { GetUserProfileResponse } from "../../../types";
+import type { ChangeNickRequest, GetUserProfileResponse } from "../../../types";
 import { api } from "../../shared/api/api";
+import { invalidatesOnSuccess } from "../../shared/api/invalidatesOnSuccess";
 
 export const profileApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,7 +8,11 @@ export const profileApi = api.injectEndpoints({
       query: () => "/api/users/me/profile",
       providesTags: ["Me"],
     }),
+    changeNick: builder.mutation<void, ChangeNickRequest>({
+      query: (body) => ({ url: "/api/users/me/nick", method: "PUT", body }),
+      invalidatesTags: invalidatesOnSuccess("Me"),
+    }),
   }),
 });
 
-export const { useGetMyProfileQuery } = profileApi;
+export const { useGetMyProfileQuery, useChangeNickMutation } = profileApi;

@@ -6,6 +6,7 @@ import {
   type ThunkDispatch,
   type UnknownAction,
 } from "@reduxjs/toolkit";
+import type { KeystrokeEventDTO } from "../../generated/signalr/FasterNFaster.Api.Presentation.Web.Realtime";
 import { authApi } from "../features/auth/authApi";
 import { hubEvents } from "../features/connection/hubEvents";
 import {
@@ -82,19 +83,22 @@ export function createAppListenerMiddleware(
   });
 
   let lastProgressSentAt = 0;
+  let pendingKeystrokes: KeystrokeEventDTO[] = [];
   startListening({
     actionCreator: progressTyped,
     effect: async (
       { payload },
       { cancelActiveListeners, delay, dispatch, getState },
     ) => {
+      pendingKeystrokes.push(payload.keystroke);
       cancelActiveListeners();
       const wait = lastProgressSentAt + PROGRESS_THROTTLE_MS - Date.now();
       if (!payload.final && wait > 0) await delay(wait);
+      const keystrokes = pendingKeystrokes;
+      pendingKeystrokes = [];
       if (!selectCanType(getState())) return;
       lastProgressSentAt = Date.now();
-      const { index, mistakes, typed } = payload;
-      dispatch(updateRaceState({ index, mistakes, typed }));
+      dispatch(updateRaceState(keystrokes));
     },
   });
 
