@@ -30,10 +30,6 @@ export interface ChangeNickRequest {
     nick: string;
 }
 
-export interface HealthResponse {
-    status?: string;
-}
-
 export interface LobbyListItem {
     id?: string;
     name?: string;

@@ -83,7 +83,8 @@ FasterNFaster.Api.Infrastructure/  — adapters, grouped by the same areas
 FasterNFaster.Api.Presentation/
 ├── Web/<Area>/      — FastEndpoints, one folder per use case; Web/Realtime holds the SignalR hub,
 │                      hub filters and broadcaster
-├── Web/Shared/      — exception handler, health endpoint, rate-limit options
+├── Web/Health/      — Postgres and Redis readiness checks
+├── Web/Shared/      — exception handler and rate-limit options
 └── Extensions/      — DI composition root
 ```
 
@@ -180,6 +181,18 @@ cd FasterNFaster.Api.Presentation && dotnet watch run
 cd fasternfasterapp
 npm install
 npm run dev
+```
+
+### API readiness
+
+`GET /api/health` is public. It responds with `200 Healthy` when Postgres and Redis both respond, and `503 Unhealthy` when either dependency is unavailable. The response is plain text.
+
+The API image runs the same check over loopback. To inspect the health of the local container and run the dependency outage tests:
+
+```bash
+docker compose ps api
+docker inspect --format '{{.State.Health.Status}}' "$(docker compose ps -q api)"
+dotnet test FasterNFaster.IntegrationTests --filter FullyQualifiedName~HealthEndpointTests -p:GenerateContracts=false
 ```
 
 ---

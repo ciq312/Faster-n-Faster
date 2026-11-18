@@ -167,40 +167,6 @@
         ]
       }
     },
-    "/api/health": {
-      "get": {
-        "tags": [
-          "Health"
-        ],
-        "summary": "Check that the API is up",
-        "operationId": "FasterNFasterApiPresentationWebSharedHealthEndpoint",
-        "responses": {
-          "500": {
-            "description": "Unexpected server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "The API is up",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                },
-                "example": {
-                  "status": "healthy"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/lobbies/by-invite/{inviteCode}": {
       "get": {
         "tags": [
@@ -1396,15 +1362,6 @@
             "minLength": 0,
             "nullable": false,
             "example": "player1"
-          }
-        }
-      },
-      "HealthResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "status": {
-            "type": "string"
           }
         }
       },

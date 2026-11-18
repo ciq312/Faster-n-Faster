@@ -24,6 +24,8 @@ Browser ──HTTPS──▶ Caddy :443 ──/api/*, /gameHub──▶ api :808
 
 Images are built in CI, pushed to GHCR and deployed pinned to the commit SHA. The pipeline itself is described in the README's CI/CD section.
 
+The API uses ASP.NET Core Health Checks at `GET /api/health` to check readiness. It uses the configured EF Core context to contact PostgreSQL and sends `PING` over the shared Redis multiplexer. Both checks have a three-second cancellation budget. The public response is an aggregate plain-text status (`200 Healthy` or `503 Unhealthy`), subject to the global rate limiter. The API image's Docker health check calls this same route on the container's loopback interface.
+
 ## Where state lives
 
 | Data | Where | Survives an API restart? |

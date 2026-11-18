@@ -22,6 +22,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddWebServices(builder.Configuration);
 builder.Services.AddApiRateLimiting(builder.Configuration);
+builder.Services.AddDependencyHealthChecks();
 
 var app = builder.Build();
 
@@ -69,5 +70,8 @@ app.UseFastEndpoints(c =>
     };
 });
 app.MapHub<GameHub>("/gameHub");
+app.MapHealthChecks("/api/health")
+    .WithMetadata(new HttpMethodMetadata([HttpMethods.Get]))
+    .AllowAnonymous();
 
 app.Run();
