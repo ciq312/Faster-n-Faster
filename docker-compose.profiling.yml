@@ -47,6 +47,10 @@ services:
     build:
       context: ./profiling-tools
     user: "0:0"
+    environment:
+      PROFILE_COLLECTOR: "${PROFILE_COLLECTOR:-counters}"
+      PROFILE_TRACE_DURATION: "${PROFILE_TRACE_DURATION:-00:00:00:45}"
+      PROFILE_TRACE_FILE: "${PROFILE_TRACE_FILE:-profile.nettrace}"
     volumes:
       - profile_diagnostics:/diag
       - ./profiling-runs:/out:z

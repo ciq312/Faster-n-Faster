@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Interfaces.Events;
 
@@ -8,6 +9,7 @@ public sealed class AggregateGate<TAggregate>(IEventDispatcher dispatcher, Func<
     where TAggregate : AggregateRoot<Guid>
 {
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> gates = new();
+    private static readonly KeyValuePair<string, object?> aggregateTag = new("aggregate", typeof(TAggregate).Name);
 
     public async Task Mutate(Guid key, Action<TAggregate> mutate)
     {
@@ -47,14 +49,23 @@ public sealed class AggregateGate<TAggregate>(IEventDispatcher dispatcher, Func<
     private async Task<T> WithGate<T>(Guid key, Func<SemaphoreSlim, T> body)
     {
         var gate = gates.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        var measure = RacePerformanceMetrics.GateWait.Enabled || RacePerformanceMetrics.GateHold.Enabled;
+        var requested = measure ? Stopwatch.GetTimestamp() : 0;
         await gate.WaitAsync();
+        var acquired = measure ? Stopwatch.GetTimestamp() : 0;
         try
         {
             return body(gate);
         }
         finally
         {
+            var releasing = measure ? Stopwatch.GetTimestamp() : 0;
             gate.Release();
+            if (measure)
+            {
+                RacePerformanceMetrics.GateWait.Record(Stopwatch.GetElapsedTime(requested, acquired).TotalMilliseconds, aggregateTag);
+                RacePerformanceMetrics.GateHold.Record(Stopwatch.GetElapsedTime(acquired, releasing).TotalMilliseconds, aggregateTag);
+            }
         }
     }
 

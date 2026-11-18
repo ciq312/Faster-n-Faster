@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceState;
+using FasterNFaster.Api.UseCases.Shared;
 using Microsoft.Extensions.Hosting;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
@@ -29,10 +31,15 @@ public class RaceTickService(
     public async Task Tick()
     {
         var racingLobbies = registry.GetRacingLobbies();
+        var measure = racingLobbies.Count > 0 && RacePerformanceMetrics.TickDuration.Enabled;
+        var started = measure ? Stopwatch.GetTimestamp() : 0;
         await Task.WhenAll(racingLobbies.Select(TickLobby));
 
         if (conflator.TrackedLobbies != racingLobbies.Count)
             conflator.Prune(racingLobbies.Select(entry => entry.LobbyId).ToHashSet());
+
+        if (measure)
+            RacePerformanceMetrics.TickDuration.Record(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
     }
 
     private async Task TickLobby(RacingLobbyEntry entry)
