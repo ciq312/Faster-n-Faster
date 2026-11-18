@@ -1,0 +1,124 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: profiler
+      POSTGRES_PASSWORD: local-profiling-only
+      POSTGRES_DB: faster_n_faster_profile
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U profiler -d faster_n_faster_profile"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - profile_postgres:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_POSTGRES_CPUS:-0.75}"
+          memory: "${PROFILE_POSTGRES_MEMORY:-768m}"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - profile_redis:/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_REDIS_CPUS:-0.5}"
+          memory: "${PROFILE_REDIS_MEMORY:-384m}"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: FasterNFaster.Api.Presentation/Dockerfile
+    entrypoint: ["./efbundle", "--connection", "Host=postgres;Port=5432;Database=faster_n_faster_profile;Username=profiler;Password=local-profiling-only"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  diagnostics:
+    build:
+      context: ./profiling-tools
+    user: "0:0"
+    environment:
+      PROFILE_COLLECTOR: "${PROFILE_COLLECTOR:-counters}"
+      PROFILE_TRACE_DURATION: "${PROFILE_TRACE_DURATION:-00:00:00:45}"
+      PROFILE_TRACE_FILE: "${PROFILE_TRACE_FILE:-profile.nettrace}"
+    volumes:
+      - profile_diagnostics:/diag
+      - ./profiling-runs:/out:z
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /diag/dotnet-diagnostic.sock && test \"$(stat -c %a /diag/dotnet-diagnostic.sock)\" = 777"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 3s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_DIAGNOSTICS_CPUS:-0.5}"
+          memory: "${PROFILE_DIAGNOSTICS_MEMORY:-384m}"
+
+  api:
+    build:
+      context: .
+      dockerfile: FasterNFaster.Api.Presentation/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=faster_n_faster_profile;Username=profiler;Password=local-profiling-only
+      ConnectionStrings__Redis: redis:6379
+      # Public test fixture: never reuse this key outside isolated local profiling.
+      JwtOptions__PrivateKey: MIIEpQIBAAKCAQEAsxh5eE7pwCDo5aEk2cc/TnjW4F23oJQfe2b77ZrD3eNxoVQ8yGzcGi8rSgz+keQL4ibv4KhbFaF97gnspwNDluZyt2ZAyfPLzJ+I2YkSNd96a9/uKsA43qqtLhPnxz/GdZ24IS8FS8DuCetizQK+nLh32flj5/yj8kWDZ8+liFjB8LuIazuxlL17cb/S3OVrAdNNjzefoukyCj5CrhFNDbum3v/V8QY5jCxkFUt+t7ubU5mBHimPZd50lIt7dZV+w76kmjuvrgrDLGAMItlnE+FMz/LX5Mcau+Mxjcq/xCYmheBNYCfb0p+KDD5DskZ48zyut2lIs98ayXZvcMVciQIDAQABAoIBADLgG/mCKULL1n0MxsQaprArAZdg5/30tfC/M4eutD8/EhNrM40X53qEtb5mbJaS+pE20GO4T4+YfYZ2SUS0V6nxMttIb9UurVEmbKCnIIYvQr6MMULxsfYG9AUn4Gqogj79G8ZJbi6z0qr8s+dbBTzN5jYEc03+ZbA38Pk3cmWFntttTP9G/wMMl63aSQYVWjnKd6fapgsIJ/nvVgMT/Tf1So4obXGuMv59fV43WfEIk7pqxsMJ0NFQM3JhHYxepzCTnnDKLP3GoBeGyXLxYHtJL1y6URgvuajaEs8nCAbogk/pegnANA/Qfh+ReguS63MI/GvNv8qTuIHdqOgEZHUCgYEA7YaFIyQw2P6mI2Nc2flEtYW24u3aVYouvmiND1wBBlPz9B4se/zzKlp/D9yyOWx8tvQXuSnF4FLO51AJf/wkguxKYCXzjIYhAEDNLEiXphESgV1qOPccc5qsBt9lqIFtFn0v6e7scjyhWenkWTj+9W0qjHcDYpizvujqxy2Uz1cCgYEAwQaHvW0o7dEoGKURtM20Jf4TIOhQkkB3MjCg0uvW7ll9TIlsbntjUF0cAv+siJJYJFebZYA91+0wyn4FGQ9BG/loX2Z7Lv7+7QJxbsFewzAwtK1Zvxy9AyuPUIG792aT6yJygpzHHDIc2nOf2CuvBCnrlXWSAONqkgwpN8jmJx8CgYEAqUIbq5AFkwvbfgo3R0i+so+nZIxT8nK2no7IPjK0tDqs879wuaXl7b9xHe+JvSvWr1S/dv4SeKjpsaGyM1aM+hLBaUSCChgmehSzYCQWlItD4ZWctR06VBLbFUaqHWqlPspUk2HjcgBMhlMKmp3n6SIymMfSTLc+FwPJEcgka58CgYEAsmJsk70L9Cw1WAFFCciI0guqdeD8hQyam4GhPwvBR+jgCRl/YeMZ9yz1NDhApL5KQtvLutP3U1PaoWgxIeWdEFNAB9pXwSjbQwHc/rQp9UzV1kPWCu5uJz3cZlRe99aOoODm3pow0HfnfmMYt9g3GCv9kdRjp/qDhJFEjk9Vk5UCgYEAsdhJ1LlAlBgJj6S6PFALKcAaE9X3PLxPNanT2KzjrfB3sey7U7zvXimfPlEpdfj8bgQ7s2DCcjgc5C9B1DGN7E0dyX23eVn8059O9UcaDhvyH/JguY0CntJxdlLOzgb9dyefYWFg+7hxS1+kNwWlCOsevHI7i2zbYpr4N5fDg7Y=
+      Google__ClientId: local-profile-unused
+      Google__ClientSecret: local-profile-unused
+      AuthCookies__Secure: "false"
+      Cors__AllowedOrigins__0: http://localhost:3000
+      RateLimiting__Enabled: "false"
+      DOTNET_DiagnosticPorts: /diag/dotnet-diagnostic.sock,connect,nosuspend
+    ports:
+      - "127.0.0.1:18080:8080"
+    volumes:
+      - profile_diagnostics:/diag
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      diagnostics:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_API_CPUS:-2.0}"
+          memory: "${PROFILE_API_MEMORY:-1536m}"
+
+  loadtest:
+    profiles: ["loadtest"]
+    user: "${PROFILE_UID:-1000}:${PROFILE_GID:-1000}"
+    build:
+      context: ./loadtest
+    command: ["--users", "${PROFILE_USERS:-5}", "--server", "http://api:8080", "--wpm", "${PROFILE_WPM:-120}", "--out", "/runs"]
+    volumes:
+      - ./profiling-runs:/runs:z
+    depends_on:
+      api:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROFILE_BOTS_CPUS:-1.0}"
+          memory: "${PROFILE_BOTS_MEMORY:-768m}"
+
+volumes:
+  profile_postgres:
+  profile_redis:
+  profile_diagnostics:

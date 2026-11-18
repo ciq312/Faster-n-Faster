@@ -64,12 +64,10 @@ Errors: a `StatusException` from the domain or a handler becomes a status code o
 
 ### Keystroke progress (the hot path)
 
-1. The client renders typing locally and sends a progress snapshot `(index, mistakes, typed)` at most every 100 ms; intermediate snapshots are dropped (latest wins).
-2. `GameHub.UpdateRaceState` finds the player's lobby from the store's index and calls `IRaceStore.TryMutate` directly — no MediatR on this path ([0004](decisions/0004-cqrs-with-mediatr-bypassed-on-the-hot-path.md)).
-3. `RaceParticipant` checks the snapshot against the passage: the typed prefix must match, overflow past the last correct character is capped at 6, and no space may follow a wrong character. A broken rule rejects the update and raises `RaceViolationEvent`, which feeds the sanction ladder (race withdrawal, then strikes, then a 24 h suspension for registered players). New characters are then granted from a typing budget (350 WPM plus 6 characters of slack); anything beyond it is held as a pending claim and granted on later ticks as the budget refills ([0001](decisions/0001-server-authoritative-race-progress.md)).
+1. The client renders typing locally, buffers keystrokes, and sends them in order every 100 ms while typing. The final batch goes out immediately.
+2. `GameHub.UpdateRaceState` translates the batch into domain keystrokes, finds the player's lobby and calls `IRaceStore.TryMutate` directly ([0004](decisions/0004-cqrs-with-mediatr-bypassed-on-the-hot-path.md)).
+3. `RaceParticipant` replays the batch against the passage and derives position and mistakes on the server. The typing budget limits how many keystrokes are applied. Pending keys can be applied on later ticks up to the configured backlog limit. Rule violations still raise `RaceViolationEvent` and feed the existing sanction ladder.
 4. Nothing is broadcast here. Progress only lands in memory.
-
-Snapshots are planned to give way to batched keystroke events that the server replays ([0011](decisions/0011-batched-keystroke-events-replayed-on-the-server.md)).
 
 ### Race tick
 
@@ -127,6 +125,8 @@ When the last participant finishes, `Race` raises `RaceFinishedEvent` and resets
 
 - **Unit tests** (`FasterNFaster.UnitTests`): xUnit with hand-rolled fakes and `FakeTimeProvider`; no mocking framework.
 - **Integration tests** (`FasterNFaster.IntegrationTests`): real PostgreSQL and Redis through Testcontainers, one host per test.
+- **Performance testing (in progress):** an isolated Compose stack runs the API, test-only PostgreSQL/Redis, SignalR bots and a diagnostics sidecar. Bot correctness, latency and .NET runtime counters are collected; a separate diagnostic mode captures short `dotnet-trace` profiles. Container/host metrics remain pending. See [0014](decisions/0014-local-load-testing-and-profiling.md) for the design and [local profiling instructions](local-profiling.md) for the current workflow. Local results describe that configuration, not production VPS capacity.
+
 ## Scaling out (later)
 
 The API runs as a single instance on purpose ([0002](decisions/0002-live-game-state-in-memory-on-one-instance.md)). Running several would need:
