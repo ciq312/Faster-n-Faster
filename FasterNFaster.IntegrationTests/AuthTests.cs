@@ -1,16 +1,18 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Auth;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
 using FasterNFaster.Api.Presentation.Web.Auth.VerifyEmail;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
+using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Ports;
 using FasterNFaster.Api.UseCases.Auth.RegisterUser;
 using FasterNFaster.Api.UseCases.Users.Ports;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -52,7 +54,7 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : Integra
     }
 
     [Fact]
-    public async Task LoginUserWrongPassword_Returns401WithErrorAndNoCode()
+    public async Task LoginUserWrongPassword_Returns401WithInvalidCredentialsCode()
     {
         var client = App.CreateClient();
 
@@ -62,10 +64,12 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : Integra
 
         var response = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, "wrongPass"));
 
-        using var body = await response.Content.ReadFromJsonAsync<JsonDocument>();
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.False(string.IsNullOrEmpty(body!.RootElement.GetProperty("error").GetString()));
-        Assert.False(body.RootElement.TryGetProperty("code", out _));
+        var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        body.ShouldNotBeNull();
+        body.Reason.ShouldNotBeNullOrEmpty();
+        body.Code.ShouldBe(ErrorCodes.InvalidCredentials);
+        body.Errors.ShouldBeNull();
     }
 
     [Fact]
@@ -79,10 +83,12 @@ public class AuthTests(NoRateLimitApplicationFactory<Program> fixture) : Integra
 
         var response = await client.PostAsJsonAsync(AuthHelper.LoginUri, new LoginUserRequest(user.Login, user.Password));
 
-        using var body = await response.Content.ReadFromJsonAsync<JsonDocument>();
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        Assert.Equal("EMAIL_NOT_VERIFIED", body!.RootElement.GetProperty("code").GetString());
-        Assert.Equal("unverified@example.com", body.RootElement.GetProperty("email").GetString());
+        var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        body.ShouldNotBeNull();
+        body.Code.ShouldBe(ErrorCodes.EmailNotVerified);
+        body.Errors.ShouldNotBeNull();
+        body.Errors["email"].ShouldBe(["unverified@example.com"]);
     }
 
     [Fact]

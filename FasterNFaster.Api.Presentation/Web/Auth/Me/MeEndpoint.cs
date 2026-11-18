@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FastEndpoints;
+using FasterNFaster.Api.Domain.Exceptions;
 
 namespace FasterNFaster.Api.Presentation.Web.Auth.Me;
 
@@ -18,8 +19,7 @@ public class MeEndpoint : EndpointWithoutRequest<MeResponse>
 
         if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(role))
         {
-            await Send.UnauthorizedAsync(ct);
-            return;
+            throw new UnauthorizedException();
         }
 
         await Send.OkAsync(new MeResponse(Guid.Parse(userIdClaim), userName, role), ct);

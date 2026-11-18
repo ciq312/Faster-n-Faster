@@ -12,7 +12,7 @@ public class BroadcastPlayerKickedHandler(IBroadcaster broadcaster)
     {
         var e = notification.Event;
 
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.PlayerKicked, new PlayerKickedDTO(e.UserId, e.Nick));
-        await broadcaster.Broadcast(Audience.Player(e.UserId), GameEvents.Kicked);
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), c => c.PlayerKicked(new PlayerKickedDTO(e.UserId, e.Nick)));
+        await broadcaster.Broadcast(Audience.Player(e.UserId), c => c.Kicked());
     }
 }

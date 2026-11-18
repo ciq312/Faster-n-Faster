@@ -2,7 +2,7 @@ using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.Infrastructure.AntiCheat;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
 using Microsoft.Extensions.Logging;
@@ -39,7 +39,7 @@ public class RaceViolationHandlerTests
         var race = await lobby.ReadRace(r => r.GetSnapshot());
         Assert.NotNull(race);
         Assert.DoesNotContain(race, p => p.PlayerId == playerId);
-        Assert.Contains(broadcaster.Broadcasts, s => s.EventName == GameEvents.RaceWithdrawn);
+        Assert.Contains(broadcaster.Broadcasts, s => s.EventName == nameof(IGameClient.RaceWithdrawn));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class RaceViolationHandlerTests
         for (var i = 0; i < RaceViolationThreshold; i++)
             await handler.Handle(Violation(lobby.LobbyId, playerId), CancellationToken.None);
 
-        Assert.DoesNotContain(broadcaster.Broadcasts, s => s.EventName == GameEvents.RaceWithdrawn);
+        Assert.DoesNotContain(broadcaster.Broadcasts, s => s.EventName == nameof(IGameClient.RaceWithdrawn));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class RaceViolationHandlerTests
             await WithdrawFromRace(handler, lobby, strikes, playerId);
 
         Assert.Single(bans.Suspensions);
-        Assert.Contains(broadcaster.Broadcasts, s => s.EventName == GameEvents.Suspended);
+        Assert.Contains(broadcaster.Broadcasts, s => s.EventName == nameof(IGameClient.Suspended));
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class RaceViolationHandlerTests
             await WithdrawFromRace(handler, lobby, strikes, playerId);
 
         Assert.Empty(bans.Suspensions);
-        Assert.DoesNotContain(broadcaster.Broadcasts, s => s.EventName == GameEvents.Suspended);
+        Assert.DoesNotContain(broadcaster.Broadcasts, s => s.EventName == nameof(IGameClient.Suspended));
     }
 
     [Fact]

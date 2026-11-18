@@ -4,7 +4,7 @@ using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.Races.Ports;
 using FasterNFaster.Api.UseCases.Races.RaceEndOrchestration;
 using FasterNFaster.Api.UseCases.Races.RefreshPassage;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
 
@@ -41,7 +41,7 @@ public class RaceFinishedOrchestrationHandlerTests
         await handler.Handle(Notification(context.LobbyId), CancellationToken.None);
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.LobbyState, sent.EventName);
+        Assert.Equal(nameof(IGameClient.LobbyState), sent.EventName);
     }
 
     [Fact]

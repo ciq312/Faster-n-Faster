@@ -44,46 +44,6 @@
   color: var(--text-1);
 }
 
-/* ── Pager ── */
-
-.leaderboard-pager {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.leaderboard-pager__btn {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: 4px;
-  color: var(--text-3);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
-}
-
-.leaderboard-pager__btn:hover:not(:disabled) {
-  border-color: var(--amber-border);
-  color: var(--amber);
-  background: var(--amber-muted);
-}
-
-.leaderboard-pager__btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.leaderboard-pager__status {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-3);
-  white-space: nowrap;
-}
-
 /* ── Table ── */
 
 .leaderboard-table {
@@ -171,6 +131,26 @@
 
 .leaderboard-table__row--bronze {
   border-left: 3px solid #cd7f32;
+}
+
+/* ── Own row ── */
+
+.leaderboard-table__row--self td {
+  background: var(--amber-muted);
+}
+
+.leaderboard-table__row--pinned td {
+  border-top: 2px solid var(--amber-border);
+  cursor: pointer;
+}
+
+.leaderboard-table__rank-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* ── Empty / Loading states ── */

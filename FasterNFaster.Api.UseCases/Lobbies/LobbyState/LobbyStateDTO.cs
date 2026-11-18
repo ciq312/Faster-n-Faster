@@ -1,7 +1,8 @@
-using FasterNFaster.Api.Domain.Entities.Lobbies.Colors;
+using Tapper;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.LobbyState;
 
+[TranspilationSource]
 public record LobbyStateDTO(
     Guid LobbyId,
     string LobbyName,
@@ -11,5 +12,5 @@ public record LobbyStateDTO(
     bool IsPrivate,
     string? InviteCode,
     int MaxPlayers,
-    IReadOnlyList<ColorStatus> Colors,
+    IReadOnlyList<ColorStatusDTO> Colors,
     IReadOnlyList<LobbyPlayerDTO> Players);

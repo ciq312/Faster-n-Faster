@@ -8,14 +8,14 @@ using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.Presentation.Web.AntiCheat;
 using FasterNFaster.Api.Presentation.Web.Auth.LoginUser;
 using FasterNFaster.Api.Presentation.Web.Auth.RegisterUser;
-using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
+using FasterNFaster.Api.Presentation.Web.Realtime;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
+using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceFinished;
 using FasterNFaster.Api.UseCases.Realtime.RaceStarting;
 using FasterNFaster.Api.UseCases.Users.Ports;
@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -88,11 +89,11 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (hub, userId, _) = await StartSoloRaceAsync();
         await using var _ = hub;
         var connectionClosed = CloseSignal(hub);
-        const int indexBeyondTyped = 5;
+        KeystrokeEventDTO[] backspaceOnEmptyText = [new("Backspace")];
 
         // Abort() can race with delivering this call's own response, so the invoke itself
         // may legitimately fault - only the resulting close and suspension matter here.
-        await Record.ExceptionAsync(() => hub.InvokeAsync("UpdateRaceState", indexBeyondTyped, 0, ""));
+        await Record.ExceptionAsync(() => hub.InvokeAsync("UpdateRaceState", backspaceOnEmptyText));
 
         await connectionClosed.WaitAsync(EventTimeout);
         Assert.Equal(HubConnectionState.Disconnected, hub.State);
@@ -133,7 +134,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     public async Task NonHostStartRace_ShouldThrowHubException()
     {
         var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(hostClient);
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
 
         var (guestClient, guestCookies, _) = await RegisterAndLoginAsync(NewUser("guest"));
@@ -145,19 +146,44 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     }
 
     [Fact]
+    public async Task GuestJoinsLobby_NotifiesHostButNotGuest()
+    {
+        var (hostClient, hostCookies, _) = await RegisterAndLoginAsync();
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
+        await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
+        var hostJoined = NextEventAsync<JsonElement>(hostHub, nameof(IGameClient.PlayerJoined));
+
+        var guest = NewUser("guest");
+        var (guestClient, guestCookies, guestLogin) = await RegisterAndLoginAsync(guest);
+        await using var guestHub = BuildHubConnection(guestClient, guestCookies);
+        var guestJoined = NextEventAsync<JsonElement>(guestHub, nameof(IGameClient.PlayerJoined));
+        var guestLobbyState = NextEventAsync<JsonElement>(guestHub, nameof(IGameClient.LobbyState));
+        await guestHub.StartAsync();
+        await guestHub.InvokeAsync("ConnectToLobby", lobby.LobbyId, lobby.InviteCode);
+
+        var joined = await hostJoined.WaitAsync(EventTimeout);
+        joined.GetProperty("playerId").GetGuid().ShouldBe(guestLogin.UserId);
+        joined.GetProperty("nick").GetString().ShouldBe(guest.Nick);
+
+        // LobbyState is sent after any PlayerJoined, and the client runs handlers in arrival order.
+        await guestLobbyState.WaitAsync(EventTimeout);
+        guestJoined.IsCompleted.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task FullRace_TwoPlayers_FinishInOrderAndPersistStatistics()
     {
         var (hostClient, hostCookies, host) = await RegisterAndLoginAsync();
         var (guestClient, guestCookies, guest) = await RegisterAndLoginAsync(NewUser("guest"));
-        var lobby = await CreateLobbyAsync(hostClient);
+        var lobby = await LobbyHelper.CreateLobbyAsync(hostClient);
         await using var hostHub = await JoinLobbyAsync(hostClient, hostCookies, lobby);
         await using var guestHub = await JoinLobbyAsync(guestClient, guestCookies, lobby);
 
-        var raceStarting = NextEventAsync<RaceStartingDTO>(guestHub, GameEvents.RaceStarting);
-        var hostRaceStarted = NextEventAsync(hostHub, GameEvents.RaceStarted);
-        var guestRaceStarted = NextEventAsync(guestHub, GameEvents.RaceStarted);
-        var hostRaceEnded = NextEventAsync<RaceEndedDTO>(hostHub, GameEvents.RaceEnded);
-        var guestRaceEnded = NextEventAsync<RaceEndedDTO>(guestHub, GameEvents.RaceEnded);
+        var raceStarting = NextEventAsync<RaceStartingDTO>(guestHub, nameof(IGameClient.RaceStarting));
+        var hostRaceStarted = NextEventAsync(hostHub, nameof(IGameClient.RaceStarted));
+        var guestRaceStarted = NextEventAsync(guestHub, nameof(IGameClient.RaceStarted));
+        var hostRaceEnded = NextEventAsync<RaceEndedDTO>(hostHub, nameof(IGameClient.RaceEnded));
+        var guestRaceEnded = NextEventAsync<RaceEndedDTO>(guestHub, nameof(IGameClient.RaceEnded));
 
         await hostHub.InvokeAsync("StartRace");
 
@@ -168,8 +194,8 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         var (passage, wordCount) = await App.Services
             .GetRequiredService<IRaceStore>()
             .Read(lobby.LobbyId, r => (r.Passage, r.WordCount));
-        await hostHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
-        await guestHub.InvokeAsync("UpdateRaceState", passage.Length - 1, 0, passage);
+        await hostHub.InvokeAsync("UpdateRaceState", Keystrokes(passage));
+        await guestHub.InvokeAsync("UpdateRaceState", Keystrokes(passage));
 
         var ended = await hostRaceEnded.WaitAsync(EventTimeout);
         await guestRaceEnded.WaitAsync(EventTimeout);
@@ -200,9 +226,9 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     public async Task StartRace_SendsLobbyStateWithRaceStartingOnly()
     {
         var (client, cookies, _) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(client);
+        var lobby = await LobbyHelper.CreateLobbyAsync(client);
         await using var hub = await JoinLobbyAsync(client, cookies, lobby);
-        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+        var lobbyState = NextEventAsync<JsonElement>(hub, nameof(IGameClient.LobbyState));
 
         await hub.InvokeAsync("StartRace");
 
@@ -216,7 +242,7 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     {
         var (hub, _, _) = await StartSoloRaceAsync();
         await using var _ = hub;
-        var lobbyState = NextEventAsync<JsonElement>(hub, GameEvents.LobbyState);
+        var lobbyState = NextEventAsync<JsonElement>(hub, nameof(IGameClient.LobbyState));
 
         await hub.InvokeAsync("RefreshLobby");
 
@@ -239,23 +265,18 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
     private async Task<(HubConnection Hub, Guid UserId, Guid LobbyId)> StartSoloRaceAsync()
     {
         var (client, cookies, loginResult) = await RegisterAndLoginAsync();
-        var lobby = await CreateLobbyAsync(client);
+        var lobby = await LobbyHelper.CreateLobbyAsync(client);
         var hub = await JoinLobbyAsync(client, cookies, lobby);
 
-        var raceStarted = NextEventAsync(hub, GameEvents.RaceStarted);
+        var raceStarted = NextEventAsync(hub, nameof(IGameClient.RaceStarted));
         await hub.InvokeAsync("StartRace");
         await raceStarted.WaitAsync(RaceStartTimeout);
 
         return (hub, loginResult.UserId, lobby.LobbyId);
     }
 
-    private static async Task TypeWithoutFinishingAsync(HubConnection hub, string passage)
-    {
-        const int maxUpdates = 20;
-        var updates = Math.Min(maxUpdates, passage.Length - 1);
-        for (var i = 0; i < updates; i++)
-            await hub.InvokeAsync("UpdateRaceState", i, 0, passage[..(i + 1)]);
-    }
+    private static KeystrokeEventDTO[] Keystrokes(string text) =>
+        [.. text.Select(c => new KeystrokeEventDTO(c.ToString()))];
 
     private static Task<T> NextEventAsync<T>(HubConnection hub, string eventName)
     {
@@ -283,14 +304,6 @@ public class HubTests(NoRateLimitApplicationFactory<Program> fixture) : Integrat
         }
 
         throw new TimeoutException($"Statistics for user {userId} were not saved within {EventTimeout}");
-    }
-
-    private static async Task<CreateLobbyResult> CreateLobbyAsync(HttpClient client)
-    {
-        var response = await client.PostAsJsonAsync("/api/lobbies", new CreateLobbyRequest("test", false));
-
-        return await response.Content.ReadFromJsonAsync<CreateLobbyResult>()
-            ?? throw new InvalidOperationException("can't parse create lobby result");
     }
 
     private async Task<HubConnection> JoinLobbyAsync(HttpClient client, CookieContainer cookies, CreateLobbyResult lobby)

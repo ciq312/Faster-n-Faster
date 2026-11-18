@@ -16,6 +16,6 @@ public class BroadcastRaceFinishedHandler(IBroadcaster broadcaster)
             .Select(r => new RaceResultDTO(r.LobbyPlayerId, r.Nick, r.FinishPosition, r.WPM, r.Accuracy, r.MistakeCount))
             .ToList();
 
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.RaceEnded, new RaceEndedDTO(results));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), c => c.RaceEnded(new RaceEndedDTO(results)));
     }
 }

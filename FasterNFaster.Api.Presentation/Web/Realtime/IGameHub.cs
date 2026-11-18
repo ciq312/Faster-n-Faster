@@ -1,0 +1,20 @@
+using FasterNFaster.Api.UseCases.Races.GetRaceProgress;
+using TypedSignalR.Client;
+
+namespace FasterNFaster.Api.Presentation.Web.Realtime;
+
+[Hub]
+public interface IGameHub
+{
+    Task ConnectToLobby(Guid lobbyId, string? inviteCode = null);
+    Task RefreshLobby();
+    Task StartRace();
+    Task RefreshPassage();
+    Task TransferHost(Guid targetPlayerId);
+    Task KickPlayer(Guid targetPlayerId);
+    Task ChangeColor(string color);
+    Task UpdateRaceState(KeystrokeEventDTO[] keystrokes);
+    Task<RaceProgressDTO?> GetRaceProgress();
+    Task LeaveLobby();
+    Task<long> Ping(long clientSentMs);
+}

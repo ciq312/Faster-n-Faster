@@ -9,6 +9,7 @@ public class GoogleChallengeEndpoint : Endpoint<GoogleChallengeRequest>
     {
         Get("/api/auth/google");
         AllowAnonymous();
+        Description(x => x.ClearDefaultProduces(204));
     }
 
     public override async Task HandleAsync(GoogleChallengeRequest req, CancellationToken ct)

@@ -1,0 +1,3 @@
+# Generated on every API build: NSwag (REST) and TypedSignalR (hub)
+types.ts
+generated/

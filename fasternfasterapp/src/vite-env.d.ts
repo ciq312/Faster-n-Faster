@@ -6,7 +6,6 @@ interface ViteTypeOptions {
 
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
-  readonly VITE_MOCK_LEADERBOARD?: string;
 }
 
 interface ImportMeta {

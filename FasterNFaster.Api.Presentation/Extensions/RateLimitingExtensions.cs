@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using Microsoft.AspNetCore.RateLimiting;
 using static FasterNFaster.Api.Presentation.Web.Shared.RateLimitOptions;
@@ -65,6 +66,6 @@ public static class RateLimitingExtensions
         }
 
         await context.HttpContext.Response.WriteAsJsonAsync(
-            new { message = "Too many requests, try again shortly." }, ct);
+            new ApiErrorResponse { Reason = "Too many requests, try again shortly", Code = ErrorCodes.RateLimited }, ct);
     }
 }

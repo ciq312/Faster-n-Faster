@@ -6,27 +6,19 @@ using Microsoft.AspNetCore.SignalR;
 namespace FasterNFaster.Api.Presentation.Web.Realtime;
 
 public class SignalRBroadcaster(
-    IHubContext<GameHub> hub,
+    IHubContext<GameHub, IGameClient> hub,
     ISessionService sessionService,
     ILobbyStore lobbies) : IBroadcaster
 {
-    public async Task Broadcast<T>(IAudience audience, string eventName, T payload)
+    public async Task Broadcast(IAudience audience, Func<IGameClient, Task> send)
     {
         var clients = await Resolve(audience);
         if (clients is null) return;
 
-        await clients.SendAsync(eventName, payload);
+        await send(clients);
     }
 
-    public async Task Broadcast(IAudience audience, string eventName)
-    {
-        var clients = await Resolve(audience);
-        if (clients is null) return;
-
-        await clients.SendAsync(eventName);
-    }
-
-    private async Task<IClientProxy?> Resolve(IAudience audience) => audience switch
+    private async Task<IGameClient?> Resolve(IAudience audience) => audience switch
     {
         LobbyAudience a => Connections(await MembersOf(a.LobbyId)),
         LobbyExceptAudience a => Connections((await MembersOf(a.LobbyId)).Where(id => id != a.UserId)),
@@ -38,10 +30,10 @@ public class SignalRBroadcaster(
     private async Task<IReadOnlyList<Guid>> MembersOf(Guid lobbyId) =>
         await lobbies.TryRead(lobbyId, l => l.GetPlayerIds()) ?? [];
 
-    private IClientProxy Connections(IEnumerable<Guid> userIds) =>
+    private IGameClient Connections(IEnumerable<Guid> userIds) =>
         hub.Clients.Clients(userIds.Select(sessionService.GetActiveSession).OfType<string>().ToList());
 
-    private IClientProxy? ConnectionOf(Guid userId)
+    private IGameClient? ConnectionOf(Guid userId)
     {
         var connectionId = sessionService.GetActiveSession(userId);
         return connectionId is null ? null : hub.Clients.Client(connectionId);

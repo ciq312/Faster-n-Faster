@@ -4,4 +4,5 @@ public interface IAntiCheatPolicy
 {
     double MaxCharsPerSecond { get; }
     int BudgetSlack { get; }
+    int MaxPendingKeystrokes { get; }
 }

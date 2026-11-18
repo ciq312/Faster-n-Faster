@@ -6,34 +6,36 @@ namespace FasterNFaster.Api.UseCases.Lobbies.GetLobbies;
 
 public class GetLobbiesHandler(ILobbyStore lobbies, IRaceStore races) : IRequestHandler<GetLobbiesQuery, GetLobbiesResult>
 {
+    private const int MaxLimit = 100;
+
     public async Task<GetLobbiesResult> Handle(GetLobbiesQuery query, CancellationToken cancellationToken)
     {
-        var lobbyIds = query.InviteCode is null
-            ? lobbies.GetAllIds()
-            : FindByInviteCode(query.InviteCode);
+        var limit = Math.Clamp(query.Limit, 1, MaxLimit);
+        var after = query.Cursor is null ? null : LobbyCursor.Decode(query.Cursor);
 
+        var publicLobbies = await ReadPublicLobbies();
+        var page = publicLobbies
+            .Where(i => after is null || after.Precedes(i))
+            .OrderByDescending(i => i.CreatedAt)
+            .ThenBy(i => i.Id)
+            .Take(limit + 1)
+            .ToList();
+
+        var nextCursor = page.Count > limit ? LobbyCursor.After(page[limit - 1]).Encode() : null;
+        return new GetLobbiesResult([.. page.Take(limit)], nextCursor);
+    }
+
+    private async Task<List<LobbyListItem>> ReadPublicLobbies()
+    {
         var items = new List<LobbyListItem>();
-        foreach (var lobbyId in lobbyIds)
+        foreach (var lobbyId in lobbies.GetAllIds())
         {
             if (!races.Exists(lobbyId)) continue;
 
-            var item = await lobbies.TryRead(lobbyId, l => new LobbyListItem(
-                l.Id,
-                l.Name,
-                l.LobbySettings.IsPrivate,
-                l.IsSessionActive,
-                l.Players.Count,
-                l.LobbySettings.MaxPlayers,
-                l.LobbySettings.CreatedAt
-            ));
-            if (item is null) continue;
-
-            items.Add(item);
+            var item = await lobbies.TryRead(lobbyId, l => l.LobbySettings.IsPrivate ? null : LobbyListItem.From(l));
+            if (item is not null) items.Add(item);
         }
 
-        return new GetLobbiesResult([.. items.OrderByDescending(i => i.CreatedAt)]);
+        return items;
     }
-
-    private IReadOnlyCollection<Guid> FindByInviteCode(string code) =>
-        lobbies.FindIdByInviteCode(code) is { } id ? [id] : [];
 }

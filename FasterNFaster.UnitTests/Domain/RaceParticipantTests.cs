@@ -1,9 +1,8 @@
 using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Interfaces;
-using FasterNFaster.Api.Presentation.Web.AntiCheat;
-using FasterNFaster.UnitTests.Fakes;
-using Microsoft.Extensions.Options;
+using FasterNFaster.UnitTests.Shared;
 using Microsoft.Extensions.Time.Testing;
+using Shouldly;
 
 namespace FasterNFaster.UnitTests.Domain;
 
@@ -14,354 +13,365 @@ public class RaceParticipantTests
     private static (RaceParticipant Participant, FakeTimeProvider Clock) CreateParticipant(IAntiCheatPolicy? policy = null)
     {
         var clock = new FakeTimeProvider();
-        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? Unlimited(), clock);
+        var participant = new RaceParticipant(Guid.NewGuid(), "#fff", "alice", policy ?? AntiCheatPolicy.Unlimited, clock);
         return (participant, clock);
     }
 
-    private static FakeAntiCheatPolicy Unlimited() => new(maxCharsPerSecond: 1000, budgetSlack: 1000);
-
-    private static ConfiguredAntiCheatPolicy DefaultPolicy() =>
-        new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
+    private static (RaceParticipant Participant, FakeTimeProvider Clock) CreateParticipantWithBudget(int slack, int maxPendingKeystrokes = 1000) =>
+        CreateParticipant(AntiCheatPolicy.WithBudget(charsPerSecond: 10, slack: slack, maxPendingKeystrokes: maxPendingKeystrokes));
 
     [Fact]
-    public void UpdateProgress_AcceptsValidProgress_UpdatesAllFields()
+    public void AcceptsValidProgress_ShouldUpdateFields()
     {
         var (participant, _) = CreateParticipant();
 
-        var outcome = participant.UpdateProgress(2, "the", 0, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(2, participant.Index);
-        Assert.Equal("the", participant.Typed);
-        Assert.Equal(0, participant.Mistakes);
-        Assert.Equal(1, participant.WordsTyped);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(2);
+        participant.Mistakes.ShouldBe(0);
+        participant.WordsTyped.ShouldBe(1);
     }
 
     [Fact]
-    public void UpdateProgress_RefreshSignal_IsNoOp()
+    public void AlreadyFinished_ShouldBeNoOp()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
-
-        var outcome = participant.UpdateProgress(-1, "", 0, Passage);
-
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(2, participant.Index);
-        Assert.Equal("the", participant.Typed);
-    }
-
-    [Fact]
-    public void UpdateProgress_AlreadyFinished_IsNoOp()
-    {
-        var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
         participant.MarkFinished(1);
 
-        participant.UpdateProgress(5, "the q", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence(" q"), Passage);
 
-        Assert.Equal(2, participant.Index);
+        participant.LastValidIndex.ShouldBe(2);
     }
 
     [Fact]
-    public void UpdateProgress_OverflowOfSixCharacters_IsAccepted()
-    {
-        var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
-
-        var outcome = participant.UpdateProgress(2, "the" + "xxxxxx", 0, Passage);
-
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(6, participant.Mistakes);
-    }
-
-    [Fact]
-    public void UpdateProgress_SpaceAfterCorrectCharacter_IsAccepted()
+    public void WrongCharacter_ShouldIncrementMistakes()
     {
         var (participant, _) = CreateParticipant();
 
-        var outcome = participant.UpdateProgress(3, "the ", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("thx"), Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(3, participant.Index);
+        participant.Mistakes.ShouldBe(1);
+        participant.LastValidIndex.ShouldBe(1);
+        participant.WrongTail.ShouldBe("x");
     }
 
     [Fact]
-    public void UpdateProgress_TypedShorterThanIndex_IsRejected()
+    public void MatchingCharacterAfterWrongOne_ShouldNotCountAsMistake()
     {
         var (participant, _) = CreateParticipant();
 
-        var outcome = participant.UpdateProgress(5, "the", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("txe"), Passage);
 
-        Assert.Equal(ProgressOutcome.Rejected("typed shorter than reported index"), outcome);
-        Assert.Equal(-1, participant.Index);
+        participant.Mistakes.ShouldBe(1);
+        participant.WrongTail.ShouldBe("xe");
     }
 
     [Fact]
-    public void UpdateProgress_IndexExceedsPassageLength_IsRejected()
+    public void BackspaceWithWrongTail_ShouldRemoveLastWrongCharacter()
     {
         var (participant, _) = CreateParticipant();
-        var oversizedTyped = new string('x', Passage.Length + 5);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("thxy"), Passage);
 
-        var outcome = participant.UpdateProgress(Passage.Length + 2, oversizedTyped, 0, Passage);
+        var outcome = participant.UpdateProgress([KeystrokeHelper.Backspace()], Passage);
 
-        Assert.Equal(ProgressOutcome.Rejected("reported index exceeds passage length"), outcome);
-        Assert.Equal(-1, participant.Index);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.WrongTail.ShouldBe("x");
+        participant.LastValidIndex.ShouldBe(1);
     }
 
     [Fact]
-    public void UpdateProgress_TypedPrefixDoesNotMatch_IsRejected()
+    public void BackspaceWithoutWrongTail_ShouldStepBackLastValidIndex()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
+
+        var outcome = participant.UpdateProgress([KeystrokeHelper.Backspace()], Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(3);
+        participant.WordsTyped.ShouldBe(1);
+    }
+
+    [Fact]
+    public void BackspaceOnEmptyText_ShouldBeRejected()
     {
         var (participant, _) = CreateParticipant();
 
-        var outcome = participant.UpdateProgress(2, "txe", 0, Passage);
+        var outcome = participant.UpdateProgress([KeystrokeHelper.Backspace()], Passage);
 
-        Assert.Equal(ProgressOutcome.Rejected("typed prefix does not match passage"), outcome);
-        Assert.Equal("", participant.Typed);
+        outcome.ShouldBe(ProgressOutcome.Rejected("backspace on empty text"));
+        participant.LastValidIndex.ShouldBe(-1);
     }
 
     [Fact]
-    public void UpdateProgress_IndexBelowStart_IsRejected()
+    public void OverflowLimitExceeded_ShouldBeRejected()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
+
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence(new string('x', RaceParticipant.MaxOverflow + 1)), Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Rejected("overflow exceeds limit"));
+    }
+
+    [Fact]
+    public void OverflowLimitNotExceeded_ShouldBeAccepted()
+    {
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
+        var tail = new string('x', RaceParticipant.MaxOverflow);
+
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence(tail), Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(2);
+        participant.WrongTail.ShouldBe(tail);
+    }
+
+    [Fact]
+    public void TypingPastPassageEnd_ShouldBeRejected()
     {
         var (participant, _) = CreateParticipant();
 
-        var outcome = participant.UpdateProgress(-5, "t", 0, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("axy"), "ab");
 
-        Assert.Equal(ProgressOutcome.Rejected("index below start"), outcome);
-        Assert.Equal(-1, participant.Index);
+        outcome.ShouldBe(ProgressOutcome.Rejected("typed past passage end"));
+        participant.Mistakes.ShouldBe(1);
     }
 
     [Fact]
-    public void UpdateProgress_OverflowOfSevenCharacters_IsRejected()
+    public void SpaceAfterCorrectCharacter_ShouldBeAccepted()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
 
-        var outcome = participant.UpdateProgress(2, "the" + "xxxxxxx", 0, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the "), Passage);
 
-        Assert.Equal(ProgressOutcome.Rejected("overflow exceeds limit"), outcome);
-        Assert.Equal("the", participant.Typed);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(3);
     }
 
     [Fact]
-    public void UpdateProgress_SpaceAfterWrongCharacter_IsRejected()
+    public void SpaceAfterWrongCharacter_ShouldBeRejected()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("thex"), Passage);
 
-        var outcome = participant.UpdateProgress(2, "thex ", 0, Passage);
+        var outcome = participant.UpdateProgress([KeystrokeHelper.CharTyped(' ')], Passage);
 
-        Assert.Equal(ProgressOutcome.Rejected("space typed after wrong character"), outcome);
-        Assert.Equal("the", participant.Typed);
+        outcome.ShouldBe(ProgressOutcome.Rejected("space typed after wrong character"));
     }
 
     [Fact]
-    public void UpdateProgress_TypingBeyondBudget_IsClampedToBudget()
+    public void KeystrokesAfterViolation_ShouldBeDropped()
     {
-        var (participant, _) = CreateParticipant(DefaultPolicy());
+        var (participant, _) = CreateParticipant();
+        participant.UpdateProgress(KeystrokeHelper.Sequence("thx e"), Passage);
 
-        var outcome = participant.UpdateProgress(8, "the quick", 0, Passage);
+        participant.RetryPendingClaim(Passage);
 
-        Assert.Equal(ProgressOutcome.Clamped, outcome);
-        Assert.Equal("the qu", participant.Typed);
-        Assert.Equal(5, participant.Index);
-        Assert.Equal(2, participant.WordsTyped);
+        participant.WrongTail.ShouldBe("x");
     }
 
     [Fact]
-    public void UpdateProgress_AfterClamp_AcceptsOnceBudgetRefills()
+    public void FinishingKeystrokesThenBackspace_ShouldNotRegisterBackspace()
     {
-        var (participant, clock) = CreateParticipant(DefaultPolicy());
-        participant.UpdateProgress(8, "the quick", 0, Passage);
+        var (participant, _) = CreateParticipant();
 
+        var outcome = participant.UpdateProgress([.. KeystrokeHelper.Sequence(Passage), KeystrokeHelper.Backspace()], Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(Passage.Length - 1);
+    }
+
+    [Fact]
+    public void KeystrokesBeyondBudget_ShouldBeClampedToBudget()
+    {
+        var (participant, _) = CreateParticipantWithBudget(3);
+
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Clamped);
+        participant.LastValidIndex.ShouldBe(2);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_BeforeBudgetRefills_ShouldStayClamped()
+    {
+        var (participant, _) = CreateParticipantWithBudget(3);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
+
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Clamped);
+        participant.LastValidIndex.ShouldBe(2);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_AfterBudgetRefills_ShouldApplyPendingKeystrokes()
+    {
+        var (participant, clock) = CreateParticipantWithBudget(3);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
         clock.Advance(TimeSpan.FromSeconds(1));
-        var outcome = participant.UpdateProgress(8, "the quick", 0, Passage);
-
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(8, participant.Index);
-        Assert.Equal("the quick", participant.Typed);
-    }
-
-    [Fact]
-    public void RetryPendingClaim_NoPendingClaim_IsAcceptedNoOp()
-    {
-        var (participant, _) = CreateParticipant(DefaultPolicy());
 
         var outcome = participant.RetryPendingClaim(Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(-1, participant.Index);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(4);
     }
 
     [Fact]
-    public void RetryPendingClaim_BeforeBudgetRefills_StaysClampedAndKeepsPendingClaim()
+    public void KeystrokesArrivingWhileClamped_ShouldApplyInArrivalOrder()
     {
-        var (participant, _) = CreateParticipant(DefaultPolicy());
-        participant.UpdateProgress(8, "the quick", 0, Passage);
-
-        var outcome = participant.RetryPendingClaim(Passage);
-
-        Assert.Equal(ProgressOutcome.Clamped, outcome);
-        Assert.Equal("the qu", participant.Typed);
-        Assert.Equal(5, participant.Index);
-    }
-
-    [Fact]
-    public void RetryPendingClaim_AfterBudgetRefills_GrantsTheFullOriginalClaim()
-    {
-        var (participant, clock) = CreateParticipant(DefaultPolicy());
-        participant.UpdateProgress(8, "the quick", 0, Passage);
-
+        var (participant, clock) = CreateParticipantWithBudget(3);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("u"), Passage);
         clock.Advance(TimeSpan.FromSeconds(1));
-        var outcome = participant.RetryPendingClaim(Passage);
-
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(8, participant.Index);
-        Assert.Equal("the quick", participant.Typed);
-    }
-
-    [Fact]
-    public void RetryPendingClaim_ParticipantAlreadyFinished_IsNoOp()
-    {
-        var (participant, _) = CreateParticipant(DefaultPolicy());
-        participant.UpdateProgress(8, "the quick", 0, Passage);
-        participant.MarkWithdrawn();
 
         var outcome = participant.RetryPendingClaim(Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal("the qu", participant.Typed);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(5);
+        participant.WrongTail.ShouldBeEmpty();
     }
 
     [Fact]
-    public void UpdateProgress_FreshUpdate_SupersedesStalePendingClaim()
+    public void RetryPendingClaim_WithoutPendingKeystrokes_ShouldBeAccepted()
     {
-        var (participant, clock) = CreateParticipant(DefaultPolicy());
-        participant.UpdateProgress(8, "the quick", 0, Passage);
-        participant.UpdateProgress(11, "the quick br", 0, Passage);
+        var (participant, _) = CreateParticipantWithBudget(3);
 
+        var outcome = participant.RetryPendingClaim(Passage);
+
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(-1);
+    }
+
+    [Fact]
+    public void RetryPendingClaim_AfterFinish_ShouldBeNoOp()
+    {
+        var (participant, clock) = CreateParticipantWithBudget(3);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
+        participant.MarkFinished(1);
         clock.Advance(TimeSpan.FromSeconds(1));
+
         var outcome = participant.RetryPendingClaim(Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(11, participant.Index);
-        Assert.Equal("the quick br", participant.Typed);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(2);
     }
 
     [Fact]
-    public void UpdateProgress_ReportedMistakesLowerThanStored_KeepsStoredCount()
+    public void BacklogWithinLimit_ShouldBeClamped()
     {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 3, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(100));
+        var (participant, _) = CreateParticipantWithBudget(slack: 3, maxPendingKeystrokes: 2);
 
-        var outcome = participant.UpdateProgress(3, "the ", 1, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(3, participant.Mistakes);
+        outcome.ShouldBe(ProgressOutcome.Clamped);
     }
 
     [Fact]
-    public void UpdateProgress_ReloadWithZeroMistakes_KeepsStoredCountAndIsAccepted()
+    public void BacklogBeyondLimit_ShouldBeRejected()
     {
-        var (participant, clock) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 5, Passage);
-        clock.Advance(TimeSpan.FromMilliseconds(100));
+        var (participant, _) = CreateParticipantWithBudget(slack: 3, maxPendingKeystrokes: 2);
 
-        var outcome = participant.UpdateProgress(2, "the", 0, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the qu"), Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(5, participant.Mistakes);
+        outcome.ShouldBe(ProgressOutcome.Rejected("keystroke backlog exceeds limit"));
     }
 
     [Fact]
-    public void UpdateProgress_WrongCharactersPastIndex_AreCountedAsMistakes()
+    public void BacklogBeyondLimit_ShouldDropPendingKeystrokes()
     {
-        var (participant, _) = CreateParticipant();
+        var (participant, clock) = CreateParticipantWithBudget(slack: 3, maxPendingKeystrokes: 2);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the qu"), Passage);
+        clock.Advance(TimeSpan.FromSeconds(1));
 
-        participant.UpdateProgress(2, "thexyz", 0, Passage);
+        participant.RetryPendingClaim(Passage);
 
-        Assert.Equal(3, participant.Mistakes);
+        participant.LastValidIndex.ShouldBe(2);
     }
 
     [Fact]
-    public void UpdateProgress_WrongCharactersPastPassageEnd_AreNotCountedAsMistakes()
+    public void BacklogAccumulatedAcrossBatches_ShouldBeRejected()
     {
-        var (participant, _) = CreateParticipant();
+        var (participant, _) = CreateParticipantWithBudget(slack: 3, maxPendingKeystrokes: 2);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the q"), Passage);
 
-        participant.UpdateProgress(0, "azzzzzz", 0, "ab");
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("u"), Passage);
 
-        Assert.Equal(1, participant.Mistakes);
+        outcome.ShouldBe(ProgressOutcome.Rejected("keystroke backlog exceeds limit"));
     }
 
     [Fact]
-    public void UpdateProgress_NegativeReportedMistakes_KeepsStoredCount()
+    public void BatchLargerThanLimitButWithinBudget_ShouldBeAccepted()
     {
-        var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(2, "the", 2, Passage);
+        var (participant, _) = CreateParticipantWithBudget(slack: 9, maxPendingKeystrokes: 2);
 
-        var outcome = participant.UpdateProgress(2, "the", -1, Passage);
+        var outcome = participant.UpdateProgress(KeystrokeHelper.Sequence("the quick"), Passage);
 
-        Assert.Equal(ProgressOutcome.Accepted, outcome);
-        Assert.Equal(2, participant.Mistakes);
+        outcome.ShouldBe(ProgressOutcome.Accepted);
+        participant.LastValidIndex.ShouldBe(8);
     }
 
     [Fact]
-    public void GetAccuracy_ReturnsPercentageOfCorrectCharacters()
+    public void GetAccuracy_ShouldBeShareOfValidCharactersWithoutMistakes()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(3, "the ", 1, Passage);
+        participant.UpdateProgress([.. KeystrokeHelper.Sequence("thx"), KeystrokeHelper.Backspace(), .. KeystrokeHelper.Sequence("e ")], Passage);
 
-        Assert.Equal(75f, participant.GetAccuracy());
+        participant.GetAccuracy().ShouldBe(75f);
     }
 
     [Fact]
-    public void GetAccuracy_MistakesExceedTypedCharacters_ClampsToZero()
+    public void GetAccuracy_MistakesExceedValidCharacters_ShouldClampToZero()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(0, "t", 5, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("txxxxx"), Passage);
 
-        Assert.Equal(0f, participant.GetAccuracy());
+        participant.GetAccuracy().ShouldBe(0f);
     }
 
     [Fact]
-    public void FinishedParticipant_ResultWordsTypedEqualsWordsTyped()
+    public void MarkFinished_ResultWordsTypedShouldEqualWordsTyped()
     {
         var (participant, _) = CreateParticipant();
-        participant.UpdateProgress(8, "the quick", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the quick"), Passage);
 
         participant.MarkFinished(1);
 
-        Assert.Equal(2, participant.WordsTyped);
-        Assert.Equal(participant.WordsTyped, participant.Result!.WordsTyped);
+        participant.WordsTyped.ShouldBe(2);
+        participant.Result!.WordsTyped.ShouldBe(participant.WordsTyped);
     }
 
     [Fact]
-    public void MarkFinished_ResultFinishedAtMatchesParticipant()
+    public void MarkFinished_ResultFinishedAtShouldMatchParticipant()
     {
         var (participant, clock) = CreateParticipant();
         participant.Start();
-        participant.UpdateProgress(2, "the", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
         clock.Advance(TimeSpan.FromSeconds(20));
 
         participant.MarkFinished(1);
 
-        Assert.Equal(clock.GetUtcNow(), participant.FinishedAt);
-        Assert.Equal(participant.FinishedAt, participant.Result!.FinishedAt);
+        participant.FinishedAt.ShouldBe(clock.GetUtcNow());
+        participant.Result!.FinishedAt.ShouldBe(participant.FinishedAt!.Value);
     }
 
     [Fact]
-    public void ClockAdvancesAfterFinish_WpmStaysFrozen()
+    public void ClockAdvancesAfterFinish_WpmShouldStayFrozen()
     {
         var (participant, clock) = CreateParticipant();
         participant.Start();
         clock.Advance(TimeSpan.FromSeconds(60));
-        participant.UpdateProgress(2, "the", 0, Passage);
+        participant.UpdateProgress(KeystrokeHelper.Sequence("the"), Passage);
         participant.MarkFinished(1);
         var wpmAtFinish = participant.GetWPM();
 
         clock.Advance(TimeSpan.FromSeconds(60));
 
-        Assert.Equal(wpmAtFinish, participant.GetWPM());
-        Assert.Equal(participant.Result!.WPM, participant.GetWPM());
+        participant.GetWPM().ShouldBe(wpmAtFinish);
+        participant.Result!.WPM.ShouldBe(participant.GetWPM());
     }
 }

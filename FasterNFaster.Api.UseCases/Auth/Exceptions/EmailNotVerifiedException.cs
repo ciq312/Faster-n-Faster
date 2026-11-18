@@ -8,5 +8,5 @@ public class EmailNotVerifiedException(string email) : ForbiddenException("Email
 
     public override string Code => ErrorCodes.EmailNotVerified;
 
-    public override IReadOnlyDictionary<string, object?> Extensions => new Dictionary<string, object?> { ["email"] = Email };
+    public override IReadOnlyDictionary<string, string[]> Extensions => new Dictionary<string, string[]> { ["email"] = new[] { Email } };
 }

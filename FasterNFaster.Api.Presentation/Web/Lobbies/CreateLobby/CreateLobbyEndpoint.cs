@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FastEndpoints;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Extensions;
 using FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 using MediatR;
@@ -22,8 +23,7 @@ public class CreateLobbyEndpoint(ISender sender) : Endpoint<CreateLobbyRequest, 
         var userIdClaim = User.FindFirstValue("sub");
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
         {
-            await Send.UnauthorizedAsync(ct);
-            return;
+            throw new UnauthorizedException();
         }
 
         var result = await sender.Send(new CreateLobbyCommand(req.LobbyName, req.IsPrivate, userId), ct);

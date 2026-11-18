@@ -8,15 +8,6 @@ public class FakeBroadcaster : IBroadcaster
 
     public List<Sent> Broadcasts { get; } = new();
 
-    public Task Broadcast<T>(IAudience audience, string eventName, T payload)
-    {
-        Broadcasts.Add(new Sent(audience, eventName, payload));
-        return Task.CompletedTask;
-    }
-
-    public Task Broadcast(IAudience audience, string eventName)
-    {
-        Broadcasts.Add(new Sent(audience, eventName, null));
-        return Task.CompletedTask;
-    }
+    public Task Broadcast(IAudience audience, Func<IGameClient, Task> send) =>
+        send(new RecordingGameClient((eventName, payload) => Broadcasts.Add(new Sent(audience, eventName, payload))));
 }

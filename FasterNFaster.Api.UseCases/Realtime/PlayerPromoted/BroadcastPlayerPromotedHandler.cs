@@ -12,6 +12,6 @@ public class BroadcastPlayerPromotedHandler(IBroadcaster broadcaster)
     {
         var e = notification.Event;
 
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.HostChanged, new HostChangedDTO(e.NewHostId, e.NewHostNick));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), c => c.HostChanged(new HostChangedDTO(e.NewHostId, e.NewHostNick)));
     }
 }

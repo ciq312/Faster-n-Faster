@@ -1,6 +1,5 @@
 using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.UseCases.Lobbies.Services;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.LobbyStateBroadcast;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.UnitTests.Fakes;
@@ -32,7 +31,7 @@ public class LobbyStateScopeTests
         });
 
         var sent = Assert.Single(broadcaster.Broadcasts);
-        Assert.Equal(GameEvents.LobbyState, sent.EventName);
+        Assert.Equal(nameof(IGameClient.LobbyState), sent.EventName);
         var audience = Assert.IsType<LobbyAudience>(sent.Audience);
         Assert.Equal(context.LobbyId, audience.LobbyId);
     }

@@ -1,0 +1,47 @@
+.nick-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nick-form__input {
+  padding: 11px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.nick-form__input:focus {
+  border-color: var(--amber);
+}
+
+.nick-form__submit {
+  width: 100%;
+  padding: 13px 0;
+  background: var(--amber);
+  border: none;
+  border-radius: 4px;
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+
+.nick-form__submit:hover:not(:disabled) {
+  background: var(--amber-hover);
+}
+
+.nick-form__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

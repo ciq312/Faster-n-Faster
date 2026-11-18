@@ -1,8 +1,10 @@
 using System.Net.Http.Json;
-using FasterNFaster.Api.Presentation.Web.Auth.RegisterAnonymous;
+using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Presentation.Web.Lobbies.CreateLobby;
 using FasterNFaster.Api.Presentation.Web.Shared;
+using FasterNFaster.Api.Presentation.Web.Users.ChangeNick;
 using Microsoft.Extensions.Configuration;
+using Shouldly;
 
 namespace FasterNFaster.IntegrationTests;
 
@@ -14,7 +16,7 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
         ?? throw new InvalidOperationException("RateLimiting section not found in configuration.");
 
     [Fact]
-    public async Task ExceedAuthStrictLimit_ShouldReturn429()
+    public async Task ExceedAuthStrictLimit_Returns429()
     {
         var client = App.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.1");
@@ -29,12 +31,12 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await AuthHelper.Register(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.TooManyRequests);
     }
 
     [Fact]
-    public async Task ExceedAuthStrictLimitWaitWindow_ShouldBeOk()
+    public async Task ExceedAuthStrictLimitWaitWindow_ReturnsCreated()
     {
         var testRateLimitWindow = TimeSpan.FromSeconds(1);
         await using var shortWindowApp = Fixture.CreateApp(b => b.UseSetting("RateLimiting:AuthStrict:Window", testRateLimitWindow.ToString()));
@@ -53,17 +55,16 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await AuthHelper.Register(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.Created, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
     }
 
     [Fact]
-    public async Task ExceedLobbyCreateLimit_ShouldReturn429()
+    public async Task ExceedLobbyCreateLimit_Returns429()
     {
         var client = App.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.4");
-        var guestResponse = await client.PostAsJsonAsync(AuthHelper.GuestUri, new RegisterAnonymousRequest { Nick = "guest" });
-        guestResponse.EnsureSuccessStatusCode();
+        await AuthHelper.RegisterGuestAsync(client);
 
         var tasks = new List<Task<HttpResponseMessage>>();
         for (var i = 0; i < rateLimitOptions.LobbyCreate.PermitLimit; i++)
@@ -74,8 +75,47 @@ public class RateLimitingTests(TestApplicationFactory<Program> fixture) : Integr
 
         var nthResponse = await CreateLobby(client);
 
-        Assert.All(okResponses, (r) => Assert.Equal(System.Net.HttpStatusCode.Created, r.StatusCode));
-        Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, nthResponse.StatusCode);
+        okResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.Created);
+        nthResponse.StatusCode.ShouldBe(System.Net.HttpStatusCode.TooManyRequests);
+        var apiErrorResponse = await nthResponse.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        apiErrorResponse.ShouldNotBeNull();
+        apiErrorResponse.Reason.ShouldBe("Too many requests, try again shortly");
+        apiErrorResponse.Code.ShouldBe(ErrorCodes.RateLimited);
+        apiErrorResponse.Errors.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ByInviteLookups_ExceedLookupLimit_Return429()
+    {
+        var client = App.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.5");
+
+        var allowedResponses = new List<HttpResponseMessage>();
+        for (var i = 0; i < rateLimitOptions.Lookup.PermitLimit; i++)
+        {
+            allowedResponses.Add(await client.GetAsync("api/lobbies/by-invite/NOPE"));
+        }
+
+        var nthResponse = await client.GetAsync("api/lobbies/by-invite/NOPE");
+
+        allowedResponses.ShouldAllBe(r => r.StatusCode == System.Net.HttpStatusCode.NotFound);
+        await ShouldBeErrorAsync(nthResponse, System.Net.HttpStatusCode.TooManyRequests, ErrorCodes.RateLimited);
+    }
+
+    [Fact]
+    public async Task ChangeNick_ExceedAuthStrictLimit_Returns429()
+    {
+        var client = App.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", "10.99.0.6");
+        await AuthHelper.RegisterAndLoginAsync(App, client, AuthHelper.NewPlayer());
+
+        var responses = new List<HttpResponseMessage>();
+        for (var i = 0; i < rateLimitOptions.AuthStrict.PermitLimit; i++)
+        {
+            responses.Add(await client.PutAsJsonAsync("api/users/me/nick", new ChangeNickRequest("Renamed")));
+        }
+
+        await ShouldBeErrorAsync(responses[^1], System.Net.HttpStatusCode.TooManyRequests, ErrorCodes.RateLimited);
     }
 
     private static Task<HttpResponseMessage> CreateLobby(HttpClient client) =>

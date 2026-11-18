@@ -16,6 +16,6 @@ public class BroadcastPlayerDisconnectedHandler(
 
         if (!lobbies.Exists(e.LobbyId)) return;
 
-        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), GameEvents.PlayerDisconnected, new PlayerDisconnectedDTO(e.UserId, e.Nick));
+        await broadcaster.Broadcast(Audience.Lobby(e.LobbyId), c => c.PlayerDisconnected(new PlayerDisconnectedDTO(e.UserId, e.Nick)));
     }
 }

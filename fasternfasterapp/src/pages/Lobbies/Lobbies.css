@@ -162,6 +162,10 @@
   gap: 6px;
 }
 
+.lobby-list__sentinel {
+  height: 1px;
+}
+
 /* ── Lobby card ── */
 
 .lobby-card {

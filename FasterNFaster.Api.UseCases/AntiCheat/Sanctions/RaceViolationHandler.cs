@@ -2,7 +2,6 @@ using FasterNFaster.Api.Domain.Entities.Races.Events;
 using FasterNFaster.Api.UseCases.AntiCheat.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
 using FasterNFaster.Api.UseCases.Races.Ports;
-using FasterNFaster.Api.UseCases.Realtime;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.Api.UseCases.Users.Ports;
@@ -36,7 +35,7 @@ public class RaceViolationHandler(
         if (raceViolationCount < opts.RaceViolationThreshold) return;
 
         if (await races.TryMutate(e.LobbyId, r => r.WithdrawParticipant(e.PlayerId)))
-            await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.RaceWithdrawn);
+            await broadcaster.Broadcast(Audience.Player(e.PlayerId), c => c.RaceWithdrawn());
 
         // A strike is one incident that reached the withdrawal threshold, not one rejected update,
         // and it counts even if the race is already gone, so leaving can't dodge it.
@@ -54,7 +53,7 @@ public class RaceViolationHandler(
         // so a failed broadcast or disconnect must not skip it.
         try
         {
-            await broadcaster.Broadcast(Audience.Player(e.PlayerId), GameEvents.Suspended, new SuspendedDTO(expiresAt));
+            await broadcaster.Broadcast(Audience.Player(e.PlayerId), c => c.Suspended(new SuspendedDTO(expiresAt)));
             await sender.Send(new DisconnectCommand(e.PlayerId), cancellationToken);
         }
         finally

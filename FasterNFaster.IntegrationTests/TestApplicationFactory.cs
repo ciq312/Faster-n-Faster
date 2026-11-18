@@ -1,8 +1,10 @@
 using System.Security.Cryptography;
+using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.UseCases.Auth.Ports;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -62,9 +64,12 @@ public class TestApplicationFactory<TProgram>
         base.ConfigureWebHost(builder);
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return Task.WhenAll(postgres.StartAsync(), redis.StartAsync());
+        await Task.WhenAll(postgres.StartAsync(), redis.StartAsync());
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(postgres.GetConnectionString()).Options);
+        await db.Database.MigrateAsync();
     }
 
     public new async Task DisposeAsync()

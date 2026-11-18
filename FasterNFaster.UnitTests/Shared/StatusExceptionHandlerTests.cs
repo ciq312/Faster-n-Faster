@@ -4,86 +4,113 @@ using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Shouldly;
 
 namespace FasterNFaster.UnitTests.Shared;
 
 public class StatusExceptionHandlerTests
 {
-    private readonly StatusExceptionHandler handler = new();
+    private readonly Mock<ILogger<StatusExceptionHandler>> logger = new();
+    private readonly StatusExceptionHandler handler;
+
+    public StatusExceptionHandlerTests() => handler = new StatusExceptionHandler(logger.Object);
 
     private static DefaultHttpContext CreateContext() => new() { Response = { Body = new MemoryStream() } };
 
-    private static JsonDocument ReadBody(HttpContext context)
+    private static ApiErrorResponse? ReadBody(HttpContext context)
     {
         context.Response.Body.Position = 0;
-        return JsonDocument.Parse(context.Response.Body);
+        return JsonSerializer.Deserialize<ApiErrorResponse>(context.Response.Body, JsonSerializerOptions.Web);
     }
 
+    private void VerifyErrorLogged(Times times) =>
+        logger.Verify(
+            l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+
     [Fact]
-    public async Task PlainStatusException_WritesErrorOnly()
+    public async Task PlainStatusException_WritesReasonAndFallbackCode()
     {
         var context = CreateContext();
 
         var handled = await handler.TryHandleAsync(context, new NotFoundException("x"), CancellationToken.None);
 
-        using var body = ReadBody(context);
-        Assert.True(handled);
-        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
-        Assert.Single(body.RootElement.EnumerateObject());
-        Assert.Equal("x", body.RootElement.GetProperty("error").GetString());
+        var body = ReadBody(context);
+        handled.ShouldBeTrue();
+        context.Response.StatusCode.ShouldBe(StatusCodes.Status404NotFound);
+        body.ShouldNotBeNull();
+        body.Reason.ShouldBe("x");
+        body.Code.ShouldBe("error");
+        body.Errors.ShouldBeNull();
     }
 
     [Fact]
-    public async Task NonStatusException_ReturnsFalseAndWritesNothing()
-    {
-        var context = CreateContext();
-
-        var handled = await handler.TryHandleAsync(context, new InvalidOperationException(), CancellationToken.None);
-
-        Assert.False(handled);
-        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
-        Assert.Equal(0, context.Response.Body.Length);
-    }
-
-    [Fact]
-    public async Task EmailNotVerifiedException_WritesErrorCodeAndEmail()
+    public async Task EmailNotVerifiedException_WritesCodeAndEmailInErrors()
     {
         var context = CreateContext();
 
         await handler.TryHandleAsync(context, new EmailNotVerifiedException("player@example.com"), CancellationToken.None);
 
-        using var body = ReadBody(context);
-        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
-        Assert.Equal(3, body.RootElement.EnumerateObject().Count());
-        Assert.Equal("Email verification required", body.RootElement.GetProperty("error").GetString());
-        Assert.Equal(ErrorCodes.EmailNotVerified, body.RootElement.GetProperty("code").GetString());
-        Assert.Equal("player@example.com", body.RootElement.GetProperty("email").GetString());
+        var body = ReadBody(context);
+        context.Response.StatusCode.ShouldBe(StatusCodes.Status403Forbidden);
+        body.ShouldNotBeNull();
+        body.Reason.ShouldBe("Email verification required");
+        body.Code.ShouldBe(ErrorCodes.EmailNotVerified);
+        body.Errors.ShouldNotBeNull();
+        body.Errors["email"].ShouldBe(["player@example.com"]);
     }
 
     [Fact]
-    public async Task CodeWithoutExtensions_WritesErrorAndCodeOnly()
+    public async Task CodeWithoutExtensions_WritesNoErrors()
     {
         var context = CreateContext();
 
-        await handler.TryHandleAsync(context, new CustomStatusException("message", "SOME_CODE", null), CancellationToken.None);
+        await handler.TryHandleAsync(context, new CustomStatusException("message", "some_code", null), CancellationToken.None);
 
-        using var body = ReadBody(context);
-        Assert.Equal(2, body.RootElement.EnumerateObject().Count());
-        Assert.Equal("message", body.RootElement.GetProperty("error").GetString());
-        Assert.Equal("SOME_CODE", body.RootElement.GetProperty("code").GetString());
+        var body = ReadBody(context);
+        body.ShouldNotBeNull();
+        body.Reason.ShouldBe("message");
+        body.Code.ShouldBe("some_code");
+        body.Errors.ShouldBeNull();
     }
 
     [Fact]
-    public async Task ExtensionNamedLikeReservedField_DoesNotOverwriteIt()
+    public async Task NonStatusException_Writes500WithFallbackReason()
     {
         var context = CreateContext();
-        var extensions = new Dictionary<string, object?> { ["error"] = "overwritten", ["code"] = "OVERWRITTEN" };
 
-        await handler.TryHandleAsync(context, new CustomStatusException("message", "SOME_CODE", extensions), CancellationToken.None);
+        var handled = await handler.TryHandleAsync(context, new InvalidOperationException("internal details"), CancellationToken.None);
 
-        using var body = ReadBody(context);
-        Assert.Equal("message", body.RootElement.GetProperty("error").GetString());
-        Assert.Equal("SOME_CODE", body.RootElement.GetProperty("code").GetString());
+        var body = ReadBody(context);
+        handled.ShouldBeTrue();
+        context.Response.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
+        body.ShouldNotBeNull();
+        body.Reason.ShouldBe("An unexpected error occurred");
+        body.Code.ShouldBe("error");
+        body.Errors.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task NonStatusException_IsLoggedAsError()
+    {
+        await handler.TryHandleAsync(CreateContext(), new InvalidOperationException(), CancellationToken.None);
+
+        VerifyErrorLogged(Times.Once());
+    }
+
+    [Fact]
+    public async Task StatusException_IsNotLogged()
+    {
+        await handler.TryHandleAsync(CreateContext(), new NotFoundException("x"), CancellationToken.None);
+
+        VerifyErrorLogged(Times.Never());
     }
 
     public static TheoryData<StatusException, int> MappedExceptions => new()
@@ -108,7 +135,7 @@ public class StatusExceptionHandlerTests
 
         await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        Assert.Equal(expectedStatusCode, context.Response.StatusCode);
+        context.Response.StatusCode.ShouldBe(expectedStatusCode);
     }
 
     [Fact]
@@ -118,14 +145,14 @@ public class StatusExceptionHandlerTests
 
         await handler.TryHandleAsync(context, new CustomStatusException("message", null, null), CancellationToken.None);
 
-        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        context.Response.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
     }
 
-    private class CustomStatusException(string message, string? code, IReadOnlyDictionary<string, object?>? extensions)
+    private class CustomStatusException(string message, string? code, IReadOnlyDictionary<string, string[]>? extensions)
         : StatusException(message)
     {
         public override string? Code => code;
 
-        public override IReadOnlyDictionary<string, object?>? Extensions => extensions;
+        public override IReadOnlyDictionary<string, string[]>? Extensions => extensions;
     }
 }

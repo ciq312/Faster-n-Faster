@@ -1,0 +1,160 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import type { GetUserProfileResponse } from "../../../types";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useLogoutMutation } from "../../features/auth/authApi";
+import {
+  selectCurrentUser,
+  selectIsGuest,
+  selectIsPlayer,
+} from "../../features/auth/authSelectors";
+import { reconnectHub } from "../../features/connection/hubThunks";
+import ProfileNick from "../../features/profile/components/ProfileNick";
+import { useGetMyProfileQuery } from "../../features/profile/profileApi";
+import { errorMessage } from "../../shared/api/errorMessage";
+import { showError, showMessage } from "../../shared/banner/bannerSlice";
+import Navbar from "../../shared/components/Navbar/Navbar";
+import { ROUTES } from "../../shared/utils/routes";
+import "./Profile.css";
+
+function formatNumber(value: number | undefined, precision = 1) {
+  if (typeof value !== "number") return "—";
+  return Number.isInteger(value) ? value : value.toFixed(precision);
+}
+
+function formatPercent(value: number | undefined, precision = 2) {
+  if (typeof value !== "number") return "—";
+  return value.toFixed(precision);
+}
+
+function Profile() {
+  const dispatch = useAppDispatch();
+  const { data, isLoading, isError } = useGetMyProfileQuery();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const isGuest = useAppSelector(selectIsGuest);
+  const isPlayer = useAppSelector(selectIsPlayer);
+  const profileData: Partial<GetUserProfileResponse> | undefined = isError
+    ? { nick: currentUser?.userName }
+    : data;
+  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isGuest) {
+      dispatch(showMessage("Register to see the results of your races"));
+    }
+  }, [isGuest, dispatch]);
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.error) {
+      dispatch(showError(errorMessage(result.error)));
+      return;
+    }
+    navigate(ROUTES.HOME);
+  };
+
+  return (
+    <div className="profile-page">
+      <Navbar />
+      {isGuest ? (
+        <button
+          className="profile-page__logout"
+          onClick={() => navigate(ROUTES.HOME)}
+          type="button"
+        >
+          register now
+        </button>
+      ) : (
+        <button
+          className="profile-page__logout"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          type="button"
+        >
+          {isLoggingOut ? "logging out..." : "log out"}
+        </button>
+      )}
+      <div className="profile-page__content">
+        {isLoading && (
+          <p className="profile-page__loading">Loading profile...</p>
+        )}
+
+        {!isLoading && (
+          <>
+            <header className="profile-page__header">
+              <span className="profile-page__eyebrow">Profile</span>
+              <ProfileNick
+                nick={profileData?.nick ?? ""}
+                editable={isPlayer}
+                onChanged={() => dispatch(reconnectHub())}
+              />
+              <p className="profile-page__meta">
+                <span className="profile-page__meta-accent">
+                  {profileData?.racesTyped}
+                </span>{" "}
+                {profileData?.racesTyped === 1 ? "race" : "races"}
+                <span className="profile-page__meta-sep">·</span>
+                <span className="profile-page__meta-accent">
+                  {profileData?.wins}
+                </span>{" "}
+                {profileData?.wins === 1 ? "win" : "wins"}
+              </p>
+            </header>
+
+            <section className="profile-hero">
+              <span className="profile-hero__label">Best WPM</span>
+              <span className="profile-hero__value">
+                {formatNumber(profileData?.bestWPM)}
+                <span className="profile-hero__unit" />
+              </span>
+            </section>
+
+            <section className="profile-stats">
+              <div className="profile-stat">
+                <span className="profile-stat__label">Avg WPM</span>
+                <span className="profile-stat__value">
+                  {formatNumber(profileData?.avgWPM)}
+                </span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat__label">Best Accuracy</span>
+                <span className="profile-stat__value">
+                  {formatPercent(profileData?.bestAccuracy)}
+                  <span className="profile-stat__suffix">%</span>
+                </span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat__label">Avg Accuracy</span>
+                <span className="profile-stat__value">
+                  {formatPercent(profileData?.avgAccuracy)}
+                  <span className="profile-stat__suffix">%</span>
+                </span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat__label">Words Typed</span>
+                <span className="profile-stat__value">
+                  {formatNumber(profileData?.wordsTyped)}
+                </span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat__label">Races Typed</span>
+                <span className="profile-stat__value">
+                  {formatNumber(profileData?.racesTyped)}
+                </span>
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat__label">Wins</span>
+                <span className="profile-stat__value">
+                  {formatNumber(profileData?.wins)}
+                </span>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Profile;

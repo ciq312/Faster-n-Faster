@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
-using FasterNFaster.Api.Domain.Entities.Races;
-using FasterNFaster.Api.UseCases.Realtime;
+using System.Diagnostics;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
+using FasterNFaster.Api.UseCases.Realtime.RaceState;
+using FasterNFaster.Api.UseCases.Shared;
 
 namespace FasterNFaster.Api.Infrastructure.Races;
 
@@ -11,13 +12,19 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
 
     public int TrackedLobbies => broadcasts.Count;
 
-    public void Publish(Guid lobbyId, IReadOnlyList<Guid> playerIds, IReadOnlyList<ParticipantSnapshot> snapshot)
+    public void Publish(Guid lobbyId, IReadOnlyList<Guid> playerIds, IReadOnlyList<RaceParticipantDTO> snapshot)
     {
+        var measure = RacePerformanceMetrics.PublishDuration.Enabled || RacePerformanceMetrics.FrameAgeAtSend.Enabled;
+        var published = measure ? Stopwatch.GetTimestamp() : 0;
         var state = broadcasts.GetOrAdd(lobbyId, _ => new LobbyBroadcast());
-        Interlocked.Exchange(ref state.Latest, new RaceFrame(playerIds, snapshot));
+        if (Interlocked.Exchange(ref state.Latest, new RaceFrame(playerIds, snapshot, published)) is not null)
+            RacePerformanceMetrics.ReplacedFrames.Add(1);
 
         if (Interlocked.CompareExchange(ref state.Running, 1, 0) == 0)
             _ = Pump(lobbyId, state);
+
+        if (measure)
+            RacePerformanceMetrics.PublishDuration.Record(Stopwatch.GetElapsedTime(published).TotalMilliseconds);
     }
 
     public void Prune(IReadOnlySet<Guid> activeLobbyIds)
@@ -38,7 +45,13 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
             {
                 try
                 {
-                    await broadcaster.Broadcast(Audience.Players(frame.PlayerIds), GameEvents.RaceState, frame.Snapshot);
+                    var measureBroadcast = RacePerformanceMetrics.BroadcastDuration.Enabled;
+                    var started = measureBroadcast || frame.Published != 0 ? Stopwatch.GetTimestamp() : 0;
+                    if (frame.Published != 0)
+                        RacePerformanceMetrics.FrameAgeAtSend.Record(Stopwatch.GetElapsedTime(frame.Published, started).TotalMilliseconds);
+                    await broadcaster.Broadcast(Audience.Players(frame.PlayerIds), c => c.RaceState(frame.Snapshot));
+                    if (measureBroadcast)
+                        RacePerformanceMetrics.BroadcastDuration.Record(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
                 }
                 catch (Exception ex)
                 {
@@ -57,5 +70,5 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
         public int Running;
     }
 
-    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<ParticipantSnapshot> Snapshot);
+    private sealed record RaceFrame(IReadOnlyList<Guid> PlayerIds, IReadOnlyList<RaceParticipantDTO> Snapshot, long Published);
 }

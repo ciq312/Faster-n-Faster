@@ -1,191 +1,336 @@
+using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 using FasterNFaster.LoadTest;
 
 var phases = new Dictionary<string, DateTime>();
+var phaseOffsetsMs = new Dictionary<string, double>();
+var runClock = Stopwatch.StartNew();
+var errors = new List<string>();
+var runStarted = DateTime.UtcNow;
+var runId = $"{runStarted:yyyyMMdd'T'HHmmssfff'Z'}-{Guid.NewGuid():N}"[..32];
+var users = 5;
+var server = "http://localhost:8080";
+var insecure = false;
+var wpm = 120;
+var allowRemote = false;
+var outDir = Environment.GetEnvironmentVariable("LOADTEST_OUT") ?? AppContext.BaseDirectory;
+var bots = new List<LoadTestBot>();
 
-int users = 5;
-string server = "http://localhost:8080";
-bool insecure = false;
-int wpm = 120;
-// Where phases.json is written. Env var lets Docker point it at a mounted volume
-// without changing args; --out overrides. Defaults to the app dir (local runs).
-string outDir = Environment.GetEnvironmentVariable("LOADTEST_OUT") ?? AppContext.BaseDirectory;
-
-for (int i = 0; i < args.Length; i++)
+try
 {
-    switch (args[i])
+    for (var i = 0; i < args.Length; i++)
     {
-        case "--users": users = int.Parse(args[++i]); break;
-        case "--server": server = args[++i]; break;
-        case "--insecure": insecure = true; break;
-        case "--wpm": wpm = int.Parse(args[++i]); break;
-        case "--out": outDir = args[++i]; break;
-        case "-h":
-        case "--help":
-            Console.WriteLine("loadtest --users N --server URL [--wpm 120] [--insecure] [--out DIR]");
-            return 0;
+        switch (args[i])
+        {
+            case "--users": users = int.Parse(NextArg(args, ref i)); break;
+            case "--server": server = NextArg(args, ref i); break;
+            case "--insecure": insecure = true; break;
+            case "--allow-remote": allowRemote = true; break;
+            case "--wpm": wpm = int.Parse(NextArg(args, ref i)); break;
+            case "--out": outDir = NextArg(args, ref i); break;
+            case "-h":
+            case "--help":
+                Console.WriteLine("loadtest --users N --server URL [--wpm 120] [--insecure] [--allow-remote] [--out DIR]");
+                return 0;
+            default: throw new ArgumentException($"Unknown argument: {args[i]}");
+        }
     }
-}
 
-Console.WriteLine($"Spawning {users} bots against {server} (target {wpm} WPM)");
+    if (users < 1) throw new ArgumentOutOfRangeException(nameof(users), "At least one bot is required.");
+    if (wpm < 1) throw new ArgumentOutOfRangeException(nameof(wpm), "WPM must be positive.");
+    if (!Uri.TryCreate(server, UriKind.Absolute, out var serverUri) || serverUri.Scheme is not ("http" or "https"))
+        throw new ArgumentException("--server must be an absolute HTTP(S) URL.");
+    if (!allowRemote && !IsLocalTarget(serverUri.Host))
+        throw new ArgumentException("Remote targets are blocked by default. Use --allow-remote only when an external load test is explicitly intended.");
 
-var bots = Enumerable.Range(0, users).Select(i => new LoadTestBot(i, server, insecure)).ToList();
-
-// Step 1: auth + connect (batched, fail-fast — if auth breaks, nothing else matters)
-
-const int authBatchSize = 100;
-var t0 = DateTime.UtcNow;
-phases["auth_start"] = t0;
-
-var semaphore = new SemaphoreSlim(10);
-
-for (int i = 0; i < bots.Count; i += authBatchSize)
-{
-    var batch = bots.Skip(i).Take(authBatchSize).ToList();
-    Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1}: bots {i}..{i + batch.Count - 1}");
-
+    Console.WriteLine($"Spawning {users} bots against {server} (target {wpm} WPM)");
+    MarkPhase("preflight_start");
+    await WaitForHttpAsync(serverUri, TimeSpan.FromSeconds(30));
+    MarkPhase("preflight_end");
+    bots.AddRange(Enumerable.Range(0, users).Select(i => new LoadTestBot(i, server, insecure)));
+    var raceEnded = false;
     try
     {
-        await Task.WhenAll(batch.Select(async b =>
+        const int authBatchSize = 100;
+        var semaphore = new SemaphoreSlim(10);
+        MarkPhase("auth_start");
+        for (var i = 0; i < bots.Count; i += authBatchSize)
         {
-            await semaphore.WaitAsync();
-            try
+            var batch = bots.Skip(i).Take(authBatchSize).ToList();
+            Console.WriteLine($"[1] Auth batch {i / authBatchSize + 1}: bots {i}..{i + batch.Count - 1}");
+            await Task.WhenAll(batch.Select(async bot =>
             {
-                await Task.Delay(Random.Shared.Next(100, 1000));
+                await semaphore.WaitAsync();
+                try
+                {
+                    await Task.Delay(Random.Shared.Next(100, 1000));
+                    await bot.AuthenticateAsync();
+                    await bot.ConnectHubAsync();
+                }
+                finally { semaphore.Release(); }
+            }));
+        }
+        MarkPhase("auth_end");
 
-                await b.AuthenticateAsync();
-                await b.ConnectHubAsync();
-            }
-            finally
+        var hosts = new List<LoadTestBot>();
+        MarkPhase("join_start");
+        for (var i = 0; i < users; i++)
+        {
+            if (i % 10 == 0)
             {
-                semaphore.Release();
+                var host = bots[i];
+                var lobbyId = await host.CreateLobbyAsync($"loadtest-{i / 10}");
+                hosts.Add(host);
+                Console.WriteLine($"[2] Lobby created: {lobbyId}");
+                // Creation adds the host directly; the idempotent hub join publishes the first lobby snapshot.
+                await host.JoinLobbyAsync(lobbyId);
             }
-        }));
+            else
+            {
+                await bots[i].JoinLobbyAsync(hosts[^1].LobbyId!.Value);
+            }
+        }
+        MarkPhase("join_end");
+
+        MarkPhase("passage_wait_start");
+        await AwaitAll(bots.Select(bot => bot.PassageReady), TimeSpan.FromSeconds(15), "passage delivery");
+        MarkPhase("passage_ready");
+
+        await Task.WhenAll(hosts.Select(host => host.StartRaceAsync()));
+        MarkPhase("race_start_wait");
+        await AwaitAll(bots.Select(bot => bot.RaceStarted), TimeSpan.FromSeconds(10), "race start event");
+        MarkPhase("race_started");
+
+        using var runCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        var pingTasks = bots.Select(bot => bot.PingLoopAsync(TimeSpan.FromSeconds(1), runCts.Token)).ToArray();
+        MarkPhase("typing_start");
+        await Task.WhenAll(bots.Select(bot => bot.TypeRaceAsync(wpm, runCts.Token)));
+        await AwaitAll(bots.Select(bot => bot.RaceEnded), TimeSpan.FromSeconds(15), "race end event");
+        raceEnded = true;
+        MarkPhase("race_ended");
+        runCts.Cancel();
+        await Task.WhenAll(pingTasks);
+
+        foreach (var bot in bots)
+        {
+            if (bot.WasBanned) errors.Add($"Bot {bot.BotId} was banned: {bot.BannedReason}");
+            if (bot.HighestObservedIndex < 0)
+                errors.Add($"Bot {bot.BotId} received no server-confirmed RaceState progress.");
+            if (!ContainsPlayerResult(bot.RaceResult, bot.UserId))
+                errors.Add($"Bot {bot.BotId} is missing from the RaceEnded result payload.");
+            if (bot.PingFailures > 0) errors.Add($"Bot {bot.BotId} had {bot.PingFailures} Ping invocation failure(s).");
+        }
+
+        var pingSamples = bots.SelectMany(bot => bot.PingRtts.Select(sample => new
+        {
+            botId = bot.BotId,
+            t = sample.T,
+            ms = sample.Ms
+        })).ToArray();
+        var progressSamples = bots.SelectMany(bot => bot.ProgressLatencies.Select(sample => new
+        {
+            botId = bot.BotId,
+            index = sample.Index,
+            latencyMs = sample.LatencyMs
+        })).ToArray();
+
+        var sortedPing = pingSamples.Select(sample => sample.ms).OrderBy(value => value).ToArray();
+        double? Percentile(double p) => sortedPing.Length == 0
+            ? null
+            : sortedPing[Math.Min(sortedPing.Length - 1, (int)Math.Ceiling(sortedPing.Length * p) - 1)];
+        var sortedProgress = progressSamples.Where(sample => sample.latencyMs.HasValue)
+            .Select(sample => sample.latencyMs!.Value).OrderBy(value => value).ToArray();
+        double? ProgressPercentile(double p) => sortedProgress.Length == 0
+            ? null
+            : sortedProgress[Math.Min(sortedProgress.Length - 1, (int)Math.Ceiling(sortedProgress.Length * p) - 1)];
+
+        var summary = new
+        {
+            schemaVersion = 2,
+            runId,
+            startedAtUtc = runStarted,
+            finishedAtUtc = DateTime.UtcNow,
+            target = new { server, users, wpm, rateLimitingExpectedDisabled = true, remoteTargetAllowed = allowRemote },
+            outcome = errors.Count == 0 && raceEnded ? "passed" : "failed",
+            reasons = errors,
+            requestedBots = users,
+            authenticatedBots = bots.Count(bot => bot.UserId.HasValue),
+            connectedBots = bots.Count(bot => bot.IsConnected),
+            progressSends = bots.Sum(bot => bot.ProgressSends),
+            plannedTypingCharacters = bots.Sum(bot => bot.Passage?.Length ?? 0),
+            lateTypingCharacters = bots.Sum(bot => bot.LateCharacters),
+            maxTypingScheduleLatenessMs = bots.Count == 0 ? (double?)null : bots.Max(bot => bot.MaxScheduleLatenessMs),
+            completedLobbyRaces = raceEnded ? hosts.Count : 0,
+            raceResultsReceived = bots.Count(bot => bot.RaceResult.HasValue),
+            pingFailures = bots.Sum(bot => bot.PingFailures),
+            pingRttMs = new { count = sortedPing.Length, p50 = Percentile(.50), p95 = Percentile(.95), p99 = Percentile(.99), max = sortedPing.Length == 0 ? (double?)null : sortedPing[^1] },
+            progressLatencyMs = new
+            {
+                count = progressSamples.Count(sample => sample.latencyMs.HasValue),
+                timedOut = progressSamples.Count(sample => !sample.latencyMs.HasValue),
+                p50 = ProgressPercentile(.50),
+                p95 = ProgressPercentile(.95),
+                p99 = ProgressPercentile(.99),
+                max = sortedProgress.Length == 0 ? (double?)null : sortedProgress[^1],
+                samples = progressSamples
+            },
+            phases,
+            phaseOffsetsMs,
+            pingRtts = pingSamples,
+            bots = bots.Select(bot => new
+            {
+                bot.BotId,
+                bot.UserId,
+                bot.IsConnected,
+                bot.ProgressSends,
+                bot.LateCharacters,
+                bot.MaxScheduleLatenessMs,
+                bot.HighestObservedIndex,
+                passageLength = bot.Passage?.Length ?? 0,
+                resultReceived = bot.RaceResult.HasValue,
+                bot.WasBanned,
+                bot.BannedReason
+            })
+        };
+
+        Directory.CreateDirectory(outDir);
+        var artifactDir = Path.Combine(outDir, runId);
+        Directory.CreateDirectory(artifactDir);
+        var runPath = Path.Combine(artifactDir, "run-summary.json");
+        await File.WriteAllTextAsync(runPath, JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+        var phasesPath = Path.Combine(outDir, "phases.json");
+        await File.WriteAllTextAsync(phasesPath, JsonSerializer.Serialize(new { phases, rtts = pingSamples }));
+        await File.WriteAllTextAsync(Path.Combine(artifactDir, "phases.json"), JsonSerializer.Serialize(new { phases, rtts = pingSamples }));
+        Console.WriteLine($"[7] Wrote run summary to {runPath}");
+        Console.WriteLine($"Ping RTT (ms over {sortedPing.Length} samples): p50={Percentile(.50)?.ToString() ?? "n/a"} p95={Percentile(.95)?.ToString() ?? "n/a"} p99={Percentile(.99)?.ToString() ?? "n/a"}");
     }
-    catch (Exception ex)
+    finally
     {
-        Console.WriteLine($"[!] Auth batch {i / authBatchSize + 1} failed: {ex.GetType().Name}");
-        Console.WriteLine(ex.Message);
+        await Task.WhenAll(bots.Select(bot => bot.DisposeAsync()));
+    }
+
+    if (errors.Count > 0)
+    {
+        foreach (var error in errors) Console.Error.WriteLine($"[!] {error}");
         return 1;
     }
+    Console.WriteLine("Load test completed with validated race results.");
+    return 0;
 }
-phases["auth_end"] = DateTime.UtcNow;
-Console.WriteLine($"[1] Auth+connect total: {(DateTime.UtcNow - t0).TotalMilliseconds:F0}ms");
-
-// Step 2: host creates lobby, all bots join --------------------------------
-var handleBotsLobbyJoin = async () =>
+catch (Exception exception)
 {
-    LoadTestBot? host = null;
-    Guid lobbyId = Guid.Empty;
-
-    List<LoadTestBot> hosts = new();
-
-    for (int i = 0; i < users; i++)
+    errors.Add($"{exception.GetType().Name}: {exception.Message}");
+    Console.Error.WriteLine($"[!] Load test failed: {exception}");
+    try
     {
-        if (i % 10 == 0)
+        Directory.CreateDirectory(outDir);
+        var artifactDir = Path.Combine(outDir, runId);
+        Directory.CreateDirectory(artifactDir);
+        var partialPings = bots.SelectMany(bot => bot.PingRtts.Select(sample => new { botId = bot.BotId, t = sample.T, ms = sample.Ms })).ToArray();
+        var partialProgress = bots.SelectMany(bot => bot.ProgressLatencies.Select(sample => new { botId = bot.BotId, index = sample.Index, latencyMs = sample.LatencyMs })).ToArray();
+        var failureSummary = new
         {
-            host = bots[i];
-            lobbyId = await host.CreateLobbyAsync($"loadtest-{i / 10}");
-            hosts.Add(host);
-            Console.WriteLine($"[2] Lobby created: {lobbyId}");
-        }
-        var tJoin = DateTime.UtcNow;
-        await RunSafe(bots[i], "join", x => x.JoinLobbyAsync(lobbyId));
+            schemaVersion = 2,
+            runId,
+            startedAtUtc = runStarted,
+            finishedAtUtc = DateTime.UtcNow,
+            target = new { server, users, wpm, remoteTargetAllowed = allowRemote },
+            outcome = "failed",
+            reasons = errors,
+            requestedBots = users,
+            authenticatedBots = bots.Count(bot => bot.UserId.HasValue),
+            connectedBots = bots.Count(bot => bot.IsConnected),
+            progressSends = bots.Sum(bot => bot.ProgressSends),
+            completedLobbyRaces = bots.Where(bot => bot.RaceResult.HasValue)
+                .Select(bot => bot.LobbyId).Where(id => id.HasValue).Distinct().Count(),
+            plannedTypingCharacters = bots.Sum(bot => bot.Passage?.Length ?? 0),
+            lateTypingCharacters = bots.Sum(bot => bot.LateCharacters),
+            maxTypingScheduleLatenessMs = bots.Count == 0 ? (double?)null : bots.Max(bot => bot.MaxScheduleLatenessMs),
+            raceResultsReceived = bots.Count(bot => bot.RaceResult.HasValue),
+            pingFailures = bots.Sum(bot => bot.PingFailures),
+            pingRtts = partialPings,
+            progressLatencySamples = partialProgress,
+            bots = bots.Select(bot => new { bot.BotId, bot.UserId, bot.IsConnected, bot.ProgressSends, bot.LateCharacters, bot.MaxScheduleLatenessMs, bot.HighestObservedIndex, bot.WasBanned, bot.BannedReason }),
+            phases,
+            phaseOffsetsMs,
+        };
+        await File.WriteAllTextAsync(Path.Combine(artifactDir, "run-summary.json"),
+            JsonSerializer.Serialize(failureSummary, new JsonSerializerOptions { WriteIndented = true }));
+        await File.WriteAllTextAsync(Path.Combine(outDir, "phases.json"), JsonSerializer.Serialize(new { phases, rtts = partialPings }));
+        await File.WriteAllTextAsync(Path.Combine(artifactDir, "phases.json"), JsonSerializer.Serialize(new { phases, rtts = partialPings }));
     }
-
-    Console.WriteLine($"All bots joined in {DateTime.UtcNow}ms");
-    return hosts;
-};
-
-phases["join_start"] = DateTime.UtcNow;
-var hosts = await handleBotsLobbyJoin();
-phases["join_end"] = DateTime.UtcNow;
-
-// Step 3: wait for everyone to receive the passage -------------------------
-var passageWait = Task.WhenAll(bots.Select(b => b.PassageReady));
-if (await Task.WhenAny(passageWait, Task.Delay(TimeSpan.FromSeconds(15))) != passageWait)
-{
-    var missing = bots.Count(b => b.Passage is null);
-    Console.WriteLine($"[!] Passage not received by {missing}/{users} bots within 15s — aborting.");
-    return 1;
-}
-phases["passage_ready"] = DateTime.UtcNow;
-Console.WriteLine($"[4] Passage received by all bots");
-
-// Step 4: host starts race, wait for RaceStarted ---------------------------
-
-var startRaces = async (List<LoadTestBot> hosts) =>
-{
-    foreach (var host in hosts) await host.StartRaceAsync();
-};
-
-await startRaces(hosts);
-
-var raceStartedWait = Task.WhenAll(bots.Select(b => b.RaceStarted));
-if (await Task.WhenAny(raceStartedWait, Task.Delay(TimeSpan.FromSeconds(10))) != raceStartedWait)
-{
-    Console.WriteLine("[!] RaceStarted not received within 10s — aborting.");
-    return 1;
-}
-phases["race_started"] = DateTime.UtcNow;
-Console.WriteLine("[5] Race started — bots typing");
-
-// Step 5: type --------------------------------------------------------------
-var tRace = DateTime.UtcNow;
-using var pingCts = new CancellationTokenSource();
-var pingInterval = TimeSpan.FromSeconds(1);
-var pingTasks = bots.Select(b => RunSafe(b, "ping", x => x.PingLoopAsync(pingInterval, pingCts.Token))).ToArray();
-
-var typingTasks = bots.Select(b => RunSafe(b, "type", x => x.TypeRaceAsync(wpm))).ToArray();
-await Task.WhenAll(typingTasks);
-var raceEndedWait = Task.WhenAll(bots.Select(b => b.RaceEnded));
-await Task.WhenAny(raceEndedWait, Task.Delay(TimeSpan.FromSeconds(10)));
-
-pingCts.Cancel();
-await Task.WhenAll(pingTasks);
-
-phases["race_ended"] = DateTime.UtcNow;
-var raceDuration = (DateTime.UtcNow - tRace).TotalSeconds;
-Console.WriteLine($"[6] Race finished in {raceDuration:F1}s");
-
-// Step 6: stats -------------------------------------------------------------
-var allRttSamples = bots.SelectMany(b => b.PingRtts).ToArray();
-var sortedMs = allRttSamples.Select(s => s.Ms).OrderBy(x => x).ToArray();
-if (sortedMs.Length == 0)
-{
-    Console.WriteLine("No RTT samples collected.");
-}
-else
-{
-    long Pct(double p) => sortedMs[Math.Min(sortedMs.Length - 1, (int)(sortedMs.Length * p))];
-    Console.WriteLine($"Ping RTT (ms over {sortedMs.Length} samples): " +
-        $"p50={Pct(0.5)}  p95={Pct(0.95)}  p99={Pct(0.99)}  max={sortedMs[^1]}");
-}
-
-// Write phases + rtts to JSON for the profiler graph
-var output = new
-{
-    phases,
-    rtts = allRttSamples.Select(s => new { t = s.T, ms = s.Ms }).ToArray()
-};
-Directory.CreateDirectory(outDir);
-var jsonPath = Path.Combine(outDir, "phases.json");
-await File.WriteAllTextAsync(jsonPath, JsonSerializer.Serialize(output));
-Console.WriteLine($"[7] Wrote {allRttSamples.Length} RTT samples + {phases.Count} phase markers to {jsonPath}");
-
-int banned = bots.Count(b => b.WasBanned);
-if (banned > 0) Console.WriteLine($"[!] {banned}/{users} bots got banned (cheater detection?)");
-
-await Task.WhenAll(bots.Select(b => b.DisposeAsync()));
-Console.WriteLine("Done.");
-return 0;
-
-static async Task RunSafe(LoadTestBot bot, string stage, Func<LoadTestBot, Task> action)
-{
-    try { await action(bot); }
-    catch (Exception ex)
+    catch (Exception artifactError)
     {
-        Console.WriteLine($"[bot {bot.BotId}] {stage} FAILED: {ex.GetType().Name}");
-        Console.WriteLine(ex.ToString());
+        Console.Error.WriteLine($"[!] Could not write failure artifacts: {artifactError.Message}");
     }
+    return 1;
 }
+
+static string NextArg(string[] allArgs, ref int index)
+{
+    if (++index >= allArgs.Length) throw new ArgumentException($"Missing value after {allArgs[index - 1]}.");
+    return allArgs[index];
+}
+
+void MarkPhase(string name)
+{
+    phases[name] = DateTime.UtcNow;
+    phaseOffsetsMs[name] = runClock.Elapsed.TotalMilliseconds;
+}
+
+static async Task AwaitAll(IEnumerable<Task> tasks, TimeSpan timeout, string operation)
+{
+    var all = Task.WhenAll(tasks);
+    if (await Task.WhenAny(all, Task.Delay(timeout)) != all)
+        throw new TimeoutException($"Timed out waiting for {operation}.");
+    await all;
+}
+
+static async Task WaitForHttpAsync(Uri server, TimeSpan timeout)
+{
+    using var client = new HttpClient { BaseAddress = server, Timeout = TimeSpan.FromSeconds(2) };
+    var timer = Stopwatch.StartNew();
+    Exception? lastError = null;
+    while (timer.Elapsed < timeout)
+    {
+        try
+        {
+            using var response = await client.GetAsync("/");
+            if ((int)response.StatusCode < 500) return;
+            lastError = new HttpRequestException($"API readiness returned {(int)response.StatusCode}.");
+        }
+        catch (Exception exception) { lastError = exception; }
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
+    }
+    throw new TimeoutException($"API did not become ready at {server} within {timeout}.", lastError);
+}
+
+static bool ContainsPlayerResult(JsonElement? result, Guid? userId)
+{
+    if (result is not JsonElement payload || payload.ValueKind != JsonValueKind.Object || userId is null) return false;
+    if (!TryGetProp(payload, "results", out var results) || results.ValueKind != JsonValueKind.Array) return false;
+    return results.EnumerateArray().Any(item => TryGetProp(item, "playerId", out var id) &&
+        Guid.TryParse(id.GetString(), out var parsed) && parsed == userId);
+}
+
+static bool TryGetProp(JsonElement element, string name, out JsonElement value)
+{
+    if (element.ValueKind == JsonValueKind.Object)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = property.Value;
+                return true;
+            }
+        }
+    }
+    value = default;
+    return false;
+}
+
+static bool IsLocalTarget(string host) => host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+    IPAddress.TryParse(host, out var address) && IPAddress.IsLoopback(address) ||
+    host.Equals("api", StringComparison.OrdinalIgnoreCase);
