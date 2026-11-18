@@ -168,22 +168,23 @@ public class LoadTestBot
     public async Task TypeRaceAsync(int targetWpm = 120, CancellationToken ct = default)
     {
         if (hub is null) throw new InvalidOperationException("Hub not connected.");
-        if (Passage is null) throw new InvalidOperationException("Passage not received.");
+        var passage = Passage ?? throw new InvalidOperationException("Passage not received.");
 
         // 1 WPM = 5 chars/min. delayMs = 60000 / charsPerSec = 60000 / (wpm*5/60) = 12000/wpm
         if (targetWpm <= 0) throw new ArgumentOutOfRangeException(nameof(targetWpm));
         var baseDelayMs = Math.Max(10, 12000 / targetWpm);
         var jitter = new Random(BotId);
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
         var sendInterval = TimeSpan.FromMilliseconds(100);
         var nextSend = TimeSpan.Zero;
         var plannedTypingAt = TimeSpan.Zero;
+        var pending = new List<Keystroke>();
         var milestones = Enumerable.Range(0, 5)
-            .Select(i => (int)Math.Ceiling((Passage.Length - 1) * i / 4d))
+            .Select(i => (int)Math.Ceiling((passage.Length - 1) * i / 4d))
             .Distinct()
             .ToArray();
 
-        for (var index = 0; index < Passage.Length; index++)
+        for (var index = 0; index < passage.Length; index++)
         {
             if (WasBanned) return;
             ct.ThrowIfCancellationRequested();
@@ -198,21 +199,24 @@ public class LoadTestBot
                 if (lateness > TimeSpan.FromMilliseconds(10)) Interlocked.Increment(ref lateCharacters);
                 UpdateMax(ref maxScheduleLatenessTicks, lateness.Ticks);
             }
-            var typedPrefix = Passage[..(index + 1)];
+            pending.Add(new Keystroke(passage[index].ToString()));
 
-            var isFinal = index == Passage.Length - 1;
+            var isFinal = index == passage.Length - 1;
             var sendStartedAt = sw.Elapsed;
             if (index == 0 || isFinal || sendStartedAt >= nextSend)
             {
                 foreach (var milestone in milestones.Where(m => m <= index))
                     progressLatencies.TryAdd(milestone, new ProgressLatencySample(milestone, Stopwatch.GetTimestamp()));
 
-                await hub.SendAsync("UpdateRaceState", index, 0, typedPrefix, cancellationToken: ct);
+                await hub.SendCoreAsync("UpdateRaceState", [pending.ToArray()], ct);
+                pending.Clear();
                 Interlocked.Increment(ref progressSends);
                 nextSend = sendStartedAt + sendInterval;
             }
         }
     }
+
+    private sealed record Keystroke(string Key);
 
     private static void UpdateMax(ref long max, long candidate)
     {
