@@ -3,10 +3,15 @@ using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.Presentation.Web.Shared;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Npgsql;
 using Shouldly;
+using StackExchange.Redis;
 
 namespace FasterNFaster.UnitTests.Shared;
 
@@ -24,16 +29,6 @@ public class StatusExceptionHandlerTests
         context.Response.Body.Position = 0;
         return JsonSerializer.Deserialize<ApiErrorResponse>(context.Response.Body, JsonSerializerOptions.Web);
     }
-
-    private void VerifyErrorLogged(Times times) =>
-        logger.Verify(
-            l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            times);
 
     [Fact]
     public async Task PlainStatusException_WritesReasonAndFallbackCode()
@@ -97,12 +92,46 @@ public class StatusExceptionHandlerTests
         body.Errors.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task NonStatusException_IsLoggedAsError()
+    public static TheoryData<Exception, string> UnexpectedExceptions => new()
     {
-        await handler.TryHandleAsync(CreateContext(), new InvalidOperationException(), CancellationToken.None);
+        { new InvalidOperationException("internal details"), "unexpected" },
+        { new InvalidOperationException("internal details", new NpgsqlException("db details", new TimeoutException())), "postgresql_timeout" },
+        { new InvalidOperationException("internal details", new RedisTimeoutException(default, "command details", default)), "redis_timeout" },
+    };
 
-        VerifyErrorLogged(Times.Once());
+    [Theory]
+    [MemberData(nameof(UnexpectedExceptions))]
+    public async Task UnexpectedException_LogsOriginalAndEmitsSafeFields(Exception exception, string errorKind)
+    {
+        var context = CreateContext();
+        context.Request.Path = "/api/lobbies/private-invite";
+        context.Request.QueryString = new QueryString("?secret=value");
+        context.Features.Set<IExceptionHandlerFeature>(new ExceptionHandlerFeature
+        {
+            Error = exception,
+            Path = context.Request.Path,
+            Endpoint = new RouteEndpoint(_ => Task.CompletedTask, RoutePatternFactory.Parse("/api/lobbies/{inviteCode}"),
+                0, EndpointMetadataCollection.Empty, "Join lobby")
+        });
+
+        await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        logger.Invocations.Count.ShouldBe(2);
+        logger.Invocations.Single(i => i.Arguments[3] is not null).Arguments[3].ShouldBeSameAs(exception);
+
+        var safeLog = logger.Invocations.Single(i => i.Arguments[3] is null);
+        safeLog.Arguments[0].ShouldBe(LogLevel.Error);
+        var fields = safeLog.Arguments[2]
+            .ShouldBeAssignableTo<IReadOnlyList<KeyValuePair<string, object?>>>()
+            .ShouldNotBeNull();
+        fields.Select(field => field.Key).ShouldBe(
+            ["TelemetryOperation", "ErrorKind", "RouteTemplate", "ErrorCode", "StatusCode", "{OriginalFormat}"]);
+        var attributes = fields.ToDictionary(field => field.Key, field => field.Value);
+        attributes["TelemetryOperation"].ShouldBe("http.error");
+        attributes["ErrorKind"].ShouldBe(errorKind);
+        attributes["RouteTemplate"].ShouldBe("/api/lobbies/{inviteCode}");
+        attributes["ErrorCode"].ShouldBe("error");
+        attributes["StatusCode"].ShouldBe(500);
     }
 
     [Fact]
@@ -110,7 +139,7 @@ public class StatusExceptionHandlerTests
     {
         await handler.TryHandleAsync(CreateContext(), new NotFoundException("x"), CancellationToken.None);
 
-        VerifyErrorLogged(Times.Never());
+        logger.VerifyNoOtherCalls();
     }
 
     public static TheoryData<StatusException, int> MappedExceptions => new()

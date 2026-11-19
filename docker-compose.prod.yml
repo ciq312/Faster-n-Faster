@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     environment:
       DOTNET_SYSTEM_NET_DISABLEIPV6: "1"
+      Observability__ServiceVersion: "${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}"
 
   frontend:
     image: ghcr.io/ciq312/fasternfaster-frontend:${IMAGE_TAG:?set IMAGE_TAG to the deployed commit SHA}
@@ -38,9 +39,11 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - caddy_access_logs:/var/log/caddy
     depends_on:
       - frontend
 
 volumes:
   caddy_data:
   caddy_config:
+  caddy_access_logs:

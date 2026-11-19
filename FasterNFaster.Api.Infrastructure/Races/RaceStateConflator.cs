@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Realtime.RaceState;
 using FasterNFaster.Api.UseCases.Shared;
@@ -56,6 +57,7 @@ public class RaceStateConflator(IBroadcaster broadcaster, ILogger<RaceStateConfl
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Race state broadcast failed for lobby {LobbyId}", lobbyId);
+                    logger.LogFailure(SafeTelemetryLog.RaceBroadcastFailed, ex);
                 }
             }
 

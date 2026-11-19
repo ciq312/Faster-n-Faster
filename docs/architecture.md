@@ -28,6 +28,8 @@ The API uses ASP.NET Core Health Checks at `GET /api/health` to check readiness.
 
 The API can export metrics, traces and correlated log events over OTLP. The local observability overlay adds a Collector and Grafana to the profiling project. Enable telemetry export through application configuration. See [0015](decisions/0015-local-observability-via-otlp.md) and the [local observability runbook](local-observability.md).
 
+Production monitoring has its own Compose project. Alloy receives OTLP on the application network and reads sanitized gateway failures from Caddy's log volume. Grafana, metric collection and storage remain separate from the release checkout. An off-host HTTPS monitor checks readiness and delivers uptime notifications independently. See [0016](decisions/0016-separate-production-observability-from-app-deploys.md) and the [production observability runbook](production-observability.md).
+
 ## Where state lives
 
 | Data | Where | Survives an API restart? |

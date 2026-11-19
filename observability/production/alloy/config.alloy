@@ -1,0 +1,216 @@
+otelcol.receiver.otlp "api" {
+	grpc {
+		endpoint          = "0.0.0.0:4317"
+		max_recv_msg_size = "4MiB"
+	}
+
+	output {
+		metrics = [otelcol.processor.memory_limiter.ingress.input]
+		logs    = [otelcol.processor.memory_limiter.ingress.input]
+		traces  = [otelcol.processor.memory_limiter.ingress.input]
+	}
+}
+
+otelcol.processor.memory_limiter "ingress" {
+	check_interval = "1s"
+	limit          = "160MiB"
+	spike_limit    = "32MiB"
+
+	output {
+		metrics = [otelcol.processor.batch.export.input]
+		logs    = [otelcol.processor.batch.export.input]
+		traces  = [otelcol.processor.tail_sampling.api.input]
+	}
+}
+
+otelcol.processor.tail_sampling "api" {
+	decision_wait               = "10s"
+	num_traces                  = coalesce(sys.env("OBSERVABILITY_TRACE_BUFFER"), "5000")
+	expected_new_traces_per_sec = 50
+	maximum_trace_size_bytes    = 262144
+
+	policy {
+		name = "errors"
+		type = "status_code"
+
+		status_code {
+			status_codes = ["ERROR"]
+		}
+	}
+
+	policy {
+		name = "slow"
+		type = "latency"
+
+		latency {
+			threshold_ms = coalesce(sys.env("OBSERVABILITY_TRACE_SLOW_MS"), "500")
+		}
+	}
+
+	policy {
+		name = "baseline"
+		type = "probabilistic"
+
+		probabilistic {
+			sampling_percentage = coalesce(sys.env("OBSERVABILITY_TRACE_SAMPLE_PERCENT"), "5")
+		}
+	}
+
+	output {
+		traces = [otelcol.processor.batch.export.input]
+	}
+}
+
+otelcol.processor.batch "export" {
+	timeout             = "2s"
+	send_batch_size     = 512
+	send_batch_max_size = 1024
+
+	output {
+		metrics = [otelcol.exporter.otlphttp.prometheus.input]
+		logs    = [otelcol.exporter.otlphttp.loki.input]
+		traces  = [otelcol.exporter.otlp.tempo.input]
+	}
+}
+
+otelcol.exporter.otlphttp "prometheus" {
+	client {
+		endpoint = "http://prometheus:9090/api/v1/otlp"
+	}
+}
+
+otelcol.exporter.otlphttp "loki" {
+	client {
+		endpoint = "http://loki:3100/otlp"
+	}
+}
+
+otelcol.exporter.otlp "tempo" {
+	client {
+		endpoint = "tempo:4317"
+
+		tls {
+			insecure = true
+		}
+	}
+}
+
+loki.source.file "caddy" {
+	targets = [{
+		__path__     = "/var/log/caddy/access.json",
+		service_name = "caddy",
+	}]
+	forward_to = [loki.process.caddy.receiver]
+
+	file_match {
+		enabled = true
+	}
+}
+
+loki.process "caddy" {
+	forward_to = [loki.write.internal.receiver]
+
+	stage.json {
+		expressions = {
+			status   = "to_number(status)",
+			duration = "to_number(duration)",
+			ts       = "to_string(ts)",
+		}
+		drop_malformed = true
+	}
+
+	stage.labels {
+		values = {status = ""}
+	}
+
+	stage.match {
+		selector            = "{service_name=\"caddy\",status!~\"502|504\"}"
+		action              = "drop"
+		drop_counter_reason = "caddy_other_status"
+	}
+
+	stage.timestamp {
+		source            = "ts"
+		format            = "Unix"
+		action_on_failure = "skip"
+	}
+
+	stage.template {
+		source   = "safe_line"
+		template = "{\"status\":{{ .status }},\"duration_seconds\":{{ or .duration 0 }}}"
+	}
+
+	stage.output {
+		source = "safe_line"
+	}
+
+	stage.label_drop {
+		values = ["filename"]
+	}
+}
+
+loki.write "internal" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+}
+
+prometheus.exporter.redis "app" {
+	redis_addr = "redis:6379"
+}
+
+discovery.relabel "redis" {
+	targets = prometheus.exporter.redis.app.targets
+
+	rule {
+		target_label = "__tmp_redis_enabled"
+		replacement  = coalesce(sys.env("OBSERVABILITY_REDIS_ENABLED"), "true")
+	}
+
+	rule {
+		source_labels = ["__tmp_redis_enabled"]
+		regex         = "true"
+		action        = "keep"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "redis"
+	}
+}
+
+prometheus.scrape "redis" {
+	job_name        = "redis"
+	targets         = discovery.relabel.redis.output
+	scrape_interval = "30s"
+	forward_to      = [prometheus.relabel.collector.receiver]
+}
+
+prometheus.scrape "alloy" {
+	job_name        = "alloy"
+	targets         = [{__address__ = "127.0.0.1:12345"}]
+	scrape_interval = "30s"
+	forward_to      = [prometheus.relabel.collector.receiver]
+}
+
+prometheus.relabel "collector" {
+	forward_to = [prometheus.remote_write.internal.receiver]
+
+	rule {
+		source_labels = ["__name__"]
+		regex         = "up|redis_(up|memory_used_bytes|memory_max_bytes|evicted_keys_total|connected_clients|rejected_connections_total|commands_processed_total)|otelcol_.*|loki_source_file_.*|loki_process_dropped_lines_total"
+		action        = "keep"
+	}
+}
+
+prometheus.remote_write "internal" {
+	endpoint {
+		url = "http://prometheus:9090/api/v1/write"
+	}
+
+	wal {
+		truncate_frequency = "15m"
+		min_keepalive_time = "5m"
+		max_keepalive_time = "1h"
+	}
+}

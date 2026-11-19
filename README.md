@@ -199,6 +199,8 @@ dotnet test FasterNFaster.IntegrationTests --filter FullyQualifiedName~HealthEnd
 
 Use the [observability runbook](docs/local-observability.md) to start Grafana alongside the profiling stack, set the local password, and inspect metrics, logs and traces from a bot race.
 
+The [production observability runbook](docs/production-observability.md) covers the independent VPS monitoring stack, Telegram notifications and the external readiness check.
+
 ---
 
 ## CI/CD

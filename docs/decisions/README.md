@@ -32,6 +32,7 @@ Records 0001–0012 were written on 2026-10-14 from the commit history, pull req
 |---|---|---|---|
 | [0010](0010-http-status-codes-mapped-in-presentation.md) | Business errors as exception categories, mapped to HTTP in Presentation | Accepted | 2026-10-13 |
 | [0015](0015-local-observability-via-otlp.md) | Local observability via OTLP | Accepted | 2026-11-19 |
+| [0016](0016-separate-production-observability-from-app-deploys.md) | Separate production observability from app deploys | Accepted, in progress | 2026-11-19 |
 
 ### Planned
 

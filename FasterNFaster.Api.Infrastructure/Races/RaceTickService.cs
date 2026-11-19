@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races;
 using FasterNFaster.Api.UseCases.Races.Ports;
@@ -60,6 +61,7 @@ public class RaceTickService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Tick failed for lobby {LobbyId}", entry.LobbyId);
+            logger.LogFailure(SafeTelemetryLog.RaceTickFailed, ex);
         }
     }
 
