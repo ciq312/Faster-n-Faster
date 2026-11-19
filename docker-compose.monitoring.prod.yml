@@ -1,0 +1,177 @@
+x-monitoring-service: &monitoring-service
+  restart: unless-stopped
+  logging:
+    driver: local
+
+services:
+  grafana:
+    <<: *monitoring-service
+    image: grafana/grafana:13.3.1-ubuntu
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        if [ ! -f /run/grafana-admin-password ] || [ ! -r /run/grafana-admin-password ] || [ -z "$$(cat /run/grafana-admin-password)" ]; then
+          echo "Grafana admin password file must be readable and nonempty" >&2
+          exit 1
+        fi
+        exec /run.sh
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/grafana-admin-password
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    ports:
+      - "127.0.0.1:${OBSERVABILITY_GRAFANA_PORT:-13000}:3000"
+    volumes:
+      - "${GRAFANA_ADMIN_PASSWORD_FILE:?Set the path to the Grafana admin password file}:/run/grafana-admin-password:ro,Z"
+      - grafana_data:/var/lib/grafana
+      - ./observability/production/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro,z
+      - ./observability/production/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,z
+      - ./observability/grafana/provisioning/alerting.yaml:/etc/grafana/provisioning/alerting/fnf-api.yaml:ro,z
+      - ./observability/production/grafana/provisioning/alerting/fnf-vps.yaml:/etc/grafana/provisioning/alerting/fnf-vps.yaml:ro,z
+      - ./observability/grafana/dashboards:/etc/grafana/dashboards/api:ro,z
+      - ./observability/production/grafana/dashboards:/etc/grafana/dashboards/production:ro,z
+    networks: [monitoring, grafana-egress]
+    cpus: "${OBSERVABILITY_GRAFANA_CPUS:-0.50}"
+    mem_limit: "${OBSERVABILITY_GRAFANA_MEMORY:-384m}"
+
+  alloy:
+    <<: *monitoring-service
+    image: grafana/alloy:v1.17.1
+    command:
+      - run
+      - --disable-reporting
+      - --server.http.listen-addr=127.0.0.1:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      OBSERVABILITY_TRACE_SAMPLE_PERCENT: "${OBSERVABILITY_TRACE_SAMPLE_PERCENT:-5}"
+      OBSERVABILITY_TRACE_SLOW_MS: "${OBSERVABILITY_TRACE_SLOW_MS:-500}"
+      OBSERVABILITY_TRACE_BUFFER: "${OBSERVABILITY_TRACE_BUFFER:-5000}"
+      OBSERVABILITY_REDIS_ENABLED: "${OBSERVABILITY_REDIS_ENABLED:-true}"
+    volumes:
+      - alloy_data:/var/lib/alloy/data
+      - caddy_access_logs:/var/log/caddy:ro
+      - ./observability/production/alloy/config.alloy:/etc/alloy/config.alloy:ro,z
+    networks:
+      monitoring:
+      app:
+        aliases: [fnf-alloy]
+    cpus: "${OBSERVABILITY_ALLOY_CPUS:-0.40}"
+    mem_limit: "${OBSERVABILITY_ALLOY_MEMORY:-256m}"
+
+  prometheus:
+    <<: *monitoring-service
+    image: prom/prometheus:v3.16.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${OBSERVABILITY_PROMETHEUS_RETENTION:-7d}
+      - --storage.tsdb.retention.size=${OBSERVABILITY_PROMETHEUS_RETENTION_SIZE:-2GB}
+      - --web.enable-otlp-receiver
+      - --web.enable-remote-write-receiver
+    volumes:
+      - prometheus_data:/prometheus
+      - ./observability/production/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+    networks: [monitoring, metrics]
+    cpus: "${OBSERVABILITY_PROMETHEUS_CPUS:-0.40}"
+    mem_limit: "${OBSERVABILITY_PROMETHEUS_MEMORY:-384m}"
+
+  loki:
+    <<: *monitoring-service
+    image: grafana/loki:3.7.9
+    command:
+      - -config.file=/etc/loki/production.yaml
+      - -store.retention=${OBSERVABILITY_LOKI_RETENTION:-72h}
+    volumes:
+      - loki_data:/loki
+      - ./observability/production/loki/loki.yaml:/etc/loki/production.yaml:ro,z
+    networks: [monitoring]
+    cpus: "${OBSERVABILITY_LOKI_CPUS:-0.40}"
+    mem_limit: "${OBSERVABILITY_LOKI_MEMORY:-384m}"
+
+  tempo:
+    <<: *monitoring-service
+    image: grafana/tempo:3.1.1
+    command:
+      - -target=all
+      - -config.file=/etc/tempo/production.yaml
+      - -config.expand-env=true
+    environment:
+      OBSERVABILITY_TEMPO_RETENTION: "${OBSERVABILITY_TEMPO_RETENTION:-48h}"
+    volumes:
+      - tempo_data:/var/tempo
+      - ./observability/production/tempo/tempo.yaml:/etc/tempo/production.yaml:ro,z
+    networks: [monitoring]
+    cpus: "${OBSERVABILITY_TEMPO_CPUS:-0.40}"
+    mem_limit: "${OBSERVABILITY_TEMPO_MEMORY:-384m}"
+
+  node-exporter:
+    <<: *monitoring-service
+    image: prom/node-exporter:v1.12.1
+    pid: host
+    cap_drop: [ALL]
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    command:
+      - --path.rootfs=/host
+      - --collector.disable-defaults
+      - --collector.cpu
+      - --collector.filesystem
+      - --collector.loadavg
+      - --collector.meminfo
+      - --collector.stat
+      - --collector.vmstat
+    volumes:
+      - /:/host:ro,rslave
+    networks: [metrics]
+    cpus: "${OBSERVABILITY_NODE_EXPORTER_CPUS:-0.15}"
+    mem_limit: "${OBSERVABILITY_NODE_EXPORTER_MEMORY:-64m}"
+
+  cadvisor:
+    <<: *monitoring-service
+    image: ghcr.io/google/cadvisor:0.61.1
+    privileged: true
+    cgroup: host
+    command:
+      - --docker_only=true
+      - --disable_root_cgroup_stats=true
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service
+      - --enable_metrics=cpu,memory,oom_event
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - type: bind
+        source: "${OBSERVABILITY_CONTAINERD_SOCKET:-/run/containerd/containerd.sock}"
+        target: /run/containerd/containerd.sock
+        read_only: true
+        bind:
+          create_host_path: false
+      - /sys:/sys:ro
+      - "${OBSERVABILITY_DOCKER_ROOT:-/var/lib/docker}:${OBSERVABILITY_DOCKER_ROOT:-/var/lib/docker}:ro"
+    networks: [metrics]
+    cpus: "${OBSERVABILITY_CADVISOR_CPUS:-0.20}"
+    mem_limit: "${OBSERVABILITY_CADVISOR_MEMORY:-128m}"
+
+networks:
+  app:
+    external: true
+    name: "${FNF_APP_DOCKER_NETWORK:?Set the application Compose network name}"
+  monitoring:
+    internal: true
+  metrics:
+    internal: true
+  grafana-egress:
+
+volumes:
+  alloy_data:
+  grafana_data:
+  prometheus_data:
+  loki_data:
+  tempo_data:
+  caddy_access_logs:
+    external: true
+    name: "${FNF_CADDY_LOG_VOLUME:?Set the application Caddy access log volume name}"

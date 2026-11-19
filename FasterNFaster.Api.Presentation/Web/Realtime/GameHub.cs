@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using FasterNFaster.Api.Domain.Entities.Keys;
+using FasterNFaster.Api.Presentation.Web.Telemetry;
 using FasterNFaster.Api.UseCases.Auth.Ports;
 using FasterNFaster.Api.UseCases.Lobbies.ChangeColor;
 using FasterNFaster.Api.UseCases.Lobbies.Disconnect;
@@ -43,12 +45,24 @@ public partial class GameHub(
 
     public override async Task OnConnectedAsync()
     {
+        using var activity = SignalRTelemetry.Source.StartActivity(SignalRTelemetry.Connect, ActivityKind.Server);
         logger.LogDebug("Connection established: {ConnectionId}", Context.ConnectionId);
-        await base.OnConnectedAsync();
+        try
+        {
+            await base.OnConnectedAsync();
 
-        var userId = GetCallerContext().UserId;
-        await StoreSession(userId, Context.ConnectionId);
-        await sender.Send(new ReconnectCommand(userId));
+            var userId = GetCallerContext().UserId;
+            await StoreSession(userId, Context.ConnectionId);
+            await sender.Send(new ReconnectCommand(userId));
+
+            if (activity is not null)
+                logger.LogInformation("SignalR connection initialized ({TelemetryOperation})", SignalRTelemetry.Connect);
+        }
+        catch
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
     }
 
     private async Task StoreSession(Guid userId, string callerConnectionId)
@@ -84,10 +98,22 @@ public partial class GameHub(
 
     public async Task StartRace()
     {
-        var userId = GetCallerContext().UserId;
-        var lobbyId = await sender.Send(new StartRaceCommand(userId));
+        using var activity = SignalRTelemetry.Source.StartActivity(SignalRTelemetry.StartRace, ActivityKind.Server);
+        try
+        {
+            var userId = GetCallerContext().UserId;
+            var lobbyId = await sender.Send(new StartRaceCommand(userId));
 
-        logger.LogDebug("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
+            logger.LogDebug("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
+
+            if (activity is not null)
+                logger.LogInformation("Race started ({TelemetryOperation})", SignalRTelemetry.StartRace);
+        }
+        catch
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
     }
 
     public async Task RefreshPassage()

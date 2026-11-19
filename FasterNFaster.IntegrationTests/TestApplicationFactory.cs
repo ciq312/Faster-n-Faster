@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using DotNet.Testcontainers.Containers;
 using FasterNFaster.Api.Infrastructure.Shared.Persistence;
 using FasterNFaster.Api.UseCases.Auth.Ports;
 using Microsoft.AspNetCore.Hosting;
@@ -87,6 +88,23 @@ public class TestApplicationFactory<TProgram>
     {
         await TruncatePostgresAsync();
         await FlushRedisAsync();
+    }
+
+    internal Task WithPostgresPausedAsync(Func<Task> test) => WithPausedAsync(postgres, test);
+
+    internal Task WithRedisPausedAsync(Func<Task> test) => WithPausedAsync(redis, test);
+
+    private static async Task WithPausedAsync(IContainer container, Func<Task> test)
+    {
+        await container.PauseAsync();
+        try
+        {
+            await test();
+        }
+        finally
+        {
+            await container.UnpauseAsync();
+        }
     }
 
     private async Task TruncatePostgresAsync()
