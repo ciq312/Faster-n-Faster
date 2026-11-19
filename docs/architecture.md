@@ -26,6 +26,8 @@ Images are built in CI, pushed to GHCR and deployed pinned to the commit SHA. Th
 
 The API uses ASP.NET Core Health Checks at `GET /api/health` to check readiness. It uses the configured EF Core context to contact PostgreSQL and sends `PING` over the shared Redis multiplexer. Both checks have a three-second cancellation budget. The public response is an aggregate plain-text status (`200 Healthy` or `503 Unhealthy`), subject to the global rate limiter. The API image's Docker health check calls this same route on the container's loopback interface.
 
+The API can export metrics, traces and correlated log events over OTLP. The local observability overlay adds a Collector and Grafana to the profiling project. Enable telemetry export through application configuration. See [0015](decisions/0015-local-observability-via-otlp.md) and the [local observability runbook](local-observability.md).
+
 ## Where state lives
 
 | Data | Where | Survives an API restart? |

@@ -195,6 +195,10 @@ docker inspect --format '{{.State.Health.Status}}' "$(docker compose ps -q api)"
 dotnet test FasterNFaster.IntegrationTests --filter FullyQualifiedName~HealthEndpointTests -p:GenerateContracts=false
 ```
 
+### Local observability
+
+Use the [observability runbook](docs/local-observability.md) to start Grafana alongside the profiling stack, set the local password, and inspect metrics, logs and traces from a bot race.
+
 ---
 
 ## CI/CD
