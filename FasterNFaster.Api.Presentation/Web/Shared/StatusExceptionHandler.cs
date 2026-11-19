@@ -1,4 +1,5 @@
 using FasterNFaster.Api.Domain.Exceptions;
+using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace FasterNFaster.Api.Presentation.Web.Shared;
@@ -11,10 +12,17 @@ public class StatusExceptionHandler(ILogger<StatusExceptionHandler> logger) : IE
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         // Since .NET 10 the exception handler middleware stays silent once a handler returns true, so unexpected errors are logged here.
-        if (exception is not StatusException)
+        var statusCode = MapStatusCode(exception);
+        if (statusCode == StatusCodes.Status500InternalServerError)
+        {
             logger.LogError(exception, "Unhandled exception in {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
+            var endpoint = httpContext.Features.Get<IExceptionHandlerFeature>()?.Endpoint ?? httpContext.GetEndpoint();
+            var routeTemplate = (endpoint as RouteEndpoint)?.RoutePattern.RawText;
+            logger.LogError("{TelemetryOperation} ({ErrorKind}) on {RouteTemplate}: {ErrorCode} ({StatusCode})",
+                SafeTelemetryLog.HttpError, SafeTelemetryLog.Classify(exception), routeTemplate, FallbackCode, statusCode);
+        }
 
-        httpContext.Response.StatusCode = MapStatusCode(exception);
+        httpContext.Response.StatusCode = statusCode;
         await httpContext.Response.WriteAsJsonAsync(ToResponse(exception), cancellationToken);
         return true;
     }

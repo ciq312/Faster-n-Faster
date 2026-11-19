@@ -28,4 +28,6 @@ COPY --from=build /app/publish .
 
 USER $APP_UID
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD ["/bin/bash", "-ec", "exec 3<>/dev/tcp/127.0.0.1/8080; printf 'GET /api/health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; read -r version status reason <&3; [[ $version == HTTP/* && $status == 200 ]]"]
 ENTRYPOINT ["dotnet", "FasterNFaster.Api.Presentation.dll"]

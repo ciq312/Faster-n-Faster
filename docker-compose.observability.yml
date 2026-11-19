@@ -1,0 +1,27 @@
+services:
+  api:
+    environment:
+      Observability__Enabled: "true"
+      Observability__OtlpEndpoint: http://telemetry:4317
+      Observability__MetricExportInterval: "00:00:10"
+    depends_on:
+      telemetry:
+        condition: service_started
+
+  telemetry:
+    image: grafana/otel-lgtm:0.41.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in the local Compose settings file}"
+      PROMETHEUS_EXTRA_ARGS: --storage.tsdb.retention.time=24h
+      LOKI_EXTRA_ARGS: -store.retention=24h -compactor.retention-enabled=true -compactor.delete-request-store=filesystem
+    ports:
+      - "127.0.0.1:${OBSERVABILITY_GRAFANA_PORT:-13000}:3000"
+    volumes:
+      - profile_telemetry:/data
+      - ./observability/grafana/provisioning/dashboard.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/fnf-api.yaml:ro,z
+      - ./observability/grafana/provisioning/alerting.yaml:/otel-lgtm/grafana/conf/provisioning/alerting/fnf-api.yaml:ro,z
+      - ./observability/grafana/dashboards:/otel-lgtm/fnf-dashboards:ro,z
+
+volumes:
+  profile_telemetry:

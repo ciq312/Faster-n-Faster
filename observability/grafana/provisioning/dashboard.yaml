@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: Faster-n-Faster
+    type: file
+    folder: Faster-n-Faster
+    options:
+      path: /otel-lgtm/fnf-dashboards

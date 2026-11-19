@@ -4,7 +4,10 @@ namespace FasterNFaster.Api.UseCases.Shared;
 
 public static class RacePerformanceMetrics
 {
-    private static readonly Meter meter = new("FasterNFaster.Races");
+    public const string MeterName = "FasterNFaster.Races";
+    private static readonly Meter meter = new(MeterName);
+    private static readonly Counter<long> resultBatches = meter.CreateCounter<long>(
+        "race.result.batches", "{batch}", "The number of race-result persistence batches by outcome.");
 
     public static Histogram<double> TickDuration { get; } = meter.CreateHistogram<double>("race.tick.duration", "ms");
     public static Histogram<double> PublishDuration { get; } = meter.CreateHistogram<double>("race.frame.publish.duration", "ms");
@@ -13,4 +16,7 @@ public static class RacePerformanceMetrics
     public static Counter<long> ReplacedFrames { get; } = meter.CreateCounter<long>("race.frame.replaced", "{frame}");
     public static Histogram<double> GateWait { get; } = meter.CreateHistogram<double>("aggregate.gate.wait", "ms");
     public static Histogram<double> GateHold { get; } = meter.CreateHistogram<double>("aggregate.gate.hold", "ms");
+
+    public static void RecordResultBatches(long count, bool persisted) =>
+        resultBatches.Add(count, new KeyValuePair<string, object?>("outcome", persisted ? "persisted" : "failed"));
 }
