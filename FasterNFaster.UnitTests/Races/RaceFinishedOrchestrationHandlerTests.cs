@@ -7,6 +7,7 @@ using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FasterNFaster.UnitTests.Races;
 
@@ -139,7 +140,8 @@ public class RaceFinishedOrchestrationHandlerTests
             context.Lobbies,
             new PassageRefresher(context.Races, provider),
             context.Registry,
-            LobbyFactory.StateScope(context, new FakeBroadcaster()));
+            LobbyFactory.StateScope(context, new FakeBroadcaster()),
+            NullLogger<RaceFinishedOrchestrationHandler>.Instance);
 
     private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
         new(new RaceFinishedEvent(Guid.NewGuid(), lobbyId, new List<RaceParticipantResult>()));
