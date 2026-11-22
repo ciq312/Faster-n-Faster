@@ -102,12 +102,7 @@ public partial class GameHub(
         try
         {
             var userId = GetCallerContext().UserId;
-            var lobbyId = await sender.Send(new StartRaceCommand(userId));
-
-            logger.LogDebug("Race starting in lobby {LobbyId} by host {PlayerId}", lobbyId, userId);
-
-            if (activity is not null)
-                logger.LogInformation("Race started ({TelemetryOperation})", SignalRTelemetry.StartRace);
+            await sender.Send(new StartRaceCommand(userId));
         }
         catch
         {
@@ -135,8 +130,6 @@ public partial class GameHub(
         var userId = GetCallerContext().UserId;
 
         await sender.Send(new KickPlayerCommand(userId, targetPlayerId));
-
-        logger.LogDebug("Player {TargetId} kicked by {UserId}", targetPlayerId, userId);
     }
 
     public async Task ChangeColor(string color)

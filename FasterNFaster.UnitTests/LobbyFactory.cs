@@ -96,7 +96,7 @@ public static class LobbyFactory
         var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
-        var joinHandler = new JoinLobbyHandler(lobbies);
+        var joinHandler = new JoinLobbyHandler(lobbies, NullLogger<JoinLobbyHandler>.Instance);
         for (var i = 0; i < users.Length; i++)
         {
             await joinHandler.Handle(new JoinLobbyCommand(users[i].Id, result.LobbyId, users[i].Nick), CancellationToken.None);
@@ -123,7 +123,7 @@ public static class LobbyFactory
     public static Task StartRace(LobbyTestContext context, Guid hostId)
     {
         var antiCheatPolicy = new ConfiguredAntiCheatPolicy(Options.Create(new AntiCheatOptions()));
-        var startRaceHandler = new StartRaceHandler(context.Lobbies, context.Races, context.Registry, antiCheatPolicy);
+        var startRaceHandler = new StartRaceHandler(context.Lobbies, context.Races, context.Registry, antiCheatPolicy, Microsoft.Extensions.Logging.Abstractions.NullLogger<StartRaceHandler>.Instance);
         return startRaceHandler.Handle(new StartRaceCommand(hostId), CancellationToken.None);
     }
 
@@ -163,7 +163,7 @@ public static class LobbyFactory
     public static void WireRaceFinished(LobbyTestContext context)
     {
         var scope = StateScope(context, new FakeBroadcaster());
-        var orchestration = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope);
+        var orchestration = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope, Microsoft.Extensions.Logging.Abstractions.NullLogger<RaceFinishedOrchestrationHandler>.Instance);
         context.Dispatcher.OnDispatch = domainEvent => domainEvent is RaceFinishedEvent finished
             ? orchestration.Handle(new DomainEventNotification<RaceFinishedEvent>(finished), CancellationToken.None)
             : Task.CompletedTask;

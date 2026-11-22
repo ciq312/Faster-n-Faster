@@ -12,12 +12,15 @@ public class RaceFinishedOrchestrationHandler(
     ILobbyStore lobbies,
     PassageRefresher passageRefresher,
     IRaceTickRegistry registry,
-    ILobbyStateScope lobbyStateScope) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
+    ILobbyStateScope lobbyStateScope,
+    ILogger<RaceFinishedOrchestrationHandler> logger) : INotificationHandler<DomainEventNotification<RaceFinishedEvent>>
 {
     public Task Handle(DomainEventNotification<RaceFinishedEvent> notification, CancellationToken cancellationToken) =>
         lobbyStateScope.Run(async () =>
         {
             var e = notification.Event;
+
+            logger.LogInformation("Race {RaceId} finished in lobby {LobbyId} {TelemetryOperation}", e.RaceId, e.LobbyId, TelemetryOperations.RaceFinished);
 
             registry.DeregisterLobby(e.LobbyId);
 
@@ -27,5 +30,6 @@ public class RaceFinishedOrchestrationHandler(
 
             if (await lobbies.TryRead(e.LobbyId, l => !l.IsSessionActive))
                 await passageRefresher.TryApply(e.LobbyId, passage);
+
         });
 }

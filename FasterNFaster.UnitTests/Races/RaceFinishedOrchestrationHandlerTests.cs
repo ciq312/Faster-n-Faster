@@ -142,7 +142,7 @@ public class RaceFinishedOrchestrationHandlerTests
             LobbyFactory.StateScope(context, new FakeBroadcaster()));
 
     private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
-        new(new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>()));
+        new(new RaceFinishedEvent(Guid.NewGuid(), lobbyId, new List<RaceParticipantResult>()));
 
     private static async Task<(RaceFinishedOrchestrationHandler Handler, LobbyTestContext Context, FakeBroadcaster Broadcaster)> Build()
     {
@@ -154,7 +154,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = LobbyFactory.StateScope(context, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope, Microsoft.Extensions.Logging.Abstractions.NullLogger<RaceFinishedOrchestrationHandler>.Instance);
 
         return (handler, context, broadcaster);
     }

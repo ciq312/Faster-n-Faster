@@ -77,6 +77,6 @@ public class JoinLobbyHandlerTests
     }
 
     private static Task Join(LobbyTestContext context, Guid playerId, Guid lobbyId, string? inviteCode = null) =>
-        new JoinLobbyHandler(context.Lobbies)
+        new JoinLobbyHandler(context.Lobbies, Microsoft.Extensions.Logging.Abstractions.NullLogger<JoinLobbyHandler>.Instance)
             .Handle(new JoinLobbyCommand(playerId, lobbyId, "joiner", inviteCode), CancellationToken.None);
 }

@@ -19,7 +19,7 @@ public class RaceFinishedViolationsClearedHandlerTests
         var handler = new RaceFinishedViolationsClearedHandler(strikes);
 
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(
-            new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>())), CancellationToken.None);
+            new RaceFinishedEvent(Guid.NewGuid(), lobbyId, new List<RaceParticipantResult>())), CancellationToken.None);
 
         Assert.Equal(1, strikes.RecordRaceViolation(lobbyId, playerId));
     }

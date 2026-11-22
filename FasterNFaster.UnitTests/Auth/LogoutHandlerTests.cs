@@ -12,7 +12,7 @@ public class LogoutHandlerTests
     {
         var tokenStore = new FakeRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
-        return (new LogoutHandler(tokenStore, sessions), sessions, tokenStore);
+        return (new LogoutHandler(tokenStore, sessions, Microsoft.Extensions.Logging.Abstractions.NullLogger<LogoutHandler>.Instance), sessions, tokenStore);
     }
 
     [Fact]
