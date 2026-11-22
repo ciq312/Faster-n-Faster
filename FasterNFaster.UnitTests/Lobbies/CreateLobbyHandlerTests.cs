@@ -41,7 +41,7 @@ public class CreateLobbyHandlerTests
     {
         var host = new User("host");
         var context = await LobbyFactory.WithPlayers(host);
-        var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time);
+        var handler = new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time, NullLogger<CreateLobbyHandler>.Instance);
 
         await Should.ThrowAsync<AlreadyInLobbyException>(() =>
             handler.Handle(new CreateLobbyCommand("second", false, host.Id), CancellationToken.None));
@@ -56,6 +56,6 @@ public class CreateLobbyHandlerTests
         var lobbies = new InMemoryLobbyStore(dispatcher, time);
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
 
-        return (new CreateLobbyHandler(new RandomPassageProvider(), lobbies, races, time), lobbies);
+        return (new CreateLobbyHandler(new RandomPassageProvider(), lobbies, races, time, NullLogger<CreateLobbyHandler>.Instance), lobbies);
     }
 }

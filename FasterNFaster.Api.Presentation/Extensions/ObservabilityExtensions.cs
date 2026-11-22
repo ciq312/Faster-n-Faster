@@ -204,7 +204,7 @@ internal static class ObservabilityExtensions
             {
                 if (property is SafeTelemetryLog.OperationProperty or "SourceContext" ||
                     operation == HttpRequestOperation && property is "RequestMethod" or "RequestPath" or "StatusCode" or "Elapsed" ||
-                    SafeTelemetryLog.IsErrorOperation(operation) && property is "ErrorKind" or "RouteTemplate" or "ErrorCode" or "StatusCode" ||
+                    SafeTelemetryLog.IsErrorOperation(operation) && property is "ErrorKind" or "RouteTemplate" or "ErrorCode" or "StatusCode" or "ErrorType" or "StackTrace" or "TraceId" or "HubMethod" or "UserId" ||
                     GetAllowedProperties(operation).Contains(property))
                 {
                     continue;
@@ -224,6 +224,9 @@ internal static class ObservabilityExtensions
             TelemetryOperations.PlayerDisconnected => ["PlayerId", "LobbyId"],
             TelemetryOperations.UserCredentialsIssued or TelemetryOperations.UserCredentialsRevoked => ["UserId"],
             TelemetryOperations.UserRegisteredAnonymously => ["UserId", "Nick"],
+            TelemetryOperations.LobbyRemoved => ["LobbyId"],
+            TelemetryOperations.LobbyCreated => ["LobbyId", "UserId"],
+            SafeTelemetryLog.LobbySweepFailed => ["LobbyId"],
             "signalr.connect" => ["UserId"],
             _ => [],
         };

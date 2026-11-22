@@ -1,5 +1,6 @@
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
+using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
@@ -42,6 +43,7 @@ public class EmptyLobbySweepService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Empty lobby sweep failed for lobby {LobbyId}", lobbyId);
+                logger.LogFailure(SafeTelemetryLog.LobbySweepFailed, ex);
             }
         }
 

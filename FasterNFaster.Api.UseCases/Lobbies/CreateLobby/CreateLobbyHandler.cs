@@ -2,11 +2,18 @@ using FasterNFaster.Api.Domain.Entities.Races;
 using FasterNFaster.Api.Domain.Exceptions.Lobbies;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
 using FasterNFaster.Api.UseCases.Races.Ports;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Lobbies.CreateLobby;
 
-public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyStore lobbies, IRaceStore races, TimeProvider timeProvider) : IRequestHandler<CreateLobbyCommand, CreateLobbyResult>
+public class CreateLobbyHandler(
+    IPassageProvider passageProvider,
+    ILobbyStore lobbies,
+    IRaceStore races,
+    TimeProvider timeProvider,
+    ILogger<CreateLobbyHandler> logger
+    ) : IRequestHandler<CreateLobbyCommand, CreateLobbyResult>
 {
     private const int DefaultPassageLength = 50;
 
@@ -20,6 +27,11 @@ public class CreateLobbyHandler(IPassageProvider passageProvider, ILobbyStore lo
         var (lobbyId, inviteCode) = await lobbies.Create(command.LobbyName, command.IsPrivate, command.HostId);
 
         races.Add(new Race(lobbyId, DefaultPassageLength, passage, timeProvider));
+
+        logger.LogInformation("Lobby {LobbyId} created by player {UserId} {TelemetryOperation}",
+            lobbyId,
+            command.HostId,
+            TelemetryOperations.LobbyCreated);
 
         return new CreateLobbyResult(lobbyId, inviteCode);
     }

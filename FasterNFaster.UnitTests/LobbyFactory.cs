@@ -64,7 +64,7 @@ public static class LobbyFactory
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
         var passageRefresher = new PassageRefresher(races, passageProvider);
 
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time, NullLogger<CreateLobbyHandler>.Instance);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, hostId), CancellationToken.None);
 
         var lobbyQuery = new LobbyQuery(lobbies, races);
@@ -93,7 +93,7 @@ public static class LobbyFactory
 
         var races = new InMemoryRaceStore(dispatcher, NullLogger<InMemoryRaceStore>.Instance);
         var passageRefresher = new PassageRefresher(races, passageProvider);
-        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time);
+        var createLobbyHandler = new CreateLobbyHandler(passageProvider, lobbies, races, time, NullLogger<CreateLobbyHandler>.Instance);
         var result = await createLobbyHandler.Handle(new CreateLobbyCommand("Test", false, users[0].Id), CancellationToken.None);
 
         var joinHandler = new JoinLobbyHandler(lobbies, NullLogger<JoinLobbyHandler>.Instance);
@@ -117,7 +117,7 @@ public static class LobbyFactory
     }
 
     public static Task<CreateLobbyResult> CreateLobby(LobbyTestContext context, string name, bool isPrivate) =>
-        new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time)
+        new CreateLobbyHandler(new RandomPassageProvider(), context.Lobbies, context.Races, context.Time, NullLogger<CreateLobbyHandler>.Instance)
             .Handle(new CreateLobbyCommand(name, isPrivate, Guid.NewGuid()), CancellationToken.None);
 
     public static Task StartRace(LobbyTestContext context, Guid hostId)
@@ -128,7 +128,7 @@ public static class LobbyFactory
     }
 
     public static EmptyLobbyRemover Remover(LobbyTestContext context) =>
-        new(context.Lobbies, context.Races, context.Registry);
+        new(context.Lobbies, context.Races, context.Registry, NullLogger<EmptyLobbyRemover>.Instance);
 
     public static LobbyStateScope StateScope(LobbyTestContext context, IBroadcaster broadcaster) =>
         new(context.Tracker, context.Lobbies, context.LobbyQuery, broadcaster);

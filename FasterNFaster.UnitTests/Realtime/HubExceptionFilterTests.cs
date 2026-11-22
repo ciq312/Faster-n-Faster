@@ -63,10 +63,10 @@ public class HubExceptionFilterTests
             () => filter.InvokeMethodAsync(context, _ => throw thrown).AsTask());
 
         Assert.Same(thrown, ex);
-        Assert.Equal(LogLevel.Error, Assert.Single(logger.Levels));
-        var message = Assert.Single(logger.Messages);
-        Assert.Contains(nameof(TestHub.TestMethod), message);
-        Assert.Contains(userId.ToString(), message);
+        Assert.Equal(2, logger.Levels.Count);
+        Assert.All(logger.Levels, level => Assert.Equal(LogLevel.Error, level));
+        Assert.Contains(logger.Messages, message => message.Contains(nameof(TestHub.TestMethod)) && message.Contains(userId.ToString()));
+        Assert.Contains(logger.Messages, message => message.Contains("signalr.error"));
         Assert.Same(thrown, Assert.Single(logger.Exceptions));
     }
 
@@ -80,9 +80,10 @@ public class HubExceptionFilterTests
             () => filter.InvokeMethodAsync(context, _ => throw thrown).AsTask());
 
         Assert.Same(thrown, ex);
-        Assert.Equal(LogLevel.Error, Assert.Single(logger.Levels));
-        var message = Assert.Single(logger.Messages);
-        Assert.Contains(nameof(TestHub.TestMethod), message);
+        Assert.Equal(2, logger.Levels.Count);
+        Assert.All(logger.Levels, level => Assert.Equal(LogLevel.Error, level));
+        Assert.Contains(logger.Messages, message => message.Contains(nameof(TestHub.TestMethod)));
+        Assert.Contains(logger.Messages, message => message.Contains("signalr.error"));
     }
 
     private static HubInvocationContext BuildContext(FakeHubCallerContext callerContext)

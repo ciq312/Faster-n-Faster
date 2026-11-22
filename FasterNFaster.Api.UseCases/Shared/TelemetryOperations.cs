@@ -3,6 +3,8 @@ namespace FasterNFaster.Api.UseCases.Shared;
 public static class TelemetryOperations
 {
     public const string RaceCountdownStarted = "race.countdown_started";
+    public const string LobbyCreated = "lobby.created";
+    public const string LobbyRemoved = "lobby.removed";
     public const string RaceFinished = "race.finished";
     public const string PlayerKicked = "lobby.player_kicked";
     public const string PassageChanged = "race.passage_changed";
