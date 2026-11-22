@@ -227,6 +227,10 @@ internal static class ObservabilityExtensions
             TelemetryOperations.LobbyRemoved => ["LobbyId"],
             TelemetryOperations.LobbyCreated => ["LobbyId", "UserId"],
             SafeTelemetryLog.LobbySweepFailed => ["LobbyId"],
+            TelemetryOperations.RaceViolation => ["PlayerId", "Nick", "LobbyId", "Rule"],
+            TelemetryOperations.PlayerWithdrawnForViolation => ["PlayerId", "LobbyId"],
+            TelemetryOperations.PlayerSuspended => ["PlayerId", "LobbyId", "SuspensionCount"],
+            TelemetryOperations.PlayerBanned => ["PlayerId", "LobbyId"],
             "signalr.connect" => ["UserId"],
             _ => [],
         };

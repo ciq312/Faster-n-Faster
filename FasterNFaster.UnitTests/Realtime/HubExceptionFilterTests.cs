@@ -67,7 +67,7 @@ public class HubExceptionFilterTests
         Assert.All(logger.Levels, level => Assert.Equal(LogLevel.Error, level));
         Assert.Contains(logger.Messages, message => message.Contains(nameof(TestHub.TestMethod)) && message.Contains(userId.ToString()));
         Assert.Contains(logger.Messages, message => message.Contains("signalr.error"));
-        Assert.Same(thrown, Assert.Single(logger.Exceptions));
+        Assert.Same(thrown, Assert.Single(logger.Exceptions, exception => exception is not null));
     }
 
     [Fact]

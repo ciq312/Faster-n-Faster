@@ -28,14 +28,20 @@ public class RaceViolationHandler(
     {
         var e = notification.Event;
 
-        logger.LogWarning("Anti-cheat violation for player {PlayerId} ({Nick}) in lobby {LobbyId}: {Rule}",
-            e.PlayerId, e.Nick, e.LobbyId, e.Rule);
+        logger.LogWarning("Anti-cheat violation for player {PlayerId} ({Nick}) in lobby {LobbyId}: {Rule} {TelemetryOperation}",
+            e.PlayerId, e.Nick, e.LobbyId, e.Rule, TelemetryOperations.RaceViolation);
 
         var raceViolationCount = strikes.RecordRaceViolation(e.LobbyId, e.PlayerId);
         if (raceViolationCount < opts.RaceViolationThreshold) return;
 
         if (await races.TryMutate(e.LobbyId, r => r.WithdrawParticipant(e.PlayerId)))
+        {
             await broadcaster.Broadcast(Audience.Player(e.PlayerId), c => c.RaceWithdrawn());
+            logger.LogWarning("Player {PlayerId} was withdrawn from race in lobby {LobbyId} after repeated violations {TelemetryOperation}",
+                e.PlayerId,
+                e.LobbyId,
+                TelemetryOperations.PlayerWithdrawnForViolation);
+        }
 
         // A strike is one incident that reached the withdrawal threshold, not one rejected update,
         // and it counts even if the race is already gone, so leaving can't dodge it.
@@ -48,6 +54,11 @@ public class RaceViolationHandler(
         var expiresAt = timeProvider.GetUtcNow().Add(opts.SuspensionDuration);
         var suspensionCount = await bans.SuspendAsync(e.PlayerId, $"Repeated anti-cheat violations ({e.Rule})", expiresAt);
         strikes.ClearStrikes(e.PlayerId);
+        logger.LogWarning("Player {PlayerId} was suspended in lobby {LobbyId} after repeated violations (suspension #{SuspensionCount}) {TelemetryOperation}",
+            e.PlayerId,
+            e.LobbyId,
+            suspensionCount,
+            TelemetryOperations.PlayerSuspended);
 
         // Termination is the only thing that closes a suspended player's live connection,
         // so a failed broadcast or disconnect must not skip it.
@@ -61,7 +72,11 @@ public class RaceViolationHandler(
             await publisher.Publish(new PlayerSanctionedEvent(e.PlayerId), cancellationToken);
         }
 
-        if (suspensionCount > 1)
-            logger.LogError("Player {PlayerId} suspended again (suspension #{SuspensionCount}) - flagged for human review", e.PlayerId, suspensionCount);
+        await bans.BanAsync(e.PlayerId, "Several strikes recorded");
+        logger.LogWarning("Player {PlayerId} was banned while playing in lobby {LobbyId} for cheating {TelemetryOperation}",
+            e.PlayerId,
+            e.LobbyId,
+            TelemetryOperations.PlayerBanned);
+
     }
 }

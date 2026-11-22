@@ -140,9 +140,9 @@ public class RaceViolationHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SecondSuspension_IncrementsSuspensionCountAndLogsForHumanReview()
+    public async Task Handle_SecondSuspension_RecordStrikeAndBun()
     {
-        var (handler, lobby, _, bans, strikes, playerId, logger, _) = await Build();
+        var (handler, lobby, _, bans, strikes, playerId, _, _) = await Build();
 
         for (var pass = 0; pass < 2; pass++)
         {
@@ -151,7 +151,7 @@ public class RaceViolationHandlerTests
         }
 
         Assert.Equal(2, bans.Suspensions.Count);
-        Assert.Contains(LogLevel.Error, logger.Levels);
+        Assert.True(await bans.IsBannedAsync(playerId));
     }
 
     private static DomainEventNotification<RaceViolationEvent> Violation(Guid lobbyId, Guid playerId) =>

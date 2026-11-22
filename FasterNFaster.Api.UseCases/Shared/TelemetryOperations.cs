@@ -14,4 +14,8 @@ public static class TelemetryOperations
     public const string UserCredentialsIssued = "auth.credentials_issued";
     public const string UserCredentialsRevoked = "auth.credentials_revoked";
     public const string UserRegisteredAnonymously = "auth.user_registered_anonymously";
+    public const string RaceViolation = "anti-cheat.race_violation";
+    public const string PlayerWithdrawnForViolation = "anti-cheat.player_withdrawn_for_violation";
+    public const string PlayerSuspended = "anti-cheat.player_suspended";
+    public const string PlayerBanned = "anti-cheat.player_banned";
 }
