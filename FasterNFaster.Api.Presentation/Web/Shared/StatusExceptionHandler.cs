@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FasterNFaster.Api.Domain.Exceptions;
 using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using Microsoft.AspNetCore.Diagnostics;
@@ -18,8 +19,15 @@ public class StatusExceptionHandler(ILogger<StatusExceptionHandler> logger) : IE
             logger.LogError(exception, "Unhandled exception in {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
             var endpoint = httpContext.Features.Get<IExceptionHandlerFeature>()?.Endpoint ?? httpContext.GetEndpoint();
             var routeTemplate = (endpoint as RouteEndpoint)?.RoutePattern.RawText;
-            logger.LogError("{TelemetryOperation} ({ErrorKind}) on {RouteTemplate}: {ErrorCode} ({StatusCode})",
-                SafeTelemetryLog.HttpError, SafeTelemetryLog.Classify(exception), routeTemplate, FallbackCode, statusCode);
+            logger.LogError("{TelemetryOperation} ({ErrorKind}) on {RouteTemplate}: {ErrorCode} ({StatusCode}) {ErrorType} {StackTrace} {TraceId}",
+                SafeTelemetryLog.HttpError,
+                SafeTelemetryLog.Classify(exception),
+                routeTemplate,
+                FallbackCode,
+                statusCode,
+                exception.GetType().Name,
+                SafeTelemetryLog.GetSafeStackTrace(exception),
+                Activity.Current?.TraceId.ToString());
         }
 
         httpContext.Response.StatusCode = statusCode;

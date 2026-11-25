@@ -125,13 +125,14 @@ public class StatusExceptionHandlerTests
             .ShouldBeAssignableTo<IReadOnlyList<KeyValuePair<string, object?>>>()
             .ShouldNotBeNull();
         fields.Select(field => field.Key).ShouldBe(
-            ["TelemetryOperation", "ErrorKind", "RouteTemplate", "ErrorCode", "StatusCode", "{OriginalFormat}"]);
+            ["TelemetryOperation", "ErrorKind", "RouteTemplate", "ErrorCode", "StatusCode", "ErrorType", "StackTrace", "TraceId", "{OriginalFormat}"]);
         var attributes = fields.ToDictionary(field => field.Key, field => field.Value);
         attributes["TelemetryOperation"].ShouldBe("http.error");
         attributes["ErrorKind"].ShouldBe(errorKind);
         attributes["RouteTemplate"].ShouldBe("/api/lobbies/{inviteCode}");
         attributes["ErrorCode"].ShouldBe("error");
         attributes["StatusCode"].ShouldBe(500);
+        attributes["ErrorType"].ShouldBe(exception.GetType().Name);
     }
 
     [Fact]

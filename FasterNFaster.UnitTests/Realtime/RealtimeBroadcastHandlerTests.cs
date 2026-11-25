@@ -136,7 +136,7 @@ public class RealtimeBroadcastHandlerTests
         var broadcaster = new FakeBroadcaster();
         var handler = new BroadcastRaceFinishedHandler(broadcaster);
 
-        var e = new RaceFinishedEvent(context.LobbyId, results);
+        var e = new RaceFinishedEvent(Guid.NewGuid(), context.LobbyId, results);
 
         await handler.Handle(new DomainEventNotification<RaceFinishedEvent>(e), CancellationToken.None);
 
