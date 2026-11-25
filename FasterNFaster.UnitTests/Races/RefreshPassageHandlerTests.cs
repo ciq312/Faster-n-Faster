@@ -39,7 +39,7 @@ public class RefreshPassageHandlerTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
         var passageBefore = await context.ReadRace(r => r.Passage);
         var provider = new GatedPassageProvider();
-        var handler = new RefreshPassageHandler(context.Lobbies, new PassageRefresher(context.Races, provider));
+        var handler = new RefreshPassageHandler(context.Lobbies, new PassageRefresher(context.Races, provider), Microsoft.Extensions.Logging.Abstractions.NullLogger<RefreshPassageHandler>.Instance);
 
         var refresh = handler.Handle(new RefreshPassageCommand(host.Id), CancellationToken.None);
         await provider.WaitForRequest();
@@ -51,6 +51,6 @@ public class RefreshPassageHandlerTests
     }
 
     private static Task Refresh(LobbyTestContext context, Guid callerId) =>
-        new RefreshPassageHandler(context.Lobbies, context.PassageRefresher)
+        new RefreshPassageHandler(context.Lobbies, context.PassageRefresher, Microsoft.Extensions.Logging.Abstractions.NullLogger<RefreshPassageHandler>.Instance)
             .Handle(new RefreshPassageCommand(callerId), CancellationToken.None);
 }

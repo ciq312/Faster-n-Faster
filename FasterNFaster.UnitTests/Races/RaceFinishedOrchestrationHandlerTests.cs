@@ -7,6 +7,7 @@ using FasterNFaster.Api.UseCases.Races.RefreshPassage;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FasterNFaster.UnitTests.Races;
 
@@ -139,10 +140,11 @@ public class RaceFinishedOrchestrationHandlerTests
             context.Lobbies,
             new PassageRefresher(context.Races, provider),
             context.Registry,
-            LobbyFactory.StateScope(context, new FakeBroadcaster()));
+            LobbyFactory.StateScope(context, new FakeBroadcaster()),
+            NullLogger<RaceFinishedOrchestrationHandler>.Instance);
 
     private static DomainEventNotification<RaceFinishedEvent> Notification(Guid lobbyId) =>
-        new(new RaceFinishedEvent(lobbyId, new List<RaceParticipantResult>()));
+        new(new RaceFinishedEvent(Guid.NewGuid(), lobbyId, new List<RaceParticipantResult>()));
 
     private static async Task<(RaceFinishedOrchestrationHandler Handler, LobbyTestContext Context, FakeBroadcaster Broadcaster)> Build()
     {
@@ -154,7 +156,7 @@ public class RaceFinishedOrchestrationHandlerTests
         var broadcaster = new FakeBroadcaster();
         var scope = LobbyFactory.StateScope(context, broadcaster);
 
-        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope);
+        var handler = new RaceFinishedOrchestrationHandler(context.Lobbies, context.PassageRefresher, context.Registry, scope, Microsoft.Extensions.Logging.Abstractions.NullLogger<RaceFinishedOrchestrationHandler>.Instance);
 
         return (handler, context, broadcaster);
     }

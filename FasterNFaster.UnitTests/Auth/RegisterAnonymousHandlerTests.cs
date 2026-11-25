@@ -9,7 +9,7 @@ public class RegisterAnonymousHandlerTests
     public async Task IssuesGuestTokens_ForAGeneratedGuestId()
     {
         var tokenService = new FakeTokenService();
-        var handler = new RegisterAnonymousHandler(tokenService);
+        var handler = new RegisterAnonymousHandler(tokenService, Microsoft.Extensions.Logging.Abstractions.NullLogger<RegisterAnonymousHandler>.Instance);
 
         var result = await handler.Handle(new RegisterAnonymousCommand("Speedy"), CancellationToken.None);
 

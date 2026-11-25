@@ -7,6 +7,6 @@ namespace FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 public class CleanupEmptyLobbyHandler(EmptyLobbyRemover remover)
     : INotificationHandler<DomainEventNotification<PlayerRemovedEvent>>
 {
-    public async Task Handle(DomainEventNotification<PlayerRemovedEvent> notification, CancellationToken cancellationToken) =>
-        await remover.TryRemove(notification.Event.LobbyId);
+    public Task Handle(DomainEventNotification<PlayerRemovedEvent> notification, CancellationToken cancellationToken) =>
+        remover.TryRemove(notification.Event.LobbyId);
 }

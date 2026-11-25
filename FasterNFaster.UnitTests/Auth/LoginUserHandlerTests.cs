@@ -2,13 +2,15 @@ using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.UseCases.Auth.Exceptions;
 using FasterNFaster.Api.UseCases.Auth.LoginUser;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FasterNFaster.UnitTests.Auth;
 
 public class LoginUserHandlerTests
 {
+
     private static LoginUserHandler CreateHandler(FakeUserRepository repo) =>
-        new(repo, PasswordHelperFactory.Create(), new FakeTokenService());
+        new(repo, PasswordHelperFactory.Create(), new FakeTokenService(), NullLogger<LoginUserHandler>.Instance);
 
     [Fact]
     public async Task LoginNotFound_ShouldThrowInvalidCredentials()

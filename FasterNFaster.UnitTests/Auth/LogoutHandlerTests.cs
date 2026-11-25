@@ -1,6 +1,7 @@
 using FasterNFaster.Api.Infrastructure.Auth;
 using FasterNFaster.Api.UseCases.Auth.Logout;
 using FasterNFaster.UnitTests.Fakes;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FasterNFaster.UnitTests.Auth;
 
@@ -12,7 +13,7 @@ public class LogoutHandlerTests
     {
         var tokenStore = new FakeRefreshTokenRepository();
         var sessions = new InMemorySessionService(tokenStore);
-        return (new LogoutHandler(tokenStore, sessions), sessions, tokenStore);
+        return (new LogoutHandler(tokenStore, sessions, NullLogger<LogoutHandler>.Instance), sessions, tokenStore);
     }
 
     [Fact]

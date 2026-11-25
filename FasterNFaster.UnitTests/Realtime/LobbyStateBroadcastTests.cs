@@ -20,7 +20,7 @@ public class LobbyStateBroadcastTests
         var joiner = new User("joiner");
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new JoinLobbyHandler(context.Lobbies)
+            new JoinLobbyHandler(context.Lobbies, Microsoft.Extensions.Logging.Abstractions.NullLogger<JoinLobbyHandler>.Instance)
                 .Handle(new JoinLobbyCommand(joiner.Id, context.LobbyId, joiner.Nick), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -42,7 +42,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new KickPlayerHandler(context.Lobbies)
+            new KickPlayerHandler(context.Lobbies, Microsoft.Extensions.Logging.Abstractions.NullLogger<KickPlayerHandler>.Instance)
                 .Handle(new KickPlayerCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -54,7 +54,7 @@ public class LobbyStateBroadcastTests
         var (host, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new TransferHostHandler(context.Lobbies)
+            new TransferHostHandler(context.Lobbies, Microsoft.Extensions.Logging.Abstractions.NullLogger<TransferHostHandler>.Instance)
                 .Handle(new TransferHostCommand(host.Id, other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -66,7 +66,7 @@ public class LobbyStateBroadcastTests
         var (_, other, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new DisconnectHandler(context.Lobbies, context.Races)
+            new DisconnectHandler(context.Lobbies, context.Races, Microsoft.Extensions.Logging.Abstractions.NullLogger<DisconnectHandler>.Instance)
                 .Handle(new DisconnectCommand(other.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);
@@ -88,7 +88,7 @@ public class LobbyStateBroadcastTests
         var (host, _, context) = await LobbyFactory.TwoUsersSetup();
 
         var broadcasts = await LobbyFactory.LobbyStateBroadcasts(context, () =>
-            new RefreshPassageHandler(context.Lobbies, context.PassageRefresher)
+            new RefreshPassageHandler(context.Lobbies, context.PassageRefresher, Microsoft.Extensions.Logging.Abstractions.NullLogger<RefreshPassageHandler>.Instance)
                 .Handle(new RefreshPassageCommand(host.Id), CancellationToken.None));
 
         Assert.Equal(1, broadcasts);

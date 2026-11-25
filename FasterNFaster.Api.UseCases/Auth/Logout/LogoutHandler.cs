@@ -1,9 +1,14 @@
 using FasterNFaster.Api.UseCases.Auth.Ports;
+using FasterNFaster.Api.UseCases.Shared;
 using MediatR;
 
 namespace FasterNFaster.Api.UseCases.Auth.Logout;
 
-public class LogoutHandler(IRefreshTokenRepository refreshTokens, ISessionService sessions) : IRequestHandler<LogoutCommand>
+public class LogoutHandler(
+    IRefreshTokenRepository refreshTokens,
+    ISessionService sessions,
+    ILogger<LogoutHandler> logger
+    ) : IRequestHandler<LogoutCommand>
 {
     public async Task Handle(LogoutCommand command, CancellationToken cancellationToken)
     {
@@ -13,5 +18,7 @@ public class LogoutHandler(IRefreshTokenRepository refreshTokens, ISessionServic
 
         if (command.UserId is { } userId)
             await sessions.RevokeAllSessions(userId);
+
+        logger.LogInformation("Revoked credentials for user {UserId} {TelemetryOperation}", command.UserId, TelemetryOperations.UserCredentialsRevoked);
     }
 }

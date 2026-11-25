@@ -127,7 +127,7 @@ public sealed class Race : AggregateRoot<Guid>
 
     private void FinishRace()
     {
-        RaiseDomainEvent(new RaceFinishedEvent(LobbyId, GetRaceResults().ToList()));
+        RaiseDomainEvent(new RaceFinishedEvent(Id, LobbyId, GetRaceResults().ToList()));
         EndTime = timeProvider.GetUtcNow();
         Reset();
     }

@@ -136,8 +136,7 @@ internal static class ObservabilityExtensions
 
     private static void ConfigureLogging(LoggerConfiguration logger, IServiceProvider provider, IConfiguration configuration)
     {
-        logger.MinimumLevel.Information()
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        logger.ReadFrom.Configuration(configuration)
             .WriteTo.Logger(console => console
                 .Filter.ByExcluding(logEvent => logEvent.Exception is null && SafeTelemetryLog.IsErrorOperation(GetOperation(logEvent)))
                 .WriteTo.Console());
@@ -171,8 +170,7 @@ internal static class ObservabilityExtensions
             return false;
 
         var operation = GetOperation(logEvent);
-        return operation is HttpRequestOperation or SignalRTelemetry.Connect or SignalRTelemetry.StartRace ||
-            SafeTelemetryLog.IsErrorOperation(operation);
+        return !string.IsNullOrWhiteSpace(operation);
     }
 
     private static string? GetOperation(LogEvent logEvent) =>
@@ -183,8 +181,7 @@ internal static class ObservabilityExtensions
 
     private static IEnumerable<LogEventProperty> GetRequestLogProperties(HttpContext context, string path, double elapsedMs, int statusCode)
     {
-        var routeTemplate = context.GetEndpoint() is RouteEndpoint { RoutePattern.Parameters.Count: 0 } endpoint &&
-            !IsReadinessRequest(context)
+        var routeTemplate = context.GetEndpoint() is RouteEndpoint endpoint && !IsReadinessRequest(context)
             ? endpoint.RoutePattern.RawText
             : null;
 
@@ -207,7 +204,8 @@ internal static class ObservabilityExtensions
             {
                 if (property is SafeTelemetryLog.OperationProperty or "SourceContext" ||
                     operation == HttpRequestOperation && property is "RequestMethod" or "RequestPath" or "StatusCode" or "Elapsed" ||
-                    SafeTelemetryLog.IsErrorOperation(operation) && property is "ErrorKind" or "RouteTemplate" or "ErrorCode" or "StatusCode")
+                    SafeTelemetryLog.IsErrorOperation(operation) && property is "ErrorKind" or "RouteTemplate" or "ErrorCode" or "StatusCode" or "ErrorType" or "StackTrace" or "TraceId" or "HubMethod" or "UserId" ||
+                    GetAllowedProperties(operation).Contains(property))
                 {
                     continue;
                 }
@@ -215,5 +213,26 @@ internal static class ObservabilityExtensions
                 logEvent.RemovePropertyIfPresent(property);
             }
         }
+
+        private static string[] GetAllowedProperties(string? operation) => operation switch
+        {
+            TelemetryOperations.RaceCountdownStarted or TelemetryOperations.RaceFinished => ["RaceId", "LobbyId"],
+            TelemetryOperations.PlayerKicked => ["TargetPlayerId", "UserId", "LobbyId"],
+            TelemetryOperations.PassageChanged => ["LobbyId", "UserId"],
+            TelemetryOperations.PlayerJoined => ["PlayerId", "LobbyId"],
+            TelemetryOperations.HostTransferred => ["TargetPlayerId", "HostId", "LobbyId"],
+            TelemetryOperations.PlayerDisconnected => ["PlayerId", "LobbyId"],
+            TelemetryOperations.UserCredentialsIssued or TelemetryOperations.UserCredentialsRevoked => ["UserId"],
+            TelemetryOperations.UserRegisteredAnonymously => ["UserId", "Nick"],
+            TelemetryOperations.LobbyRemoved => ["LobbyId"],
+            TelemetryOperations.LobbyCreated => ["LobbyId", "UserId"],
+            SafeTelemetryLog.LobbySweepFailed => ["LobbyId"],
+            TelemetryOperations.RaceViolation => ["PlayerId", "Nick", "LobbyId", "Rule"],
+            TelemetryOperations.PlayerWithdrawnForViolation => ["PlayerId", "LobbyId"],
+            TelemetryOperations.PlayerSuspended => ["PlayerId", "LobbyId", "SuspensionCount"],
+            TelemetryOperations.PlayerBanned => ["PlayerId", "LobbyId"],
+            "signalr.connect" => ["UserId"],
+            _ => [],
+        };
     }
 }
