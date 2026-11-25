@@ -5,7 +5,6 @@ using FasterNFaster.Api.UseCases.AntiCheat.Sanctions;
 using FasterNFaster.Api.UseCases.Realtime.Ports;
 using FasterNFaster.Api.UseCases.Shared;
 using FasterNFaster.UnitTests.Fakes;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FasterNFaster.UnitTests.AntiCheat;

@@ -1,6 +1,6 @@
+using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using FasterNFaster.Api.UseCases.Lobbies.Cleanup;
 using FasterNFaster.Api.UseCases.Lobbies.Ports;
-using FasterNFaster.Api.Infrastructure.Shared.Telemetry;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
