@@ -1,0 +1,19 @@
+services:
+  postgres:
+    container_name: !reset null
+    ports: !reset []
+  redis:
+    container_name: !reset null
+    ports: !reset []
+  migrate:
+    container_name: !reset null
+  api:
+    container_name: !reset null
+    env_file: !reset []
+    ports: !override
+      - "127.0.0.1::8080"
+    environment:
+      Google__ClientId: local-e2e
+      Google__ClientSecret: local-e2e
+      AuthCookies__Secure: "false"
+      Cors__AllowedOrigins__0: http://localhost:13001

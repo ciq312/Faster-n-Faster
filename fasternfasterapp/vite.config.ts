@@ -15,10 +15,10 @@ export default defineConfig(({ mode }) => ({
     host: true,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8080",
+        target: process.env.E2E_API_URL ?? "http://127.0.0.1:8080",
       },
       "/gameHub": {
-        target: "http://127.0.0.1:8080",
+        target: process.env.E2E_API_URL ?? "http://127.0.0.1:8080",
         ws: true,
       },
     },
