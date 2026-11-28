@@ -1,4 +1,4 @@
-﻿using FasterNFaster.Api.Domain.Entities;
+using FasterNFaster.Api.Domain.Entities;
 using FasterNFaster.Api.Infrastructure.Auth;
 using Microsoft.AspNetCore.Identity;
 
