@@ -52,3 +52,25 @@ export E2E_PASSWORD="$password"
 cd fasternfasterapp
 
 npx playwright test "$@"
+
+for attempt in 1 2 3 4 5; do
+    races_typed=$(
+        "${compose[@]}" exec -T postgres \
+            psql -qAt -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+            -v ON_ERROR_STOP=1 -v user_id="$user_id" <<'SQL'
+SELECT "RacesTyped" FROM "Statistics" WHERE "Id" = :'user_id';
+SQL
+    )
+
+    if [[ "$races_typed" == "1" ]]; then
+        echo "Verified: Alice has one saved race."
+        break
+    fi
+
+    if (( attempt == 5 )); then
+        echo "Expected one saved race for Alice, got '${races_typed:-no row}'." >&2
+        exit 1
+    fi
+
+    sleep 1
+done

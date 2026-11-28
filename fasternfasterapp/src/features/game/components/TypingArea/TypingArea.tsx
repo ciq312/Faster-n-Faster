@@ -150,6 +150,7 @@ function TypingArea({
               <span
                 key={p.playerId}
                 className="typing-area__caret"
+                data-progress-index={p.index}
                 style={{
                   transform: `translate(${pos.left}px, ${pos.top}px)`,
                   background: p.color,
